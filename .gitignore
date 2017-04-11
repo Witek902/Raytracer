@@ -1,0 +1,28 @@
+# Visual Studio precompiled headers
+/ipch
+
+# Visual Studio intermediate projects' directories
+/Obj
+
+# Output dir and files
+/Bin
+*.a
+*.so
+
+/Cache
+
+# Visual Studio Performance Analysis Results
+*.vsp
+*.vspx
+*.psess
+
+# Other useless folders and file patterns
+/Logs
+*.opensdf
+*.opendb
+*.sdf
+*.suo
+*.vcxproj.user
+*.pyc
+*.VC.db
+.vs/

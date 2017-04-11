@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="RayLib.h" />
+    <ClInclude Include="Random.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PCH.cpp" />
+    <ClCompile Include="Random.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Math">
+      <UniqueIdentifier>{d311ad2f-9ea8-432e-b362-e02e001ad7c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{7f30fc4a-79e7-4213-ac8a-614844862318}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{83dcdc78-85b9-425e-9f76-fcd60b180cfb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
