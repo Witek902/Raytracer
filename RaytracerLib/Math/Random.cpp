@@ -1,39 +1,15 @@
 #include "PCH.h"
 #include "Random.h"
-
-#include <time.h>
-
-
-union Bits32
-{
-    Float f;
-    Uint32 ui;
-    Int32 si;
-};
-
-union Bits64
-{
-    Double f;
-    Uint64 ui;
-    Int64 si;
-};
+#include "Math.h"
 
 
-Random::Random()
-{
-    mSeed = static_cast<Uint64>(time(0));
-}
+namespace rt {
+namespace math {
+
 
 Random::Random(Uint64 seed)
+    : mSeed(seed)
 {
-    if (seed == 0)
-    {
-        mSeed = static_cast<Uint64>(time(0));
-    }
-    else
-    {
-        mSeed = seed;
-    }
 }
 
 Uint64 Random::GetLong()
@@ -186,3 +162,7 @@ Float4 Random::GetFloatNormal4()
 }
 
 */
+
+
+} // namespace Math
+} // namespace NFE

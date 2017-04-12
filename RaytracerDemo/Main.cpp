@@ -4,72 +4,28 @@
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    UNUSED(hPrevInstance);
-    UNUSED(lpCmdLine);
+    RT_UNUSED(hPrevInstance);
+    RT_UNUSED(lpCmdLine);
 
-    DemoWindow demo;
-
-    if (!demo.Initialize())
     {
-        return 1;
-    }
+        DemoWindow demo;
 
-    if (!demo.Loop())
-    {
-        return 2;
-    }
-
-    return 0;
-
-    /*
-    MSG msg;
-
-    // Initialize global strings
-    MyRegisterClass(hInstance);
-
-    // Perform application initialization:
-    if (!InitInstance(hInstance, nCmdShow))
-        return FALSE;
-
-
-    LARGE_INTEGER start, stop, freq;
-    QueryPerformanceCounter(&stop);
-    QueryPerformanceFrequency(&freq);
-
-    bool Done = false;
-    static wchar_t pTitle[128];
-
-    while (!Done)
-    {
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        if (!demo.Initialize())
         {
-            if (msg.message == WM_QUIT)
-            {
-                Done = true;
-                break;
-            }
-            else
-            {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
+            return 1;
         }
 
-        start = stop;
-        QueryPerformanceCounter(&stop);
-
-        Render();
-
-        g_DeltaTime = (double)(stop.QuadPart - start.QuadPart) / (double)freq.QuadPart;
-        g_TotalTime += g_DeltaTime;
-        g_Frames++;
-
-        InvalidateRect(g_window.hWnd, NULL, FALSE);
+        if (!demo.Loop())
+        {
+            return 2;
+        }
     }
 
-    return (int)msg.wParam;
-    */
+#ifdef _DEBUG
+    _CrtDumpMemoryLeaks();
+#endif
 
+    return 0;
 }
 
 

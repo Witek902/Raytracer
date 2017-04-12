@@ -495,43 +495,43 @@ void Window::OnClose()
 
 void Window::OnResize(Uint32 width, Uint32 height)
 {
-    UNUSED(width);
-    UNUSED(height);
+    RT_UNUSED(width);
+    RT_UNUSED(height);
 }
 
 void Window::OnKeyPress(Uint32 key)
 {
-    UNUSED(key);
+    RT_UNUSED(key);
 }
 
 void Window::OnCharTyped(const char* charUTF8)
 {
-    UNUSED(charUTF8);
+    RT_UNUSED(charUTF8);
 }
 
 void Window::OnScroll(int delta)
 {
-    UNUSED(delta);
+    RT_UNUSED(delta);
 }
 
 void Window::OnMouseDown(Uint32 button, int x, int y)
 {
-    UNUSED(button);
-    UNUSED(x);
-    UNUSED(y);
+    RT_UNUSED(button);
+    RT_UNUSED(x);
+    RT_UNUSED(y);
 }
 
 void Window::OnMouseMove(int x, int y, int deltaX, int deltaY)
 {
-    UNUSED(x);
-    UNUSED(y);
-    UNUSED(deltaX);
-    UNUSED(deltaY);
+    RT_UNUSED(x);
+    RT_UNUSED(y);
+    RT_UNUSED(deltaX);
+    RT_UNUSED(deltaY);
 }
 
 void Window::OnMouseUp(Uint32 button)
 {
-    UNUSED(button);
+    RT_UNUSED(button);
 }
 
 void Window::Paint(Uint32 width, Uint32 height, const void* data)

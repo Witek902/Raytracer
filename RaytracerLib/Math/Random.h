@@ -1,6 +1,11 @@
 #pragma once
 
-#include "RayLib.h"
+#include "../RayLib.h"
+
+
+namespace rt {
+namespace math {
+
 
 class RAYLIB_API Random
 {
@@ -16,8 +21,7 @@ private:
     }
 
 public:
-    Random();
-    Random(Uint64 seed);
+    Random(Uint64 seed = 0xcc13ad01e0b8b067);
 
     Uint64 GetLong();
     Uint32 GetInt();
@@ -43,3 +47,7 @@ public:
     Float4 GetFloatNormal4();
     */
 };
+
+
+} // namespace Math
+} // namespace NFE

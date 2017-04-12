@@ -15,6 +15,7 @@
 *.vsp
 *.vspx
 *.psess
+*.etl
 
 # Other useless folders and file patterns
 /Logs

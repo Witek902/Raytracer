@@ -4,6 +4,8 @@
 #include "../RaytracerLib/Logger.h"
 
 
+using namespace rt;
+
 namespace {
 
 Uint32 WINDOW_WIDTH = 1280;
@@ -52,7 +54,18 @@ void DemoWindow::Reset()
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
 {
-    mFrameBuffer.reset(new Uint32[width * height]);
+    mFramebuffer.Init(width, height, Bitmap::Format::R8G8B8A8_Uint);
+
+    UpdateCamera();
+}
+
+bool DemoWindow::InitScene()
+{
+    mScene.reset(new rt::Scene);
+
+
+
+    return true;
 }
 
 void DemoWindow::OnKeyPress(Uint32 key)
@@ -104,14 +117,22 @@ void DemoWindow::Render()
     Uint32 width, height;
     GetSize(width, height);
 
-    for (Uint32 y = 0; y < height; ++y)
-    {
-        for (Uint32 x = 0; x < width; ++x)
-        {
-            const Uint32 color = mRandomGenerator.GetInt();
-            mFrameBuffer[width * y + x] = color;
-        }
-    }
+    RaytracingParams params;
+    mScene->Raytrace(mCamera, mFramebuffer, params);
 
-    Paint(width, height, mFrameBuffer.get());
+    Paint(width, height, mFramebuffer.GetData());
+}
+
+void DemoWindow::UpdateCamera()
+{
+    Uint32 width, height;
+    GetSize(width, height);
+
+    mCamera.SetPerspective(math::Vector(0.0f, 0.0f, -5.0f),
+                           math::Vector(0.0f, 0.0f, 1.0f),
+                           math::Vector(0.0f, 1.0f, 0.0f),
+                           (Float)width / (Float)height,
+                           RT_PI * 70.0f / 180.0f);
+
+    mCamera.Update();
 }
