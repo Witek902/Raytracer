@@ -256,7 +256,7 @@ Vector& Vector::operator/= (Float b)
 
 Vector Vector::MulAndAdd(const Vector& a, const Vector& b, const Vector& c)
 {
-#ifdef NFE_USE_FMA
+#ifdef RT_USE_FMA
     return _mm_fmadd_ps(a, b, c);
 #else
     return a * b + c;
@@ -265,7 +265,7 @@ Vector Vector::MulAndAdd(const Vector& a, const Vector& b, const Vector& c)
 
 Vector Vector::MulAndSub(const Vector& a, const Vector& b, const Vector& c)
 {
-#ifdef NFE_USE_FMA
+#ifdef RT_USE_FMA
     return _mm_fmsub_ps(a, b, c);
 #else
     return a * b - c;
@@ -274,16 +274,16 @@ Vector Vector::MulAndSub(const Vector& a, const Vector& b, const Vector& c)
 
 Vector Vector::NegMulAndAdd(const Vector& a, const Vector& b, const Vector& c)
 {
-#ifdef NFE_USE_FMA
+#ifdef RT_USE_FMA
     return _mm_fnmadd_ps(a, b, c);
 #else
-    return -(a * b) - c;
+    return -(a * b) + c;
 #endif
 }
 
 Vector Vector::NegMulAndSub(const Vector& a, const Vector& b, const Vector& c)
 {
-#ifdef NFE_USE_FMA
+#ifdef RT_USE_FMA
     return _mm_fnmsub_ps(a, b, c);
 #else
     return c - a * b;

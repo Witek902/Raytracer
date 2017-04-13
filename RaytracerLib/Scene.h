@@ -82,19 +82,19 @@ public:
 
     // Perform scene raytracing
     // Result will be stored in the given bitmap (render target)
-    bool Raytrace(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params) const;
+    bool Raytrace(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
 
     // trace single (non-SIMD) ray
-    RT_FORCE_NOINLINE math::Vector TraceRaySingle(const math::Ray& ray, RayTracingContext& context) const;
+    RT_FORCE_NOINLINE math::Vector TraceRaySingle(const math::Ray& ray, RayTracingContext& context);
 
 private:
-    RT_FORCE_NOINLINE void RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params) const;
+    RT_FORCE_NOINLINE void RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
 
     std::vector<MeshInstance> mMeshInstances;
     std::vector<LightInstance> mLightInstances;
 
     // TODO move to thread
-    mutable math::Random mRandomGenerator;
+    math::Random mRandomGenerator;
 };
 
 } // namespace rt

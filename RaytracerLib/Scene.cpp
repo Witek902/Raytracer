@@ -6,11 +6,13 @@
 #include "Math/Geometry.h" // TODO remove
 
 
+#define RT_FILL_RATE_TEST 0
+
 namespace rt {
 
 using namespace math;
 
-bool Scene::Raytrace(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params) const
+bool Scene::Raytrace(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params)
 {
     // TODO parameter verification
 
@@ -19,7 +21,7 @@ bool Scene::Raytrace(const Camera& camera, Bitmap& renderTarget, const Raytracin
     return true;
 }
 
-void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params) const
+void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params)
 {
     const Uint32 width = renderTarget.GetWidth();
     const Uint32 height = renderTarget.GetHeight();
@@ -37,6 +39,13 @@ void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const Ray
         {
             const Float xCoord = (Float)x * invWidth;
 
+#if RT_FILL_RATE_TEST
+
+            // just filling with white noise
+            renderTarget.SetPixel(x, y, mRandomGenerator.GetVector4());
+
+#else // !RT_FILL_RATE_TEST
+
             // TODO Monte Carlo ray generation:
             // depth of field
             // antialiasing
@@ -46,30 +55,32 @@ void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const Ray
             const math::Ray cameraRay = camera.GenerateRay(xCoord, yCoord);
 
             RayTracingContext context(mRandomGenerator, params, counters);
-            const math::Vector color = TraceRaySingle(cameraRay, context);
+            math::Vector color = TraceRaySingle(cameraRay, context);
 
             renderTarget.SetPixel(x, y, color);
+
+#endif RT_FILL_RATE_TEST
         }
     }
 }
 
-math::Vector Scene::TraceRaySingle(const math::Ray& ray, RayTracingContext& context) const
+math::Vector Scene::TraceRaySingle(const math::Ray& ray, RayTracingContext& context)
 {
     RT_UNUSED(context);
 
-    /*
     Triangle triangle(Vector(-1.0f, -0.5f, 0.0f), Vector(1.0f, -0.5f, 0.0f), Vector(0.0f, 0.5f, 0.0f));
     if (math::Intersect(ray, triangle))
     {
-        return math::VECTOR_ONE;
+        return Vector(1.0f, 1.0f, 1.0f);
     }
-    */
 
-    Box box(Vector(-1.0f, -1.0f, -1.0f), Vector(1.0f, 1.0f, 1.0f));
+    /*
+    Box box(Vector(-10.0f, -2.0f, -10.0f), Vector(10.0f, -0.5f, 10.0f));
     if (math::Intersect(ray, box))
     {
-        return math::VECTOR_ONE;
+        return Vector(0.5f, 0.5f, 0.5f);
     }
+    */
 
     return Vector();
 }

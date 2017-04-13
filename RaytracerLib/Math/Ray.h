@@ -23,7 +23,7 @@ public:
         : origin(origin)
     {
         dir = direction.FastNormalized3();
-        invDir = Vector::FastReciprocal(dir); // TODO fast inverse
+        invDir = Vector::FastReciprocal(dir);
     }
 };
 

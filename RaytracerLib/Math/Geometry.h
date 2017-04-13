@@ -105,7 +105,7 @@ RT_FORCE_INLINE bool RayTriangleIntersectInline(const Ray& ray, const Triangle& 
     Vector tmp1 = _mm_shuffle_ps(v, u, _MM_SHUFFLE(0, 0, 0, 0));
     Vector tmp2 = _mm_shuffle_ps(u + v, t, _MM_SHUFFLE(0, 0, 0, 0));
     tmp1 = _mm_shuffle_ps(tmp2, tmp1, _MM_SHUFFLE(2, 0, 2, 0));
-    tmp1 = tmp1 / det;
+    tmp1 = tmp1 * Vector::FastReciprocal(det);
     tmp2 = _mm_set_ss(1.0f);
     dist = tmp1.SplatY();
 

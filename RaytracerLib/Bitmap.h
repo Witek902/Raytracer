@@ -39,7 +39,7 @@ public:
 
     // set single pixel
     // TODO: this probably will be too slow
-    RT_FORCE_NOINLINE void SetPixel(Uint32 x, Uint32 y, const math::Vector& value);
+    void SetPixel(Uint32 x, Uint32 y, const math::Vector& value);
 
     // get single pixel
     // TODO: this probably will be too slow

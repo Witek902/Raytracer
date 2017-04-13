@@ -2,6 +2,8 @@
 
 #include "Math.h"
 
+#define RT_USE_FMA
+
 namespace rt {
 namespace math {
 

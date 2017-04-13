@@ -25,8 +25,8 @@ void Camera::SetPerspective(const math::Vector& pos, const math::Vector& dir, co
 void Camera::Update()
 {
     mForwardInternal = mForward.Normalized3();
-    mRightInternal = Vector::Cross3(mUp, mForward).Normalized3();
-    mUpInternal = Vector::Cross3(mForward, mRightInternal).Normalized3();
+    mRightInternal = Vector::Cross3(mUp, mForwardInternal).Normalized3();
+    mUpInternal = Vector::Cross3(mForwardInternal, mRightInternal).Normalized3();
 
     // field of view
     const Float tanHalfFoV = tanf(mFieldOfView * 0.5f);
@@ -48,7 +48,7 @@ math::Ray Camera::GenerateRay(Float x, Float y) const
         {
             x = 2.0f * x - 1.0f;
             y = 2.0f * y - 1.0f;
-            direction = mForward + x * mRightInternal + y * mUpInternal;
+            direction = mForwardInternal + x * mRightInternal + y * mUpInternal;
             break;
         }
     }

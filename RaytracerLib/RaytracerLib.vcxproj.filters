@@ -67,6 +67,9 @@
     <ClInclude Include="Camera.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
@@ -98,6 +101,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="MeshInstance.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

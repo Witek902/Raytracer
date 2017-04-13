@@ -1,15 +1,16 @@
 #pragma once
 
 #include "../RayLib.h"
-
+#include "Vector.h"
 
 namespace rt {
 namespace math {
 
-
+RT_ALIGN(16)
 class RAYLIB_API Random
 {
 private:
+    __m128i mSeedV;
     Uint64 mSeed;
 
     // XOR-shift algorithm
@@ -34,18 +35,9 @@ public:
     // faster than "GetFloat()*2.0f-1.0f"
     float GetFloatBipolar();
 
-    /*
-    // generate uniformly distributed float vectors
-    Float2 GetFloat2();
-    Float3 GetFloat3();
-    Float4 GetFloat4();
-
-    // Generate random float (vector) with Gaussian distribution. (SLOW)
-    float GetFloatNormal();
-    Float2 GetFloatNormal2();
-    Float3 GetFloatNormal3();
-    Float4 GetFloatNormal4();
-    */
+    // generate random vector of 4 elements from range (0.0f, 1.0f]
+    // this is much faster that using GetFloat() 4 times
+    Vector GetVector4();
 };
 
 

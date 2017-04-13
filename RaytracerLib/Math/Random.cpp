@@ -10,6 +10,7 @@ namespace math {
 Random::Random(Uint64 seed)
     : mSeed(seed)
 {
+    mSeedV = _mm_set_epi32(0x2f558471, 0x61cb8acc, 0xd6974cff, 0x241e5c86);
 }
 
 Uint64 Random::GetLong()
@@ -49,120 +50,25 @@ double Random::GetDouble()
     return myrand.f - 1.0;
 }
 
-
-/*
-
-Float2 Random::GetFloat2()
+Vector Random::GetVector4()
 {
-    Float2 result;
-    Bits32 myrand;
+    // Integer XOR-shift
+    mSeedV = _mm_xor_si128(mSeedV, _mm_slli_epi32(mSeedV, 13));
+    mSeedV = _mm_xor_si128(mSeedV, _mm_srli_epi32(mSeedV, 17));
+    mSeedV = _mm_xor_si128(mSeedV, _mm_slli_epi32(mSeedV, 5));
 
-    Shuffle();
+    // setup float mask
+    __m128i v = mSeedV;
+    v = _mm_and_si128(v, _mm_set1_epi32(0x007fffff));
+    v = _mm_or_si128(v, _mm_set1_epi32(0x3f800000));
+    v = _mm_add_epi32(v, _mm_set1_epi32(1));
 
-    myrand.ui = 1 + ((static_cast<int>(mSeed) & 0x007fffff) | 0x3f800000);
-    result.x = myrand.f - 1.0f;
-    myrand.ui = 1 + ((static_cast<int>(mSeed >> 32) & 0x007fffff) | 0x3f800000);
-    result.y = myrand.f - 1.0f;
+    // convert to float and go from [1, 2) to [0, 1)
+    Vector result = _mm_castsi128_ps(v);
+    result -= VECTOR_ONE;
 
     return result;
 }
-
-Float3 Random::GetFloat3()
-{
-    Float3 result;
-    Bits32 myrand;
-
-    Shuffle();
-    myrand.ui = 1 + ((static_cast<int>(mSeed) & 0x007fffff) | 0x3f800000);
-    result.x = myrand.f - 1.0f;
-    myrand.ui = 1 + ((static_cast<int>(mSeed >> 32) & 0x007fffff) | 0x3f800000);
-    result.y = myrand.f - 1.0f;
-
-    Shuffle();
-    myrand.ui = 1 + ((static_cast<int>(mSeed) & 0x007fffff) | 0x3f800000);
-    result.z = myrand.f - 1.0f;
-
-    return result;
-}
-
-Float4 Random::GetFloat4()
-{
-    Float4 result;
-    Bits32 myrand;
-
-    Shuffle();
-    myrand.ui = 1 + ((static_cast<int>(mSeed) & 0x007fffff) | 0x3f800000);
-    result.x = myrand.f - 1.0f;
-    myrand.ui = 1 + ((static_cast<int>(mSeed >> 32) & 0x007fffff) | 0x3f800000);
-    result.y = myrand.f - 1.0f;
-
-    Shuffle();
-    myrand.ui = 1 + ((static_cast<int>(mSeed) & 0x007fffff) | 0x3f800000);
-    result.z = myrand.f - 1.0f;
-    myrand.ui = 1 + ((static_cast<int>(mSeed >> 32) & 0x007fffff) | 0x3f800000);
-    result.w = myrand.f - 1.0f;
-
-    return result;
-}
-
-
-float Random::GetFloatNormal()
-{
-    // Box-Muller method
-    Float2 uv = GetFloat2();
-    return sqrtf(- 2.0f * logf(uv.x)) * cosf(6.2831853f * uv.y);
-}
-
-Float2 Random::GetFloatNormal2()
-{
-    Float2 result;
-
-    // Box-Muller method
-    Float2 uv = GetFloat2();
-    float temp = sqrtf(- 2.0f * logf(uv.x));
-
-    result.x = temp * cosf(6.2831853f * uv.y);
-    result.y = temp * sinf(6.2831853f * uv.y);
-    return result;
-}
-
-Float3 Random::GetFloatNormal3()
-{
-    Float3 result;
-
-    // Box-Muller method
-    Float2 uv = GetFloat2();
-    float temp = sqrtf(- 2.0f * logf(uv.x));
-    result.x = temp * cosf(6.2831853f * uv.y);
-    result.y = temp * sinf(6.2831853f * uv.y);
-
-    uv = GetFloat2();
-    temp = sqrtf(- 2.0f * logf(uv.x));
-    result.z = temp * cosf(6.2831853f * uv.y);
-
-    return result;
-}
-
-Float4 Random::GetFloatNormal4()
-{
-    Float4 result;
-
-    // Box-Muller method
-    Float2 uv = GetFloat2();
-    float temp = sqrtf(- 2.0f * logf(uv.x));
-    result.x = temp * cosf(6.2831853f * uv.y);
-    result.y = temp * sinf(6.2831853f * uv.y);
-
-    uv = GetFloat2();
-    temp = sqrtf(- 2.0f * logf(uv.x));
-    result.z = temp * cosf(6.2831853f * uv.y);
-    result.w = temp * sinf(6.2831853f * uv.y);
-
-    return result;
-}
-
-*/
-
 
 } // namespace Math
 } // namespace NFE

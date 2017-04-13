@@ -96,7 +96,7 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector& value)
         case Format::R8G8B8A8_Uint:
         {
             Uint8* target = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            const Vector clampedValue = value.Clamped(Vector(), VECTOR_ONE) * 255.0f;
+            const Vector clampedValue = value * 255.0f;
             clampedValue.Store4(target);
             break;
         }
