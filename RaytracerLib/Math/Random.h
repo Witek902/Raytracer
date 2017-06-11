@@ -10,7 +10,9 @@ RT_ALIGN(16)
 class RAYLIB_API Random
 {
 private:
-    __m128i mSeedV;
+    __m128i mSeed0;
+    __m128i mSeed1;
+
     Uint64 mSeed;
 
     // XOR-shift algorithm

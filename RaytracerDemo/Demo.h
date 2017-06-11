@@ -49,6 +49,7 @@ private:
     Uint32 mFrameCounterForAverage;
 
     Double mDeltaTime;
+    Double mMinDeltaTime;
     Double mTotalTime;
     Double mRefreshTime;
 
@@ -59,6 +60,7 @@ private:
     void OnKeyPress(Uint32 key) override;
     void OnResize(Uint32 width, Uint32 height) override;
 
+    void ResetCounters();
     void ResetCamera();
     bool InitScene();
     void UpdateCamera();

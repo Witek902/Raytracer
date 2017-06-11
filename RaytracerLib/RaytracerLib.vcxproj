@@ -184,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightInstance.h" />
     <ClInclude Include="Logger.h" />

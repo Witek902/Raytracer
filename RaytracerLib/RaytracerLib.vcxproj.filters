@@ -70,6 +70,7 @@
     <ClInclude Include="VertexBuffer.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />

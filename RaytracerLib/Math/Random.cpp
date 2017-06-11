@@ -10,7 +10,8 @@ namespace math {
 Random::Random(Uint64 seed)
     : mSeed(seed)
 {
-    mSeedV = _mm_set_epi32(0x2f558471, 0x61cb8acc, 0xd6974cff, 0x241e5c86);
+    mSeed0 = _mm_set_epi32(0x2f558471, 0x61cb8acc, 0xd6974cff, 0x241e5c86);
+    mSeed1 = _mm_set_epi32(0x24e64b29, 0xe4f8e2d6, 0xbb3399b9, 0xa144f054);
 }
 
 Uint64 Random::GetLong()
@@ -52,18 +53,22 @@ double Random::GetDouble()
 
 Vector Random::GetVector4()
 {
-    // Integer XOR-shift
-    mSeedV = _mm_xor_si128(mSeedV, _mm_slli_epi32(mSeedV, 13));
-    mSeedV = _mm_xor_si128(mSeedV, _mm_srli_epi32(mSeedV, 17));
-    mSeedV = _mm_xor_si128(mSeedV, _mm_slli_epi32(mSeedV, 5));
+    // xorshift128+ algorithm
+    const __m128i s0 = mSeed1;
+    __m128i s1 = mSeed0;
+    __m128i v = _mm_add_epi64(s0, s1);
+    s1 = _mm_slli_epi64(s1, 23);
+    const __m128i t0 = _mm_srli_epi64(s0, 5);
+    const __m128i t1 = _mm_srli_epi64(s1, 18);
+    mSeed0 = s0;
+    mSeed1 = _mm_xor_si128(_mm_xor_si128(s1, t1), _mm_xor_si128(s0, t0));
 
     // setup float mask
-    __m128i v = mSeedV;
-    v = _mm_and_si128(v, _mm_set1_epi32(0x007fffff));
-    v = _mm_or_si128(v, _mm_set1_epi32(0x3f800000));
-    v = _mm_add_epi32(v, _mm_set1_epi32(1));
+    v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
+    v = _mm_or_si128(v, _mm_set1_epi32(0x3f800000u));
+    v = _mm_add_epi32(v, _mm_set1_epi32(1u));
 
-    // convert to float and go from [1, 2) to [0, 1)
+    // convert to float and go from [1, 2) to [0, 1) range
     Vector result = _mm_castsi128_ps(v);
     result -= VECTOR_ONE;
 

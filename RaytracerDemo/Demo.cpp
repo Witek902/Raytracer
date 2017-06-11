@@ -44,15 +44,19 @@ bool DemoWindow::Initialize()
 
 void DemoWindow::Reset()
 {
+    ResetCounters();
+    ResetCamera();
+    InitScene();
+}
+
+void DemoWindow::ResetCounters()
+{
     mFrameNumber = 0;
     mFrameCounterForAverage = 0;
-
+    mMinDeltaTime = std::numeric_limits<Double>::max();
     mDeltaTime = 0.0;
     mTotalTime = 0.0;
     mRefreshTime = 0.0;
-
-    ResetCamera();
-    InitScene();
 }
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
@@ -60,6 +64,7 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
     mFramebuffer.Init(width, height, Bitmap::Format::R8G8B8A8_Uint);
 
     UpdateCamera();
+    ResetCounters();
 }
 
 void DemoWindow::ResetCamera()
@@ -100,7 +105,7 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
     }
 }
 
-void DemoWindow::OnMouseUp(Uint32 button) 
+void DemoWindow::OnMouseUp(Uint32 button)
 {
 
 }
@@ -121,25 +126,40 @@ bool DemoWindow::Loop()
     while (!IsClosed())
     {
         ProcessMessages();
+        UpdateCamera();
 
-        // update time & frame stats
-        const double dt = timer.Reset();
+        timer.Start();
+
+        Double dt;
+        {
+            Uint32 width, height;
+            GetSize(width, height);
+
+            timer.Start();
+            {
+                RaytracingParams params;
+                mScene->Raytrace(mCamera, mFramebuffer, params);
+            }
+            dt = timer.Stop();
+
+            Paint(width, height, mFramebuffer.GetData());
+        }
+
         mDeltaTime = dt;
         mTotalTime += dt;
         mRefreshTime += dt;
         mFrameNumber++;
         mFrameCounterForAverage++;
-
-        UpdateCamera();
-        Render();
+        mMinDeltaTime = math::Min(mMinDeltaTime, mDeltaTime);
 
         // refresh window title bar
         if (mRefreshTime > 1.0)
         {
-            const double avgDt = mRefreshTime / static_cast<Double>(mFrameCounterForAverage);
+            const double avgDtMs = 1000.0 * mRefreshTime / static_cast<Double>(mFrameCounterForAverage);
+            const double minDtMs = 1000.0 * mMinDeltaTime;
 
             std::stringstream stringStream;
-            stringStream << "Raytracer Demo " << "dt = " << (1000.0 * avgDt) << "ms, " << "frame " << mFrameNumber;
+            stringStream << "Raytracer Demo " << "dt = " << avgDtMs << "ms (min. " << minDtMs << "), " << "frame " << mFrameNumber;
             SetTitle(stringStream.str().c_str());
 
             mFrameCounterForAverage = 0;
@@ -152,13 +172,7 @@ bool DemoWindow::Loop()
 
 void DemoWindow::Render()
 {
-    Uint32 width, height;
-    GetSize(width, height);
 
-    RaytracingParams params;
-    mScene->Raytrace(mCamera, mFramebuffer, params);
-
-    Paint(width, height, mFramebuffer.GetData());
 }
 
 void DemoWindow::UpdateCamera()

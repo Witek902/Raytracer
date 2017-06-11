@@ -3,6 +3,8 @@
 #include "RayLib.h"
 #include "Math/Box.h"
 
+#include "VertexBuffer.h"
+
 namespace rt {
 
 

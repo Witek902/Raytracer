@@ -44,13 +44,16 @@ math::Ray Camera::GenerateRay(Float x, Float y) const
 
     switch (mMode)
     {
-        case rt::CameraMode::Perspective:
+        case CameraMode::Perspective:
         {
             x = 2.0f * x - 1.0f;
             y = 2.0f * y - 1.0f;
             direction = mForwardInternal + x * mRightInternal + y * mUpInternal;
             break;
         }
+
+        // TODO more types:
+        // ortho, fisheye, spherical, etc.
     }
 
     return Ray(direction, origin);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RayLib.h"
+#include "Config.h"
 #include "MeshInstance.h"
 #include "LightInstance.h"
 #include "Math/Vector.h"
@@ -30,13 +31,20 @@ struct RaytracingParams
 
 struct RayTracingCounters
 {
+    Uint32 numPrimaryRays;
     Uint32 numShadowRays;
     Uint32 numReflectionRays;
     Uint32 numTransparencyRays;
     Uint32 numDiffuseRays;
-    // TODO ray-tri intersections
-    // TODO ray-box intersections
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    Uint32 numRayBoxTests;
+    Uint32 numPassedRayBoxTests;
+    Uint32 numRayTriangleTests;
+    Uint32 numPassedRayTriangleTests;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
 };
+
+//////////////////////////////////////////////////////////////////////////
 
 /**
  * A structure with local (per-thread) data.
@@ -58,7 +66,7 @@ struct RayTracingContext
     // per-thread counters
     RayTracingCounters& counters;
 
-    RT_FORCE_INLINE RayTracingContext(math::Random& randomGenerator, const RaytracingParams& params, RayTracingCounters& counters)
+    RayTracingContext(math::Random& randomGenerator, const RaytracingParams& params, RayTracingCounters& counters)
         : depth(0)
         , randomGenerator(randomGenerator)
         , params(params)
@@ -66,6 +74,7 @@ struct RayTracingContext
     { }
 };
 
+//////////////////////////////////////////////////////////////////////////
 
 /**
  * Rendering scene.
@@ -85,10 +94,10 @@ public:
     bool Raytrace(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
 
     // trace single (non-SIMD) ray
-    RT_FORCE_NOINLINE math::Vector TraceRaySingle(const math::Ray& ray, RayTracingContext& context);
+    RT_FORCE_NOINLINE math::Vector TraceRay_Single(const math::Ray& ray, RayTracingContext& context) const;
 
 private:
-    RT_FORCE_NOINLINE void RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
+    RT_FORCE_NOINLINE void Raytrace_Single(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
 
     std::vector<MeshInstance> mMeshInstances;
     std::vector<LightInstance> mLightInstances;

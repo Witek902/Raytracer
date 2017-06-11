@@ -6,8 +6,6 @@
 #include "Math/Geometry.h" // TODO remove
 
 
-#define RT_FILL_RATE_TEST 0
-
 namespace rt {
 
 using namespace math;
@@ -16,13 +14,15 @@ bool Scene::Raytrace(const Camera& camera, Bitmap& renderTarget, const Raytracin
 {
     // TODO parameter verification
 
-    RaytraceSingle(camera, renderTarget, params);
+    Raytrace_Single(camera, renderTarget, params);
 
     return true;
 }
 
-void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params)
+void Scene::Raytrace_Single(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params)
 {
+    // TODO split task into packets and execute on all threads
+
     const Uint32 width = renderTarget.GetWidth();
     const Uint32 height = renderTarget.GetHeight();
 
@@ -31,20 +31,15 @@ void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const Ray
 
     RayTracingCounters counters;
 
+    Float yCoord = 0.0f;
     for (Uint32 y = 0; y < height; ++y)
     {
-        const Float yCoord = (Float)y * invHeight;
+        yCoord += invHeight;
 
+        Float xCoord = 0.0f;
         for (Uint32 x = 0; x < width; ++x)
         {
-            const Float xCoord = (Float)x * invWidth;
-
-#if RT_FILL_RATE_TEST
-
-            // just filling with white noise
-            renderTarget.SetPixel(x, y, mRandomGenerator.GetVector4());
-
-#else // !RT_FILL_RATE_TEST
+            xCoord += invWidth;
 
             // TODO Monte Carlo ray generation:
             // depth of field
@@ -55,32 +50,31 @@ void Scene::RaytraceSingle(const Camera& camera, Bitmap& renderTarget, const Ray
             const math::Ray cameraRay = camera.GenerateRay(xCoord, yCoord);
 
             RayTracingContext context(mRandomGenerator, params, counters);
-            math::Vector color = TraceRaySingle(cameraRay, context);
+            counters.numPrimaryRays++;
+            math::Vector color = TraceRay_Single(cameraRay, context);
 
             renderTarget.SetPixel(x, y, color);
-
-#endif RT_FILL_RATE_TEST
         }
     }
 }
 
-math::Vector Scene::TraceRaySingle(const math::Ray& ray, RayTracingContext& context)
+math::Vector Scene::TraceRay_Single(const math::Ray& ray, RayTracingContext& context) const
 {
     RT_UNUSED(context);
 
+    /*
     Triangle triangle(Vector(-1.0f, -0.5f, 0.0f), Vector(1.0f, -0.5f, 0.0f), Vector(0.0f, 0.5f, 0.0f));
     if (math::Intersect(ray, triangle))
     {
         return Vector(1.0f, 1.0f, 1.0f);
     }
+    */
 
-    /*
     Box box(Vector(-10.0f, -2.0f, -10.0f), Vector(10.0f, -0.5f, 10.0f));
     if (math::Intersect(ray, box))
     {
         return Vector(0.5f, 0.5f, 0.5f);
     }
-    */
 
     return Vector();
 }
