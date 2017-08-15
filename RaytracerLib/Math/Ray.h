@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math.h"
-#include "Vector.h"
+#include "Vector4.h"
 
 
 namespace rt {
@@ -13,40 +13,20 @@ namespace math {
 class RT_ALIGN(16) Ray
 {
 public:
-    Vector dir; // TODO remove?
-    Vector invDir;
-    Vector origin;
+    Vector4 dir; // TODO remove?
+    Vector4 invDir;
+    Vector4 origin;
+    Vector4 originDivDir;
 
     Ray() {}
 
-    Ray(const Vector& direction, const Vector& origin)
+    Ray(const Vector4& origin, const Vector4& direction)
         : origin(origin)
     {
         dir = direction.FastNormalized3();
-        invDir = Vector::FastReciprocal(dir);
+        invDir = Vector4::FastReciprocal(dir);
+        originDivDir = origin * invDir;
     }
-};
-
-/**
- * 4 rays (SIMD version).
- */
-class RT_ALIGN(16) SimdRay4
-{
-public:
-    // TODO remove?
-    Vector dirX;
-    Vector dirY;
-    Vector dirZ;
-
-    Vector invDirX;
-    Vector invDirY;
-    Vector invDirZ;
-
-    Vector originX;
-    Vector originY;
-    Vector originZ;
-
-    // TODO
 };
 
 class RayBoxSegment
@@ -54,13 +34,6 @@ class RayBoxSegment
 public:
     Float nearDist;
     Float farDist;
-};
-
-class RT_ALIGN(16) SimdRayBoxSegment4
-{
-public:
-    Vector nearDists;
-    Vector farDists;
 };
 
 

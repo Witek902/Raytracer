@@ -1,30 +1,39 @@
 #pragma once
 
 #include "RayLib.h"
+#include "VertexBufferDesc.h"
 #include "Math/Box.h"
+#include "Math/Ray.h"
 
-#include "VertexBuffer.h"
 
 namespace rt {
+
+class Material;
+
+struct MeshDesc
+{
+    VertexBufferDesc vertexBufferDesc;
+    float scale;
+    const char* debugName;
+
+    MeshDesc()
+        : scale(1.0f)
+        , debugName(nullptr)
+    { }
+};
 
 
 /**
  * Class representing a mesh.
  */
-RT_ALIGN(16)
-class RAYLIB_API Mesh
+class RAYLIB_API IMesh
 {
 public:
+    virtual ~IMesh() { }
 
-private:
-    // bounding box after scaling
-    math::Box mBoundingBox;
-
-    // vertex data
-    VertexBuffer mVertexBuffer;
-
-    // Scaling factor. Used when vertex data format is non-float
-    float mScale;
+    // Initialize the mesh
+    virtual bool Initialize(const MeshDesc& desc) = 0;
 };
+
 
 } // namespace rt

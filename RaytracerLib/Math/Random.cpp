@@ -7,11 +7,18 @@ namespace rt {
 namespace math {
 
 
-Random::Random(Uint64 seed)
-    : mSeed(seed)
+Random::Random()
 {
-    mSeed0 = _mm_set_epi32(0x2f558471, 0x61cb8acc, 0xd6974cff, 0x241e5c86);
-    mSeed1 = _mm_set_epi32(0x24e64b29, 0xe4f8e2d6, 0xbb3399b9, 0xa144f054);
+    Reset(1);
+}
+
+void Random::Reset(Uint32 seed)
+{
+    seed = Hash(seed);
+
+    mSeed = seed;
+    mSeed0 = _mm_set_epi32(seed ^ 0x2f558471, seed ^ 0x61cb8acc, seed ^ 0xd6974cff, seed ^ 0x241e5c86);
+    mSeed1 = _mm_set_epi32(seed ^ 0x24e64b29, seed ^ 0xe4f8e2d6, seed ^ 0xbb3399b9, seed ^ 0xa144f054);
 }
 
 Uint64 Random::GetLong()
@@ -51,7 +58,7 @@ double Random::GetDouble()
     return myrand.f - 1.0;
 }
 
-Vector Random::GetVector4()
+Vector4 Random::GetVector4()
 {
     // xorshift128+ algorithm
     const __m128i s0 = mSeed1;
@@ -69,10 +76,21 @@ Vector Random::GetVector4()
     v = _mm_add_epi32(v, _mm_set1_epi32(1u));
 
     // convert to float and go from [1, 2) to [0, 1) range
-    Vector result = _mm_castsi128_ps(v);
+    Vector4 result = _mm_castsi128_ps(v);
     result -= VECTOR_ONE;
 
     return result;
+}
+
+Vector4 Random::GetHemishpereCos()
+{
+    const Vector4 u = GetVector4();
+
+    // TODO optimize sqrtf, sin and cos (use approximations)
+    float r = sqrtf(u[0]);
+    float theta = 2.0f * RT_PI * u[1];
+    return Vector4(r * sinf(theta), r * cosf(theta), sqrtf(1.0f - u[0]));
+
 }
 
 } // namespace Math

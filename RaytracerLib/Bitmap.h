@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RayLib.h"
-#include "Math/Vector.h"
+#include "Math/Vector4.h"
 
 namespace rt {
 
@@ -14,7 +14,7 @@ public:
     enum class Format
     {
         Unknown,
-        R8G8B8A8_Uint,
+        B8G8R8A8_Uint,
         R32G32B32A32_Float,
     };
 
@@ -39,11 +39,14 @@ public:
 
     // set single pixel
     // TODO: this probably will be too slow
-    void SetPixel(Uint32 x, Uint32 y, const math::Vector& value);
+    void SetPixel(Uint32 x, Uint32 y, const math::Vector4& value);
 
     // get single pixel
     // TODO: this probably will be too slow
-    math::Vector GetPixel(Uint32 x, Uint32 y) const;
+    math::Vector4 GetPixel(Uint32 x, Uint32 y) const;
+
+    // fill with zeros
+    void Zero();
 
 private:
 

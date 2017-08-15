@@ -1,20 +1,13 @@
 #pragma once
 
-#include "RayLib.h"
-#include "Math/Vector.h"
+#include "VertexBufferDesc.h"
+#include "Math/Vector4.h"
+#include "Math/Triangle.h"
+
 
 namespace rt {
 
-enum class VertexDataFormat : Uint8
-{
-    None,
-    Float,
-    HalfFloat,
-    Int32,
-    Int16,
-    Int8,
-};
-
+class Material;
 
 struct VertexIndices
 {
@@ -23,39 +16,11 @@ struct VertexIndices
     Uint32 i2;
 };
 
-// Tuple of triangle data
-// Can be positions, normals, tangents of texture coords
-struct RT_ALIGN(16) TriangleData
-{
-    math::Vector d0;
-    math::Vector d1;
-    math::Vector d2;
-};
-
-struct VertexBufferDesc
-{
-    Uint32 numVertices;
-    Uint32 numIndices;
-
-    void* vertexIndexBuffer;
-    void* positions;
-    void* normals;
-    void* tangents;
-    void* texCoords;
-    void* materialIndexBuffer;
-
-    VertexDataFormat vertexIndexFormat;
-    VertexDataFormat positionsFormat;
-    VertexDataFormat normalsFormat;
-    VertexDataFormat tangentsFormat;
-    VertexDataFormat texCoordsFormat;
-    VertexDataFormat materialIndexFormat;
-};
 
 /**
 * Structure containing packed mesh data (vertices, vertex indices and material indices).
 */
-class RAYLIB_API VertexBuffer
+class VertexBuffer
 {
 public:
     VertexBuffer();
@@ -68,22 +33,25 @@ public:
     bool Initialize(const VertexBufferDesc& desc);
 
     // get vertex indices for given triangle
-    void GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const;
+    RT_FORCE_NOINLINE void GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const;
 
-    // get material index for given triangle
-    Uint32 GetMaterialIndex(const Uint32 triangleIndex) const;
+    // get material for given a triangle
+    const Material* GetMaterial(const Uint32 triangleIndex) const;
 
     // extract vertex data (for one triangle)
-    void GetVertexPositions(const VertexIndices& indices, TriangleData& data) const;
-    void GetVertexNormals(const VertexIndices& indices, TriangleData& data) const;
-    void GetVertexTangents(const VertexIndices& indices, TriangleData& data) const;
-    void GetVertexTexCoords(const VertexIndices& indices, TriangleData& data) const;
+    void GetVertexPositions(const VertexIndices& indices, math::Triangle& data) const;
+    void GetVertexNormals(const VertexIndices& indices, math::Triangle& data) const;
+    void GetVertexTangents(const VertexIndices& indices, math::Triangle& data) const;
+    void GetVertexTexCoords(const VertexIndices& indices, math::Triangle& data) const;
+
+    Uint32 GetNumVertices() const { return mNumVertices; }
+    Uint32 GetNumTriangles() const { return mNumTriangles; }
 
 private:
     // TODO keep in contiguous buffer + use offsets
 
     Uint32 mNumVertices;
-    Uint32 mNumIndices;
+    Uint32 mNumTriangles;
 
     char* mBuffer;
 
@@ -93,6 +61,7 @@ private:
     Uint32 mTangentsBufferOffset;
     Uint32 mTexCoordsBufferOffset;
     Uint32 mMaterialIndexBufferOffset;
+    Uint32 mMaterialBufferOffset;
 
     // data buffers formats
     VertexDataFormat mVertexIndexFormat;
@@ -103,8 +72,8 @@ private:
     VertexDataFormat mMaterialIndexFormat;
 
     static Uint32 GetElementSize(VertexDataFormat format);
-    static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, TriangleData& data);
-    static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, TriangleData& data);
+    RT_FORCE_NOINLINE static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
+    RT_FORCE_NOINLINE static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
 };
 
 

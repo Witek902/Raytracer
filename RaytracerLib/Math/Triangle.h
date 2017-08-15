@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math.h"
-#include "Vector.h"
+#include "Vector4.h"
 
 
 namespace rt {
@@ -11,13 +11,13 @@ namespace math {
 class RT_ALIGN(16) Triangle
 {
 public:
-    Vector v0, v1, v2;
+    Vector4 v0, v1, v2;
 
     RT_FORCE_INLINE Triangle()
         : v0(), v1(), v2()
     {}
 
-    RT_FORCE_INLINE Triangle(const Vector& v0, const Vector& v1, const Vector& v2)
+    RT_FORCE_INLINE Triangle(const Vector4& v0, const Vector4& v1, const Vector4& v2)
         : v0(v0), v1(v1), v2(v2)
     {}
 };

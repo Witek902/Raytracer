@@ -11,6 +11,7 @@ class Window
 private:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
     HWND mHandle;
+    HDC mDC;
     HINSTANCE mInstance;
     wchar_t mWndClass[48];
 
@@ -29,11 +30,6 @@ private:
     int mMouseWheelDelta;
     bool mKeys[256];
 
-    Uint32 mPaintBufferWidth;
-    Uint32 mPaintBufferHeight;
-    const void* mPaintBufferData;
-
-    void PaintInternal();
     void LostFocus();
     void MouseDown(Uint32 button, int x, int y);
     void MouseUp(Uint32 button);
@@ -155,6 +151,4 @@ public:
     virtual void OnMouseDown(Uint32 button, int x, int y);
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
     virtual void OnMouseUp(Uint32 button);
-
-    void Paint(Uint32 width, Uint32 height, const void* data);
 };

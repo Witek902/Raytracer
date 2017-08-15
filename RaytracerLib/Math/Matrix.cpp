@@ -6,19 +6,19 @@ namespace rt {
 namespace math {
 
 
-Matrix Matrix::MakeLookTo(const Vector& EyePosition, const Vector& EyeDirection,
-                    const Vector& UpDirection)
+Matrix Matrix::MakeLookTo(const Vector4& EyePosition, const Vector4& EyeDirection,
+                    const Vector4& UpDirection)
 {
-    Vector zaxis = EyeDirection.Normalized3();
-    Vector xaxis = Vector::Cross3(UpDirection, zaxis).Normalized3();
-    Vector yaxis = Vector::Cross3(zaxis, xaxis);
+    Vector4 zaxis = EyeDirection.Normalized3();
+    Vector4 xaxis = Vector4::Cross3(UpDirection, zaxis).Normalized3();
+    Vector4 yaxis = Vector4::Cross3(zaxis, xaxis);
 
-    return Matrix(Vector(xaxis.f[0], yaxis.f[0], zaxis.f[0], 0.0f),
-                  Vector(xaxis.f[1], yaxis.f[1], zaxis.f[1], 0.0f),
-                  Vector(xaxis.f[2], yaxis.f[2], zaxis.f[2], 0.0f),
-                  Vector(-Vector::Dot3(xaxis, EyePosition),
-                         -Vector::Dot3(yaxis, EyePosition),
-                         -Vector::Dot3(zaxis, EyePosition),
+    return Matrix(Vector4(xaxis.f[0], yaxis.f[0], zaxis.f[0], 0.0f),
+                  Vector4(xaxis.f[1], yaxis.f[1], zaxis.f[1], 0.0f),
+                  Vector4(xaxis.f[2], yaxis.f[2], zaxis.f[2], 0.0f),
+                  Vector4(-Vector4::Dot3(xaxis, EyePosition),
+                         -Vector4::Dot3(yaxis, EyePosition),
+                         -Vector4::Dot3(zaxis, EyePosition),
                          1.0f));
 }
 
@@ -27,30 +27,30 @@ Matrix Matrix::MakePerspective(float aspect, float fovY, float farZ, float nearZ
     float yScale = 1.0f / tanf(fovY * 0.5f);
     float xScale = yScale / aspect;
 
-    return Matrix(Vector(xScale, 0.0f,   0.0f,                           0.0f),
-                  Vector(0.0f,   yScale, 0.0f,                           0.0f),
-                  Vector(0.0f,   0.0f,   farZ / (farZ - nearZ),          1.0f),
-                  Vector(0.0f,   0.0f,   -nearZ * farZ / (farZ - nearZ), 0.0f));
+    return Matrix(Vector4(xScale, 0.0f,   0.0f,                           0.0f),
+                  Vector4(0.0f,   yScale, 0.0f,                           0.0f),
+                  Vector4(0.0f,   0.0f,   farZ / (farZ - nearZ),          1.0f),
+                  Vector4(0.0f,   0.0f,   -nearZ * farZ / (farZ - nearZ), 0.0f));
 }
 
 Matrix Matrix::MakeOrtho(float left, float right, float bottom, float top, float zNear, float zFar)
 {
     return Matrix(
-               Vector(2.0f / (right - left), 0.0f,                  0.0f,                  0.0f),
-               Vector(0.0f,                  2.0f / (top - bottom), 0.0f,                  0.0f),
-               Vector(0.0f,                  0.0f,                  1.0f / (zFar - zNear), 0.0f),
-               Vector((left + right) / (left - right),
+               Vector4(2.0f / (right - left), 0.0f,                  0.0f,                  0.0f),
+               Vector4(0.0f,                  2.0f / (top - bottom), 0.0f,                  0.0f),
+               Vector4(0.0f,                  0.0f,                  1.0f / (zFar - zNear), 0.0f),
+               Vector4((left + right) / (left - right),
                       (top + bottom) / (bottom - top),
                       zNear / (zNear - zFar),
                       1.0f));
 }
 
-Matrix Matrix::MakeScaling(const Vector& scale)
+Matrix Matrix::MakeScaling(const Vector4& scale)
 {
-    return Matrix(Vector(scale.f[0], 0.0f, 0.0f, 0.0f),
-                  Vector(0.0f, scale.f[1], 0.0f, 0.0f),
-                  Vector(0.0f, 0.0f, scale.f[2], 0.0f),
-                  Vector(0.0f, 0.0f, 0.0f, 1.0f));
+    return Matrix(Vector4(scale.f[0], 0.0f, 0.0f, 0.0f),
+                  Vector4(0.0f, scale.f[1], 0.0f, 0.0f),
+                  Vector4(0.0f, 0.0f, scale.f[2], 0.0f),
+                  Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 Matrix Matrix::operator* (const Matrix& b) const
@@ -70,16 +70,16 @@ Matrix& Matrix::operator*= (const Matrix& b)
     return *this;
 }
 
-Matrix Matrix::MakeRotationNormal(const Vector& normalAxis, float angle)
+Matrix Matrix::MakeRotationNormal(const Vector4& normalAxis, float angle)
 {
     Matrix result;
 
     float sinAngle = sinf(angle);
     float cosAngle = cosf(angle);
-    Vector N0, N1;
-    Vector V0, V1, V2;
-    Vector R0, R1, R2;
-    Vector C0, C1, C2;
+    Vector4 N0, N1;
+    Vector4 V0, V1, V2;
+    Vector4 R0, R1, R2;
+    Vector4 C0, C1, C2;
 
     C2 = _mm_set_ps1(1.0f - cosAngle);
     C1 = _mm_set_ps1(cosAngle);
@@ -122,16 +122,16 @@ Matrix Matrix::MakeRotationNormal(const Vector& normalAxis, float angle)
 Matrix Matrix::Inverted() const
 {
     Matrix MT = Transposed();
-    Vector V00 = _mm_shuffle_ps(MT.r[2], MT.r[2], _MM_SHUFFLE(1, 1, 0, 0));
-    Vector V10 = _mm_shuffle_ps(MT.r[3], MT.r[3], _MM_SHUFFLE(3, 2, 3, 2));
-    Vector V01 = _mm_shuffle_ps(MT.r[0], MT.r[0], _MM_SHUFFLE(1, 1, 0, 0));
-    Vector V11 = _mm_shuffle_ps(MT.r[1], MT.r[1], _MM_SHUFFLE(3, 2, 3, 2));
-    Vector V02 = _mm_shuffle_ps(MT.r[2], MT.r[0], _MM_SHUFFLE(2, 0, 2, 0));
-    Vector V12 = _mm_shuffle_ps(MT.r[3], MT.r[1], _MM_SHUFFLE(3, 1, 3, 1));
+    Vector4 V00 = _mm_shuffle_ps(MT.r[2], MT.r[2], _MM_SHUFFLE(1, 1, 0, 0));
+    Vector4 V10 = _mm_shuffle_ps(MT.r[3], MT.r[3], _MM_SHUFFLE(3, 2, 3, 2));
+    Vector4 V01 = _mm_shuffle_ps(MT.r[0], MT.r[0], _MM_SHUFFLE(1, 1, 0, 0));
+    Vector4 V11 = _mm_shuffle_ps(MT.r[1], MT.r[1], _MM_SHUFFLE(3, 2, 3, 2));
+    Vector4 V02 = _mm_shuffle_ps(MT.r[2], MT.r[0], _MM_SHUFFLE(2, 0, 2, 0));
+    Vector4 V12 = _mm_shuffle_ps(MT.r[3], MT.r[1], _MM_SHUFFLE(3, 1, 3, 1));
 
-    Vector D0 = _mm_mul_ps(V00, V10);
-    Vector D1 = _mm_mul_ps(V01, V11);
-    Vector D2 = _mm_mul_ps(V02, V12);
+    Vector4 D0 = _mm_mul_ps(V00, V10);
+    Vector4 D1 = _mm_mul_ps(V01, V11);
+    Vector4 D2 = _mm_mul_ps(V02, V12);
 
     V00 = _mm_shuffle_ps(MT.r[2], MT.r[2], _MM_SHUFFLE(3, 2, 3, 2));
     V10 = _mm_shuffle_ps(MT.r[3], MT.r[3], _MM_SHUFFLE(1, 1, 0, 0));
@@ -153,16 +153,16 @@ Matrix Matrix::Inverted() const
     V01 = _mm_shuffle_ps(MT.r[0], MT.r[0], _MM_SHUFFLE(0, 1, 0, 2));
     V11 = _mm_shuffle_ps(V11, D0, _MM_SHUFFLE(2, 1, 2, 1));
     // V13 = D1Y,D1W,D2W,D2W
-    Vector V13 = _mm_shuffle_ps(D1, D2, _MM_SHUFFLE(3, 3, 3, 1));
+    Vector4 V13 = _mm_shuffle_ps(D1, D2, _MM_SHUFFLE(3, 3, 3, 1));
     V02 = _mm_shuffle_ps(MT.r[3], MT.r[3], _MM_SHUFFLE(1, 0, 2, 1));
     V12 = _mm_shuffle_ps(V13, D1, _MM_SHUFFLE(0, 3, 0, 2));
-    Vector V03 = _mm_shuffle_ps(MT.r[2], MT.r[2], _MM_SHUFFLE(0, 1, 0, 2));
+    Vector4 V03 = _mm_shuffle_ps(MT.r[2], MT.r[2], _MM_SHUFFLE(0, 1, 0, 2));
     V13 = _mm_shuffle_ps(V13, D1, _MM_SHUFFLE(2, 1, 2, 1));
 
-    Vector C0 = _mm_mul_ps(V00, V10);
-    Vector C2 = _mm_mul_ps(V01, V11);
-    Vector C4 = _mm_mul_ps(V02, V12);
-    Vector C6 = _mm_mul_ps(V03, V13);
+    Vector4 C0 = _mm_mul_ps(V00, V10);
+    Vector4 C2 = _mm_mul_ps(V01, V11);
+    Vector4 C4 = _mm_mul_ps(V02, V12);
+    Vector4 C6 = _mm_mul_ps(V03, V13);
 
     // V11 = D0X,D0Y,D2X,D2X
     V11 = _mm_shuffle_ps(D0, D2, _MM_SHUFFLE(0, 0, 1, 0));
@@ -207,13 +207,13 @@ Matrix Matrix::Inverted() const
     V01 = _mm_mul_ps(V01, V11);
     V02 = _mm_mul_ps(V02, V12);
     V03 = _mm_mul_ps(V03, V13);
-    Vector C1 = _mm_sub_ps(C0, V00);
+    Vector4 C1 = _mm_sub_ps(C0, V00);
     C0 = _mm_add_ps(C0, V00);
-    Vector C3 = _mm_add_ps(C2, V01);
+    Vector4 C3 = _mm_add_ps(C2, V01);
     C2 = _mm_sub_ps(C2, V01);
-    Vector C5 = _mm_sub_ps(C4, V02);
+    Vector4 C5 = _mm_sub_ps(C4, V02);
     C4 = _mm_add_ps(C4, V02);
-    Vector C7 = _mm_add_ps(C6, V03);
+    Vector4 C7 = _mm_add_ps(C6, V03);
     C6 = _mm_sub_ps(C6, V03);
 
     C0 = _mm_shuffle_ps(C0, C1, _MM_SHUFFLE(3, 1, 2, 0));
@@ -226,7 +226,7 @@ Matrix Matrix::Inverted() const
     C6 = _mm_shuffle_ps(C6, C6, _MM_SHUFFLE(3, 1, 2, 0));
 
     // Get the determinate
-    Vector vTemp = Vector::Dot4V(C0, MT.r[0]);
+    Vector4 vTemp = Vector4::Dot4V(C0, MT.r[0]);
     vTemp = _mm_div_ps(VECTOR_ONE, vTemp);
 
     return Matrix(_mm_mul_ps(C0, vTemp),

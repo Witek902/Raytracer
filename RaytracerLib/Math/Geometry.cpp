@@ -13,25 +13,25 @@ namespace math {
 template<> RAYLIB_API
 bool Intersect(const Box& box1, const Box& box2)
 {
-    Vector temp0 = _mm_cmpge_ps(box1.min, box2.max);
-    Vector temp1 = _mm_cmpge_ps(box2.min, box1.max);
+    Vector4 temp0 = _mm_cmpge_ps(box1.min, box2.max);
+    Vector4 temp1 = _mm_cmpge_ps(box2.min, box1.max);
     return (_mm_movemask_ps(_mm_or_ps(temp0, temp1)) & 7) == 0;
 }
 
 // Box-point intersection test
 template<> RAYLIB_API
-bool Intersect(const Box& box, const Vector& point)
+bool Intersect(const Box& box, const Vector4& point)
 {
-    Vector cmpMax = _mm_cmpge_ps(box.max, point);
-    Vector cmpMin = _mm_cmpge_ps(point, box.min);
+    Vector4 cmpMax = _mm_cmpge_ps(box.max, point);
+    Vector4 cmpMin = _mm_cmpge_ps(point, box.min);
     return (_mm_movemask_ps(_mm_and_ps(cmpMax, cmpMin)) & 7) == 7;
 }
 
 template<> RAYLIB_API
 IntersectionResult IntersectEx(const Box& box1, const Box& box2)
 {
-    Vector temp0 = _mm_cmpge_ps(box1.min, box2.max);
-    Vector temp1 = _mm_cmpge_ps(box2.min, box1.max);
+    Vector4 temp0 = _mm_cmpge_ps(box1.min, box2.max);
+    Vector4 temp1 = _mm_cmpge_ps(box2.min, box1.max);
     if (_mm_movemask_ps(_mm_or_ps(temp0, temp1)) & 7)
         return IntersectionResult::Outside;
 
@@ -45,19 +45,19 @@ IntersectionResult IntersectEx(const Box& box1, const Box& box2)
 
 // Point-sphere intersection test
 template<> RAYLIB_API
-bool Intersect(const Vector& point, const Sphere& sphere)
+bool Intersect(const Vector4& point, const Sphere& sphere)
 {
-    Vector segment = point - sphere.origin;
-    return Vector::Dot3(segment, segment) <= sphere.r * sphere.r;
+    Vector4 segment = point - sphere.origin;
+    return Vector4::Dot3(segment, segment) <= sphere.r * sphere.r;
 }
 
 // Sphere-sphere intersection test
 template<> RAYLIB_API
 bool Intersect(const Sphere& sphere1, const Sphere& sphere2)
 {
-    Vector segment = sphere1.origin - sphere2.origin;
+    Vector4 segment = sphere1.origin - sphere2.origin;
     float radiiSum = sphere1.r + sphere2.r;
-    return Vector::Dot3(segment, segment) <= radiiSum * radiiSum;
+    return Vector4::Dot3(segment, segment) <= radiiSum * radiiSum;
 }
 
 
@@ -66,12 +66,12 @@ bool Intersect(const Sphere& sphere1, const Sphere& sphere2)
 template<> RAYLIB_API
 bool Intersect(const Ray& ray, const Box& box)
 {
-    Vector unusedDist;
+    float unusedDist;
     return RayBoxIntersectInline(ray, box, unusedDist);
 }
 
 template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Box& box, Vector& dist)
+bool Intersect(const Ray& ray, const Box& box, float& dist)
 {
     return RayBoxIntersectInline(ray, box, dist);
 }
@@ -82,12 +82,12 @@ bool Intersect(const Ray& ray, const Box& box, Vector& dist)
 template<> RAYLIB_API
 bool Intersect(const Ray& ray, const Triangle& tri)
 {
-    Vector unusedDist;
+    float unusedDist;
     return RayTriangleIntersectInline(ray, tri, unusedDist);
 }
 
 template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Triangle& tri, Vector& dist)
+bool Intersect(const Ray& ray, const Triangle& tri, float& dist)
 {
     return RayTriangleIntersectInline(ray, tri, dist);
 }
@@ -95,15 +95,15 @@ bool Intersect(const Ray& ray, const Triangle& tri, Vector& dist)
 
 // Ray-Sphere intersection functions ==============================================================
 
-RT_FORCE_INLINE bool RaySphereIntersectInline(const Ray& ray, const Sphere& sphere, Vector& dist)
+RT_FORCE_INLINE bool RaySphereIntersectInline(const Ray& ray, const Sphere& sphere, float& dist)
 {
-    Vector d = sphere.origin - ray.origin;
-    float v = Vector::Dot3(ray.dir, d);
-    float det = sphere.r * sphere.r - Vector::Dot3(d, d) + v * v;
+    Vector4 d = sphere.origin - ray.origin;
+    float v = Vector4::Dot3(ray.dir, d);
+    float det = sphere.r * sphere.r - Vector4::Dot3(d, d) + v * v;
 
     if (det > 0.0f)
     {
-        dist = Vector::Splat(v - sqrtf(det));
+        dist = v - sqrtf(det);
         return true;
     }
     return false;
@@ -112,13 +112,12 @@ RT_FORCE_INLINE bool RaySphereIntersectInline(const Ray& ray, const Sphere& sphe
 template<> RAYLIB_API
 bool Intersect(const Ray& ray, const Sphere& sphere)
 {
-    Vector unusedDist;
-
+    float unusedDist;
     return RaySphereIntersectInline(ray, sphere, unusedDist);
 }
 
 template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Sphere& sphere, Vector& dist)
+bool Intersect(const Ray& ray, const Sphere& sphere, float& dist)
 {
     return RaySphereIntersectInline(ray, sphere, dist);
 }

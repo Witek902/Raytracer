@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../RayLib.h"
-#include "Vector.h"
+#include "Vector4.h"
 
 namespace rt {
 namespace math {
@@ -24,7 +24,9 @@ private:
     }
 
 public:
-    Random(Uint64 seed = 0xcc13ad01e0b8b067);
+    Random();
+
+    void Reset(Uint32 seed);
 
     Uint64 GetLong();
     Uint32 GetInt();
@@ -39,7 +41,10 @@ public:
 
     // generate random vector of 4 elements from range (0.0f, 1.0f]
     // this is much faster that using GetFloat() 4 times
-    Vector GetVector4();
+    Vector4 GetVector4();
+
+    // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
+    Vector4 GetHemishpereCos();
 };
 
 

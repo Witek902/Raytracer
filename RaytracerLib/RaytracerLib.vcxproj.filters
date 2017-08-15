@@ -19,9 +19,6 @@
     <ClInclude Include="MaterialLayer.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -34,22 +31,10 @@
     <ClInclude Include="Math\Random.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Ray.hpp">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Math.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Triangle.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorImpl.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorConstants.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Sphere.h">
@@ -71,6 +56,87 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Math\Matrix.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4.h">
+      <Filter>Math\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4Constants.h">
+      <Filter>Math\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4Impl.h">
+      <Filter>Math\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector8.h">
+      <Filter>Math\Vector8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector8Constants.h">
+      <Filter>Math\Vector8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector8Impl.h">
+      <Filter>Math\Vector8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd4Box.h">
+      <Filter>Math\Simd4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd4Ray.h">
+      <Filter>Math\Simd4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd4Vector3.h">
+      <Filter>Math\Simd4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd4Geometry.h">
+      <Filter>Math\Simd4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Box.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Geometry.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Ray.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Vector3.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\CpuViewport.h">
+      <Filter>Core\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\CpuScene.h">
+      <Filter>Core\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferDesc.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\CpuMesh.h">
+      <Filter>Core\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\CpuInstance.h">
+      <Filter>Core\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\Tools\iacaMarks.h">
+      <Filter>Core\CPU\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Instance.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd4Triangle.h">
+      <Filter>Math\Simd4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Triangle.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\CpuRaytracing.h">
+      <Filter>Core\CPU</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
@@ -86,16 +152,10 @@
     <ClCompile Include="Math\Matrix.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Vector.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
     <ClCompile Include="Bitmap.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="LightInstance.cpp">
@@ -105,6 +165,39 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector4.cpp">
+      <Filter>Math\Vector4</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector8.cpp">
+      <Filter>Math\Vector8</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\CpuViewport.cpp">
+      <Filter>Core\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\CpuScene.cpp">
+      <Filter>Core\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\CpuMesh.cpp">
+      <Filter>Core\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="Instance.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\CpuInstance.cpp">
+      <Filter>Core\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -117,6 +210,27 @@
     </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{83dcdc78-85b9-425e-9f76-fcd60b180cfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Vector4">
+      <UniqueIdentifier>{223adfc8-1ea0-417b-9f50-8d80790d5f40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Vector8">
+      <UniqueIdentifier>{05892366-6576-4cbb-a9cd-8f6410c3d22c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Simd4">
+      <UniqueIdentifier>{6b832453-a245-4a7e-a6f8-ad4f97e2e9a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Simd8">
+      <UniqueIdentifier>{8a237b31-13d5-4cf3-b173-db01263dfca0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\GPU">
+      <UniqueIdentifier>{9a39de1d-9e8b-426d-ade1-deae031ac3b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\CPU">
+      <UniqueIdentifier>{8de4f0fe-dcbd-4d0c-b369-28ccee0fa02a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\CPU\Tools">
+      <UniqueIdentifier>{935d8604-9cfa-4eee-a7b2-3b5e9e475e1b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

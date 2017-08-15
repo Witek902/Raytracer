@@ -4,11 +4,15 @@
 #include "../RaytracerLib/Bitmap.h"
 #include "../RaytracerLib/Scene.h"
 #include "../RaytracerLib/Camera.h"
+#include "../RaytracerLib/Mesh.h"
+#include "../RaytracerLib/Instance.h"
+#include "../RaytracerLib/Viewport.h"
+#include "../RaytracerLib/Material.h"
 
 
 struct CameraSetup
 {
-    rt::math::Vector position;
+    rt::math::Vector4 position;
     Float yaw;
     Float pitch;
 
@@ -22,7 +26,7 @@ struct CameraSetup
 class DemoWindow : public Window
 {
 public:
-    DemoWindow();
+    DemoWindow(rt::Instance& instance);
 
     bool Initialize();
 
@@ -39,9 +43,18 @@ public:
     void Render();
 
 private:
-    rt::Bitmap mFramebuffer;
+    std::unique_ptr<rt::IViewport> mViewport;
     rt::Camera mCamera;
-    std::unique_ptr<rt::Scene> mScene;
+
+    rt::Instance& mInstance;
+
+    // TODO move to Main
+    std::unique_ptr<rt::IMesh> mMesh;
+    std::unique_ptr<rt::IScene> mScene;
+    std::unique_ptr<rt::Material> mWhiteMaterial;
+    std::unique_ptr<rt::Material> mRedMaterial;
+    std::unique_ptr<rt::Material> mGreenMaterial;
+    std::unique_ptr<rt::Material> mLampMaterial;
 
     CameraSetup mCameraSetup;
 

@@ -10,7 +10,7 @@ size_t Bitmap::BitsPerPixel(Format format)
     switch (format)
     {
     case Format::Unknown:            return 0;
-    case Format::R8G8B8A8_Uint:      return 8 * 4;
+    case Format::B8G8R8A8_Uint:      return 8 * 4;
     case Format::R32G32B32A32_Float: return 8 * 4 * 4;
     }
 
@@ -81,11 +81,10 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data)
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
     mFormat = format;
-
-    return false;
+    return true;
 }
 
-void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector& value)
+void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector4& value)
 {
     using namespace math;
 
@@ -93,24 +92,27 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector& value)
 
     switch (mFormat)
     {
-        case Format::R8G8B8A8_Uint:
+        case Format::B8G8R8A8_Uint:
         {
             Uint8* target = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            const Vector clampedValue = value * 255.0f;
+            const Vector4 clampedValue = value.Swizzle<2, 1, 0, 3>() * 255.0f;
             clampedValue.Store4(target);
             break;
         }
 
         case Format::R32G32B32A32_Float:
         {
-            math::Vector* target = reinterpret_cast<math::Vector*>(mData) + offset;
+            math::Vector4* target = reinterpret_cast<math::Vector4*>(mData) + offset;
             *target = value;
             break;
         }
+
+        default:
+            break;
     }
 }
 
-math::Vector Bitmap::GetPixel(Uint32 x, Uint32 y) const
+math::Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
 {
     using namespace math;
 
@@ -118,21 +120,33 @@ math::Vector Bitmap::GetPixel(Uint32 x, Uint32 y) const
 
     switch (mFormat)
     {
-        case Format::R8G8B8A8_Uint:
+        case Format::B8G8R8A8_Uint:
         {
             const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            return math::Vector::Load4(source);
+            return math::Vector4::Load4(source).Swizzle<2, 1, 0, 3>();
             break;
         }
 
         case Format::R32G32B32A32_Float:
         {
-            const math::Vector* source = reinterpret_cast<math::Vector*>(mData) + offset;
+            const math::Vector4* source = reinterpret_cast<math::Vector4*>(mData) + offset;
             return *source;
         }
+
+        default:
+            break;
     }
 
-    return math::Vector();
+    return math::Vector4();
+}
+
+void Bitmap::Zero()
+{
+    if (mData)
+    {
+        size_t dataSize = mWidth * mHeight * BitsPerPixel(mFormat) / 8;
+        ZeroMemory(mData, dataSize);
+    }
 }
 
 } // namespace rt

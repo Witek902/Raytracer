@@ -8,7 +8,7 @@
 
 #include "RayLib.h"
 #include "Math.h"
-#include "Vector.h"
+#include "Vector4.h"
 
 #include <initializer_list>
 
@@ -25,29 +25,29 @@ class RAYLIB_API Matrix final
 public:
     union
     {
-        Vector r[4];   //< rows
+        Vector4 r[4];   //< rows
         float f[16];
         float m[4][4];
     };
 
-    RT_FORCE_INLINE Vector& GetRow(int i)
+    RT_FORCE_INLINE Vector4& GetRow(int i)
     {
-        return reinterpret_cast<Vector&>(r[i]);
+        return reinterpret_cast<Vector4&>(r[i]);
     }
 
-    RT_FORCE_INLINE const Vector& GetRow(int i) const
+    RT_FORCE_INLINE const Vector4& GetRow(int i) const
     {
-        return reinterpret_cast<const Vector&>(r[i]);
+        return reinterpret_cast<const Vector4&>(r[i]);
     }
 
-    RT_FORCE_INLINE Vector& operator[] (int i)
+    RT_FORCE_INLINE Vector4& operator[] (int i)
     {
-        return reinterpret_cast<Vector&>(r[i]);
+        return reinterpret_cast<Vector4&>(r[i]);
     }
 
-    RT_FORCE_INLINE const Vector& operator[] (int i) const
+    RT_FORCE_INLINE const Vector4& operator[] (int i) const
     {
-        return reinterpret_cast<const Vector&>(r[i]);
+        return reinterpret_cast<const Vector4&>(r[i]);
     }
 
     /**
@@ -64,7 +64,7 @@ public:
     /**
      * Create matrix from rows.
      */
-    RT_FORCE_INLINE Matrix(const Vector& r0, const Vector& r1, const Vector& r2, const Vector& r3)
+    RT_FORCE_INLINE Matrix(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3)
     {
         r[0] = r0;
         r[1] = r1;
@@ -174,7 +174,7 @@ public:
      * @param normalAxis Normalized axis.
      * @param angle Rotation angle (in radians).
      */
-    static Matrix MakeRotationNormal(const Vector& normalAxis, float angle);
+    static Matrix MakeRotationNormal(const Vector4& normalAxis, float angle);
 
     /**
      * Create perspective projection matrix.
@@ -196,7 +196,7 @@ public:
      * Create scaling matrix
      * @param scale Scaling factor (only XYZ components are taken into account).
      */
-    static Matrix MakeScaling(const Vector& scale);
+    static Matrix MakeScaling(const Vector4& scale);
 
     /**
      * Create view matrix.
@@ -204,16 +204,16 @@ public:
      * @param eyeDirection Observer's direction.
      * @param upDirection  "Up" vector.
      */
-    static Matrix MakeLookTo(const Vector& eyePosition, const Vector& eyeDirection, const Vector& upDirection);
+    static Matrix MakeLookTo(const Vector4& eyePosition, const Vector4& eyeDirection, const Vector4& upDirection);
 
     /**
      * Multiply a 3D vector by a 4x4 matrix (affine transform).
      * Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + m.r[3]
      */
-    RT_FORCE_INLINE Vector LinearCombination3(const Vector& a) const
+    RT_FORCE_INLINE Vector4 LinearCombination3(const Vector4& a) const
     {
-        const Vector tmp0 = Vector::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
-        const Vector tmp1 = Vector::MulAndAdd(a.SplatZ(), r[2], r[3]);
+        const Vector4 tmp0 = Vector4::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
+        const Vector4 tmp1 = Vector4::MulAndAdd(a.SplatZ(), r[2], r[3]);
         return tmp0 + tmp1;
     }
 
@@ -221,10 +221,10 @@ public:
      * Multiply a 4D vector by a 4x4 matrix.
      * Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + a[3] * m.r[3]
      */
-    RT_FORCE_INLINE Vector LinearCombination4(const Vector& a) const
+    RT_FORCE_INLINE Vector4 LinearCombination4(const Vector4& a) const
     {
-        const Vector tmp0 = Vector::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
-        const Vector tmp1 = Vector::MulAndAdd(a.SplatZ(), r[2], a.SplatW() * r[3]);
+        const Vector4 tmp0 = Vector4::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
+        const Vector4 tmp1 = Vector4::MulAndAdd(a.SplatZ(), r[2], a.SplatW() * r[3]);
         return tmp0 + tmp1;
     }
 
@@ -233,7 +233,7 @@ public:
      */
     RT_FORCE_INLINE static Matrix Abs(const Matrix& m)
     {
-        return Matrix(Vector::Abs(m[0]), Vector::Abs(m[1]), Vector::Abs(m[2]), Vector::Abs(m[3]));
+        return Matrix(Vector4::Abs(m[0]), Vector4::Abs(m[1]), Vector4::Abs(m[2]), Vector4::Abs(m[3]));
     }
 
     /**
@@ -242,7 +242,7 @@ public:
     RT_FORCE_INLINE static bool Equal(const Matrix& m1, const Matrix& m2, float epsilon)
     {
         Matrix diff = Abs(m1 - m2);
-        Vector epsilonV = Vector::Splat(epsilon);
+        Vector4 epsilonV = Vector4::Splat(epsilon);
         return ((diff[0] < epsilonV) && (diff[1] < epsilonV)) &&
                ((diff[2] < epsilonV) && (diff[3] < epsilonV));
     }
@@ -250,25 +250,25 @@ public:
     /**
      * Create matrix representing a translation by 3D vector.
      */
-    RT_FORCE_INLINE static Matrix MakeTranslation3(const Vector& pos)
+    RT_FORCE_INLINE static Matrix MakeTranslation3(const Vector4& pos)
     {
         Matrix m;
         m.r[0] = VECTOR_X;
         m.r[1] = VECTOR_Y;
         m.r[2] = VECTOR_Z;
-        m.r[3] = Vector(pos.f[0], pos.f[1], pos.f[2], 1.0f);
+        m.r[3] = Vector4(pos.f[0], pos.f[1], pos.f[2], 1.0f);
         return m;
     }
 
     /**
      * Calculate transpose matrix.
      */
-    RT_FORCE_INLINE Matrix& Matrix::Transpose()
+    RT_FORCE_INLINE Matrix& Transpose()
     {
-        Vector& row0 = r[0];
-        Vector& row1 = r[1];
-        Vector& row2 = r[2];
-        Vector& row3 = r[3];
+        Vector4& row0 = r[0];
+        Vector4& row1 = r[1];
+        Vector4& row2 = r[2];
+        Vector4& row3 = r[3];
 
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
 
@@ -278,12 +278,12 @@ public:
     /**
      * Calculate transpose matrix.
      */
-    RT_FORCE_INLINE Matrix Matrix::Transposed() const
+    RT_FORCE_INLINE Matrix Transposed() const
     {
-        Vector row0 = r[0];
-        Vector row1 = r[1];
-        Vector row2 = r[2];
-        Vector row3 = r[3];
+        Vector4 row0 = r[0];
+        Vector4 row1 = r[1];
+        Vector4 row2 = r[2];
+        Vector4 row3 = r[3];
 
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
 
@@ -295,7 +295,7 @@ public:
 /**
  * Alias of @p Matrix::LinearCombination4 function.
  */
-RT_FORCE_INLINE Vector operator* (const Vector& vector, const Matrix& m)
+RT_FORCE_INLINE Vector4 operator* (const Vector4& vector, const Matrix& m)
 {
     return m.LinearCombination4(vector);
 }

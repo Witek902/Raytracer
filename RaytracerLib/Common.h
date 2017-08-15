@@ -5,6 +5,7 @@
 
 
 #define RT_UNUSED(x) (void)(x)
+#define RT_INLINE inline
 #define RT_FORCE_INLINE __forceinline
 #define RT_FORCE_NOINLINE __declspec(noinline)
 #define RT_ALIGN(x) __declspec(align(x))

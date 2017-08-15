@@ -78,7 +78,6 @@ Window::Window()
     , mInvisible(false)
     , mTitle("Window")
     , mMouseWheelDelta(0)
-    , mPaintBufferData(nullptr)
 {
     for (int i = 0; i < 3; i++)
         mMouseButtons[i] = false;
@@ -239,6 +238,8 @@ bool Window::Open()
 
     UpdateWindow(mHandle);
     SetFocus(mHandle);
+
+    mDC = GetDC(mHandle);
 
     mClosed = false;
     return true;
@@ -420,12 +421,6 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
             return 0;
         }
-
-        case WM_PAINT:
-        {
-            window->PaintInternal();
-            return 0;
-        }
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -532,43 +527,6 @@ void Window::OnMouseMove(int x, int y, int deltaX, int deltaY)
 void Window::OnMouseUp(Uint32 button)
 {
     RT_UNUSED(button);
-}
-
-void Window::Paint(Uint32 width, Uint32 height, const void* data)
-{
-    mPaintBufferWidth = width;
-    mPaintBufferHeight = height;
-    mPaintBufferData = data;
-
-    InvalidateRect(mHandle, nullptr, FALSE);
-}
-
-void Window::PaintInternal()
-{
-    RECT clientRect;
-    GetClientRect(mHandle, &clientRect);
-
-    PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(mHandle, &ps);
-
-    if (mPaintBufferData)
-    {
-        BITMAPINFO bmi;
-        ZeroMemory(&bmi, sizeof(bmi));
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = mPaintBufferWidth;
-        bmi.bmiHeader.biHeight = mPaintBufferHeight;
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB;
-        bmi.bmiHeader.biSizeImage = 4 * mPaintBufferWidth * mPaintBufferHeight;
-        bmi.bmiHeader.biXPelsPerMeter = 1;
-        bmi.bmiHeader.biYPelsPerMeter = 1;
-
-        SetDIBitsToDevice(ps.hdc, 0, 0, mPaintBufferWidth, mPaintBufferHeight, 0, 0, 0, mPaintBufferHeight, mPaintBufferData, &bmi, DIB_RGB_COLORS);
-    }
-
-    EndPaint(mHandle, &ps);
 }
 
 int Window::GetMouseWheelDelta() const

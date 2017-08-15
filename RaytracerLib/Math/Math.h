@@ -5,6 +5,8 @@
 
 #include <xmmintrin.h>
 #include <smmintrin.h>
+#include <immintrin.h>
+#include <intrin.h>
 
 
 #define RT_EPSILON (0.000001f)
@@ -120,6 +122,19 @@ template<typename T>
 RT_FORCE_INLINE constexpr bool PowerOfTwo(const T x)
 {
     return x && !(x & (x - 1));
+}
+
+/**
+ * Thomas Wang hash function
+ */
+RT_FORCE_INLINE Uint32 Hash(Uint32 a)
+{
+    a = (a ^ 61) ^ (a >> 16);
+    a = a + (a << 3);
+    a = a ^ (a >> 4);
+    a = a * 0x27d4eb2d;
+    a = a ^ (a >> 15);
+    return a;
 }
 
 
