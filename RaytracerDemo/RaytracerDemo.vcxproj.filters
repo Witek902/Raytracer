@@ -7,6 +7,9 @@
     <Filter Include="Demo">
       <UniqueIdentifier>{e2dd387e-ede7-479a-8dd7-3eb8406dbe86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{f9c7611a-9597-4d10-8830-d89ce90c16a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -20,6 +23,10 @@
     <ClCompile Include="Demo.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
+    <ClCompile Include="MeshLoader.cpp" />
+    <ClCompile Include="..\External\tiny_obj_loader.cc">
+      <Filter>External</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -31,6 +38,10 @@
     </ClInclude>
     <ClInclude Include="Demo.h">
       <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshLoader.h" />
+    <ClInclude Include="..\External\tiny_obj_loader.h">
+      <Filter>External</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

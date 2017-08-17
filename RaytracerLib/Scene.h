@@ -29,7 +29,7 @@ struct RaytracingParams
     Float antiAliasingSpread;
 
     RaytracingParams()
-        : maxRayDepth(6)
+        : maxRayDepth(12)
         , antiAliasingSpread(1.4f) // blur a little bit - real images are not perfectly sharp
     { }
 };

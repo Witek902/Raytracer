@@ -117,7 +117,7 @@ bool CpuViewport::Resize(Uint32 width, Uint32 height)
 {
     if (width > MAX_IMAGE_SZIE || height > MAX_IMAGE_SZIE || width == 0 || height == 0)
     {
-        LOG_ERROR("Invalid viewport size");
+        RT_LOG_ERROR("Invalid viewport size");
         return false;
     }
 
@@ -153,7 +153,7 @@ bool CpuViewport::Render(const IScene* scene, const Camera& camera)
     const CpuScene* cpuScene = dynamic_cast<const CpuScene*>(scene);
     if (!cpuScene)
     {
-        LOG_ERROR("Invalid scene");
+        RT_LOG_ERROR("Invalid scene");
         return false;
     }
 
@@ -278,7 +278,7 @@ void CpuViewport::Paint()
                            mFrontBuffer.GetData(),
                            &bmi, DIB_RGB_COLORS, SRCCOPY))
     {
-        LOG_ERROR("Paint failed");
+        RT_LOG_ERROR("Paint failed");
     }
 }
 

@@ -26,13 +26,13 @@ bool CpuMesh::Initialize(const MeshDesc& desc)
 {
     if (!mVertexBuffer.Initialize(desc.vertexBufferDesc))
     {
-        LOG_ERROR("Failed to initialize vertex buffer");
+        RT_LOG_ERROR("Failed to initialize vertex buffer");
         return false;
     }
 
     mScale = Vector4::Splat(desc.scale);
 
-    LOG_INFO("Mesh '%s' created successfully", desc.debugName ? desc.debugName : "unnamed");
+    RT_LOG_INFO("Mesh '%s' created successfully", desc.debugName ? desc.debugName : "unnamed");
     return true;
 }
 

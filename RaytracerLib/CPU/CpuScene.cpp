@@ -45,54 +45,71 @@ LightID CpuScene::CreateLightInstance(const LightInstance& data)
 
 Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, Uint32 rayDepth) const
 {
-    if (rayDepth >= context.params.maxRayDepth)
+    RT_UNUSED(rayDepth);
+
+    Ray currentRay = ray;
+
+    const Vector4 backgroundColor(0.01f, 0.02f, 0.03f);
+    Vector4 resultColor;
+    Vector4 throughput = VECTOR_ONE;
+
+    for (Uint32 i = 0; i < context.params.maxRayDepth; ++i)
     {
-        // ray depth exceeded limit
-        return Vector4();
-    }
+        const MeshInstance* bestMeshInstance = nullptr;
+        float distance = FLT_MAX;
+        MeshIntersectionData intersectionData;
+        intersectionData.u = intersectionData.v = 0.0f;
 
-    const MeshInstance* bestMeshInstance = nullptr;
-    float distance = FLT_MAX;
-    MeshIntersectionData intersectionData;
-    intersectionData.u = intersectionData.v = 0.0f;
-
-    for (const MeshInstance& meshInstance : mMeshInstances)
-    {
-        const CpuMesh* mesh = static_cast<const CpuMesh*>(meshInstance.mMesh);
-
-        // TODO transform ray
-        if (mesh->RayTrace_Single(ray, distance, intersectionData))
+        for (const MeshInstance& meshInstance : mMeshInstances)
         {
-            if (intersectionData.distance < distance)
+            const CpuMesh* mesh = static_cast<const CpuMesh*>(meshInstance.mMesh);
+
+            // TODO transform ray
+            if (mesh->RayTrace_Single(currentRay, distance, intersectionData))
             {
-                distance = intersectionData.distance;
-                bestMeshInstance = &meshInstance;
+                if (intersectionData.distance < distance)
+                {
+                    distance = intersectionData.distance;
+                    bestMeshInstance = &meshInstance;
+                }
             }
         }
-    }
 
-    if (!bestMeshInstance)
-    {
-        return Vector4(0.1f, 0.2f, 0.3f);
-    }
+        // ray missed - return background color
+        if (!bestMeshInstance)
+        {
+            resultColor += throughput * backgroundColor;
+            break;
+        }
 
-    ShadingData shadingData;
-    const CpuMesh* mesh = static_cast<const CpuMesh*>(bestMeshInstance->mMesh);
-    mesh->EvaluateShadingData_Single(ray, intersectionData, shadingData);
+        ShadingData shadingData;
+        const CpuMesh* mesh = static_cast<const CpuMesh*>(bestMeshInstance->mMesh);
+        mesh->EvaluateShadingData_Single(currentRay, intersectionData, shadingData);
 
-    math::Vector4 resultColor = shadingData.material->emissionColor;
+        // accumulate emission color
+        resultColor += throughput * shadingData.material->emissionColor;
 
-    // diffuse rays
-    if (!shadingData.material->diffuseColor.IsZero())
-    {
+        
+        if (shadingData.material->diffuseColor.IsZero())
+        {
+            break;
+        }
+
+        // accumulate attenuation
+        throughput *= shadingData.material->diffuseColor;
+
+        // Russian roulette
+        const float threshold = Max(throughput[0], Max(throughput[1], throughput[2]));
+        if (context.randomGenerator.GetFloat() > threshold)
+            break;
+
+        throughput /= threshold;
+
+        // generate secondary ray
         const Vector4 localDir = context.randomGenerator.GetHemishpereCos();
         const Vector4 origin = shadingData.position + shadingData.normal * 0.001f;
         const Vector4 globalDir = shadingData.tangent * localDir[0] + shadingData.binormal * localDir[1] + shadingData.normal * localDir[2];
-
-        const Ray secondaryRay(origin, globalDir);
-        context.counters.numDiffuseRays++;
-
-        resultColor += shadingData.material->diffuseColor * TraceRay_Single(secondaryRay, context, rayDepth + 1);
+        currentRay = Ray(origin, globalDir);
     }
 
     return resultColor;

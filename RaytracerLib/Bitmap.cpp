@@ -46,20 +46,20 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data)
 {
     if (width >= UINT16_MAX)
     {
-        LOG_ERROR("Bitmap width is too large");
+        RT_LOG_ERROR("Bitmap width is too large");
         return false;
     }
 
     if (height >= UINT16_MAX)
     {
-        LOG_ERROR("Bitmap height is too large");
+        RT_LOG_ERROR("Bitmap height is too large");
         return false;
     }
 
     const size_t dataSize = width * height * BitsPerPixel(format) / 8;
     if (dataSize == 0)
     {
-        LOG_ERROR("Invalid bitmap format");
+        RT_LOG_ERROR("Invalid bitmap format");
         return false;
     }
 
@@ -69,7 +69,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data)
     mData = _aligned_malloc(dataSize, 64);
     if (!mData)
     {
-        LOG_ERROR("Memory allocation failed");
+        RT_LOG_ERROR("Memory allocation failed");
         return false;
     }
 

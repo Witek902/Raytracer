@@ -28,8 +28,6 @@ struct RayTracingCounters
  */
 struct RayTracingContext
 {
-    // TODO ray value (for ray fading)
-
     // global rendering parameters
     const RaytracingParams& params;
 

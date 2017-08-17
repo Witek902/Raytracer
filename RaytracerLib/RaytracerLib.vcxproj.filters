@@ -200,6 +200,9 @@
     <ClCompile Include="Material.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

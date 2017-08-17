@@ -242,6 +242,7 @@
     <ClCompile Include="CPU\CpuViewport.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="LightInstance.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />

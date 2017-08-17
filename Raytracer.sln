@@ -1,19 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaytracerLib", "RaytracerLib\RaytracerLib.vcxproj", "{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaytracerDemo", "RaytracerDemo\RaytracerDemo.vcxproj", "{8AE4CB99-BC63-4282-BC29-5888458F3FB6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D} = {3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaytracerLib", "RaytracerLib\RaytracerLib.vcxproj", "{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}"
-EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -21,14 +18,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x64.ActiveCfg = Debug|x64
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x64.Build.0 = Debug|x64
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x86.ActiveCfg = Debug|Win32
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x86.Build.0 = Debug|Win32
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x64.ActiveCfg = Release|x64
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x64.Build.0 = Release|x64
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x86.ActiveCfg = Release|Win32
-		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x86.Build.0 = Release|Win32
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Debug|x64.ActiveCfg = Debug|x64
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Debug|x64.Build.0 = Debug|x64
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Debug|x86.ActiveCfg = Debug|Win32
@@ -37,9 +26,23 @@ Global
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Release|x64.Build.0 = Release|x64
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Release|x86.ActiveCfg = Release|Win32
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}.Release|x86.Build.0 = Release|Win32
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x64.ActiveCfg = Debug|x64
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x64.Build.0 = Debug|x64
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x86.ActiveCfg = Debug|Win32
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Debug|x86.Build.0 = Debug|Win32
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x64.ActiveCfg = Release|x64
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x64.Build.0 = Release|x64
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x86.ActiveCfg = Release|Win32
+		{8AE4CB99-BC63-4282-BC29-5888458F3FB6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23B2F25D-324D-47D2-9332-03C43B09708C}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

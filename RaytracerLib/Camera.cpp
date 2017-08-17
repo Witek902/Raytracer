@@ -8,7 +8,7 @@ using namespace math;
 
 Camera::Camera()
     : mAspectRatio(1.0f)
-    , mFieldOfView(RT_PI * 70.0f / 180.0f)
+    , mFieldOfView(RT_PI * 80.0f / 180.0f)
     , mMode(CameraMode::Perspective)
 { }
 

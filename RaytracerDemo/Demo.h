@@ -49,12 +49,9 @@ private:
     rt::Instance& mInstance;
 
     // TODO move to Main
+    std::vector<std::unique_ptr<rt::Material>> mMaterials;
     std::unique_ptr<rt::IMesh> mMesh;
     std::unique_ptr<rt::IScene> mScene;
-    std::unique_ptr<rt::Material> mWhiteMaterial;
-    std::unique_ptr<rt::Material> mRedMaterial;
-    std::unique_ptr<rt::Material> mGreenMaterial;
-    std::unique_ptr<rt::Material> mLampMaterial;
 
     CameraSetup mCameraSetup;
 

@@ -165,7 +165,7 @@ bool Window::Init()
     mInstance = GetModuleHandle(0);
     if (!mInstance)
     {
-        LOG_ERROR("Failed to acquire Instance from WinAPI");
+        RT_LOG_ERROR("Failed to acquire Instance from WinAPI");
         return false;
     }
 
@@ -185,7 +185,7 @@ bool Window::Init()
 
     if (!RegisterClassEx(&wcex))
     {
-        LOG_ERROR("Failed to register Window");
+        RT_LOG_ERROR("Failed to register Window");
         return false;
     }
 

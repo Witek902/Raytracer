@@ -61,30 +61,30 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
     if (desc.numTriangles == 0)
     {
-        LOG_WARNING("Creating empty vertex buffer");
+        RT_LOG_WARNING("Creating empty vertex buffer");
         return true;
     }
 
     if (desc.numVertices > 3 * desc.numTriangles)
     {
-        LOG_WARNING("There are redundant (unused) vertices");
+        RT_LOG_WARNING("There are redundant (unused) vertices");
     }
 
     if (!desc.positions)
     {
-        LOG_ERROR("Positions buffer must be provided");
+        RT_LOG_ERROR("Positions buffer must be provided");
         return false;
     }
 
     if (GetElementSize(desc.positionsFormat) == 0)
     {
-        LOG_ERROR("Invalid positions buffer format");
+        RT_LOG_ERROR("Invalid positions buffer format");
         return false;
     }
 
     if (!desc.vertexIndexBuffer)
     {
-        LOG_ERROR("Index buffer must be provided");
+        RT_LOG_ERROR("Index buffer must be provided");
         return false;
     }
 
@@ -92,7 +92,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         desc.vertexIndexFormat != VertexDataFormat::Int16 &&
         desc.vertexIndexFormat != VertexDataFormat::Int32)
     {
-        LOG_ERROR("Invalid index buffer format (only integer types are supported)");
+        RT_LOG_ERROR("Invalid index buffer format (only integer types are supported)");
         return false;
     }
 
@@ -141,7 +141,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
             desc.materialIndexFormat != VertexDataFormat::Int16 &&
             desc.materialIndexFormat != VertexDataFormat::Int32)
         {
-            LOG_ERROR("Invalid index buffer format (only integer types are supported)");
+            RT_LOG_ERROR("Invalid index buffer format (only integer types are supported)");
             return false;
         }
 
@@ -149,7 +149,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         materialIndexBufferSize = GetElementSize(desc.materialIndexFormat) * desc.numTriangles;
 
         mMaterialIndexBufferOffset = bufferSizeRequired;
-        bufferSizeRequired += RoundUp<Uint32>(materialBufferSize, 4);
+        bufferSizeRequired += RoundUp<Uint32>(materialIndexBufferSize, 4);
 
         mMaterialBufferOffset = bufferSizeRequired;
         bufferSizeRequired += RoundUp<Uint32>(materialBufferSize, 8);
@@ -159,11 +159,11 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     bufferSizeRequired += 16;
 
     // create the buffer
-    LOG_DEBUG("Allocating vertex buffer for mesh, size = %u", bufferSizeRequired);
+    RT_LOG_DEBUG("Allocating vertex buffer for mesh, size = %u", bufferSizeRequired);
     mBuffer = (char*)_aligned_malloc(bufferSizeRequired, 64);
     if (!mBuffer)
     {
-        LOG_ERROR("Memory allocation failed");
+        RT_LOG_ERROR("Memory allocation failed");
         return false;
     }
 
