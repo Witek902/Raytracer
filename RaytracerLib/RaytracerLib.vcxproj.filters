@@ -137,6 +137,12 @@
     <ClInclude Include="CPU\CpuRaytracing.h">
       <Filter>Core\CPU</Filter>
     </ClInclude>
+    <ClInclude Include="BVH.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="BVHBuilder.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
@@ -202,6 +208,12 @@
     </ClCompile>
     <ClCompile Include="Logger.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="BVHBuilder.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="BVH.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

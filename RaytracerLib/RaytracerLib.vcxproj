@@ -185,6 +185,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="BVH.h" />
+    <ClInclude Include="BVHBuilder.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="CPU\CpuInstance.h" />
@@ -235,6 +237,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
+    <ClCompile Include="BVH.cpp" />
+    <ClCompile Include="BVHBuilder.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CPU\CpuInstance.cpp" />
     <ClCompile Include="CPU\CpuMesh.cpp" />

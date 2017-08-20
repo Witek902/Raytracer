@@ -17,6 +17,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
+#include <algorithm>
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
