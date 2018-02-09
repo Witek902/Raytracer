@@ -14,6 +14,10 @@ using namespace math;
 
 ThreadPool::ThreadPool()
     : mFinishThreads(false)
+    , mRows(0)
+    , mColumns(0)
+    , mCurrentX(0)
+    , mCurrentY(0)
 {
     // start worker threads
     mThreads.reserve(std::thread::hardware_concurrency());
@@ -130,6 +134,9 @@ bool CpuViewport::Resize(Uint32 width, Uint32 height)
     if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
         return false;
 
+    if (!mBlurred.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+        return false;
+
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
         return false;
 
@@ -239,21 +246,77 @@ void CpuViewport::PostProcess()
     mNumSamplesRendered++;
     const Float scalingFactor = 1.0f / (Float)mNumSamplesRendered;
 
-    for (Uint32 y = 0; y < height; ++y)
+    if (mPostprocessingParams.bloomStrength > 0.0f)
     {
-        for (Uint32 x = 0; x < width; ++x)
+        // composite "summed" image
         {
-            const Vector4 currentSum = mSum.GetPixel(x, y);
-            const Vector4 renderTargetValue = mRenderTarget.GetPixel(x, y);
-            const Vector4 newSum = currentSum + renderTargetValue;
-            mSum.SetPixel(x, y, newSum);
+            Vector4 renderTargetLine[Bitmap::MaxSize];
+            Vector4 sumLine[Bitmap::MaxSize];
 
-            Vector4 color = newSum * scalingFactor;
-            // color += mRandomGenerator.GetVector4() * mPostprocessingParams.noiseStrength;
-            color *= mPostprocessingParams.exposure;
-            color = ToneMap(color);
+            for (Uint32 y = 0; y < height; ++y)
+            {
+                mSum.ReadHorizontalLine(y, sumLine);
+                mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
 
-            mFrontBuffer.SetPixel(x, y, color);
+                for (Uint32 x = 0; x < width; ++x)
+                {
+                    const Vector4 newSum = sumLine[x] + renderTargetLine[x];
+                    sumLine[x] = newSum;
+                }
+
+                mSum.WriteHorizontalLine(y, sumLine);
+            }
+        }
+
+        Bitmap::Blur(mBlurred, mSum, mPostprocessingParams.bloomSize, 3);
+
+        // generate front buffer
+        {
+            Vector4 frontBufferLine[Bitmap::MaxSize];
+            Vector4 blurredLine[Bitmap::MaxSize];
+            Vector4 sumLine[Bitmap::MaxSize];
+
+            for (Uint32 y = 0; y < height; ++y)
+            {
+                mBlurred.ReadHorizontalLine(y, blurredLine);
+                mSum.ReadHorizontalLine(y, sumLine);
+
+                for (Uint32 x = 0; x < width; ++x)
+                {
+                    const Vector4 color = mPostprocessingParams.bloomStrength * blurredLine[x] + sumLine[x];
+                    const Vector4 toneMappedColor = ToneMap(color * (scalingFactor * mPostprocessingParams.exposure));
+                    const Vector4 noiseValue = (mRandomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
+                    frontBufferLine[x] = toneMappedColor + noiseValue;
+                }
+
+                mFrontBuffer.WriteHorizontalLine(y, frontBufferLine);
+            }
+        }
+    }
+    else
+    {
+        Vector4 renderTargetLine[Bitmap::MaxSize];
+        Vector4 sumLine[Bitmap::MaxSize];
+        Vector4 frontBufferLine[Bitmap::MaxSize];
+
+        for (Uint32 y = 0; y < height; ++y)
+        {
+            mSum.ReadHorizontalLine(y, sumLine);
+            mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
+
+            for (Uint32 x = 0; x < width; ++x)
+            {
+                const Vector4 newSum = sumLine[x] + renderTargetLine[x];
+                sumLine[x] = newSum;
+
+                const Vector4& color = sumLine[x];
+                const Vector4 toneMappedColor = ToneMap(color * (scalingFactor * mPostprocessingParams.exposure));
+                const Vector4 noiseValue = (mRandomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
+                frontBufferLine[x] = toneMappedColor + noiseValue;
+            }
+
+            mSum.WriteHorizontalLine(y, sumLine);
+            mFrontBuffer.WriteHorizontalLine(y, frontBufferLine);
         }
     }
 }

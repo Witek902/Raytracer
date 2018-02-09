@@ -17,13 +17,13 @@ struct PostprocessParams
     float exposure;
     float bloomStrength;
     float bloomSize;
-    float noiseStrength;
+    float noiseStrength; // dithering
 
     PostprocessParams()
-        : exposure(1.0f)
-        , bloomSize(0.1f)
-        , bloomStrength(0.1f)
-        , noiseStrength(0.005f)
+        : exposure(0.8f)
+        , bloomSize(30.0f)
+        , bloomStrength(0.0f)
+        , noiseStrength(0.02f)
     { }
 };
 

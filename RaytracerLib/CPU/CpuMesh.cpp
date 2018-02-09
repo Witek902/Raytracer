@@ -1,10 +1,16 @@
 #include "PCH.h"
 #include "CpuMesh.h"
 #include "Logger.h"
+#include "BVHBuilder.h"
+#include "AlignmentAllocator.h"
+
 #include "Math/Triangle.h"
 #include "Math/Geometry.h"
 #include "Math/Simd4Geometry.h"
 #include "Math/Simd8Geometry.h"
+
+#include <vector>
+#include <sstream>
 
 
 namespace rt {
@@ -14,9 +20,8 @@ using namespace math;
 const static Material gDefaultMaterial;
 
 CpuMesh::CpuMesh()
-    : mScale(1.0f)
-    , mDebugName("mesh")
-{ }
+{
+}
 
 CpuMesh::~CpuMesh()
 {
@@ -30,23 +35,117 @@ bool CpuMesh::Initialize(const MeshDesc& desc)
         return false;
     }
 
-    mScale = Vector4::Splat(desc.scale);
+    std::vector<Box, AlignmentAllocator<Box>> boxes;
 
-    RT_LOG_INFO("Mesh '%s' created successfully", desc.debugName ? desc.debugName : "unnamed");
+    const Uint32 numTriangles = mVertexBuffer.GetNumTriangles();
+    for (Uint32 i = 0; i < numTriangles; ++i)
+    {
+        VertexIndices indices;
+        mVertexBuffer.GetVertexIndices(i, indices);
+
+        Triangle tri;
+        mVertexBuffer.GetVertexPositions(indices, tri);
+
+        boxes.emplace_back(tri.v0, tri.v1, tri.v2);
+    }
+
+    BVHBuilder::BuildingParams params;
+    params.maxLeafNodeSize = 2;
+
+    BVHBuilder::Indices newTrianglesOrder;
+    BVHBuilder bvhBuilder(mBVH);
+    if (!bvhBuilder.Build(boxes.data(), numTriangles, params, newTrianglesOrder))
+    {
+        return false;
+    }
+
+    // calculate & print stats
+    {
+        BVH::Stats stats;
+        mBVH.CalculateStats(stats);
+        RT_LOG_INFO("BVH stats:");
+        RT_LOG_INFO("    max depth: %u", stats.maxDepth);
+        RT_LOG_INFO("    total surface area: %f", stats.totalNodesArea);
+        RT_LOG_INFO("    total volume: %f", stats.totalNodesVolume);
+
+        std::stringstream str;
+        for (size_t i = 0; i < stats.leavesCountHistogram.size(); ++i)
+        {
+            if (i > 0)
+                str << ", ";
+            str << i << " (" << stats.leavesCountHistogram[i] << ")";
+        }
+        RT_LOG_INFO("    leaf nodes histogram: %s", str.str().c_str());
+    }
+
+    const std::string bvhCachePath = desc.path + ".bvhcache";
+    mBVH.SaveToFile(bvhCachePath);
+
+    mVertexBuffer.ReorderTriangles(newTrianglesOrder);
+
+    // TODO reorder indices
+
+    RT_LOG_INFO("Mesh '%s' created successfully", !desc.path.empty() ? desc.path.c_str() : "unnamed");
     return true;
 }
 
 bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectionData& outData) const
 {
+    float distance;
     bool intersectionFound = false;
-    const Uint32 numTriangles = mVertexBuffer.GetNumTriangles();
 
-    Uint32 i = 0;
-    Uint32 trianglesLeft = numTriangles;
+    Uint32 stackSize = 1;
+    Uint32 nodesStack[BVH::MaxDepth];
+    nodesStack[0] = 0;
 
-    /*
+    const BVH::Node* nodes = mBVH.GetNodes();
 
-    */
+    // BVH traversal
+    while (stackSize > 0)
+    {
+        const Uint32 currentNodeIndex = nodesStack[--stackSize];
+        const BVH::Node& currentNode = nodes[currentNodeIndex];
+
+        if (!Intersect(ray, currentNode.GetBox(), distance))
+        {
+            continue;
+        }
+
+        if (currentNode.data.numLeaves > 0) // leaf node
+        {
+            for (Uint32 i = 0; i < currentNode.data.numLeaves; ++i)
+            {
+                const Uint32 triangleIndex = currentNode.data.childIndex + i;
+
+                VertexIndices indices;
+                mVertexBuffer.GetVertexIndices(triangleIndex, indices);
+
+                Triangle tri;
+                mVertexBuffer.GetVertexPositions(indices, tri);
+
+                if (Intersect(ray, tri, distance))
+                {
+                    if (distance < maxDistance)
+                    {
+                        maxDistance = distance;
+                        outData.distance = distance;
+                        outData.triangle = triangleIndex;
+                        // TODO uv calculation
+                        intersectionFound = true;
+                    }
+                }
+            }
+        }
+        else // non-leaf node
+        {
+            nodesStack[stackSize++] = currentNode.data.childIndex;
+            nodesStack[stackSize++] = currentNode.data.childIndex + 1;
+        }
+
+        // TODO prefetching
+        // TODO child reordering (depending on ray direction)
+    }
+
 
     /*
     if (trianglesLeft >= 8)
@@ -108,7 +207,6 @@ bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectio
             trianglesLeft -= 8;
         } while (trianglesLeft >= 8);
     }
-    */
 
     if (trianglesLeft >= 4)
     {
@@ -161,15 +259,15 @@ bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectio
         } while (trianglesLeft >= 4);
     }
 
-
-    for (; i < numTriangles; ++i)
+    const Uint32 numTriangles = mVertexBuffer.GetNumTriangles();
+    for (Uint32 i = 0; i < mVertexBuffer.GetNumTriangles(); ++i)
     {
         VertexIndices indices;
-        Triangle tri;
         mVertexBuffer.GetVertexIndices(i, indices);
+
+        Triangle tri;
         mVertexBuffer.GetVertexPositions(indices, tri);
 
-        float distance;
         if (Intersect(ray, tri, distance))
         {
             if (distance < maxDistance)
@@ -182,8 +280,31 @@ bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectio
             }
         }
     }
+    */
 
     return intersectionFound;
+}
+
+Uint8 CpuMesh::RayTrace_Simd4(const math::Ray_Simd4& rays, const math::Vector4& maxDistances, MeshIntersectionData_Simd4& outData) const
+{
+    // TODO
+
+    RT_UNUSED(rays);
+    RT_UNUSED(maxDistances);
+    RT_UNUSED(outData);
+
+    return 0;
+}
+
+Uint8 CpuMesh::RayTrace_Simd8(const math::Ray_Simd8& rays, const math::Vector8& maxDistances, MeshIntersectionData_Simd8& outData) const
+{
+    // TODO
+
+    RT_UNUSED(rays);
+    RT_UNUSED(maxDistances);
+    RT_UNUSED(outData);
+
+    return 0;
 }
 
 void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionData& intersectionData,
@@ -200,7 +321,7 @@ void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionD
     mVertexBuffer.GetVertexTexCoords(indices, texCoords);
     mVertexBuffer.GetVertexNormals(indices, normals);
     mVertexBuffer.GetVertexTangents(indices, tangents);
-    
+
     const Vector4 coeff0 = Vector4::Splat(intersectionData.u);
     const Vector4 coeff1 = Vector4::Splat(intersectionData.v);
     const Vector4 coeff2 = Vector4(VECTOR_ONE) - coeff0 - coeff1;

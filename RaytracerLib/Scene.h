@@ -30,7 +30,7 @@ struct RaytracingParams
 
     RaytracingParams()
         : maxRayDepth(12)
-        , antiAliasingSpread(1.4f) // blur a little bit - real images are not perfectly sharp
+        , antiAliasingSpread(1.5f) // blur a little bit - real images are not perfectly sharp
     { }
 };
 
@@ -47,8 +47,8 @@ struct SceneEnvironment
     // TODO background texture
 
     SceneEnvironment()
-        : backgroundColor(math::Vector4(1.0f, 1.0f, 1.0f))
-        , fogColor(math::Vector4(1.0f, 1.0f, 1.0f))
+        : backgroundColor(math::Vector4(0.3f, 0.4f, 0.5f))
+        , fogColor(math::Vector4(0.3f, 0.4f, 0.5f))
         , fogDensity(0.01f)
     { }
 };

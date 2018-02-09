@@ -21,9 +21,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             return 2;
         }
 
-        if (!demo.Loop())
+        if (!demo.InitScene())
         {
             return 3;
+        }
+
+        if (!demo.Loop())
+        {
+            return 4;
         }
     }
 

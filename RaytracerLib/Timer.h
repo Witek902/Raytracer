@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RayLib.h"
+
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
@@ -8,7 +10,7 @@
 /**
  * High resolution timer.
  */
-class Timer
+class RAYLIB_API Timer
 {
 private:
     LARGE_INTEGER mStart;

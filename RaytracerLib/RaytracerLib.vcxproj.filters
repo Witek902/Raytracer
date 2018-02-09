@@ -2,16 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="PCH.h" />
-    <ClInclude Include="Common.h" />
     <ClInclude Include="RayLib.h" />
     <ClInclude Include="Logger.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Bitmap.h">
       <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Core</Filter>
@@ -52,10 +48,6 @@
     <ClInclude Include="Camera.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBuffer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Config.h" />
     <ClInclude Include="Math\Matrix.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -113,9 +105,6 @@
     <ClInclude Include="CPU\CpuScene.h">
       <Filter>Core\CPU</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBufferDesc.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="CPU\CpuMesh.h">
       <Filter>Core\CPU</Filter>
     </ClInclude>
@@ -138,10 +127,31 @@
       <Filter>Core\CPU</Filter>
     </ClInclude>
     <ClInclude Include="BVH.h">
-      <Filter>Core</Filter>
+      <Filter>Core\BVH</Filter>
     </ClInclude>
     <ClInclude Include="BVHBuilder.h">
-      <Filter>Core</Filter>
+      <Filter>Core\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AlignmentAllocator.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Core\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Core\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferDesc.h">
+      <Filter>Core\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -168,12 +178,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="MeshInstance.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexBuffer.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Math\Vector4.cpp">
@@ -209,11 +213,23 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="BVHBuilder.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="BVH.cpp">
-      <Filter>Core</Filter>
+      <Filter>Core\BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="BVHBuilder.cpp">
+      <Filter>Core\BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Box.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Core\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Core\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -246,6 +262,15 @@
     </Filter>
     <Filter Include="Core\CPU\Tools">
       <UniqueIdentifier>{935d8604-9cfa-4eee-a7b2-3b5e9e475e1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\BVH">
+      <UniqueIdentifier>{dc9d7214-b2b3-43cf-8f60-fb9311dcc8e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{b1073229-be67-4021-99c3-43b7628db29f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Mesh">
+      <UniqueIdentifier>{6e3ed8a4-9b4c-447f-8f37-d4c085728ef6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

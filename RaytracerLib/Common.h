@@ -10,6 +10,8 @@
 #define RT_FORCE_NOINLINE __declspec(noinline)
 #define RT_ALIGN(x) __declspec(align(x))
 
+#define RT_CACHE_LINE_SIZE 64
+
 
 #if defined(__LINUX__) | defined(__linux__)
 typedef uint64_t Uint64;

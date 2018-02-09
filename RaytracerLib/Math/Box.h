@@ -19,6 +19,13 @@ public:
     RT_FORCE_INLINE Box() : min(), max() {}
     RT_FORCE_INLINE Box(const Vector4& min, const Vector4& max) : min(min), max(max) {}
 
+    Box(const Vector4& a, const Vector4& b, const Vector4& c);
+
+    RT_FORCE_INLINE static Box Empty()
+    {
+        return Box(Vector4(VECTOR_MAX), -Vector4(VECTOR_MAX));
+    }
+
     // create box from center point and radius (e.g. bounding box of a sphere)
     RT_FORCE_INLINE Box(const Vector4& center, float radius)
     {

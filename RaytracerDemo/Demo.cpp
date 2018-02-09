@@ -1,18 +1,18 @@
 #include "PCH.h"
 #include "Demo.h"
-#include "Timer.h"
 #include "MeshLoader.h"
+
+#include "../RaytracerLib/Timer.h"
 #include "../RaytracerLib/Logger.h"
 #include "../RaytracerLib/Mesh.h"
 #include "../RaytracerLib/Material.h"
-
 
 using namespace rt;
 
 namespace {
 
-Uint32 WINDOW_WIDTH = 640;
-Uint32 WINDOW_HEIGHT = 360;
+Uint32 WINDOW_WIDTH = 768;
+Uint32 WINDOW_HEIGHT = 512;
 
 }
 
@@ -53,7 +53,6 @@ void DemoWindow::Reset()
 {
     ResetCounters();
     ResetCamera();
-    InitScene();
 }
 
 void DemoWindow::ResetCounters()
@@ -79,14 +78,14 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 
 void DemoWindow::ResetCamera()
 {
-    mCameraSetup.position = rt::math::Vector4(0.001f, 0.001f, -2.0f);
+    mCameraSetup.position = rt::math::Vector4(0.001f, 10.001f, 2.0f);
     mCameraSetup.pitch = 0.01f;
-    mCameraSetup.yaw = 0.01f;
+    mCameraSetup.yaw = RT_PI + 0.01f;
 }
 
 bool DemoWindow::InitScene()
 {
-    mMesh = helpers::LoadMesh("../../../MODELS/CornellBox/CornellBox-Original.obj", mInstance, mMaterials);
+    mMesh = helpers::LoadMesh("../../../MODELS/living_room/living_room.obj", mInstance, mMaterials);
     if (!mMesh)
         return false;
 
@@ -220,9 +219,11 @@ void DemoWindow::UpdateCamera()
 
     const Camera oldCameraSetup = mCamera;
 
-    rt::math::Vector4 direction = rt::math::Vector4(sinf(mCameraSetup.yaw) * cosf(mCameraSetup.pitch),
-                                                  sinf(mCameraSetup.pitch),
-                                                  cosf(mCameraSetup.yaw) * cosf(mCameraSetup.pitch));
+    // calculate camera direction from Euler angles
+    const float cosPitch = cosf(mCameraSetup.pitch);
+    const rt::math::Vector4 direction = rt::math::Vector4(sinf(mCameraSetup.yaw) * cosPitch,
+                                                          sinf(mCameraSetup.pitch),
+                                                          cosf(mCameraSetup.yaw) * cosPitch);
 
     rt::math::Vector4 movement;
     if (IsKeyPressed('W'))
@@ -246,8 +247,7 @@ void DemoWindow::UpdateCamera()
         mCameraSetup.position += movement * (Float)mDeltaTime;
     }
 
-    mCamera.SetPerspective(mCameraSetup.position,
-                           direction,
+    mCamera.SetPerspective(mCameraSetup.position, direction,
                            math::Vector4(0.0f, 1.0f, 0.0f),
                            (Float)width / (Float)height,
                            RT_PI / 180.0f * 60.0f);

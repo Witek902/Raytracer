@@ -11,11 +11,16 @@ namespace rt {
 class RAYLIB_API Bitmap
 {
 public:
+    // TODO
+    static constexpr Uint32 MaxSize = 4096;
+
     enum class Format
     {
         Unknown,
         B8G8R8A8_Uint,
         R32G32B32A32_Float,
+
+        // TODO monochromatic, compressed, half-float, etc.
     };
 
     Bitmap();
@@ -45,13 +50,31 @@ public:
     // TODO: this probably will be too slow
     math::Vector4 GetPixel(Uint32 x, Uint32 y) const;
 
+    // write whole pixels row
+    void WriteHorizontalLine(Uint32 y, const math::Vector4* values);
+    void WriteVerticalLine(Uint32 x, const math::Vector4* values);
+
+    // read whole pixels row
+    void ReadHorizontalLine(Uint32 y, math::Vector4* outValues) const;
+    void ReadVerticalLine(Uint32 x, math::Vector4* outValues) const;
+
+
     // fill with zeros
     void Zero();
+
+    // fast Box blur
+    static Bool VerticalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 radius);
+    static Bool HorizontalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 radius);
+
+    static Bool Blur(Bitmap& target, const Bitmap& src, const Float sigma, const Uint32 n);
 
 private:
 
     Bitmap(const Bitmap&) = delete;
     Bitmap& operator = (const Bitmap&) = delete;
+
+    static void BoxBlur_Internal(math::Vector4* targetLine, const math::Vector4* srcLine,
+                                 const Uint32 radius, const Uint32 width, const Float factor);
 
     void* mData;
     Uint16 mWidth;

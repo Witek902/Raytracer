@@ -3,20 +3,41 @@
 #include "../Mesh.h"
 #include "Math/Box.h"
 #include "Math/Ray.h"
+#include "Math/Simd4Ray.h"
+#include "Math/Simd8Ray.h"
 
 #include "VertexBuffer.h"
 #include "../Material.h"
+#include "../BVH.h"
 
 namespace rt {
 
 
-// Preliminary ray-mesh intersection data
+// Preliminary ray-mesh intersection data (non-SIMD)
 struct MeshIntersectionData
 {
     float distance;
     float u;
     float v;
     Uint32 triangle;
+};
+
+// Preliminary ray-mesh intersection data (4-ray SIMD version)
+struct MeshIntersectionData_Simd4
+{
+    math::Vector4 distance;
+    math::Vector4 u;
+    math::Vector4 v;
+    math::Vector4 triangle;
+};
+
+// Preliminary ray-mesh intersection data (8-ray SIMD version)
+struct MeshIntersectionData_Simd8
+{
+    math::Vector8 distance;
+    math::Vector8 u;
+    math::Vector8 v;
+    math::Vector8 triangle;
 };
 
 struct ShadingData
@@ -43,7 +64,18 @@ public:
 
     // Trace the mesh (non-SIMD version) to obtain preliminary intersection data
     // 'maxDistance' allows for narrowing of intersection search range
+    // Returns true if an intersection occurred
     bool RayTrace_Single(const math::Ray& ray, float maxDistance, MeshIntersectionData& outData) const;
+
+    // Trace the mesh against 4 rays (SIMD version) to obtain preliminary intersection data
+    // 'maxDistance' allows for narrowing of intersection search range
+    // Returns bitmask telling if an intersection occurred for each ray
+    Uint8 RayTrace_Simd4(const math::Ray_Simd4& rays, const math::Vector4& maxDistances, MeshIntersectionData_Simd4& outData) const;
+
+    // Trace the mesh against 8 rays (SIMD version) to obtain preliminary intersection data
+    // 'maxDistance' allows for narrowing of intersection search range
+    // Returns bitmask telling if an intersection occurred for each ray
+    Uint8 RayTrace_Simd8(const math::Ray_Simd8& rays, const math::Vector8& maxDistances, MeshIntersectionData_Simd8& outData) const;
 
     // Calculate input data for shading routine
     void EvaluateShadingData_Single(const math::Ray& ray, const MeshIntersectionData& intersectionData,
@@ -57,12 +89,10 @@ private:
     // vertex data
     VertexBuffer mVertexBuffer;
 
-    // Scaling factor. Used when vertex data format is non-float
-    math::Vector4 mScale;
+    // bounding volume hierarchy for tracing acceleration
+    BVH mBVH;
 
-    const char* mDebugName;
-
-    // TODO BVH
+    std::string mPath;
 };
 
 

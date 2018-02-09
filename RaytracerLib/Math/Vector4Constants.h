@@ -62,6 +62,7 @@ struct RT_ALIGN(16) Vectori
 // some commonly used constants
 const Vectorf VECTOR_EPSILON = { { { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON } } };
 const Vectorf VECTOR_HALVES = { { { 0.5f, 0.5f, 0.5f, 0.5f } } };
+const Vectorf VECTOR_MAX = { { { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX } } };
 const Vectorf VECTOR_ONE = { { { 1.0f, 1.0f, 1.0f, 1.0f } } };
 const Vectorf VECTOR_ONE3 = { { { 1.0f, 1.0f, 1.0f, 0.0f } } };
 const Vectorf VECTOR_ONE2 = { { { 1.0f, 1.0f, 0.0f, 0.0f } } };

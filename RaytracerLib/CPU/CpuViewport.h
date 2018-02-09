@@ -86,9 +86,12 @@ private:
 
     HWND mWindow;
     HDC mDC;
-   
+
+    math::Random mRandomGenerator;
+
     rt::Bitmap mRenderTarget;   // target image for rendering (floating point)
     rt::Bitmap mSum;            // image with summed up samples (floating point)
+    rt::Bitmap mBlurred;        // blurred image (for bloom)
     rt::Bitmap mFrontBuffer;    // image presented on a screen (uchar, post-processed)
 
     PostprocessParams mPostprocessingParams;

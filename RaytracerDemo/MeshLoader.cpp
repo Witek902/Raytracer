@@ -36,7 +36,7 @@ struct TriangleIndices
     }
 };
 
-std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& raytracerInstance, MaterialsList& outMaterials)
+std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& raytracerInstance, MaterialsList& outMaterials, const Float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
 
@@ -188,10 +188,11 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     }
 
 
-    RT_LOG_DEBUG("Mesh file '%s' loaded, shapes = %zu, materials = %zu, indices = %zu",
+    RT_LOG_DEBUG("Mesh file '%s' loaded, shapes = %zu, materials = %zu, indices = %u",
                  filePath.c_str(), shapes.size(), materials.size(), totalIndices);
 
     rt::MeshDesc meshDesc;
+    meshDesc.path = filePath;
     meshDesc.vertexBufferDesc.numTriangles = static_cast<Uint32>(vertexIndices.size() / 3);
     meshDesc.vertexBufferDesc.numVertices = static_cast<Uint32>(vertexPositions.size() / 3);
     meshDesc.vertexBufferDesc.numMaterials = static_cast<Uint32>(materials.size());
@@ -205,8 +206,9 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     meshDesc.vertexBufferDesc.positionsFormat = rt::VertexDataFormat::Float;
     meshDesc.vertexBufferDesc.normalsFormat = rt::VertexDataFormat::Float;
     meshDesc.vertexBufferDesc.tangentsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.vertexIndexFormat = rt::VertexDataFormat::Int32;
+    meshDesc.vertexBufferDesc.vertexIndexFormat = rt::IndexDataFormat::Int32;
     meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
+    meshDesc.vertexBufferDesc.scale = scale;
 
     std::unique_ptr<rt::IMesh> mesh = raytracerInstance.CreateMesh();
     bool result = mesh->Initialize(meshDesc);

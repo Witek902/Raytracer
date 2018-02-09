@@ -39,16 +39,20 @@ public:
     const Material* GetMaterial(const Uint32 triangleIndex) const;
 
     // extract vertex data (for one triangle)
-    void GetVertexPositions(const VertexIndices& indices, math::Triangle& data) const;
-    void GetVertexNormals(const VertexIndices& indices, math::Triangle& data) const;
-    void GetVertexTangents(const VertexIndices& indices, math::Triangle& data) const;
-    void GetVertexTexCoords(const VertexIndices& indices, math::Triangle& data) const;
+    RT_FORCE_NOINLINE void GetVertexPositions(const VertexIndices& indices, math::Triangle& data) const;
+    RT_FORCE_NOINLINE void GetVertexNormals(const VertexIndices& indices, math::Triangle& data) const;
+    RT_FORCE_NOINLINE void GetVertexTangents(const VertexIndices& indices, math::Triangle& data) const;
+    RT_FORCE_NOINLINE void GetVertexTexCoords(const VertexIndices& indices, math::Triangle& data) const;
 
     Uint32 GetNumVertices() const { return mNumVertices; }
     Uint32 GetNumTriangles() const { return mNumTriangles; }
 
+    // Change triangles order (for internal use)
+    void ReorderTriangles(const std::vector<Uint32>& newOrder);
+
 private:
-    // TODO keep in contiguous buffer + use offsets
+
+    math::Vector4 mVertexPositionScale;
 
     Uint32 mNumVertices;
     Uint32 mNumTriangles;
@@ -64,7 +68,7 @@ private:
     Uint32 mMaterialBufferOffset;
 
     // data buffers formats
-    VertexDataFormat mVertexIndexFormat;
+    IndexDataFormat mVertexIndexFormat;
     VertexDataFormat mPositionsFormat;
     VertexDataFormat mNormalsFormat;
     VertexDataFormat mTangentsFormat;
@@ -72,6 +76,8 @@ private:
     VertexDataFormat mMaterialIndexFormat;
 
     static Uint32 GetElementSize(VertexDataFormat format);
+    static Uint32 GetElementSize(IndexDataFormat format);
+
     RT_FORCE_NOINLINE static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
     RT_FORCE_NOINLINE static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
 };

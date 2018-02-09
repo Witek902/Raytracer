@@ -5,6 +5,8 @@
 #include "Math/Box.h"
 #include "Math/Ray.h"
 
+#include <string>
+
 
 namespace rt {
 
@@ -13,13 +15,7 @@ class Material;
 struct MeshDesc
 {
     VertexBufferDesc vertexBufferDesc;
-    float scale;
-    const char* debugName;
-
-    MeshDesc()
-        : scale(1.0f)
-        , debugName(nullptr)
-    { }
+    std::string path;
 };
 
 

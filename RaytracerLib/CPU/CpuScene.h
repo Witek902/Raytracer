@@ -32,10 +32,12 @@ public:
     virtual LightID CreateLightInstance(const LightInstance& data) override;
 
     // trace single (non-SIMD) ray
-    RT_FORCE_NOINLINE math::Vector4 TraceRay_Single(const math::Ray& ray, RayTracingContext& context, Uint32 rayDepth) const;
+    RT_FORCE_NOINLINE math::Vector4 TraceRay_Single(const math::Ray& ray, RayTracingContext& context, const Uint32 rayDepth) const;
 
 private:
     RT_FORCE_NOINLINE void Raytrace_Single(const Camera& camera, Bitmap& renderTarget, const RaytracingParams& params);
+
+    SceneEnvironment mEnvironment;
 
     std::vector<MeshInstance> mMeshInstances;
     std::vector<LightInstance> mLightInstances;

@@ -201,7 +201,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="MeshLoader.cpp" />
-    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -209,7 +208,6 @@
     <ClInclude Include="Demo.h" />
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="PCH.h" />
-    <ClInclude Include="Timer.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

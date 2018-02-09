@@ -16,6 +16,13 @@ enum class VertexDataFormat : Uint8
     Int8,
 };
 
+enum class IndexDataFormat : Uint8
+{
+    Int32,
+    Int16,
+    Int8,
+};
+
 /**
  * Structure describing a vertex buffer.
  */
@@ -33,12 +40,14 @@ struct VertexBufferDesc
     const void* materialIndexBuffer;
     const Material** materials;
 
-    VertexDataFormat vertexIndexFormat;
+    IndexDataFormat vertexIndexFormat;
     VertexDataFormat positionsFormat;
     VertexDataFormat normalsFormat;
     VertexDataFormat tangentsFormat;
     VertexDataFormat texCoordsFormat;
     VertexDataFormat materialIndexFormat;
+
+    Float scale;
 
     VertexBufferDesc::VertexBufferDesc()
         : numVertices(0)
@@ -51,12 +60,13 @@ struct VertexBufferDesc
         , texCoords(nullptr)
         , materials(nullptr)
         , materialIndexBuffer(nullptr)
-        , vertexIndexFormat(VertexDataFormat::None)
+        , vertexIndexFormat(IndexDataFormat::Int32)
         , positionsFormat(VertexDataFormat::None)
         , normalsFormat(VertexDataFormat::None)
         , tangentsFormat(VertexDataFormat::None)
         , texCoordsFormat(VertexDataFormat::None)
         , materialIndexFormat(VertexDataFormat::None)
+        , scale(1.0f)
     { }
 };
 

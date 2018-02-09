@@ -43,13 +43,22 @@ LightID CpuScene::CreateLightInstance(const LightInstance& data)
     return id;
 }
 
-Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, Uint32 rayDepth) const
+Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, const Uint32 rayDepth) const
 {
     RT_UNUSED(rayDepth);
 
+    /*
+    RT_UNUSED(context);
+    const Box box((Vector4)VECTOR_ONE / 3.0f, -(Vector4)VECTOR_ONE / 3.0f);
+
+    if (math::Intersect(ray, box))
+        return Vector4(3.0f, 3.2f, 3.3f);
+
+    return Vector4(0.1f, 0.1f, 0.1f);
+    */
+
     Ray currentRay = ray;
 
-    const Vector4 backgroundColor(0.01f, 0.02f, 0.03f);
     Vector4 resultColor;
     Vector4 throughput = VECTOR_ONE;
 
@@ -78,7 +87,7 @@ Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, Ui
         // ray missed - return background color
         if (!bestMeshInstance)
         {
-            resultColor += throughput * backgroundColor;
+            resultColor += throughput * mEnvironment.backgroundColor;
             break;
         }
 
@@ -89,7 +98,7 @@ Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, Ui
         // accumulate emission color
         resultColor += throughput * shadingData.material->emissionColor;
 
-        
+
         if (shadingData.material->diffuseColor.IsZero())
         {
             break;

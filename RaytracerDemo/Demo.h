@@ -10,7 +10,7 @@
 #include "../RaytracerLib/Material.h"
 
 
-struct CameraSetup
+struct RT_ALIGN(16) CameraSetup
 {
     rt::math::Vector4 position;
     Float yaw;
@@ -23,12 +23,14 @@ struct CameraSetup
 };
 
 
-class DemoWindow : public Window
+class RT_ALIGN(16) DemoWindow : public Window
 {
 public:
     DemoWindow(rt::Instance& instance);
 
     bool Initialize();
+
+    bool InitScene();
 
     /**
      * Main loop.
@@ -36,7 +38,7 @@ public:
     bool Loop();
 
     /**
-     * Reset counters.
+     * Reset counters and camera.
      */
     void Reset();
 
@@ -72,6 +74,5 @@ private:
 
     void ResetCounters();
     void ResetCamera();
-    bool InitScene();
     void UpdateCamera();
 };

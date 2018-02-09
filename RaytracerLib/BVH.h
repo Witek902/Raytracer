@@ -3,6 +3,9 @@
 #include "RayLib.h"
 #include "Math/Vector4.h"
 #include "Math/Box.h"
+#include "AlignmentAllocator.h"
+
+#include <string>
 
 
 namespace rt {
@@ -11,6 +14,8 @@ namespace rt {
 class BVH
 {
 public:
+    static constexpr Uint32 MaxDepth = 256;
+
     struct RT_ALIGN(16) Node
     {
         union
@@ -20,51 +25,56 @@ public:
             struct Data
             {
                 float min[3];
-                int childIndex;
+                Uint32 childIndex; // first child node / leaf index
                 float max[3];
-                int flags;
+                Uint32 numLeaves;
             } data;
         };
+
+        Node()
+            : box()
+        { }
+
+        RT_FORCE_INLINE math::Box GetBox() const
+        {
+            return math::Box(box.min & math::VECTOR_MASK_XYZ, box.max & math::VECTOR_MASK_XYZ);
+        }
     };
 
     struct Stats
     {
-        Uint32 minDepth;    // min leaf depth
         Uint32 maxDepth;    // max leaf depth
-        Double avgDepth;    // average leaf depth
-
         Double totalNodesArea;
         Double totalNodesVolume;
+        std::vector<Uint32> leavesCountHistogram;
+
         // TODO overlap factor, etc.
 
         Stats()
-            : minDepth(0)
-            , maxDepth(0)
-            , avgDepth(0.0)
+            : maxDepth(0)
             , totalNodesArea(0.0)
             , totalNodesVolume(0.0)
         { }
     };
 
     BVH();
-    ~BVH();
-    BVH(BVH&& rhs);
-    BVH& operator = (BVH&& rhs);
+    BVH(BVH&& rhs) = default;
+    BVH& operator = (BVH&& rhs) = default;
 
     // calculate whole BVH stats
     void CalculateStats(Stats& outStats) const;
 
-    bool SaveToFile(const char* filePath) const;
-    bool LoadFromFile(const char* filePath);
+    bool SaveToFile(const std::string& filePath) const;
+    bool LoadFromFile(const std::string& filePath);
 
-    RT_FORCE_INLINE const Node* GetNodes() const { return mNodes; }
+    RT_FORCE_INLINE const Node* GetNodes() const { return mNodes.data(); }
     RT_FORCE_INLINE Uint32 GetNumNodes() const { return mNumNodes; }
 
 private:
-    void CalculateStatsForNode(Uint32 node, Stats& outStats) const;
+    void CalculateStatsForNode(Uint32 node, Stats& outStats, Uint32 depth) const;
     bool AllocateNodes(Uint32 numNodes);
 
-    Node* mNodes;
+    std::vector<Node, AlignmentAllocator<Node, RT_CACHE_LINE_SIZE>> mNodes;
     Uint32 mNumNodes;
 
     friend class BVHBuilder;

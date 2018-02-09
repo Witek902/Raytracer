@@ -1,7 +1,8 @@
 #include "PCH.h"
 #include "VertexBuffer.h"
-
 #include "Logger.h"
+
+#include <assert.h>
 
 
 namespace rt {
@@ -47,7 +48,7 @@ void VertexBuffer::Clear()
     mTexCoordsBufferOffset = 0;
     mMaterialIndexBufferOffset = 0;
     mMaterialBufferOffset = 0;
-    mVertexIndexFormat = VertexDataFormat::None;
+    mVertexIndexFormat = IndexDataFormat::Int32;
     mPositionsFormat = VertexDataFormat::None;
     mNormalsFormat = VertexDataFormat::None;
     mTangentsFormat = VertexDataFormat::None;
@@ -88,11 +89,11 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         return false;
     }
 
-    if (desc.vertexIndexFormat != VertexDataFormat::Int8 &&
-        desc.vertexIndexFormat != VertexDataFormat::Int16 &&
-        desc.vertexIndexFormat != VertexDataFormat::Int32)
+    if (desc.vertexIndexFormat != IndexDataFormat::Int8 &&
+        desc.vertexIndexFormat != IndexDataFormat::Int16 &&
+        desc.vertexIndexFormat != IndexDataFormat::Int32)
     {
-        RT_LOG_ERROR("Invalid index buffer format (only integer types are supported)");
+        RT_LOG_ERROR("Invalid index buffer format");
         return false;
     }
 
@@ -160,7 +161,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
     // create the buffer
     RT_LOG_DEBUG("Allocating vertex buffer for mesh, size = %u", bufferSizeRequired);
-    mBuffer = (char*)_aligned_malloc(bufferSizeRequired, 64);
+    mBuffer = (char*)_aligned_malloc(bufferSizeRequired, RT_CACHE_LINE_SIZE);
     if (!mBuffer)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -192,7 +193,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
         if (materialBufferSize > 0 && materialIndexBufferSize > 0)
         {
-            mMaterialIndexFormat = desc.vertexIndexFormat;
+            mMaterialIndexFormat = desc.materialIndexFormat;
             memcpy(mBuffer + mMaterialBufferOffset, desc.materials, materialBufferSize);
             memcpy(mBuffer + mMaterialIndexBufferOffset, desc.materialIndexBuffer, materialIndexBufferSize);
         }
@@ -203,37 +204,160 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     mNumVertices = desc.numVertices;
     mNumTriangles = desc.numTriangles;
 
+    mVertexPositionScale = Vector4::Splat(desc.scale);
+
     return true;
+}
+
+void VertexBuffer::ReorderTriangles(const std::vector<Uint32>& newOrder)
+{
+    // TODO too much copy-paste...
+
+    assert(newOrder.size() == mNumTriangles);
+
+    char* vertexIndexData = mBuffer + mVertexIndexBufferOffset;
+    char* materialIndexData = mBuffer + mMaterialIndexBufferOffset;
+
+    size_t vertexIndexBufferSize = 3 * GetElementSize(mVertexIndexFormat) * mNumTriangles;
+    size_t materialIndexBufferSize = GetElementSize(mMaterialIndexFormat) * mNumTriangles;
+
+    // reorder vertex index buffer
+    if (mVertexIndexFormat == IndexDataFormat::Int8)
+    {
+        const Uint8* typedDataBuffer = reinterpret_cast<const Uint8*>(vertexIndexData);
+        std::vector<Uint8> newIndices;
+        newIndices.reserve(3 * mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 1]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 2]);
+        }
+
+        memcpy(vertexIndexData, newIndices.data(), vertexIndexBufferSize);
+    }
+    else if (mVertexIndexFormat == IndexDataFormat::Int16)
+    {
+        const Uint16* typedDataBuffer = reinterpret_cast<const Uint16*>(vertexIndexData);
+        std::vector<Uint16> newIndices;
+        newIndices.reserve(3 * mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 1]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 2]);
+        }
+
+        memcpy(vertexIndexData, newIndices.data(), vertexIndexBufferSize);
+    }
+    else if (mVertexIndexFormat == IndexDataFormat::Int32)
+    {
+        const Uint32* typedDataBuffer = reinterpret_cast<const Uint32*>(vertexIndexData);
+        std::vector<Uint32> newIndices;
+        newIndices.reserve(3 * mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 1]);
+            newIndices.push_back(typedDataBuffer[3 * newTriangleIndex + 2]);
+        }
+
+        memcpy(vertexIndexData, newIndices.data(), vertexIndexBufferSize);
+    }
+
+    // reorder material index buffer
+    if (mMaterialIndexFormat == VertexDataFormat::Int8)
+    {
+        const Uint8* typedDataBuffer = reinterpret_cast<const Uint8*>(materialIndexData);
+
+        std::vector<Uint8> newIndices;
+        newIndices.reserve(mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+            newIndices.push_back(typedDataBuffer[newTriangleIndex]);
+        }
+
+        memcpy(materialIndexData, newIndices.data(), materialIndexBufferSize);
+    }
+    else if (mMaterialIndexFormat == VertexDataFormat::Int16)
+    {
+        const Uint16* typedDataBuffer = reinterpret_cast<const Uint16*>(materialIndexData);
+
+        std::vector<Uint16> newIndices;
+        newIndices.reserve(mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+            newIndices.push_back(typedDataBuffer[newTriangleIndex]);
+        }
+
+        memcpy(materialIndexData, newIndices.data(), materialIndexBufferSize);
+    }
+    else if (mMaterialIndexFormat == VertexDataFormat::Int32)
+    {
+        const Uint32* typedDataBuffer = reinterpret_cast<const Uint32*>(materialIndexData);
+
+        std::vector<Uint32> newIndices;
+        newIndices.reserve(mNumTriangles);
+
+        for (Uint32 i = 0; i < mNumTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
+            newIndices.push_back(typedDataBuffer[newTriangleIndex]);
+        }
+
+        memcpy(materialIndexData, newIndices.data(), materialIndexBufferSize);
+    }
 }
 
 void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const
 {
+    assert(triangleIndex < mNumTriangles);
+
     const char* data = mBuffer + mVertexIndexBufferOffset;
     const Uint32 indexOffset = 3 * triangleIndex;
 
     switch (mVertexIndexFormat)
     {
-        case VertexDataFormat::Int8:
+        case IndexDataFormat::Int32:
         {
-            const unsigned char* typedDataBuffer = reinterpret_cast<const unsigned char*>(data);
+            const Uint32* typedDataBuffer = reinterpret_cast<const Uint32*>(data);
             indices.i0 = typedDataBuffer[indexOffset];
             indices.i1 = typedDataBuffer[indexOffset + 1];
             indices.i2 = typedDataBuffer[indexOffset + 2];
             break;
         }
 
-        case VertexDataFormat::Int16:
+        case IndexDataFormat::Int16:
         {
-            const unsigned short* typedDataBuffer = reinterpret_cast<const unsigned short*>(data);
+            const Uint16* typedDataBuffer = reinterpret_cast<const Uint16*>(data);
             indices.i0 = typedDataBuffer[indexOffset];
             indices.i1 = typedDataBuffer[indexOffset + 1];
             indices.i2 = typedDataBuffer[indexOffset + 2];
             break;
         }
 
-        case VertexDataFormat::Int32:
+        case IndexDataFormat::Int8:
         {
-            const unsigned int* typedDataBuffer = reinterpret_cast<const unsigned int*>(data);
+            const Uint8* typedDataBuffer = reinterpret_cast<const Uint8*>(data);
             indices.i0 = typedDataBuffer[indexOffset];
             indices.i1 = typedDataBuffer[indexOffset + 1];
             indices.i2 = typedDataBuffer[indexOffset + 2];
@@ -244,6 +368,8 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
 
 const Material* VertexBuffer::GetMaterial(const Uint32 triangleIndex) const
 {
+    assert(triangleIndex < mNumTriangles);
+
     const char* data = mBuffer + mMaterialIndexBufferOffset;
     Uint32 materialIndex = 0;
 
@@ -251,21 +377,21 @@ const Material* VertexBuffer::GetMaterial(const Uint32 triangleIndex) const
     {
         case VertexDataFormat::Int8:
         {
-            const unsigned char* typedDataBuffer = reinterpret_cast<const unsigned char*>(data);
+            const Uint8* typedDataBuffer = reinterpret_cast<const Uint8*>(data);
             materialIndex = typedDataBuffer[triangleIndex];
             break;
         }
 
         case VertexDataFormat::Int16:
         {
-            const unsigned short* typedDataBuffer = reinterpret_cast<const unsigned short*>(data);
+            const Uint16* typedDataBuffer = reinterpret_cast<const Uint16*>(data);
             materialIndex = typedDataBuffer[triangleIndex];
             break;
         }
 
         case VertexDataFormat::Int32:
         {
-            const unsigned int* typedDataBuffer = reinterpret_cast<const unsigned int*>(data);
+            const Uint32* typedDataBuffer = reinterpret_cast<const Uint32*>(data);
             materialIndex = typedDataBuffer[triangleIndex];
             break;
         }
@@ -295,26 +421,42 @@ Uint32 VertexBuffer::GetElementSize(VertexDataFormat format)
     }
 }
 
+Uint32 VertexBuffer::GetElementSize(IndexDataFormat format)
+{
+    switch (format)
+    {
+    case IndexDataFormat::Int32:
+        return 4;
+    case IndexDataFormat::Int16:
+        return 2;
+    case IndexDataFormat::Int8:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 void VertexBuffer::ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data)
 {
     if (format == VertexDataFormat::Float)
     {
         const Float* typedDataBuffer = reinterpret_cast<const Float*>(dataBuffer);
-        const Float* v0 = typedDataBuffer + 2 * indices.i0;
-        const Float* v1 = typedDataBuffer + 2 * indices.i1;
-        const Float* v2 = typedDataBuffer + 2 * indices.i2;
+        const Float* v0 = typedDataBuffer + 2u * indices.i0;
+        const Float* v1 = typedDataBuffer + 2u * indices.i1;
+        const Float* v2 = typedDataBuffer + 2u * indices.i2;
 
         // clear ZW components (there can be garbage)
-        data.v0 = Vector4(v0) & VECTOR_MASK_XY;
-        data.v1 = Vector4(v1) & VECTOR_MASK_XY;
-        data.v2 = Vector4(v2) & VECTOR_MASK_XY;
+        const Vector4 mask = VECTOR_MASK_XY;
+        data.v0 = Vector4(v0) & mask;
+        data.v1 = Vector4(v1) & mask;
+        data.v2 = Vector4(v2) & mask;
     }
     else if (format == VertexDataFormat::Int16)
     {
         const Int16* typedDataBuffer = reinterpret_cast<const Int16*>(dataBuffer);
-        const Int16* v0 = typedDataBuffer + 2 * indices.i0;
-        const Int16* v1 = typedDataBuffer + 2 * indices.i1;
-        const Int16* v2 = typedDataBuffer + 2 * indices.i2;
+        const Int16* v0 = typedDataBuffer + 2u * indices.i0;
+        const Int16* v1 = typedDataBuffer + 2u * indices.i1;
+        const Int16* v2 = typedDataBuffer + 2u * indices.i2;
 
         // TODO write better Vector4::Load2 method
         data.v0 = Vector4((Float)v0[0], (Float)v0[1]);
@@ -324,9 +466,9 @@ void VertexBuffer::ExtractTriangleData2(const void* dataBuffer, VertexDataFormat
     else if (format == VertexDataFormat::Int8)
     {
         const Int8* typedDataBuffer = reinterpret_cast<const Int8*>(dataBuffer);
-        const Int8* v0 = typedDataBuffer + 2 * indices.i0;
-        const Int8* v1 = typedDataBuffer + 2 * indices.i1;
-        const Int8* v2 = typedDataBuffer + 2 * indices.i2;
+        const Int8* v0 = typedDataBuffer + 2u * indices.i0;
+        const Int8* v1 = typedDataBuffer + 2u * indices.i1;
+        const Int8* v2 = typedDataBuffer + 2u * indices.i2;
 
         // TODO write better Vector4::Load2 method
         data.v0 = Vector4((Float)v0[0], (Float)v0[1]);
@@ -344,21 +486,22 @@ void VertexBuffer::ExtractTriangleData3(const void* dataBuffer, VertexDataFormat
     if (format == VertexDataFormat::Float)
     {
         const Float* typedDataBuffer = reinterpret_cast<const Float*>(dataBuffer);
-        const Float* v0 = typedDataBuffer + 3 * indices.i0;
-        const Float* v1 = typedDataBuffer + 3 * indices.i1;
-        const Float* v2 = typedDataBuffer + 3 * indices.i2;
+        const Float* v0 = typedDataBuffer + 3u * indices.i0;
+        const Float* v1 = typedDataBuffer + 3u * indices.i1;
+        const Float* v2 = typedDataBuffer + 3u * indices.i2;
 
         // clear W component (there can be garbage)
-        data.v0 = Vector4(v0) & VECTOR_MASK_XYZ;
-        data.v1 = Vector4(v1) & VECTOR_MASK_XYZ;
-        data.v2 = Vector4(v2) & VECTOR_MASK_XYZ;
+        const Vector4 mask = VECTOR_MASK_XYZ;
+        data.v0 = Vector4(v0) & mask;
+        data.v1 = Vector4(v1) & mask;
+        data.v2 = Vector4(v2) & mask;
     }
     else if (format == VertexDataFormat::Int16)
     {
         const Int16* typedDataBuffer = reinterpret_cast<const Int16*>(dataBuffer);
-        const Int16* v0 = typedDataBuffer + 3 * indices.i0;
-        const Int16* v1 = typedDataBuffer + 3 * indices.i1;
-        const Int16* v2 = typedDataBuffer + 3 * indices.i2;
+        const Int16* v0 = typedDataBuffer + 3u * indices.i0;
+        const Int16* v1 = typedDataBuffer + 3u * indices.i1;
+        const Int16* v2 = typedDataBuffer + 3u * indices.i2;
 
         // TODO write better Vector4::Load3 method
         data.v0 = Vector4((Float)v0[0], (Float)v0[1], (Float)v0[2]);
@@ -368,9 +511,9 @@ void VertexBuffer::ExtractTriangleData3(const void* dataBuffer, VertexDataFormat
     else if (format == VertexDataFormat::Int8)
     {
         const Int8* typedDataBuffer = reinterpret_cast<const Int8*>(dataBuffer);
-        const Int8* v0 = typedDataBuffer + 3 * indices.i0;
-        const Int8* v1 = typedDataBuffer + 3 * indices.i1;
-        const Int8* v2 = typedDataBuffer + 3 * indices.i2;
+        const Int8* v0 = typedDataBuffer + 3u * indices.i0;
+        const Int8* v1 = typedDataBuffer + 3u * indices.i1;
+        const Int8* v2 = typedDataBuffer + 3u * indices.i2;
 
         // TODO write better Vector4::Load3 method
         data.v0 = Vector4((Float)v0[0], (Float)v0[1], (Float)v0[2]);
@@ -381,11 +524,23 @@ void VertexBuffer::ExtractTriangleData3(const void* dataBuffer, VertexDataFormat
 
 void VertexBuffer::GetVertexPositions(const VertexIndices& indices, math::Triangle& data) const
 {
+    assert(indices.i0 < mNumVertices);
+    assert(indices.i1 < mNumVertices);
+    assert(indices.i2 < mNumVertices);
+
     ExtractTriangleData3(mBuffer + mPositionsBufferOffset, mPositionsFormat, indices, data);
+
+    data.v0 *= mVertexPositionScale;
+    data.v1 *= mVertexPositionScale;
+    data.v2 *= mVertexPositionScale;
 }
 
 void VertexBuffer::GetVertexNormals(const VertexIndices& indices, math::Triangle& data) const
 {
+    assert(indices.i0 < mNumVertices);
+    assert(indices.i1 < mNumVertices);
+    assert(indices.i2 < mNumVertices);
+
     if (mNormalsFormat == VertexDataFormat::None)
     {
         data = math::Triangle();
@@ -397,6 +552,10 @@ void VertexBuffer::GetVertexNormals(const VertexIndices& indices, math::Triangle
 
 void VertexBuffer::GetVertexTangents(const VertexIndices& indices, math::Triangle& data) const
 {
+    assert(indices.i0 < mNumVertices);
+    assert(indices.i1 < mNumVertices);
+    assert(indices.i2 < mNumVertices);
+
     if (mTangentsFormat == VertexDataFormat::None)
     {
         data = math::Triangle();
@@ -408,6 +567,10 @@ void VertexBuffer::GetVertexTangents(const VertexIndices& indices, math::Triangl
 
 void VertexBuffer::GetVertexTexCoords(const VertexIndices& indices, math::Triangle& data) const
 {
+    assert(indices.i0 < mNumVertices);
+    assert(indices.i1 < mNumVertices);
+    assert(indices.i2 < mNumVertices);
+
     if (mTexCoordsFormat == VertexDataFormat::None)
     {
         data = math::Triangle();
