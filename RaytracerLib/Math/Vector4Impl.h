@@ -506,9 +506,26 @@ bool Vector4::operator!= (const Vector4& b) const
 
 // Geometry functions =============================================================================
 
+Vector4 Vector4::Dot2V(const Vector4& v1, const Vector4& v2)
+{
+    return _mm_dp_ps(v1, v2, 0x3F);
+}
+
 Vector4 Vector4::Dot3V(const Vector4& v1, const Vector4& v2)
 {
     return _mm_dp_ps(v1, v2, 0x7F);
+}
+
+Vector4 Vector4::Dot4V(const Vector4& v1, const Vector4& v2)
+{
+    return _mm_dp_ps(v1, v2, 0xFF);
+}
+
+Float Vector4::Dot2(const Vector4& v1, const Vector4& v2)
+{
+    Float result;
+    _mm_store_ss(&result, Dot2V(v1, v2));
+    return result;
 }
 
 Float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
@@ -516,11 +533,6 @@ Float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
     Float result;
     _mm_store_ss(&result, Dot3V(v1, v2));
     return result;
-}
-
-Vector4 Vector4::Dot4V(const Vector4& v1, const Vector4& v2)
-{
-    return _mm_dp_ps(v1, v2, 0xFF);
 }
 
 Float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
@@ -539,6 +551,19 @@ Vector4 Vector4::Cross3(const Vector4& V1, const Vector4& V2)
     vTemp2 = _mm_shuffle_ps(vTemp2, vTemp2, _MM_SHUFFLE(3, 1, 0, 2));
     vResult = NegMulAndAdd(vTemp1, vTemp2, vResult);
     return _mm_and_ps(vResult, VECTOR_MASK_XYZ);
+}
+
+Float Vector4::Length2() const
+{
+    Float result;
+    _mm_store_ss(&result, Length2V());
+    return result;
+}
+
+Vector4 Vector4::Length2V() const
+{
+    const __m128 vDot = Dot2V(v, v);
+    return _mm_sqrt_ps(vDot);
 }
 
 Float Vector4::Length3() const

@@ -51,8 +51,8 @@ RT_FORCE_INLINE bool RayBoxIntersectInline(const Ray& ray, const Box& box, float
     Vector4 lmin, lmax, tmp1, tmp2;
 
     // calculate all box planes distances
-    tmp1 = Vector4::MulAndSub(box.min, ray.invDir, ray.originDivDir);
-    tmp2 = Vector4::MulAndSub(box.max, ray.invDir, ray.originDivDir);
+    tmp1 = (box.min - ray.origin) * ray.invDir;
+    tmp2 = (box.max - ray.origin) * ray.invDir;
     lmin = Vector4::Min(tmp1, tmp2);
     lmax = Vector4::Max(tmp1, tmp2);
 
@@ -63,8 +63,8 @@ RT_FORCE_INLINE bool RayBoxIntersectInline(const Ray& ray, const Box& box, float
 
     // calculate minimum and maximum plane distances by taking min and max
     // of all 3 components
-    lmin = _mm_max_ps(lx, _mm_max_ps(ly, lz));
-    lmax = _mm_min_ps(lx, _mm_min_ps(ly, lz));
+    lmin = Vector4::Max(lx, Vector4::Max(ly, lz));
+    lmax = Vector4::Min(lx, Vector4::Min(ly, lz));
     outDistance = lmin[0];
 
     // setup data for final comparison
@@ -83,6 +83,7 @@ RT_FORCE_INLINE bool RayTriangleIntersectInline(const Ray& ray, const Triangle& 
 {
     // Based on "Fast, Minimum Storage Ray/Triangle Intersection" by Tomas Möller and Ben Trumbore.
 
+    // TODO these can be precalculated
     // find vectors for two edges sharing v0
     Vector4 edge0 = tri.v1 - tri.v0;
     Vector4 edge1 = tri.v2 - tri.v0;

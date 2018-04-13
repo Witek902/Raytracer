@@ -107,7 +107,9 @@ CpuViewport::CpuViewport()
     , mWindow(0)
     , mDC(0)
     , mFrameID(0)
-{ }
+{
+    InitThreadData();
+}
 
 bool CpuViewport::Initialize(HWND windowHandle)
 {
@@ -115,6 +117,15 @@ bool CpuViewport::Initialize(HWND windowHandle)
     mDC = GetDC(mWindow);
 
     return true;
+}
+
+void CpuViewport::InitThreadData()
+{
+    mThreadData.resize(std::thread::hardware_concurrency());
+    for (size_t i = 0; i < std::thread::hardware_concurrency(); ++i)
+    {
+        mThreadData[i].random.Reset(2654435761u * static_cast<Uint32>(i));
+    }
 }
 
 bool CpuViewport::Resize(Uint32 width, Uint32 height)
@@ -177,11 +188,8 @@ bool CpuViewport::Render(const IScene* scene, const Camera& camera)
 
     const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
     {
+        Random& randomGenerator = mThreadData[threadID].random;
         RayTracingCounters counters;
-
-        Random randomGenerator;
-        randomGenerator.Reset(mFrameID + (threadID << 16));
-
         RayTracingContext context(randomGenerator, params, counters);
         RenderTile(*cpuScene, camera, context, tileSize * tileX, tileSize * tileY, tileSize, tileSize);
     };
@@ -218,13 +226,15 @@ void CpuViewport::RenderTile(const CpuScene& scene, const Camera& camera, RayTra
             // chromatic aberration
 
             // generate primary ray
-            const Ray cameraRay = camera.GenerateRay(coords * invSize);
-            context.counters.numPrimaryRays++;
+            const Ray cameraRay = camera.GenerateRay(coords * invSize, context.randomGenerator);
+
 
             const Vector4 color = scene.TraceRay_Single(cameraRay, context, 0);
             mRenderTarget.SetPixel(x, y, color);
         }
     }
+
+    context.counters.numPrimaryRays += width * height;
 }
 
 bool CpuViewport::SetPostprocessParams(const PostprocessParams& params)
@@ -242,6 +252,7 @@ void CpuViewport::PostProcess()
 {
     const Uint32 width = GetWidth();
     const Uint32 height = GetHeight();
+    Random& randomGenerator = mThreadData[0].random;
 
     mNumSamplesRendered++;
     const Float scalingFactor = 1.0f / (Float)mNumSamplesRendered;
@@ -285,7 +296,7 @@ void CpuViewport::PostProcess()
                 {
                     const Vector4 color = mPostprocessingParams.bloomStrength * blurredLine[x] + sumLine[x];
                     const Vector4 toneMappedColor = ToneMap(color * (scalingFactor * mPostprocessingParams.exposure));
-                    const Vector4 noiseValue = (mRandomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
+                    const Vector4 noiseValue = (randomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
                     frontBufferLine[x] = toneMappedColor + noiseValue;
                 }
 
@@ -311,7 +322,7 @@ void CpuViewport::PostProcess()
 
                 const Vector4& color = sumLine[x];
                 const Vector4 toneMappedColor = ToneMap(color * (scalingFactor * mPostprocessingParams.exposure));
-                const Vector4 noiseValue = (mRandomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
+                const Vector4 noiseValue = (randomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
                 frontBufferLine[x] = toneMappedColor + noiseValue;
             }
 

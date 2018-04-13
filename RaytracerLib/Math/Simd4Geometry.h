@@ -27,7 +27,7 @@ RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& 
     // of all 3 components
     const Vector4 maxDist = Vector4::Min(lmax.z, Vector4::Min(lmax.x, lmax.y));
     const Vector4 minDist = Vector4::Max(lmin.z, Vector4::Max(lmin.x, lmin.y));
-    
+
     segment.nearDists = minDist;
     segment.farDists = maxDist;
 
@@ -57,7 +57,7 @@ RT_INLINE Vector4 Intersect_TriangleRay_Simd4(const Ray_Simd4& ray, const Triang
     const Vector4 u = invDet * Vector3_Simd4::Dot(tvec, pvec);
     const Vector4 v = invDet * Vector3_Simd4::Dot(ray.dir, qvec);
     const Vector4 t = invDet * Vector3_Simd4::Dot(edge1, qvec);
-  
+
     outU = u;
     outV = v;
     outDist = t;

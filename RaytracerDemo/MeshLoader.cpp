@@ -36,6 +36,18 @@ struct TriangleIndices
     }
 };
 
+std::unique_ptr<rt::Material> LoadMaterial(rt::Instance& raytracerInstance, const tinyobj::material_t& sourceMaterial)
+{
+    auto material = raytracerInstance.CreateMaterial();
+    material->debugName = sourceMaterial.name;
+    material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2]);
+    material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2]);
+
+    // TODO textures
+
+    return material;
+}
+
 std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& raytracerInstance, MaterialsList& outMaterials, const Float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
@@ -176,13 +188,7 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     outMaterials.reserve(materials.size());
     for (size_t i = 0; i < materials.size(); i++)
     {
-        tinyobj::material_t& sourceMaterial = materials[i];
-
-        auto material = raytracerInstance.CreateMaterial();
-        material->debugName = std::move(sourceMaterial.name);
-        material->diffuseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2]);
-        material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2]);
-
+        auto material = LoadMaterial(raytracerInstance, materials[i]);
         materialPointers.push_back(material.get());
         outMaterials.emplace_back(std::move(material));
     }

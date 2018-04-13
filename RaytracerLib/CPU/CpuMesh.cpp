@@ -64,9 +64,9 @@ bool CpuMesh::Initialize(const MeshDesc& desc)
         BVH::Stats stats;
         mBVH.CalculateStats(stats);
         RT_LOG_INFO("BVH stats:");
-        RT_LOG_INFO("    max depth: %u", stats.maxDepth);
-        RT_LOG_INFO("    total surface area: %f", stats.totalNodesArea);
-        RT_LOG_INFO("    total volume: %f", stats.totalNodesVolume);
+        RT_LOG_INFO("    - max depth: %u", stats.maxDepth);
+        RT_LOG_INFO("    - total surface area: %f", stats.totalNodesArea);
+        RT_LOG_INFO("    - total volume: %f", stats.totalNodesVolume);
 
         std::stringstream str;
         for (size_t i = 0; i < stats.leavesCountHistogram.size(); ++i)
@@ -75,7 +75,7 @@ bool CpuMesh::Initialize(const MeshDesc& desc)
                 str << ", ";
             str << i << " (" << stats.leavesCountHistogram[i] << ")";
         }
-        RT_LOG_INFO("    leaf nodes histogram: %s", str.str().c_str());
+        RT_LOG_INFO("    - leaf nodes histogram: %s", str.str().c_str());
     }
 
     const std::string bvhCachePath = desc.path + ".bvhcache";
@@ -326,11 +326,28 @@ void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionD
     const Vector4 coeff1 = Vector4::Splat(intersectionData.v);
     const Vector4 coeff2 = Vector4(VECTOR_ONE) - coeff0 - coeff1;
 
-    // TODO use FMA
-    outShadingData.texCoord = (coeff0 * texCoords.v0 + coeff1 * texCoords.v1 + coeff2 * texCoords.v2);
-    outShadingData.normal = (coeff0 * normals.v0 + coeff1 * normals.v1 + coeff2 * normals.v2).FastNormalized3();
-    outShadingData.tangent = (coeff0 * tangents.v0 + coeff1 * tangents.v1 + coeff2 * tangents.v2).FastNormalized3();
-    outShadingData.binormal = Vector4::Cross3(outShadingData.tangent, outShadingData.normal).FastNormalized3();
+    // outShadingData.texCoord = coeff0 * texCoords.v0 + coeff1 * texCoords.v1 + coeff2 * texCoords.v2;
+    outShadingData.texCoord = coeff0 * texCoords.v0;
+    outShadingData.texCoord = Vector4::MulAndAdd(coeff1, texCoords.v1, outShadingData.texCoord);
+    outShadingData.texCoord = Vector4::MulAndAdd(coeff2, texCoords.v2, outShadingData.texCoord);
+
+    // outShadingData.normal = (coeff0 * normals.v0 + coeff1 * normals.v1 + coeff2 * normals.v2).FastNormalized3();
+    outShadingData.normal = coeff0 * normals.v0;
+    outShadingData.normal = Vector4::MulAndAdd(coeff1, normals.v1, outShadingData.normal);
+    outShadingData.normal = Vector4::MulAndAdd(coeff2, normals.v2, outShadingData.normal);
+    outShadingData.normal.FastNormalize3();
+
+    // outShadingData.tangent = (coeff0 * tangents.v0 + coeff1 * tangents.v1 + coeff2 * tangents.v2).FastNormalized3();
+    outShadingData.tangent = coeff0 * tangents.v0;
+    outShadingData.tangent = Vector4::MulAndAdd(coeff1, tangents.v1, outShadingData.tangent);
+    outShadingData.tangent = Vector4::MulAndAdd(coeff2, tangents.v2, outShadingData.tangent);
+    outShadingData.tangent.FastNormalize3();
+
+    outShadingData.binormal = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+
+    outShadingData.normal.FastNormalize3();
+    outShadingData.tangent.FastNormalize3();
+    outShadingData.binormal.FastNormalize3();
 }
 
 } // namespace rt

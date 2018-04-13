@@ -99,26 +99,31 @@ Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, co
         resultColor += throughput * shadingData.material->emissionColor;
 
 
-        if (shadingData.material->diffuseColor.IsZero())
+        if (shadingData.material->baseColor.IsZero())
         {
             break;
         }
 
         // accumulate attenuation
-        throughput *= shadingData.material->diffuseColor;
+        throughput *= shadingData.material->baseColor;
 
-        // Russian roulette
-        const float threshold = Max(throughput[0], Max(throughput[1], throughput[2]));
-        if (context.randomGenerator.GetFloat() > threshold)
-            break;
+        // Russian roulette algorithm
+        {
+            const float threshold = Max(throughput[0], Max(throughput[1], throughput[2]));
+            if (context.randomGenerator.GetFloat() > threshold)
+                break;
 
-        throughput /= threshold;
+            throughput /= threshold;
+        }
 
         // generate secondary ray
-        const Vector4 localDir = context.randomGenerator.GetHemishpereCos();
-        const Vector4 origin = shadingData.position + shadingData.normal * 0.001f;
-        const Vector4 globalDir = shadingData.tangent * localDir[0] + shadingData.binormal * localDir[1] + shadingData.normal * localDir[2];
-        currentRay = Ray(origin, globalDir);
+        const Vector4 incomingDir = currentRay.dir;
+        math::Vector4 factor;
+        if (!shadingData.material->GenerateSecondaryRay(incomingDir, shadingData, context.randomGenerator, currentRay, factor))
+        {
+            break;
+        }
+        throughput *= factor;
     }
 
     return resultColor;

@@ -143,7 +143,7 @@
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
-      <SDLCheck>false</SDLCheck>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -171,7 +171,7 @@
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
-      <SDLCheck>false</SDLCheck>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -192,6 +192,7 @@
     <ClInclude Include="CPU\CpuRaytracing.h" />
     <ClInclude Include="CPU\CpuScene.h" />
     <ClInclude Include="CPU\CpuViewport.h" />
+    <ClInclude Include="CPU\RayStream.h" />
     <ClInclude Include="CPU\Tools\iacaMarks.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Light.h" />

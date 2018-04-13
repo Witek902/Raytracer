@@ -9,12 +9,11 @@ using namespace math;
 Camera::Camera()
     : mAspectRatio(1.0f)
     , mFieldOfView(RT_PI * 80.0f / 180.0f)
-    , mMode(CameraMode::Perspective)
+    , barrelDistortionFactor(0.01f)
 { }
 
 void Camera::SetPerspective(const math::Vector4& pos, const math::Vector4& dir, const math::Vector4& up, Float aspectRatio, Float FoV)
 {
-    mMode = CameraMode::Perspective;
     mPosition = pos;
     mForward = dir;
     mUp = up;
@@ -28,31 +27,37 @@ void Camera::Update()
     mRightInternal = Vector4::Cross3(mUp, mForwardInternal).Normalized3();
     mUpInternal = Vector4::Cross3(mForwardInternal, mRightInternal).Normalized3();
 
-    // field of view
+    // field of view & aspect ratio
     const Float tanHalfFoV = tanf(mFieldOfView * 0.5f);
-    mUpInternal *= tanHalfFoV;
-    mRightInternal *= tanHalfFoV;
-
-    // aspect ratio
-    mRightInternal *= mAspectRatio;
+    mUpScaled = mUpInternal * tanHalfFoV;
+    mRightScaled = mRightInternal * (tanHalfFoV * mAspectRatio);
 }
 
-math::Ray Camera::GenerateRay(const math::Vector4& coords) const
+math::Ray Camera::GenerateRay(const math::Vector4& coords, math::Random& randomGenerator) const
 {
     Vector4 origin = mPosition;
-    Vector4 direction;
+    Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
 
-    switch (mMode)
+    // barrel distortion
+    if (barrelDistortionFactor != 0.0f)
     {
-        case CameraMode::Perspective:
-        {
-            const Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
-            direction = mForwardInternal + offsetedCoords[0] * mRightInternal + offsetedCoords[1] * mUpInternal;
-            break;
-        }
+        const Vector4 radius = Vector4::Dot2V(offsetedCoords, offsetedCoords);
+        offsetedCoords += offsetedCoords * radius * barrelDistortionFactor;
+    }
 
-        // TODO more types:
-        // ortho, fisheye, spherical, etc.
+    Vector4 direction = mForwardInternal + offsetedCoords[0] * mRightScaled + offsetedCoords[1] * mUpScaled;
+
+    // depth of field
+    if (mDOF.aperture > 0.0f)
+    {
+        const Vector4 focusPoint = origin + mDOF.focalPlaneDistance * direction;
+
+        // TODO different bokeh shapes, texture, etc.
+        const Vector4 randomPointOnCircle = randomGenerator.GetCircle() * mDOF.aperture;
+        origin += randomPointOnCircle[0] * mRightInternal;
+        origin += randomPointOnCircle[1] * mUpInternal;
+
+        direction = focusPoint - origin;
     }
 
     return Ray(origin, direction);

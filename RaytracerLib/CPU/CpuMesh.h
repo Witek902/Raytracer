@@ -50,6 +50,11 @@ struct ShadingData
     math::Vector4 texCoord;
 };
 
+struct RayStream
+{
+
+};
+
 /**
  * Class representing a mesh.
  */

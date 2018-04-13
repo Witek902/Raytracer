@@ -153,6 +153,9 @@
     <ClInclude Include="VertexBufferDesc.h">
       <Filter>Core\Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="CPU\RayStream.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />

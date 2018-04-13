@@ -30,7 +30,7 @@ struct RaytracingParams
 
     RaytracingParams()
         : maxRayDepth(12)
-        , antiAliasingSpread(1.5f) // blur a little bit - real images are not perfectly sharp
+        , antiAliasingSpread(1.75f) // blur a little bit - real images are not perfectly sharp
     { }
 };
 

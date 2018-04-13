@@ -163,6 +163,18 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static Vector4 SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel);
 
     /**
+     * Calculate 2D dot product.
+     * @return Vector4 of dot products.
+     */
+
+    RT_FORCE_INLINE static Float Dot2(const Vector4& v1, const Vector4& v2);
+    /**
+     * Calculate 2D dot product.
+     * @return Vector4 of dot products.
+     */
+    RT_FORCE_INLINE static Vector4 Dot2V(const Vector4& v1, const Vector4& v2);
+
+    /**
      * Calculate 3D dot product.
      * @return Dot product (scalar value).
      */
@@ -191,6 +203,20 @@ struct RT_ALIGN(16) Vector4
      * @return Vector4 of dot products.
      */
     RT_FORCE_INLINE static Vector4 Cross3(const Vector4& v1, const Vector4& v2);
+
+    /**
+     * Calculate length of a 2D vector.
+     * @details 3rd and 4th elements are ignored.
+     * @return Length of vector @p.
+     */
+    RT_FORCE_INLINE Float Length2() const;
+
+    /**
+     * Calculate length of a 2D vector.
+     * @details 3rd and 4th elements are ignored.
+     * @return Length of vector @p.
+     */
+    RT_FORCE_INLINE Vector4 Length2V() const;
 
     /**
      * Calculate length of a 3D vector.
@@ -298,7 +324,7 @@ struct RT_ALIGN(16) Vector4
      * @return  a * b - c
      */
     RT_FORCE_INLINE static Vector4 MulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
-        
+
     /**
      * Fused multiply (negated) and add.
      * @return  - a * b + c

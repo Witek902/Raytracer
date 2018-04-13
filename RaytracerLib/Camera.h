@@ -4,19 +4,10 @@
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
 #include "Math/Ray.h"
+#include "Math/Random.h"
 
 namespace rt {
 
-
-enum class CameraMode
-{
-    Perspective,
-
-    // TODO:
-    // Orthogonal,
-    // Spherical,
-    // Fisheye,
-};
 
 enum class BokehType
 {
@@ -30,12 +21,15 @@ enum class BokehType
 struct DOFSettings
 {
     Float focalPlaneDistance;
+
+    // the bigger value, the bigger out-of-focus blur
     Float aperture;
+
     BokehType bokehType;
 
     DOFSettings()
-        : focalPlaneDistance(10.0f)
-        , aperture(0.1f)
+        : focalPlaneDistance(1.0f)
+        , aperture(0.02f)
         , bokehType(BokehType::Circle)
     { }
 };
@@ -44,8 +38,7 @@ struct DOFSettings
 /**
  * Class describing camera for scene raytracing.
  */
-RT_ALIGN(16)
-class RAYLIB_API Camera
+class RT_ALIGN(16) RAYLIB_API Camera
 {
 public:
     Camera();
@@ -58,31 +51,33 @@ public:
 
     // Generate ray for the camera
     // x and y coordinates should be in [0.0f, 1.0f) range.
-    math::Ray GenerateRay(const math::Vector4& coords) const;
+    math::Ray GenerateRay(const math::Vector4& coords, math::Random& randomGenerator) const;
 
     // TODO generate ray packet
 
-    math::Vector4 mUp;
-    Float mAspectRatio;         // width / height
-    Float mFieldOfView;         // in radians, vertical angle
-
-    CameraMode mMode;
-
-    DOFSettings mDOF;
-
-    // TODO more advanced effects:
-    // - chromatic aberration
-    // - barrel distortion
-    // - vignetting
-    // etc...
-
+    // camera placement
     math::Vector4 mPosition;
     math::Vector4 mForward;
+    math::Vector4 mUp;
+
+    // width to height ratio
+    Float mAspectRatio;
+
+    // in radians, vertical angle
+    Float mFieldOfView;
+
+    // depth of field settings
+    DOFSettings mDOF;
+
+    // camera lens distortion (0.0 - no distortion)
+    Float barrelDistortionFactor;
 
 private:
     math::Vector4 mForwardInternal;
     math::Vector4 mRightInternal;
     math::Vector4 mUpInternal;
+    math::Vector4 mRightScaled;
+    math::Vector4 mUpScaled;
 };
 
 } // namespace rt

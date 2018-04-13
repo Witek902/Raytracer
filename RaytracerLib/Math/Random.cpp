@@ -82,14 +82,29 @@ Vector4 Random::GetVector4()
     return result;
 }
 
+Vector4 Random::GetCircle()
+{
+    const Vector4 v = GetVector4();
+
+    // angle (uniform distribution)
+    const float theta = 2.0f * RT_PI * v[0];
+
+    // radius (corrected distribution)
+    const float u = v[1] + v[2];
+    const float r = (u > 1.0f) ? (2.0f - u) : u;
+
+    return r * Vector4(sinf(theta), cosf(theta));
+}
+
 Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();
 
     // TODO optimize sqrtf, sin and cos (use approximations)
-    float r = sqrtf(u[0]);
+    const Vector4 t = Vector4::Sqrt4(Vector4(u[0], 1.0f - u[0]));
+
     float theta = 2.0f * RT_PI * u[1];
-    return Vector4(r * sinf(theta), r * cosf(theta), sqrtf(1.0f - u[0]));
+    return Vector4(t[0] * sinf(theta), t[0] * cosf(theta), t[1]);
 
 }
 

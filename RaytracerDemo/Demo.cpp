@@ -11,8 +11,8 @@ using namespace rt;
 
 namespace {
 
-Uint32 WINDOW_WIDTH = 768;
-Uint32 WINDOW_HEIGHT = 512;
+Uint32 WINDOW_WIDTH = 600;
+Uint32 WINDOW_HEIGHT = 400;
 
 }
 
@@ -22,6 +22,7 @@ DemoWindow::DemoWindow(rt::Instance& instance)
     , mTotalTime(0.0)
     , mRefreshTime(0.0)
     , mInstance(instance)
+    , mCameraSpeed(1.0f)
 {
     Reset();
 }
@@ -78,14 +79,17 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 
 void DemoWindow::ResetCamera()
 {
-    mCameraSetup.position = rt::math::Vector4(0.001f, 10.001f, 2.0f);
-    mCameraSetup.pitch = 0.01f;
-    mCameraSetup.yaw = RT_PI + 0.01f;
+    mCameraSetup.position = rt::math::Vector4(2.0f, 0.2f, 0.1f);
+    mCameraSetup.pitch = -0.09f;
+    mCameraSetup.yaw = -1.73f;
 }
 
 bool DemoWindow::InitScene()
 {
-    mMesh = helpers::LoadMesh("../../../MODELS/living_room/living_room.obj", mInstance, mMaterials);
+    //mMesh = helpers::LoadMesh("../../../../MODELS/sibenik/sibenik.obj", mInstance, mMaterials);
+    mMesh = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mInstance, mMaterials);
+    //mMesh = helpers::LoadMesh("../../../../MODELS/living_room/living_room.obj", mInstance, mMaterials);
+    //mMesh = helpers::LoadMesh("../../../../MODELS/cube/cube.obj", mInstance, mMaterials);
     if (!mMesh)
         return false;
 
@@ -109,7 +113,7 @@ void DemoWindow::OnMouseDown(Uint32 key, int x, int y)
 
 void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
 {
-    if (IsMouseButtonDown(0))
+    if (IsMouseButtonDown(1))
     {
         const Float sensitivity = 0.01f;
         mCameraSetup.yaw += sensitivity * (Float)deltaX;
@@ -128,6 +132,20 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
 void DemoWindow::OnMouseUp(Uint32 button)
 {
 
+}
+
+void DemoWindow::OnScroll(int delta)
+{
+    const float speedMultiplier = 1.25f;
+
+    if (delta > 0)
+    {
+        mCameraSpeed *= speedMultiplier;
+    }
+    else if (delta < 0)
+    {
+        mCameraSpeed /= speedMultiplier;
+    }
 }
 
 void DemoWindow::OnKeyPress(Uint32 key)
@@ -157,6 +175,10 @@ void DemoWindow::OnKeyPress(Uint32 key)
             params.exposure *= 1.1f;
             mViewport->SetPostprocessParams(params);
         }
+        else if (key == 'P') // printscreen
+        {
+
+        }
     }
 }
 
@@ -170,9 +192,10 @@ bool DemoWindow::Loop()
         ProcessMessages();
         UpdateCamera();
 
-        if (IsMouseButtonDown(0) && mViewport)
+        if (IsMouseButtonDown(1) && mViewport)
         {
             mViewport->Reset();
+            mFrameNumber = 0;
         }
 
         Double dt;
@@ -238,11 +261,12 @@ void DemoWindow::UpdateCamera()
     if (movement.Length3() > RT_EPSILON)
     {
         movement.Normalize3();
+        movement *= mCameraSpeed;
 
         if (IsKeyPressed(VK_LSHIFT))
-            movement *= 10.0f;
+            movement *= 5.0f;
         else if (IsKeyPressed(VK_LCONTROL))
-            movement /= 10.0f;
+            movement /= 5.0f;
 
         mCameraSetup.position += movement * (Float)mDeltaTime;
     }

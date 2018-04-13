@@ -63,7 +63,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
         overallBox = Box(overallBox, mLeafBoxes[i]);
     }
 
-    RT_LOG_INFO("Stating BVH: num leaves = %u, overall box = [%f, %f, %f], [%f, %f, %f]",
+    RT_LOG_INFO("BVH statistics: num leaves = %u, overall box = [%f, %f, %f], [%f, %f, %f]",
                 mNumLeaves,
                 overallBox.min.f[0], overallBox.min.f[1], overallBox.min.f[2],
                 overallBox.max.f[0], overallBox.max.f[1], overallBox.max.f[2]);

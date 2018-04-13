@@ -43,8 +43,11 @@ public:
     // this is much faster that using GetFloat() 4 times
     Vector4 GetVector4();
 
+    // get random point on a circle (uniform distribution)
+    Vector4 GetCircle();
+
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
-    Vector4 GetHemishpereCos();
+    RT_FORCE_NOINLINE Vector4 GetHemishpereCos();
 };
 
 

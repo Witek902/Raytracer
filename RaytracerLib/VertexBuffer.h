@@ -78,8 +78,8 @@ private:
     static Uint32 GetElementSize(VertexDataFormat format);
     static Uint32 GetElementSize(IndexDataFormat format);
 
-    RT_FORCE_NOINLINE static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
-    RT_FORCE_NOINLINE static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
+    RT_FORCE_INLINE static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
+    RT_FORCE_INLINE static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
 };
 
 

@@ -16,7 +16,6 @@ public:
     Vector4 dir; // TODO remove?
     Vector4 invDir;
     Vector4 origin;
-    Vector4 originDivDir;
 
     Ray() {}
 
@@ -25,7 +24,6 @@ public:
     {
         dir = direction.FastNormalized3();
         invDir = Vector4::FastReciprocal(dir);
-        originDivDir = origin * invDir;
     }
 };
 

@@ -55,6 +55,7 @@ private:
     std::unique_ptr<rt::IMesh> mMesh;
     std::unique_ptr<rt::IScene> mScene;
 
+    Float mCameraSpeed;
     CameraSetup mCameraSetup;
 
     Uint32 mFrameNumber;
@@ -65,9 +66,10 @@ private:
     Double mTotalTime;
     Double mRefreshTime;
 
-    void OnMouseDown(Uint32 key, int x, int y) override;
-    void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
-    void OnMouseUp(Uint32 button) override;
+    virtual void OnMouseDown(Uint32 key, int x, int y) override;
+    virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
+    virtual void OnMouseUp(Uint32 button) override;
+    virtual void OnScroll(int delta) override;
 
     void OnKeyPress(Uint32 key) override;
     void OnResize(Uint32 width, Uint32 height) override;

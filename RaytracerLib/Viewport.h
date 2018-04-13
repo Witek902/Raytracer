@@ -19,11 +19,13 @@ struct PostprocessParams
     float bloomSize;
     float noiseStrength; // dithering
 
+    // TODO color correction parameters
+
     PostprocessParams()
         : exposure(0.8f)
-        , bloomSize(30.0f)
+        , bloomSize(20.0f)
         , bloomStrength(0.0f)
-        , noiseStrength(0.02f)
+        , noiseStrength(0.025f)
     { }
 };
 

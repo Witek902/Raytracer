@@ -55,6 +55,12 @@ private:
 class CpuScene;
 struct RayTracingContext;
 
+struct ThreadData
+{
+    math::Random random;
+    char padding[64];
+};
+
 class CpuViewport : public IViewport
 {
 public:
@@ -72,6 +78,8 @@ public:
     RT_FORCE_INLINE Uint32 GetHeight() const { return mRenderTarget.GetHeight(); }
 
 private:
+    void InitThreadData();
+
     // raytrace single image tile (will be called from multiple threads)
     void RenderTile(const CpuScene& scene, const Camera& camera, RayTracingContext& context,
                     Uint32 x0, Uint32 y0, Uint32 width, Uint32 height);
@@ -87,7 +95,7 @@ private:
     HWND mWindow;
     HDC mDC;
 
-    math::Random mRandomGenerator;
+    std::vector<ThreadData> mThreadData;
 
     rt::Bitmap mRenderTarget;   // target image for rendering (floating point)
     rt::Bitmap mSum;            // image with summed up samples (floating point)
