@@ -91,7 +91,7 @@ bool CpuMesh::Initialize(const MeshDesc& desc)
 
 bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectionData& outData) const
 {
-    float distance;
+    float distance, u, v;
     bool intersectionFound = false;
 
     Uint32 stackSize = 1;
@@ -123,14 +123,15 @@ bool CpuMesh::RayTrace_Single(const Ray& ray, float maxDistance, MeshIntersectio
                 Triangle tri;
                 mVertexBuffer.GetVertexPositions(indices, tri);
 
-                if (Intersect(ray, tri, distance))
+                if (Intersect_TriangleRay(ray, tri, u, v, distance))
                 {
                     if (distance < maxDistance)
                     {
                         maxDistance = distance;
                         outData.distance = distance;
                         outData.triangle = triangleIndex;
-                        // TODO uv calculation
+                        outData.u = u;
+                        outData.v = v;
                         intersectionFound = true;
                     }
                 }
@@ -307,8 +308,7 @@ Uint8 CpuMesh::RayTrace_Simd8(const math::Ray_Simd8& rays, const math::Vector8& 
     return 0;
 }
 
-void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionData& intersectionData,
-                                         ShadingData& outShadingData) const
+void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionData& intersectionData, ShadingData& outShadingData) const
 {
     const Material* material = mVertexBuffer.GetMaterial(intersectionData.triangle);
     outShadingData.material = material ? material : &gDefaultMaterial;
@@ -322,27 +322,13 @@ void CpuMesh::EvaluateShadingData_Single(const Ray& ray, const MeshIntersectionD
     mVertexBuffer.GetVertexNormals(indices, normals);
     mVertexBuffer.GetVertexTangents(indices, tangents);
 
-    const Vector4 coeff0 = Vector4::Splat(intersectionData.u);
-    const Vector4 coeff1 = Vector4::Splat(intersectionData.v);
-    const Vector4 coeff2 = Vector4(VECTOR_ONE) - coeff0 - coeff1;
+    const Vector4 coeff0 = Vector4::Splat(1.0f - intersectionData.u - intersectionData.v);
+    const Vector4 coeff1 = Vector4::Splat(intersectionData.u);
+    const Vector4 coeff2 = Vector4::Splat(intersectionData.v);
 
-    // outShadingData.texCoord = coeff0 * texCoords.v0 + coeff1 * texCoords.v1 + coeff2 * texCoords.v2;
-    outShadingData.texCoord = coeff0 * texCoords.v0;
-    outShadingData.texCoord = Vector4::MulAndAdd(coeff1, texCoords.v1, outShadingData.texCoord);
-    outShadingData.texCoord = Vector4::MulAndAdd(coeff2, texCoords.v2, outShadingData.texCoord);
-
-    // outShadingData.normal = (coeff0 * normals.v0 + coeff1 * normals.v1 + coeff2 * normals.v2).FastNormalized3();
-    outShadingData.normal = coeff0 * normals.v0;
-    outShadingData.normal = Vector4::MulAndAdd(coeff1, normals.v1, outShadingData.normal);
-    outShadingData.normal = Vector4::MulAndAdd(coeff2, normals.v2, outShadingData.normal);
-    outShadingData.normal.FastNormalize3();
-
-    // outShadingData.tangent = (coeff0 * tangents.v0 + coeff1 * tangents.v1 + coeff2 * tangents.v2).FastNormalized3();
-    outShadingData.tangent = coeff0 * tangents.v0;
-    outShadingData.tangent = Vector4::MulAndAdd(coeff1, tangents.v1, outShadingData.tangent);
-    outShadingData.tangent = Vector4::MulAndAdd(coeff2, tangents.v2, outShadingData.tangent);
-    outShadingData.tangent.FastNormalize3();
-
+    outShadingData.texCoord = coeff0 * texCoords.v0 + coeff1 * texCoords.v1 + coeff2 * texCoords.v2;
+    outShadingData.normal = coeff0 * normals.v0 + coeff1 * normals.v1 + coeff2 * normals.v2;
+    outShadingData.tangent = coeff0 * tangents.v0 + coeff1 * tangents.v1 + coeff2 * tangents.v2;
     outShadingData.binormal = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
 
     outShadingData.normal.FastNormalize3();

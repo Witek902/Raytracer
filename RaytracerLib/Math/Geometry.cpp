@@ -77,21 +77,6 @@ bool Intersect(const Ray& ray, const Box& box, float& dist)
 }
 
 
-// Ray-Triangle intersection functions ============================================================
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Triangle& tri)
-{
-    float unusedDist;
-    return RayTriangleIntersectInline(ray, tri, unusedDist);
-}
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Triangle& tri, float& dist)
-{
-    return RayTriangleIntersectInline(ray, tri, dist);
-}
-
 
 // Ray-Sphere intersection functions ==============================================================
 

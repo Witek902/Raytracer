@@ -79,7 +79,7 @@ RT_FORCE_INLINE bool RayBoxIntersectInline(const Ray& ray, const Box& box, float
     return _mm_movemask_ps(_mm_cmpge_ps(lmax, lmin)) == 0xF;
 }
 
-RT_FORCE_INLINE bool RayTriangleIntersectInline(const Ray& ray, const Triangle& tri, float& outDistance)
+RT_FORCE_INLINE bool Intersect_TriangleRay(const Ray& ray, const Triangle& tri, float& outU, float& outV, float& outDistance)
 {
     // Based on "Fast, Minimum Storage Ray/Triangle Intersection" by Tomas Möller and Ben Trumbore.
 
@@ -111,6 +111,9 @@ RT_FORCE_INLINE bool RayTriangleIntersectInline(const Ray& ray, const Triangle& 
     tmp1 = _mm_shuffle_ps(tmp2, tmp1, _MM_SHUFFLE(2, 0, 2, 0));
     tmp1 = tmp1 / det; // TODO this is slow, but reciprocal approximation gives bad results (artifacts)
     tmp2 = _mm_set_ss(1.0f);
+
+    outU = tmp1[3];
+    outV = tmp1[2];
     outDistance = tmp1[1];
 
     // At this point, in tmp1 we have: [u, v, t, u + v]

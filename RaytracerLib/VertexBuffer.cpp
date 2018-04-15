@@ -577,7 +577,7 @@ void VertexBuffer::GetVertexTexCoords(const VertexIndices& indices, math::Triang
         return;
     }
 
-    ExtractTriangleData3(mBuffer + mTexCoordsBufferOffset, mTexCoordsFormat, indices, data);
+    ExtractTriangleData2(mBuffer + mTexCoordsBufferOffset, mTexCoordsFormat, indices, data);
 }
 
 

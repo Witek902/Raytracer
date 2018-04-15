@@ -98,14 +98,14 @@ Vector4 CpuScene::TraceRay_Single(const Ray& ray, RayTracingContext& context, co
         // accumulate emission color
         resultColor += throughput * shadingData.material->emissionColor;
 
-
-        if (shadingData.material->baseColor.IsZero())
+        const Vector4 baseColor = shadingData.material->GetBaseColor(shadingData.texCoord);
+        if (baseColor.IsZero())
         {
             break;
         }
 
         // accumulate attenuation
-        throughput *= shadingData.material->baseColor;
+        throughput *= baseColor;
 
         // Russian roulette algorithm
         {

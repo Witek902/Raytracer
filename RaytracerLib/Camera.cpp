@@ -9,7 +9,7 @@ using namespace math;
 Camera::Camera()
     : mAspectRatio(1.0f)
     , mFieldOfView(RT_PI * 80.0f / 180.0f)
-    , barrelDistortionFactor(0.01f)
+    , barrelDistortionFactor(0.005f)
 { }
 
 void Camera::SetPerspective(const math::Vector4& pos, const math::Vector4& dir, const math::Vector4& up, Float aspectRatio, Float FoV)

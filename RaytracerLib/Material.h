@@ -60,6 +60,9 @@ public:
 
     // TODO material layers
 
+    // sample base color
+    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
+
     RT_FORCE_NOINLINE
     bool GenerateSecondaryRay(const math::Vector4& incomingDir, const ShadingData& shadingData, math::Random& randomGenerator,
                               math::Ray& outRay, math::Vector4& outRayFactor) const;

@@ -19,9 +19,10 @@ ThreadPool::ThreadPool()
     , mCurrentX(0)
     , mCurrentY(0)
 {
+    const Uint32 numThreads = std::thread::hardware_concurrency();
+
     // start worker threads
-    mThreads.reserve(std::thread::hardware_concurrency());
-    for (size_t i = 0; i < std::thread::hardware_concurrency(); ++i)
+    for (size_t i = 0; i < numThreads; ++i)
     {
         mThreads.emplace_back(std::thread(&ThreadPool::ThreadCallback, this, static_cast<Uint32>(i)));
     }
@@ -221,13 +222,11 @@ void CpuViewport::RenderTile(const CpuScene& scene, const Camera& camera, RayTra
             coords += (context.randomGenerator.GetVector4() - VECTOR_HALVES) * context.params.antiAliasingSpread;
 
             // TODO Monte Carlo ray generation:
-            // depth of field
             // motion blur
             // chromatic aberration
 
             // generate primary ray
             const Ray cameraRay = camera.GenerateRay(coords * invSize, context.randomGenerator);
-
 
             const Vector4 color = scene.TraceRay_Single(cameraRay, context, 0);
             mRenderTarget.SetPixel(x, y, color);

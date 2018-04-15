@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Material.h"
 #include "CPU/CpuMesh.h"
+#include "Bitmap.h"
 
 
 namespace rt {
@@ -65,6 +66,18 @@ float CookTorrance(const Vector4& normal, const Vector4& in, const Vector4& out,
 Material::Material()
 { }
 
+math::Vector4 Material::GetBaseColor(const math::Vector4 uv) const
+{
+    math::Vector4 color = baseColor;
+
+    if (baseColorMap)
+    {
+        color *= baseColorMap->Sample(uv, SamplerDesc());
+    }
+
+    return color;
+}
+
 bool Material::GenerateSecondaryRay(const math::Vector4& incomingDir, const ShadingData& shadingData, math::Random& randomGenerator,
                                     math::Ray& outRay, math::Vector4& outRayFactor) const
 {
@@ -81,7 +94,7 @@ bool Material::GenerateSecondaryRay(const math::Vector4& incomingDir, const Shad
 
     // TODO texturing
 
-    const float diffuse = OrenNayar(shadingData.normal, incomingDir, outRay.dir, roughness);
+    const float diffuse = 1.0f; // OrenNayar(shadingData.normal, incomingDir, outRay.dir, roughness);
     const float specular = CookTorrance(shadingData.normal, incomingDir, outRay.dir, roughness);
 
     outRayFactor = Vector4::Splat(Lerp(diffuse, specular, metalness));

@@ -28,8 +28,8 @@ struct DOFSettings
     BokehType bokehType;
 
     DOFSettings()
-        : focalPlaneDistance(1.0f)
-        , aperture(0.02f)
+        : focalPlaneDistance(300.0f)
+        , aperture(5.0f)
         , bokehType(BokehType::Circle)
     { }
 };

@@ -4,12 +4,14 @@
 
 namespace rt {
 
+using namespace math;
 
 size_t Bitmap::BitsPerPixel(Format format)
 {
     switch (format)
     {
     case Format::Unknown:            return 0;
+    case Format::B8G8R8_Uint:        return 8 * 3;
     case Format::B8G8R8A8_Uint:      return 8 * 4;
     case Format::R32G32B32A32_Float: return 8 * 4 * 4;
     }
@@ -66,7 +68,8 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data)
     Release();
 
     // align to cache line
-    mData = _aligned_malloc(dataSize, RT_CACHE_LINE_SIZE);
+    const Uint32 marigin = 16;
+    mData = _aligned_malloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
     if (!mData)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -84,10 +87,66 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data)
     return true;
 }
 
-void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector4& value)
+Bool Bitmap::Load(const char* path)
 {
-    using namespace math;
+    FILE* file = fopen(path, "rb");
+    if (!file)
+    {
+        RT_LOG_ERROR("Failed to load source image from file '%hs'", path);
+        return false;
+    }
 
+    BITMAPFILEHEADER fileHeader;
+    if (fread(&fileHeader, sizeof(BITMAPFILEHEADER), 1, file) != 1)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Failed to read BMP file header from file '%hs'", path);
+        return false;
+    }
+
+    BITMAPINFOHEADER infoHeader;
+    if (fread(&infoHeader, sizeof(BITMAPINFOHEADER), 1, file) != 1)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Failed to read BMP info header from file '%hs'", path);
+        return false;
+    }
+
+    if (infoHeader.biPlanes != 1 || infoHeader.biCompression != BI_RGB || infoHeader.biBitCount != 24)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Unsupported BMP format: '%hs'", path);
+        return false;
+    }
+
+    if (infoHeader.biWidth == 0 || infoHeader.biHeight == 0)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Invalid image size: '%hs'", path);
+        return false;
+    }
+
+    if (!Init(infoHeader.biWidth, infoHeader.biHeight, Format::B8G8R8_Uint))
+    {
+        fclose(file);
+        return false;
+    }
+
+    if (fread(mData, 3 * infoHeader.biWidth * infoHeader.biHeight, 1, file) != 1)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
+        return false;
+    }
+
+    fclose(file);
+
+    RT_LOG_ERROR("Bitmap '%hs' loaded: width=%u, height=%u", path, mWidth, mHeight);
+    return true;
+}
+
+void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
+{
     const Uint32 offset = mWidth * y + x;
 
     switch (mFormat)
@@ -102,7 +161,7 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector4& value)
 
         case Format::R32G32B32A32_Float:
         {
-            math::Vector4* target = reinterpret_cast<math::Vector4*>(mData) + offset;
+            Vector4* target = reinterpret_cast<Vector4*>(mData) + offset;
             *target = value;
             break;
         }
@@ -112,7 +171,7 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const math::Vector4& value)
     }
 }
 
-math::Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
+Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
 {
     using namespace math;
 
@@ -123,13 +182,13 @@ math::Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
         case Format::B8G8R8A8_Uint:
         {
             const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            return math::Vector4::Load4(source).Swizzle<2, 1, 0, 3>();
+            return Vector4::Load4(source).Swizzle<2, 1, 0, 3>() / 255.0f;
             break;
         }
 
         case Format::R32G32B32A32_Float:
         {
-            const math::Vector4* source = reinterpret_cast<math::Vector4*>(mData) + offset;
+            const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
             return *source;
         }
 
@@ -137,10 +196,54 @@ math::Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
             break;
     }
 
-    return math::Vector4();
+    return Vector4();
 }
 
-void Bitmap::WriteHorizontalLine(Uint32 y, const math::Vector4* values)
+Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
+{
+    // TODO
+    (void)sampler;
+
+    // TODO SSE this !!!!
+    Int32 x = static_cast<Int32>(coords[0] * mWidth);
+    Int32 y = static_cast<Int32>(coords[1] * mHeight);
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= mWidth) x = mWidth - 1;
+    if (y >= mHeight) y = mHeight - 1;
+
+    const Uint32 offset = mWidth * y + x;
+
+    switch (mFormat)
+    {
+    case Format::B8G8R8_Uint:
+    {
+        const Uint8* source = reinterpret_cast<Uint8*>(mData) + (3 * offset);
+        const Vector4 raw = Vector4::Load4(source).Swizzle<2, 1, 0, 3>();
+        const Vector4 gammaSpace = (raw & VECTOR_MASK_XYZ) / 255.0f;
+        return gammaSpace * gammaSpace;
+    }
+
+    case Format::B8G8R8A8_Uint:
+    {
+        const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
+        return Vector4::Load4(source).Swizzle<2, 1, 0, 3>() / 255.0f;
+    }
+
+    case Format::R32G32B32A32_Float:
+    {
+        const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
+        return *source;
+    }
+
+    default:
+        break;
+    }
+
+    return Vector4();
+}
+
+void Bitmap::WriteHorizontalLine(Uint32 y, const Vector4* values)
 {
     const Uint32 offset = mWidth * y;
 
@@ -151,7 +254,7 @@ void Bitmap::WriteHorizontalLine(Uint32 y, const math::Vector4* values)
             Uint8* target = reinterpret_cast<Uint8*>(mData) + 4 * offset;
             for (Uint32 x = 0; x < mWidth; ++x)
             {
-                const math::Vector4 clampedValue = values[x].Swizzle<2, 1, 0, 3>() * 255.0f;
+                const Vector4 clampedValue = values[x].Swizzle<2, 1, 0, 3>() * 255.0f;
                 clampedValue.Store4(target + 4 * x);
             }
             break;
@@ -159,7 +262,7 @@ void Bitmap::WriteHorizontalLine(Uint32 y, const math::Vector4* values)
 
         case Format::R32G32B32A32_Float:
         {
-            math::Vector4* target = reinterpret_cast<math::Vector4*>(mData) + offset;
+            Vector4* target = reinterpret_cast<Vector4*>(mData) + offset;
             for (Uint32 x = 0; x < mWidth; ++x)
             {
                 target[x] = values[x];
@@ -172,7 +275,7 @@ void Bitmap::WriteHorizontalLine(Uint32 y, const math::Vector4* values)
     }
 }
 
-void Bitmap::WriteVerticalLine(Uint32 x, const math::Vector4* values)
+void Bitmap::WriteVerticalLine(Uint32 x, const Vector4* values)
 {
     switch (mFormat)
     {
@@ -181,7 +284,7 @@ void Bitmap::WriteVerticalLine(Uint32 x, const math::Vector4* values)
             Uint8* target = reinterpret_cast<Uint8*>(mData) + 4 * x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
-                const math::Vector4 clampedValue = values[y].Swizzle<2, 1, 0, 3>() * 255.0f;
+                const Vector4 clampedValue = values[y].Swizzle<2, 1, 0, 3>() * 255.0f;
                 clampedValue.Store4(target + 4 * mWidth * y);
             }
             break;
@@ -189,7 +292,7 @@ void Bitmap::WriteVerticalLine(Uint32 x, const math::Vector4* values)
 
         case Format::R32G32B32A32_Float:
         {
-            math::Vector4* target = reinterpret_cast<math::Vector4*>(mData) + x;
+            Vector4* target = reinterpret_cast<Vector4*>(mData) + x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
                 target[y * mWidth] = values[y];
@@ -202,7 +305,7 @@ void Bitmap::WriteVerticalLine(Uint32 x, const math::Vector4* values)
     }
 }
 
-void Bitmap::ReadHorizontalLine(Uint32 y, math::Vector4* outValues) const
+void Bitmap::ReadHorizontalLine(Uint32 y, Vector4* outValues) const
 {
     const Uint32 offset = mWidth * y;
 
@@ -213,14 +316,14 @@ void Bitmap::ReadHorizontalLine(Uint32 y, math::Vector4* outValues) const
             const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
             for (Uint32 x = 0; x < mWidth; ++x)
             {
-                outValues[x] = math::Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>();
+                outValues[x] = Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>() / 255.0f;
             }
             break;
         }
 
         case Format::R32G32B32A32_Float:
         {
-            const math::Vector4* source = reinterpret_cast<math::Vector4*>(mData) + offset;
+            const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
             for (Uint32 x = 0; x < mWidth; ++x)
             {
                 outValues[x] = source[x];
@@ -233,7 +336,7 @@ void Bitmap::ReadHorizontalLine(Uint32 y, math::Vector4* outValues) const
     }
 }
 
-void Bitmap::ReadVerticalLine(Uint32 x, math::Vector4* outValues) const
+void Bitmap::ReadVerticalLine(Uint32 x, Vector4* outValues) const
 {
     switch (mFormat)
     {
@@ -242,14 +345,14 @@ void Bitmap::ReadVerticalLine(Uint32 x, math::Vector4* outValues) const
             const Uint8* source = reinterpret_cast<Uint8*>(mData) + 4 * x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
-                outValues[x] = math::Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>();
+                outValues[x] = Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>() / 255.0f;
             }
             break;
         }
 
         case Format::R32G32B32A32_Float:
         {
-            const math::Vector4* source = reinterpret_cast<math::Vector4*>(mData) + x;
+            const Vector4* source = reinterpret_cast<Vector4*>(mData) + x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
                 outValues[y] = source[y * mWidth];
@@ -273,16 +376,16 @@ void Bitmap::Zero()
 
 //////////////////////////////////////////////////////////////////////////
 
-void Bitmap::BoxBlur_Internal(math::Vector4* targetLine, const math::Vector4* srcLine,
+void Bitmap::BoxBlur_Internal(Vector4* targetLine, const Vector4* srcLine,
                               const Uint32 radius, const Uint32 width, const Float factor)
 {
     Uint32 ti = 0;
     Uint32 li = 0;
     Uint32 ri = radius;
 
-    math::Vector4 fv = srcLine[0];
-    math::Vector4 lv = srcLine[width - 1];
-    math::Vector4 val = fv * (Float)(radius + 1);
+    Vector4 fv = srcLine[0];
+    Vector4 lv = srcLine[width - 1];
+    Vector4 val = fv * (Float)(radius + 1);
 
     for (Uint32 j = 0; j < radius; j++)
     {
@@ -316,8 +419,8 @@ Bool Bitmap::VerticalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 rad
         return false;
     }
 
-    math::Vector4 srcLine[MaxSize];
-    math::Vector4 targetLine[MaxSize];
+    Vector4 srcLine[MaxSize];
+    Vector4 targetLine[MaxSize];
 
     const Float factor = 1.0f / (Float)(2 * radius + 1);
 
@@ -339,8 +442,8 @@ Bool Bitmap::HorizontalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 r
         return false;
     }
 
-    math::Vector4 srcLine[MaxSize];
-    math::Vector4 targetLine[MaxSize];
+    Vector4 srcLine[MaxSize];
+    Vector4 targetLine[MaxSize];
 
     const Float factor = 1.0f / (Float)(2 * radius + 1);
 

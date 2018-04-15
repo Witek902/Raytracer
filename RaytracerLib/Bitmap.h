@@ -5,6 +5,27 @@
 
 namespace rt {
 
+enum class TextureAddressMode : Uint8
+{
+    Repeat = 0,
+    Clamp = 1,
+    Border = 2,
+};
+
+enum class TextureFilterMode : Uint8
+{
+    NearestNeighbor = 0,
+    Bilinear = 1,
+};
+
+struct SamplerDesc
+{
+    math::Vector4 borderColor;
+    TextureAddressMode addressU = TextureAddressMode::Repeat;
+    TextureAddressMode addressV = TextureAddressMode::Repeat;
+    TextureFilterMode filter = TextureFilterMode::Bilinear;
+};
+
 /**
  * Class representing 2D image/texture.
  */
@@ -17,6 +38,7 @@ public:
     enum class Format
     {
         Unknown,
+        B8G8R8_Uint,
         B8G8R8A8_Uint,
         R32G32B32A32_Float,
 
@@ -36,6 +58,9 @@ public:
     // initialize bitmap with data (or clean if passed nullptr)
     Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr);
 
+    // load from BMP file
+    Bool Load(const char* path);
+
     // release memory
     void Release();
 
@@ -49,6 +74,9 @@ public:
     // get single pixel
     // TODO: this probably will be too slow
     math::Vector4 GetPixel(Uint32 x, Uint32 y) const;
+
+    // sample the bitmap (including filtering and coordinates wrapping)
+    math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
 
     // write whole pixels row
     void WriteHorizontalLine(Uint32 y, const math::Vector4* values);
