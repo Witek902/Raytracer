@@ -43,7 +43,7 @@ template<typename ShapeType>
 bool Intersect(const Ray& ray, const ShapeType& shape, float& outDistance);
 
 
-RT_FORCE_INLINE bool RayBoxIntersectInline(const Ray& ray, const Box& box, float& outDistance)
+RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)
 {
     // The algorithm is based on "slabs" method. More info can be found here:
     // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm

@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Window.h"
 
-#include "../RaytracerLib/Logger.h"
+#include "../RaytracerLib/Utils/Logger.h"
 
 
 namespace {

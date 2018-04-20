@@ -1,29 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="PCH.h" />
-    <ClInclude Include="RayLib.h" />
-    <ClInclude Include="Logger.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Bitmap.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="MaterialLayer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshInstance.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="LightInstance.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Random.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -44,9 +21,6 @@
     </ClInclude>
     <ClInclude Include="Math\Box.h">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Math\Matrix.h">
       <Filter>Math</Filter>
@@ -93,72 +67,86 @@
     <ClInclude Include="Math\Simd8Vector3.h">
       <Filter>Math\Simd8</Filter>
     </ClInclude>
-    <ClInclude Include="Viewport.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\CpuViewport.h">
-      <Filter>Core\CPU</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\CpuScene.h">
-      <Filter>Core\CPU</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\CpuMesh.h">
-      <Filter>Core\CPU</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\CpuInstance.h">
-      <Filter>Core\CPU</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\Tools\iacaMarks.h">
-      <Filter>Core\CPU\Tools</Filter>
-    </ClInclude>
-    <ClInclude Include="Instance.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Simd4Triangle.h">
       <Filter>Math\Simd4</Filter>
     </ClInclude>
     <ClInclude Include="Math\Simd8Triangle.h">
       <Filter>Math\Simd8</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\CpuRaytracing.h">
-      <Filter>Core\CPU</Filter>
+    <ClInclude Include="Utils\Logger.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="BVH.h">
-      <Filter>Core\BVH</Filter>
+    <ClInclude Include="Utils\Timer.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="BVHBuilder.h">
-      <Filter>Core\BVH</Filter>
+    <ClInclude Include="Utils\AlignmentAllocator.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="Utils\iacaMarks.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Config.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="Mesh\VertexBuffer.h">
+      <Filter>Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="AlignmentAllocator.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="Mesh\VertexBufferDesc.h">
+      <Filter>Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="Mesh\Mesh.h">
+      <Filter>Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Core\Mesh</Filter>
+    <ClInclude Include="Material\MaterialLayer.h">
+      <Filter>Material</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBuffer.h">
-      <Filter>Core\Mesh</Filter>
+    <ClInclude Include="Material\Material.h">
+      <Filter>Material</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBufferDesc.h">
-      <Filter>Core\Mesh</Filter>
+    <ClInclude Include="BVH\BVH.h">
+      <Filter>BVH</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\RayStream.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="BVH\BVHBuilder.h">
+      <Filter>BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Bitmap.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ThreadPool.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\MeshInstance.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\RayPacket.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\RayStream.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\IntersectionData.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Viewport.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Settings.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Counters.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\Color.h">
+      <Filter>Color</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PCH.cpp" />
     <ClCompile Include="Math\Math.cpp">
       <Filter>Math</Filter>
     </ClCompile>
@@ -171,79 +159,64 @@
     <ClCompile Include="Math\Matrix.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Bitmap.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="LightInstance.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshInstance.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Vector4.cpp">
       <Filter>Math\Vector4</Filter>
     </ClCompile>
     <ClCompile Include="Math\Vector8.cpp">
       <Filter>Math\Vector8</Filter>
     </ClCompile>
-    <ClCompile Include="Viewport.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\CpuViewport.cpp">
-      <Filter>Core\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\CpuScene.cpp">
-      <Filter>Core\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\CpuMesh.cpp">
-      <Filter>Core\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="Instance.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\CpuInstance.cpp">
-      <Filter>Core\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="BVH.cpp">
-      <Filter>Core\BVH</Filter>
-    </ClCompile>
-    <ClCompile Include="BVHBuilder.cpp">
-      <Filter>Core\BVH</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Box.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="Utils\Logger.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Core\Mesh</Filter>
+    <ClCompile Include="Utils\Timer.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="VertexBuffer.cpp">
-      <Filter>Core\Mesh</Filter>
+    <ClCompile Include="Mesh\VertexBuffer.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Mesh.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\Material.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
+    <ClCompile Include="BVH\BVHBuilder.cpp">
+      <Filter>BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="BVH\BVH.cpp">
+      <Filter>BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Bitmap.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ThreadPool.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\MeshInstance.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Traversal\RayPacket.cpp">
+      <Filter>Traversal</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Viewport.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Color\Color.cpp">
+      <Filter>Color</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
       <UniqueIdentifier>{d311ad2f-9ea8-432e-b362-e02e001ad7c0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{7f30fc4a-79e7-4213-ac8a-614844862318}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{83dcdc78-85b9-425e-9f76-fcd60b180cfb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Math\Vector4">
       <UniqueIdentifier>{223adfc8-1ea0-417b-9f50-8d80790d5f40}</UniqueIdentifier>
@@ -257,23 +230,29 @@
     <Filter Include="Math\Simd8">
       <UniqueIdentifier>{8a237b31-13d5-4cf3-b173-db01263dfca0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\GPU">
-      <UniqueIdentifier>{9a39de1d-9e8b-426d-ade1-deae031ac3b9}</UniqueIdentifier>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{1423a537-6ba9-4068-82b9-89ea66e5cea6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\CPU">
-      <UniqueIdentifier>{8de4f0fe-dcbd-4d0c-b369-28ccee0fa02a}</UniqueIdentifier>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{b03fcd4e-2b14-4de4-a29b-1354d71b1214}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\CPU\Tools">
-      <UniqueIdentifier>{935d8604-9cfa-4eee-a7b2-3b5e9e475e1b}</UniqueIdentifier>
+    <Filter Include="Material">
+      <UniqueIdentifier>{160173d6-ce6f-4827-b190-0f70237542f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\BVH">
-      <UniqueIdentifier>{dc9d7214-b2b3-43cf-8f60-fb9311dcc8e0}</UniqueIdentifier>
+    <Filter Include="BVH">
+      <UniqueIdentifier>{4ee3e5a8-cb1e-4a07-8eeb-c48f57218f28}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Common">
-      <UniqueIdentifier>{b1073229-be67-4021-99c3-43b7628db29f}</UniqueIdentifier>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{eab46f43-b5f9-4911-9154-1d688d905d28}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Mesh">
-      <UniqueIdentifier>{6e3ed8a4-9b4c-447f-8f37-d4c085728ef6}</UniqueIdentifier>
+    <Filter Include="Traversal">
+      <UniqueIdentifier>{acbc961c-9259-48bf-949a-1ab9428dd182}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{2d796b3f-dc0b-4ce7-8bcf-c3191bef178c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Color">
+      <UniqueIdentifier>{61891863-0b3c-4d34-be39-eebe230d38bb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Window.h"
-#include "../RaytracerLib/Bitmap.h"
-#include "../RaytracerLib/Scene.h"
-#include "../RaytracerLib/Camera.h"
-#include "../RaytracerLib/Mesh.h"
-#include "../RaytracerLib/Instance.h"
-#include "../RaytracerLib/Viewport.h"
-#include "../RaytracerLib/Material.h"
+
+#include "../RaytracerLib/Scene/Scene.h"
+#include "../RaytracerLib/Scene/Camera.h"
+#include "../RaytracerLib/Mesh/Mesh.h"
+#include "../RaytracerLib/Rendering/Viewport.h"
+#include "../RaytracerLib/Material/Material.h"
+#include "../RaytracerLib/Utils/Bitmap.h"
 
 
 struct RT_ALIGN(16) CameraSetup
@@ -26,7 +26,7 @@ struct RT_ALIGN(16) CameraSetup
 class RT_ALIGN(16) DemoWindow : public Window
 {
 public:
-    DemoWindow(rt::Instance& instance);
+    DemoWindow();
 
     bool Initialize();
 
@@ -45,15 +45,13 @@ public:
     void Render();
 
 private:
-    std::unique_ptr<rt::IViewport> mViewport;
+    std::unique_ptr<rt::Viewport> mViewport;
     rt::Camera mCamera;
-
-    rt::Instance& mInstance;
 
     // TODO move to Main
     std::vector<std::unique_ptr<rt::Material>> mMaterials;
-    std::unique_ptr<rt::IMesh> mMesh;
-    std::unique_ptr<rt::IScene> mScene;
+    std::unique_ptr<rt::Mesh> mMesh;
+    std::unique_ptr<rt::Scene> mScene;
 
     Float mCameraSpeed;
     CameraSetup mCameraSetup;

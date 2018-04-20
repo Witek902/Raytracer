@@ -2,10 +2,12 @@
 #include "Demo.h"
 #include "MeshLoader.h"
 
-#include "../RaytracerLib/Timer.h"
-#include "../RaytracerLib/Logger.h"
-#include "../RaytracerLib/Mesh.h"
-#include "../RaytracerLib/Material.h"
+#include "../RaytracerLib/Mesh/Mesh.h"
+#include "../RaytracerLib/Material/Material.h"
+
+#include "../RaytracerLib/Utils/Timer.h"
+#include "../RaytracerLib/Utils/Logger.h"
+
 
 using namespace rt;
 
@@ -16,12 +18,11 @@ Uint32 WINDOW_HEIGHT = 400;
 
 }
 
-DemoWindow::DemoWindow(rt::Instance& instance)
+DemoWindow::DemoWindow()
     : mFrameNumber(0)
     , mDeltaTime(0.0)
     , mTotalTime(0.0)
     , mRefreshTime(0.0)
-    , mInstance(instance)
     , mCameraSpeed(1.0f)
 {
     Reset();
@@ -44,7 +45,7 @@ bool DemoWindow::Initialize()
         return false;
     }
 
-    mViewport = mInstance.CreateViewport();
+    mViewport = std::make_unique<rt::Viewport>();
     mViewport->Initialize(reinterpret_cast<HWND>(GetHandle()));
     mViewport->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
     return true;
@@ -79,23 +80,30 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 
 void DemoWindow::ResetCamera()
 {
-    mCameraSetup.position = rt::math::Vector4(2.0f, 0.2f, 0.1f);
+    mCameraSetup.position = rt::math::Vector4(7.0f, 3.0f, 0.1f);
     mCameraSetup.pitch = -0.09f;
     mCameraSetup.yaw = -1.73f;
+
+    //mCameraSetup.position = rt::math::Vector4(0.0f, 0.75f, 0.0f);
+    //mCameraSetup.pitch = -1.70f;
+    //mCameraSetup.yaw = -1.73f;
 }
 
 bool DemoWindow::InitScene()
 {
     //mMesh = helpers::LoadMesh("../../../../MODELS/sibenik/sibenik.obj", mInstance, mMaterials);
-    mMesh = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mInstance, mMaterials);
+    //mMesh = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mInstance, mMaterials);
     //mMesh = helpers::LoadMesh("../../../../MODELS/living_room/living_room.obj", mInstance, mMaterials);
     //mMesh = helpers::LoadMesh("../../../../MODELS/cube/cube.obj", mInstance, mMaterials);
+    mMesh = helpers::LoadMesh("../../../../MODELS/crytek-sponza/sponza.obj", mMaterials, 0.01f);
+    //mMesh = helpers::CreatePlaneMesh(mInstance, mMaterials);
+
     if (!mMesh)
         return false;
 
     // SCENE
     {
-        mScene = mInstance.CreateScene();
+        mScene = std::make_unique<rt::Scene>();
 
         MeshInstance meshInstance;
         meshInstance.mMesh = mMesh.get();

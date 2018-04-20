@@ -181,25 +181,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AlignmentAllocator.h" />
-    <ClInclude Include="Bitmap.h" />
-    <ClInclude Include="BVH.h" />
-    <ClInclude Include="BVHBuilder.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="CPU\CpuInstance.h" />
-    <ClInclude Include="CPU\CpuMesh.h" />
-    <ClInclude Include="CPU\CpuRaytracing.h" />
-    <ClInclude Include="CPU\CpuScene.h" />
-    <ClInclude Include="CPU\CpuViewport.h" />
-    <ClInclude Include="CPU\RayStream.h" />
-    <ClInclude Include="CPU\Tools\iacaMarks.h" />
-    <ClInclude Include="Instance.h" />
-    <ClInclude Include="Light.h" />
-    <ClInclude Include="LightInstance.h" />
-    <ClInclude Include="Logger.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialLayer.h" />
+    <ClInclude Include="BVH\BVH.h" />
+    <ClInclude Include="BVH\BVHBuilder.h" />
+    <ClInclude Include="Color\Color.h" />
+    <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="Material\MaterialLayer.h" />
     <ClInclude Include="Math\Box.h" />
     <ClInclude Include="Math\Geometry.h" />
     <ClInclude Include="Math\Math.h" />
@@ -224,30 +210,31 @@
     <ClInclude Include="Math\Vector8Impl.h" />
     <ClInclude Include="Math\Vector4Constants.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshInstance.h" />
-    <ClInclude Include="PCH.h" />
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="RayLib.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Timer.h" />
-    <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="VertexBufferDesc.h" />
-    <ClInclude Include="Viewport.h" />
+    <ClInclude Include="Mesh\Mesh.h" />
+    <ClInclude Include="Mesh\VertexBuffer.h" />
+    <ClInclude Include="Mesh\VertexBufferDesc.h" />
+    <ClInclude Include="Rendering\Counters.h" />
+    <ClInclude Include="Rendering\Settings.h" />
+    <ClInclude Include="Rendering\Viewport.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Light.h" />
+    <ClInclude Include="Scene\MeshInstance.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Traversal\IntersectionData.h" />
+    <ClInclude Include="Traversal\RayPacket.h" />
+    <ClInclude Include="Traversal\RayStream.h" />
+    <ClInclude Include="Utils\AlignmentAllocator.h" />
+    <ClInclude Include="Utils\Bitmap.h" />
+    <ClInclude Include="Utils\iacaMarks.h" />
+    <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\Timer.h" />
+    <ClInclude Include="Utils\ThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Bitmap.cpp" />
-    <ClCompile Include="BVH.cpp" />
-    <ClCompile Include="BVHBuilder.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CPU\CpuInstance.cpp" />
-    <ClCompile Include="CPU\CpuMesh.cpp" />
-    <ClCompile Include="CPU\CpuScene.cpp" />
-    <ClCompile Include="CPU\CpuViewport.cpp" />
-    <ClCompile Include="Instance.cpp" />
-    <ClCompile Include="LightInstance.cpp" />
-    <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="BVH\BVH.cpp" />
+    <ClCompile Include="BVH\BVHBuilder.cpp" />
+    <ClCompile Include="Color\Color.cpp" />
+    <ClCompile Include="Material\Material.cpp" />
     <ClCompile Include="Math\Box.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
@@ -255,18 +242,17 @@
     <ClCompile Include="Math\Random.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Math\Vector8.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshInstance.cpp" />
-    <ClCompile Include="PCH.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="Viewport.cpp" />
+    <ClCompile Include="Mesh\Mesh.cpp" />
+    <ClCompile Include="Mesh\VertexBuffer.cpp" />
+    <ClCompile Include="Rendering\Viewport.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\MeshInstance.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Traversal\RayPacket.cpp" />
+    <ClCompile Include="Utils\Bitmap.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\Timer.cpp" />
+    <ClCompile Include="Utils\ThreadPool.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

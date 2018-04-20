@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "RayLib.h"
+#include "../RayLib.h"
+
 #include "Math.h"
 #include "Vector4.h"
 

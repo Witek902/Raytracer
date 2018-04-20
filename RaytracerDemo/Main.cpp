@@ -8,13 +8,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     RT_UNUSED(lpCmdLine);
 
     {
-        auto instance = rt::Instance::CreateCpuInstance();
-        if (!instance)
-        {
-            return 1;
-        }
-
-        DemoWindow demo(*instance);
+        DemoWindow demo;
 
         if (!demo.Initialize())
         {

@@ -61,23 +61,6 @@ bool Intersect(const Sphere& sphere1, const Sphere& sphere2)
 }
 
 
-// Ray-Box intersection functions =================================================================
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Box& box)
-{
-    float unusedDist;
-    return RayBoxIntersectInline(ray, box, unusedDist);
-}
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Box& box, float& dist)
-{
-    return RayBoxIntersectInline(ray, box, dist);
-}
-
-
-
 // Ray-Sphere intersection functions ==============================================================
 
 RT_FORCE_INLINE bool RaySphereIntersectInline(const Ray& ray, const Sphere& sphere, float& dist)

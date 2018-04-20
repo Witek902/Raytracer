@@ -1,10 +1,13 @@
 #include "PCH.h"
 #include "MeshLoader.h"
-#include "../RaytracerLib/Logger.h"
+
+#include "../RaytracerLib/Utils/Bitmap.h"
+#include "../RaytracerLib/Utils/Logger.h"
+
 #include "../RaytracerLib/Math/Vector4.h"
-#include "../RaytracerLib/Bitmap.h"
 
 #include "../External/tiny_obj_loader.h"
+
 
 namespace helpers {
 
@@ -68,9 +71,10 @@ rt::Bitmap* LoadTexture(const std::string& baseDir, const std::string& path)
     return nullptr;
 }
 
-std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, rt::Instance& raytracerInstance, const tinyobj::material_t& sourceMaterial)
+std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tinyobj::material_t& sourceMaterial)
 {
-    auto material = raytracerInstance.CreateMaterial();
+    auto material = std::make_unique<rt::Material>();
+
     material->debugName = sourceMaterial.name;
     material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2]);
     material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2]);
@@ -80,7 +84,7 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, rt::Insta
     return material;
 }
 
-std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& raytracerInstance, MaterialsList& outMaterials, const Float scale)
+std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
 
@@ -221,7 +225,7 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     outMaterials.reserve(materials.size());
     for (size_t i = 0; i < materials.size(); i++)
     {
-        auto material = LoadMaterial(meshBaseDir, raytracerInstance, materials[i]);
+        auto material = LoadMaterial(meshBaseDir, materials[i]);
         materialPointers.push_back(material.get());
         outMaterials.emplace_back(std::move(material));
     }
@@ -250,7 +254,7 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
     meshDesc.vertexBufferDesc.scale = scale;
 
-    std::unique_ptr<rt::IMesh> mesh = raytracerInstance.CreateMesh();
+    std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {
@@ -260,8 +264,18 @@ std::unique_ptr<rt::IMesh> LoadMesh(const std::string& filePath, rt::Instance& r
     return mesh;
 }
 
-std::unique_ptr<rt::IMesh> CreatePlaneMesh(rt::Instance& raytracerInstance, MaterialsList& outMaterials, const Float scale)
+std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float scale)
 {
+    auto material = std::make_unique<rt::Material>();
+    material->debugName = "default";
+    material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f);
+    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f);
+    material->baseColorMap = LoadTexture("../../../../MODELS/cube/", "default.bmp");
+
+    const rt::Material* materials[] = { material.get() };
+    const Uint32 materialIndices[] = { 0, 0 };
+    outMaterials.push_back(std::move(material));
+
     const Int32 indices[] =
     {
         0, 1, 2,
@@ -305,8 +319,8 @@ std::unique_ptr<rt::IMesh> CreatePlaneMesh(rt::Instance& raytracerInstance, Mate
     meshDesc.vertexBufferDesc.numTriangles = 2;
     meshDesc.vertexBufferDesc.numVertices = 4;
     meshDesc.vertexBufferDesc.numMaterials = 1;
-    //meshDesc.vertexBufferDesc.materials = nullptr;
-    //meshDesc.vertexBufferDesc.materialIndexBuffer = materialIndices.data();
+    meshDesc.vertexBufferDesc.materials = materials;
+    meshDesc.vertexBufferDesc.materialIndexBuffer = materialIndices;
     meshDesc.vertexBufferDesc.vertexIndexBuffer = indices;
     meshDesc.vertexBufferDesc.positions = vertices;
     meshDesc.vertexBufferDesc.normals = normals;
@@ -317,10 +331,10 @@ std::unique_ptr<rt::IMesh> CreatePlaneMesh(rt::Instance& raytracerInstance, Mate
     meshDesc.vertexBufferDesc.tangentsFormat = rt::VertexDataFormat::Float;
     meshDesc.vertexBufferDesc.texCoordsFormat = rt::VertexDataFormat::Float;
     meshDesc.vertexBufferDesc.vertexIndexFormat = rt::IndexDataFormat::Int32;
-    //meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
+    meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
     meshDesc.vertexBufferDesc.scale = scale;
 
-    std::unique_ptr<rt::IMesh> mesh = raytracerInstance.CreateMesh();
+    std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {
