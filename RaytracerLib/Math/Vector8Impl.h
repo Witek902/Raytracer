@@ -53,6 +53,16 @@ Vector8 Vector8::Splat(Float f)
     return Vector8(_mm256_set1_ps(f));
 }
 
+Vector8 Vector8::Splat(Int32 i)
+{
+    return Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
+}
+
+Vector8 Vector8::Splat(Uint32 u)
+{
+    return Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
+}
+
 Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
 {
     return _mm256_blendv_ps(a, b, sel);

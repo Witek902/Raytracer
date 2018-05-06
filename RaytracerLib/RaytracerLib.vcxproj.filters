@@ -7,19 +7,10 @@
     <ClInclude Include="Math\Math.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Triangle.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Sphere.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Geometry.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Ray.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Box.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Matrix.h">
@@ -112,9 +103,6 @@
     <ClInclude Include="Utils\ThreadPool.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\MeshInstance.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\Scene.h">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -130,13 +118,7 @@
     <ClInclude Include="Traversal\RayStream.h">
       <Filter>Traversal</Filter>
     </ClInclude>
-    <ClInclude Include="Traversal\IntersectionData.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Viewport.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Settings.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Counters.h">
@@ -144,6 +126,48 @@
     </ClInclude>
     <ClInclude Include="Color\Color.h">
       <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\ColorChecker.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\RayColor.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\HitPoint.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float2.h">
+      <Filter>Math\Float2</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float2Impl.h">
+      <Filter>Math\Float2</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float3.h">
+      <Filter>Math\Float3</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float3Impl.h">
+      <Filter>Math\Float3</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF.h">
+      <Filter>Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneObject.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Context.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Box.h">
+      <Filter>Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Sphere.h">
+      <Filter>Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Triangle.h">
+      <Filter>Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Transcendental.h">
+      <Filter>Math\Transcendental</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -164,9 +188,6 @@
     </ClCompile>
     <ClCompile Include="Math\Vector8.cpp">
       <Filter>Math\Vector8</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Box.cpp">
-      <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="Utils\Logger.cpp">
       <Filter>Utils</Filter>
@@ -195,9 +216,6 @@
     <ClCompile Include="Utils\ThreadPool.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\MeshInstance.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Scene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -212,6 +230,27 @@
     </ClCompile>
     <ClCompile Include="Color\Color.cpp">
       <Filter>Color</Filter>
+    </ClCompile>
+    <ClCompile Include="Color\ColorChecker.cpp">
+      <Filter>Color</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Float2.cpp">
+      <Filter>Math\Float2</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Float3.cpp">
+      <Filter>Math\Float3</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF.cpp">
+      <Filter>Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneObject.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Box.cpp">
+      <Filter>Math\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Transcendental.cpp">
+      <Filter>Math\Transcendental</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +292,18 @@
     </Filter>
     <Filter Include="Color">
       <UniqueIdentifier>{61891863-0b3c-4d34-be39-eebe230d38bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Float2">
+      <UniqueIdentifier>{fbee8864-35e5-40c8-b3c4-17867cdf5df5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Float3">
+      <UniqueIdentifier>{cb10c3d0-63bb-4970-8101-108ff96dc609}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Shapes">
+      <UniqueIdentifier>{5ccb6c11-889b-489c-8f0d-f4c18ba18433}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Transcendental">
+      <UniqueIdentifier>{6a1d1b11-3fc9-4e67-9d6e-ed998c2eb174}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

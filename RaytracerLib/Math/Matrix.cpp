@@ -5,6 +5,15 @@
 namespace rt {
 namespace math {
 
+Matrix Matrix::MakeTranslation3(const Vector4& pos)
+{
+    Matrix m;
+    m.r[0] = VECTOR_X;
+    m.r[1] = VECTOR_Y;
+    m.r[2] = VECTOR_Z;
+    m.r[3] = Vector4(pos.f[0], pos.f[1], pos.f[2], 1.0f);
+    return m;
+}
 
 Matrix Matrix::MakeLookTo(const Vector4& EyePosition, const Vector4& EyeDirection,
                     const Vector4& UpDirection)
@@ -115,7 +124,7 @@ Matrix Matrix::MakeRotationNormal(const Vector4& normalAxis, float angle)
     result.r[1] = R2;
     V2 = _mm_shuffle_ps(V2, V0, _MM_SHUFFLE(3, 2, 1, 0));
     result.r[2] = V2;
-    result.r[3] = VECTOR_Z;
+    result.r[3] = VECTOR_W;
     return result;
 }
 

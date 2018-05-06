@@ -15,7 +15,12 @@ Vector4::Vector4(Float x, Float y, Float z, Float w)
     v = _mm_set_ps(w, z, y, x);
 }
 
-Vector4::Vector4(int x, int y, int z, int w)
+Vector4::Vector4(Int32 x, Int32 y, Int32 z, Int32 w)
+{
+    v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
+}
+
+Vector4::Vector4(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
 {
     v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
 }
@@ -23,6 +28,22 @@ Vector4::Vector4(int x, int y, int z, int w)
 Vector4::Vector4(const Float* src)
 {
     v = _mm_loadu_ps(src);
+}
+
+Vector4::Vector4(const Float2& src)
+{
+    __m128 vx = _mm_load_ss(&src.x);
+    __m128 vy = _mm_load_ss(&src.y);
+    v = _mm_unpacklo_ps(vx, vy);
+}
+
+Vector4::Vector4(const Float3& src)
+{
+    __m128 vx = _mm_load_ss(&src.x);
+    __m128 vy = _mm_load_ss(&src.y);
+    __m128 vz = _mm_load_ss(&src.z);
+    __m128 vxy = _mm_unpacklo_ps(vx, vy);
+    v = _mm_movelh_ps(vxy, vz);
 }
 
 void Vector4::Set(Float scalar)
@@ -78,6 +99,22 @@ void Vector4::Store4(Uint8* dest) const
 void Vector4::Store(Float* dest) const
 {
     _mm_store_ss(dest, v);
+}
+
+void Vector4::Store(Float2* dest) const
+{
+    __m128 vy = _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1));
+    _mm_store_ss(&dest->x, v);
+    _mm_store_ss(&dest->y, vy);
+}
+
+void Vector4::Store(Float3* dest) const
+{
+    __m128 vy = _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1));
+    __m128 vz = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2));
+    _mm_store_ss(&dest->x, v);
+    _mm_store_ss(&dest->y, vy);
+    _mm_store_ss(&dest->z, vz);
 }
 
 template<bool x, bool y, bool z, bool w>

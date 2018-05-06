@@ -4,8 +4,7 @@
 
 #include "VertexBuffer.h"
 
-#include "../Traversal/IntersectionData.h"
-#include "../Material/Material.h"
+#include "../Traversal/HitPoint.h"
 #include "../BVH/BVH.h"
 
 #include "../Math/Box.h"
@@ -20,12 +19,18 @@ struct LocalCounters;
 
 struct ShadingData
 {
-    const Material* material;
+    const Material* material = nullptr;
+
     math::Vector4 position;
-    math::Vector4 normal;
+
     math::Vector4 tangent;
-    math::Vector4 binormal;
+    math::Vector4 bitangent;
+    math::Vector4 normal;
+
     math::Vector4 texCoord;
+
+    math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
+    math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
 };
 
 
@@ -50,20 +55,21 @@ public:
     // Initialize the mesh
     bool Initialize(const MeshDesc& desc);
 
-    // Trace the mesh (non-SIMD version) to obtain intersection data (aka. hit point)
+    RT_FORCE_INLINE const math::Box& GetBoundingBox() const { return mBoundingBox; }
+
+    // Trace the mesh to obtain intersection data (aka. hit point)
     // Note: 'distance' is used for narrowing of intersection search range
-    void RayTrace_Single(const math::Ray& ray, RayIntersectionData& data, LocalCounters& counters) const;
+    void Traverse_Single(const math::Ray& ray, HitPoint& hitPoint) const;
+    void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& hitPoint, Uint32 instanceID) const;
+    void Traverse_Packet(const RayPacket& packet, HitPoint_Packet& data, Uint32 instanceID) const;
 
     // Calculate input data for shading routine
-    void EvaluateShadingData_Single(const math::Ray& ray, const RayIntersectionData& intersectionData, ShadingData& outShadingData) const;
-
-    // Trace the mesh (non-SIMD version) to obtain intersection data (aka. hit point)
-    // Note: 'distance' is used for narrowing of intersection search range
-    void RayTrace_Packet(const RayPacket& packet, RayPacketIntersectionData& data, Uint32 instanceID) const;
+    void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const;
 
 private:
 
-    void RayTrace_Leaf_Single(const math::Ray& ray, const BVH::Node& node, RayIntersectionData& outData, LocalCounters& counters) const;
+    void Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& outHitPoint) const;
+    void Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, const Uint32 instanceID, HitPoint_Simd8& outHitPoint) const;
 
     // bounding box after scaling
     math::Box mBoundingBox;

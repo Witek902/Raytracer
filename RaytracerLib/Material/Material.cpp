@@ -1,70 +1,56 @@
 #include "PCH.h"
 #include "Material.h"
+#include "BSDF.h"
 #include "Mesh/Mesh.h"
 #include "Utils/Bitmap.h"
+#include "Math/Random.h"
 
 
 namespace rt {
 
 using namespace math;
 
-
-// Oren-Nayar BRDF - diffuse term
-float OrenNayar(const Vector4& normal, const Vector4& in, const Vector4& out, float roughness)
+float FresnelDielectric(const float NdotV, const float eta)
 {
-    const float roughness2 = roughness * roughness;
-    const float A = 1.0f - 0.5f * roughness2 / (0.33f + roughness2);
-    const float B = 0.45f * roughness2 / (0.09f + roughness2);
-
-    const float NdotI = Max(0.0f, Vector4::Dot3(normal, in));
-    const float NdotO = Max(0.0f, Vector4::Dot3(normal, out));
-    const float IdotO = Max(0.0f, Vector4::Dot3(out, in));
-
-    const float s = IdotO + NdotI * NdotO;
-    const float t = s < 0.0f ? Max(NdotI, NdotO) : 1.0f;
-
-    return A + B * s / t;
+    float c = fabsf(NdotV);
+    float g = eta * eta - 1.0f + c * c;
+    if (g > 0.0f)
+    {
+        g = sqrtf(g);
+        const float A = (g - c) / (g + c);
+        const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
+        return 0.5f * A * A * (1.0f + B * B);
+    }
+    return 1.0f;
 }
 
-// Cook-Torrance BRDF - specular term
-float CookTorrance(const Vector4& normal, const Vector4& in, const Vector4& out, float roughness)
+float FresnelMetal(const float NdotV, const float eta, const float k)
 {
-    const float R0 = 0.1f; // TODO index of refraction
-
-    // Correct the input and compute aliases
-    const Vector4 viewDir = -in;
-    const Vector4 lightDir = out;
-    const Vector4 half = (viewDir + lightDir).Normalized3();
-    float NormalDotHalf = Vector4::Dot3(normal, half);
-    float ViewDotHalf = Vector4::Dot3(half, viewDir);
-    float NormalDotView = Vector4::Dot3(normal, viewDir);
-    float NormalDotLight = Vector4::Dot3(normal, lightDir);
-
-    // Compute the geometric term
-    float G1 = (2.0f * NormalDotHalf * NormalDotView) / ViewDotHalf;
-    float G2 = (2.0f * NormalDotHalf * NormalDotLight) / ViewDotHalf;
-    float G = Min(1.0f, Max(0.0f, Min(G1, G2)));
-
-    // Compute the Fresnel term
-    float f = 1.0f - NormalDotView;
-    float f2 = f * f;
-    float f4 = f2 * f2;
-    float f5 = f * f4;
-    float F = R0 + (1.0f - R0) * f5;
-
-    // Compute the roughness term
-    float R_2 = roughness * roughness;
-    float NDotH_2 = NormalDotHalf * NormalDotHalf;
-    float A = 1.0f / (0.005f + 4.0f * R_2 * NDotH_2 * NDotH_2);
-    float B = expf(-(1.0f - NDotH_2) / (0.005f + R_2 * NDotH_2));
-    float R = A * B;
-
-    // Compute the final term
-    return (G * F * R) / (0.005f + NormalDotLight * NormalDotView);
+    float NdotV2 = NdotV * NdotV;
+    float a = eta * eta + k * k;
+    float b = a * NdotV2;
+    float rs = (b - (2.0f * eta * NdotV) + 1.0f) / (b + (2.0f * eta * NdotV) + 1.0f);
+    float rp = (a - (2.0f * eta * NdotV) + NdotV2) / (a + (2.0f * eta * NdotV) + NdotV2);
+    return (rs + rp) * 0.5f;
 }
 
-Material::Material()
-{ }
+
+Material::Material(const char* debugName)
+    : debugName(debugName)
+    , metal(false)
+    , IoR(1.5f)
+    , K(4.0f)
+{
+}
+
+void Material::Compile()
+{
+    emissionColor = Vector4::Max(Vector4(), emissionColor);
+    baseColor = Vector4::Max(Vector4(), Vector4::Min(VECTOR_ONE, baseColor));
+
+    mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(baseColor, roughness);
+    mSpecularBSDF = std::make_unique<CookTorranceBSDF>(roughness);
+}
 
 math::Vector4 Material::GetBaseColor(const math::Vector4 uv) const
 {
@@ -78,28 +64,61 @@ math::Vector4 Material::GetBaseColor(const math::Vector4 uv) const
     return color;
 }
 
-bool Material::GenerateSecondaryRay(const math::Vector4& incomingDir, const ShadingData& shadingData, math::Random& randomGenerator,
-                                    math::Ray& outRay, math::Vector4& outRayFactor) const
+float Material::GetSpecularValue(const math::Vector4 uv) const
 {
-    if (baseColor.IsZero())
+    float value = specular;
+
+    if (specularMap)
     {
-        return false;
+        value *= specularMap->Sample(uv, SamplerDesc())[0];
     }
 
-    // generate secondary ray
-    const Vector4 localDir = randomGenerator.GetHemishpereCos();
-    const Vector4 origin = shadingData.position + shadingData.normal * 0.001f;
-    const Vector4 globalDir = shadingData.tangent * localDir[0] + shadingData.binormal * localDir[1] + shadingData.normal * localDir[2];
-    outRay = Ray(origin, globalDir);
+    return value;
+}
 
-    // TODO texturing
+math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
+                              const ShadingData& shadingData, math::Random& randomGenerator) const
+{
+    const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
+    const float NdotV = outgoingDirLocalSpace[2];
 
-    const float diffuse = 1.0f; // OrenNayar(shadingData.normal, incomingDir, outRay.dir, roughness);
-    const float specular = CookTorrance(shadingData.normal, incomingDir, outRay.dir, roughness);
+    const BSDF* bsdf = nullptr;
+    math::Vector4 value;
 
-    outRayFactor = Vector4::Splat(Lerp(diffuse, specular, metalness));
+    if (metal)
+    {
+        value = GetBaseColor(shadingData.texCoord);
+        value *= FresnelMetal(NdotV, IoR, K);
+        bsdf = mSpecularBSDF.get();
+    }
+    else
+    {
+        const float F = FresnelDielectric(NdotV, IoR);
+        const float specularWeight = F * GetSpecularValue(shadingData.texCoord);
 
-    return true;
+        if (randomGenerator.GetFloat() < specularWeight) // glossy reflection
+        {
+            value = VECTOR_ONE;
+            bsdf = mSpecularBSDF.get();
+        }
+        else // diffuse reflection / refraction
+        {
+            value = GetBaseColor(shadingData.texCoord);
+            bsdf = mDiffuseBSDF.get();
+
+            // TODO refraction
+        }
+    }
+
+    // BSDF sampling (in local space)
+    Vector4 weight;
+    Vector4 incomingDirLocalSpace;
+    bsdf->Sample(outgoingDirLocalSpace, incomingDirLocalSpace, weight, randomGenerator);
+
+    // convert incoming light direction back to world space
+    outIncomingDirWorldSpace = shadingData.LocalToWorld(incomingDirLocalSpace);
+
+    return value * weight;
 }
 
 } // namespace rt

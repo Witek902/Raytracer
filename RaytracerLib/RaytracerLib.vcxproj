@@ -104,6 +104,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,6 +123,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -144,12 +146,14 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -172,21 +176,30 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BVH\BVH.h" />
     <ClInclude Include="BVH\BVHBuilder.h" />
     <ClInclude Include="Color\Color.h" />
+    <ClInclude Include="Color\ColorChecker.h" />
+    <ClInclude Include="Color\RayColor.h" />
+    <ClInclude Include="Material\BSDF.h" />
     <ClInclude Include="Material\Material.h" />
     <ClInclude Include="Material\MaterialLayer.h" />
     <ClInclude Include="Math\Box.h" />
+    <ClInclude Include="Math\Float2.h" />
+    <ClInclude Include="Math\Float2Impl.h" />
+    <ClInclude Include="Math\Float3.h" />
+    <ClInclude Include="Math\Float3Impl.h" />
     <ClInclude Include="Math\Geometry.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Matrix.h" />
@@ -203,6 +216,7 @@
     <ClInclude Include="Math\Simd8Triangle.h" />
     <ClInclude Include="Math\Simd8Vector3.h" />
     <ClInclude Include="Math\Sphere.h" />
+    <ClInclude Include="Math\Transcendental.h" />
     <ClInclude Include="Math\Triangle.h" />
     <ClInclude Include="Math\Vector4.h" />
     <ClInclude Include="Math\Vector8.h" />
@@ -214,15 +228,16 @@
     <ClInclude Include="Mesh\VertexBuffer.h" />
     <ClInclude Include="Mesh\VertexBufferDesc.h" />
     <ClInclude Include="Rendering\Counters.h" />
-    <ClInclude Include="Rendering\Settings.h" />
+    <ClInclude Include="Rendering\Context.h" />
     <ClInclude Include="Rendering\Viewport.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Light.h" />
-    <ClInclude Include="Scene\MeshInstance.h" />
+    <ClInclude Include="Scene\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
-    <ClInclude Include="Traversal\IntersectionData.h" />
+    <ClInclude Include="Traversal\HitPoint.h" />
     <ClInclude Include="Traversal\RayPacket.h" />
     <ClInclude Include="Traversal\RayStream.h" />
+    <ClInclude Include="Traversal\Traversal.h" />
     <ClInclude Include="Utils\AlignmentAllocator.h" />
     <ClInclude Include="Utils\Bitmap.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
@@ -234,19 +249,24 @@
     <ClCompile Include="BVH\BVH.cpp" />
     <ClCompile Include="BVH\BVHBuilder.cpp" />
     <ClCompile Include="Color\Color.cpp" />
+    <ClCompile Include="Color\ColorChecker.cpp" />
+    <ClCompile Include="Material\BSDF.cpp" />
     <ClCompile Include="Material\Material.cpp" />
     <ClCompile Include="Math\Box.cpp" />
+    <ClCompile Include="Math\Float2.cpp" />
+    <ClCompile Include="Math\Float3.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Matrix.cpp" />
     <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\Transcendental.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Math\Vector8.cpp" />
     <ClCompile Include="Mesh\Mesh.cpp" />
     <ClCompile Include="Mesh\VertexBuffer.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
-    <ClCompile Include="Scene\MeshInstance.cpp" />
+    <ClCompile Include="Scene\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Traversal\RayPacket.cpp" />
     <ClCompile Include="Utils\Bitmap.cpp" />

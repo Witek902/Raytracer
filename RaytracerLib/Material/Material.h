@@ -2,9 +2,9 @@
 
 #include "../RayLib.h"
 
+#include "BSDF.h"
 #include "MaterialLayer.h"
 
-#include "../Math/Random.h"
 #include "../Math/Ray.h"
 
 #include <string>
@@ -12,17 +12,21 @@
 
 namespace rt {
 
+namespace math
+{
+class Random;
+}
+
 struct ShadingData;
 class Bitmap;
+class BSDF;
 
 // simple PBR material
 class RAYLIB_API Material
 {
 public:
-    Material();
-    Material(const Material&) = default;
+    Material(const char* debugName = "<unnamed>");
     Material(Material&&) = default;
-    Material& operator = (const Material&) = default;
     Material& operator = (Material&&) = default;
 
     std::string debugName;
@@ -36,37 +40,46 @@ public:
     // for dielectrics this is diffuse color
     math::Vector4 baseColor = math::Vector4(0.6f, 0.6f, 0.6f);
 
-    // only applicable for dielectric materials
-    // NOTE: this should be set to one in most cases
-    math::Vector4 specularColor = math::VECTOR_ONE;
+    // amount of reflection
+    float specular = 1.0f;
 
     // 0.0 - smooth, perfect mirror
     // 1.0 - rough, maximum dispersion
     float roughness = 0.1f;
 
-    // mixing factor between dielectric and metallic models
-    float metalness = 0.1f;
+    // index of refraction (real and imaginary parts)
+    float IoR;
+    float K;
 
-    // 1.0 - transparent material
-    // 0.0 - opaque material
-    float opacity = 0.0f;
-
-    // index of refraction for Fresnel term calculation
-    float indexOfRefraction = 1.5f;
+    // selects between dielectric/metal models
+    // TODO make it float that blends the models smoothly
+    bool metal;
 
     // textures
     Bitmap* emissionColorMap = nullptr;
     Bitmap* baseColorMap = nullptr;
-    Bitmap* specularColorMap = nullptr;
+    Bitmap* specularMap = nullptr;
+    // TODO metal map
 
     // TODO material layers
 
-    // sample base color
-    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
+    void Compile();
 
-    RT_FORCE_NOINLINE
-    bool GenerateSecondaryRay(const math::Vector4& incomingDir, const ShadingData& shadingData, math::Random& randomGenerator,
-                              math::Ray& outRay, math::Vector4& outRayFactor) const;
+    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
+    float GetSpecularValue(const math::Vector4 uv) const;
+
+    // Shade a ray and generate secondary ray
+    // TODO wavelength
+    math::Vector4 Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
+                        const ShadingData& shadingData, math::Random& randomGenerator) const;
+
+private:
+
+    Material(const Material&) = delete;
+    Material& operator = (const Material&) = delete;
+
+    std::unique_ptr<BSDF> mDiffuseBSDF;
+    std::unique_ptr<BSDF> mSpecularBSDF;
 };
 
 } // namespace rt

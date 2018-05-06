@@ -43,6 +43,21 @@ template<typename ShapeType>
 bool Intersect(const Ray& ray, const ShapeType& shape, float& outDistance);
 
 
+RT_FORCE_INLINE bool Intersect_RaySphere(const Ray& ray, const float radius, float& outDistance)
+{
+    const Vector4 d = -ray.origin;
+    const float v = Vector4::Dot3(ray.dir, d);
+    const float det = radius * radius - Vector4::Dot3(d, d) + v * v;
+
+    if (det > 0.0f)
+    {
+        outDistance = v - sqrtf(det);
+        return true;
+    }
+
+    return false;
+}
+
 RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)
 {
     // The algorithm is based on "slabs" method. More info can be found here:

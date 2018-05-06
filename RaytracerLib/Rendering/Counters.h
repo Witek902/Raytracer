@@ -14,13 +14,20 @@ struct LocalCounters
     Uint32 numRayTriangleTests;
     Uint32 numPassedRayTriangleTests;
 
-    LocalCounters()
-        : numRayBoxTests(0)
-        , numPassedRayBoxTests(0)
-        , numRayTriangleTests(0)
-        , numPassedRayTriangleTests(0)
-    { }
+    RT_FORCE_INLINE LocalCounters()
+    {
+        Reset();
+    }
+
+    RT_FORCE_INLINE void Reset()
+    {
+        numRayBoxTests = 0;
+        numPassedRayBoxTests = 0;
+        numRayTriangleTests = 0;
+        numPassedRayTriangleTests = 0;
+    }
 };
+
 
 struct RayTracingCounters
 {

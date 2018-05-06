@@ -9,6 +9,7 @@
 
 namespace rt {
 
+struct RenderingContext;
 
 enum class BokehShape : Uint8
 {
@@ -31,8 +32,8 @@ struct DOFSettings
     BokehShape bokehType;
 
     DOFSettings()
-        : focalPlaneDistance(300.0f)
-        , aperture(0.0f)
+        : focalPlaneDistance(2.0f)
+        , aperture(0.002f)
         , bokehType(BokehShape::Circle)
     { }
 };
@@ -52,9 +53,9 @@ public:
     // Should be called once before rendering
     void Update();
 
-    // Generate ray for the camera
+    // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
-    math::Ray GenerateRay(const math::Vector4& coords, math::Random& randomGenerator) const;
+    math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
 
     // TODO generate ray packet
 
@@ -62,6 +63,8 @@ public:
     math::Vector4 mPosition;
     math::Vector4 mForward;
     math::Vector4 mUp;
+
+    math::Vector4 mPositionDelta;
 
     // width to height ratio
     Float mAspectRatio;

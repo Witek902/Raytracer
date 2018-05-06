@@ -1,15 +1,10 @@
-/**
- * @file
- * @author Witek902 (witek902@gmail.com)
- * @brief  Matrix class declaration.
- */
-
 #pragma once
 
 #include "../RayLib.h"
 
 #include "Math.h"
 #include "Vector4.h"
+#include "Simd8Vector3.h"
 
 #include <initializer_list>
 
@@ -20,8 +15,7 @@ namespace math {
 /**
  * 4x4 matrix
  */
-RT_ALIGN(16)
-class RAYLIB_API Matrix final
+class RAYLIB_API RT_ALIGN(16) Matrix final
 {
 public:
     union
@@ -211,11 +205,35 @@ public:
      * Multiply a 3D vector by a 4x4 matrix (affine transform).
      * Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + m.r[3]
      */
-    RT_FORCE_INLINE Vector4 LinearCombination3(const Vector4& a) const
+    RT_FORCE_INLINE Vector4 TransformPoint(const Vector4& a) const
     {
         const Vector4 tmp0 = Vector4::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
         const Vector4 tmp1 = Vector4::MulAndAdd(a.SplatZ(), r[2], r[3]);
         return tmp0 + tmp1;
+    }
+
+    Vector3_Simd8 TransformPoint(const Vector3_Simd8& a) const
+    {
+        const Vector3_Simd8 row0(r[0]);
+        const Vector3_Simd8 row1(r[1]);
+        const Vector3_Simd8 row2(r[2]);
+        const Vector3_Simd8 row3(r[3]);
+        return row0 * a.x + row1 * a.y + row2 * a.z + row3;
+    }
+
+    RT_FORCE_INLINE Vector4 TransformVector(const Vector4& a) const
+    {
+        const Vector4 tmp0 = Vector4::MulAndAdd(a.SplatX(), r[0], a.SplatY() * r[1]);
+        const Vector4 tmp1 = a.SplatZ() * r[2];
+        return tmp0 + tmp1;
+    }
+
+    Vector3_Simd8 TransformVector(const Vector3_Simd8& a) const
+    {
+        const Vector3_Simd8 row0(r[0]);
+        const Vector3_Simd8 row1(r[1]);
+        const Vector3_Simd8 row2(r[2]);
+        return row0 * a.x + row1 * a.y + row2 * a.z;
     }
 
     /**
@@ -251,15 +269,7 @@ public:
     /**
      * Create matrix representing a translation by 3D vector.
      */
-    RT_FORCE_INLINE static Matrix MakeTranslation3(const Vector4& pos)
-    {
-        Matrix m;
-        m.r[0] = VECTOR_X;
-        m.r[1] = VECTOR_Y;
-        m.r[2] = VECTOR_Z;
-        m.r[3] = Vector4(pos.f[0], pos.f[1], pos.f[2], 1.0f);
-        return m;
-    }
+    static Matrix MakeTranslation3(const Vector4& pos);
 
     /**
      * Calculate transpose matrix.

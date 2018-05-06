@@ -10,9 +10,12 @@ RT_ALIGN(16)
 class RAYLIB_API Random
 {
 private:
+
+    // Vector4 PRNG state
     __m128i mSeed0;
     __m128i mSeed1;
 
+    // Uint6
     Uint64 mSeed;
 
     // XOR-shift algorithm
@@ -31,7 +34,7 @@ public:
     Uint64 GetLong();
     Uint32 GetInt();
 
-    //Generate random float with uniform distribution from range (0.0f, 1.0f]
+    //Generate random float with uniform distribution from range [0.0f, 1.0f)
     float GetFloat();
     double GetDouble();
 
@@ -39,7 +42,7 @@ public:
     // faster than "GetFloat()*2.0f-1.0f"
     float GetFloatBipolar();
 
-    // generate random vector of 4 elements from range (0.0f, 1.0f]
+    // generate random vector of 4 elements from range [0.0f, 1.0f)
     // this is much faster that using GetFloat() 4 times
     Vector4 GetVector4();
 
@@ -47,7 +50,8 @@ public:
     Vector4 GetCircle();
 
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
-    RT_FORCE_NOINLINE Vector4 GetHemishpereCos();
+    // typical usage: Lambertian BRDF sampling
+    Vector4 GetHemishpereCos();
 };
 
 

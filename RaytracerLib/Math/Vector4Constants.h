@@ -73,7 +73,9 @@ const Vectori VECTOR_MASK_Z = { { { 0, 0, 0xFFFFFFFF, 0 } } };
 const Vectori VECTOR_MASK_W = { { { 0, 0, 0, 0xFFFFFFFF } } };
 const Vectori VECTOR_MASK_XY = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0, 0 } } };
 const Vectori VECTOR_MASK_XYZ = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0 } } };
+const Vectori VECTOR_MASK_XYZW = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF } } };
 const Vectori VECTOR_MASK_ABS = { { { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF } } };
+const Vectori VECTOR_MASK_SIGN = { { { 0x80000000, 0x80000000, 0x80000000, 0x80000000 } } };
 
 const Vectorf VECTOR_INV_255 = { { { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f } } };
 const Vectorf VECTOR_255 = { { { 255.0f, 255.0f, 255.0f, 255.0f } } };

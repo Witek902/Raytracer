@@ -10,6 +10,9 @@
     <Filter Include="External">
       <UniqueIdentifier>{f9c7611a-9597-4d10-8830-d89ce90c16a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\imgui">
+      <UniqueIdentifier>{4626942b-140e-4951-b811-96519960e3ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -24,6 +27,18 @@
     <ClCompile Include="..\External\tiny_obj_loader.cc">
       <Filter>External</Filter>
     </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui.cpp">
+      <Filter>External\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
+      <Filter>External\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
+      <Filter>External\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_sw.cpp">
+      <Filter>External\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -36,6 +51,18 @@
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="..\External\tiny_obj_loader.h">
       <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <Filter>External\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <Filter>External\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <Filter>External\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_sw.hpp">
+      <Filter>External\imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Random.h"
 #include "Math.h"
-
+#include "Transcendental.h"
 
 namespace rt {
 namespace math {
@@ -93,7 +93,9 @@ Vector4 Random::GetCircle()
     const float u = v[1] + v[2];
     const float r = (u > 1.0f) ? (2.0f - u) : u;
 
-    return r * Vector4(sinf(theta), cosf(theta));
+    const Vector4 sinCos = Sin(Vector4(theta, theta + RT_PI / 2.0f));
+
+    return r * sinCos;
 }
 
 Vector4 Random::GetHemishpereCos()
@@ -104,7 +106,7 @@ Vector4 Random::GetHemishpereCos()
     const Vector4 t = Vector4::Sqrt4(Vector4(u[0], 1.0f - u[0]));
 
     float theta = 2.0f * RT_PI * u[1];
-    return Vector4(t[0] * sinf(theta), t[0] * cosf(theta), t[1]);
+    return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1]);
 
 }
 

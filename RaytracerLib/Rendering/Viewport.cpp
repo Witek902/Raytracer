@@ -3,6 +3,7 @@
 #include "Utils/Logger.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
+#include "Color/Color.h"
 
 
 namespace rt {
@@ -13,19 +14,8 @@ static const Uint32 MAX_IMAGE_SZIE = 8192;
 
 Viewport::Viewport()
     : mNumSamplesRendered(0)
-    , mWindow(0)
-    , mDC(0)
-    , mFrameID(0)
 {
     InitThreadData();
-}
-
-bool Viewport::Initialize(HWND windowHandle)
-{
-    mWindow = windowHandle;
-    mDC = GetDC(mWindow);
-
-    return true;
 }
 
 void Viewport::InitThreadData()
@@ -62,21 +52,27 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
 
     Reset();
 
-    mDC = GetDC(mWindow);
     return true;
 }
 
 RT_FORCE_INLINE static Vector4 ToneMap(Vector4 color)
 {
+    const Vector4 a = Vector4::Splat(0.004f);
+    const Vector4 b = Vector4::Splat(6.2f);
+    const Vector4 c = Vector4::Splat(1.7f);
+    const Vector4 d = Vector4::Splat(0.06f);
+
     // Jim Hejl and Richard Burgess-Dawson formula
-    color = Vector4::Max(Vector4(), color - Vector4::Splat(0.004f));
-    return (color * (6.2f * color + Vector4::Splat(0.5f))) / (color * (6.2f * color + Vector4::Splat(1.7f)) + Vector4::Splat(0.06f));
+    color = Vector4::Max(Vector4(), color - a);
+
+    const Vector4 t0 = color *  Vector4::MulAndAdd(color, b, VECTOR_HALVES);
+    const Vector4 t1 = Vector4::MulAndAdd(color, b, c);
+    const Vector4 t2 = Vector4::MulAndAdd(color, t1, d);
+    return t0 / t2;
 }
 
-bool Viewport::Render(const Scene* scene, const Camera& camera)
+bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingParams& params)
 {
-    RenderingParams params;
-
     if (!scene)
     {
         RT_LOG_ERROR("Invalid scene");
@@ -92,59 +88,122 @@ bool Viewport::Render(const Scene* scene, const Camera& camera)
         return false;
     }
 
-    const Uint32 tileSize = 32;
-
-    const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
+    // render
     {
-        Random& randomGenerator = mThreadData[threadID].random;
-        RayTracingCounters counters;
-        RenderingContext context(randomGenerator, params, counters);
-        RenderTile(*scene, camera, context, tileSize * tileX, tileSize * tileY, tileSize, tileSize);
-    };
+        const Uint32 tileSize = 32;
 
-    const Uint32 rows = 1 + (GetHeight() - 1) / tileSize;
-    const Uint32 columns = 1 + (GetWidth() - 1) / tileSize;
-    mThreadPool.RunParallelTask(taskCallback, rows, columns);
+        const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
+        {
+            Random& randomGenerator = mThreadData[threadID].random;
+            RayTracingCounters counters;
+            RenderingContext context(randomGenerator, params, counters);
+            RenderTile(*scene, camera, context, tileSize * tileX, tileSize * tileY, tileSize, tileSize);
+        };
 
-    PostProcess();
-    Paint();
-    mFrameID++;
+        mRenderTarget.Clear();
+
+        const Uint32 rows = 1 + (GetHeight() - 1) / tileSize;
+        const Uint32 columns = 1 + (GetWidth() - 1) / tileSize;
+        mThreadPool.RunParallelTask(taskCallback, rows, columns);
+    }
+
+    // post process
+    {
+        mNumSamplesRendered += params.samplesPerPixel;
+
+        if (mPostprocessingParams.bloomStrength > 0.0f)
+        {
+            // bloom cannot be done multithreaded
+            PostProcess(0, GetHeight(), 0);
+        }
+        else
+        {
+            const Uint32 numTiles = (Uint32)std::thread::hardware_concurrency();
+
+            const auto taskCallback = [&](Uint32, Uint32 tileY, Uint32 threadID)
+            {
+                const Uint32 ymin = GetHeight() * tileY / numTiles;
+                const Uint32 ymax = GetHeight() * (tileY + 1) / numTiles;
+                PostProcess(ymin, ymax, threadID);
+            };
+
+            mThreadPool.RunParallelTask(taskCallback, numTiles, 1);
+        }
+    }
 
     return true;
 }
 
 void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context,
-                             Uint32 x0, Uint32 y0, Uint32 width, Uint32 height)
+                          Uint32 x0, Uint32 y0, Uint32 tileWidth, Uint32 tileHeight)
 {
     const Vector4 invSize = Vector4(VECTOR_ONE2) / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
 
-    const Uint32 maxX = Min(x0 + width, GetWidth());
-    const Uint32 maxY = Min(y0 + height, GetHeight());
+    const Uint32 maxX = Min(x0 + tileWidth, GetWidth());
+    const Uint32 maxY = Min(y0 + tileHeight, GetHeight());
 
-    //RayPacket rayPacket;
+    const bool verticalFlip = true;
+
+    // single ray tracing
+    for (Uint32 y = y0; y < maxY; ++y)
+    {
+        const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
+
+        for (Uint32 x = x0; x < maxX; ++x)
+        {
+            const Vector4 baseCoords = Vector4::FromIntegers(x, realY);
+
+            RayColor color;
+            for (Uint16 i = 0; i < context.params.samplesPerPixel; ++i)
+            {
+                const Vector4 u = context.randomGenerator.GetVector4();
+
+                // randomize time
+                context.time = u[2];
+
+                // randomize pixel offset
+                // TODO stratified sampling
+                const Vector4 coords = baseCoords + (u - VECTOR_HALVES) * context.params.antiAliasingSpread;
+
+                // generate primary ray
+                const Ray ray = camera.GenerateRay(coords * invSize, context);
+                color += scene.TraceRay_Single(ray, context);
+            }
+
+            // TODO spectral rendering
+            mRenderTarget.SetPixel(x, y, color.values);
+        }
+    }
+
+    /*
+    RayPacket& rayPacket = context.rayPacket;
 
     for (Uint32 y = y0; y < maxY; ++y)
     {
         for (Uint32 x = x0; x < maxX; ++x)
         {
-            Vector4 coords = Vector4::FromIntegers(x, y);
-            coords += (context.randomGenerator.GetVector4() - VECTOR_HALVES) * context.params.antiAliasingSpread;
+            const Vector4 baseCoords = Vector4::FromIntegers(x, y);
 
-            // TODO Monte Carlo ray generation:
-            // motion blur
-            // chromatic aberration
+            for (Uint16 i = 0; i < context.params.samplesPerPixel; ++i)
+            {
+                const Vector4 coords = baseCoords + (context.randomGenerator.GetVector4() - VECTOR_HALVES) * context.params.antiAliasingSpread;
 
-            // generate primary ray
-            const Ray cameraRay = camera.GenerateRay(coords * invSize, context.randomGenerator);
+                // generate primary ray
+                const Ray ray = camera.GenerateRay(coords * invSize, context.randomGenerator);
+                rayPacket.PushRay(ray, math::VECTOR_ONE3, ImageLocationInfo{ (Uint16)x, (Uint16)y });
 
-            //rayPacket.PushRay(cameraRay, math::VECTOR_ONE3, ImageLocationInfo{ x, y });
-
-            const Vector4 color = scene.TraceRay_Single(cameraRay, context);
-            mRenderTarget.SetPixel(x, y, color);
+                // TODO flush packet when full
+            }
         }
     }
 
-    context.counters.numPrimaryRays += width * height;
+    HitPoint_Packet& hitPoints = context.hitPoints;
+    scene.Traverse_Packet(rayPacket, context, hitPoints);
+
+    scene.ShadePacket(rayPacket, hitPoints, context, mRenderTarget);
+    */
+
+    context.counters.numPrimaryRays += tileWidth * tileHeight * context.params.samplesPerPixel;
 }
 
 bool Viewport::SetPostprocessParams(const PostprocessParams& params)
@@ -158,13 +217,11 @@ void Viewport::GetPostprocessParams(PostprocessParams& params)
     params = mPostprocessingParams;
 }
 
-void Viewport::PostProcess()
+void Viewport::PostProcess(Uint32 ymin, Uint32 ymax, Uint32 threadID)
 {
     const Uint32 width = GetWidth();
-    const Uint32 height = GetHeight();
-    Random& randomGenerator = mThreadData[0].random;
+    Random& randomGenerator = mThreadData[threadID].random;
 
-    mNumSamplesRendered++;
     const Float scalingFactor = 1.0f / (Float)mNumSamplesRendered;
 
     if (mPostprocessingParams.bloomStrength > 0.0f)
@@ -174,7 +231,7 @@ void Viewport::PostProcess()
             Vector4 renderTargetLine[Bitmap::MaxSize];
             Vector4 sumLine[Bitmap::MaxSize];
 
-            for (Uint32 y = 0; y < height; ++y)
+            for (Uint32 y = ymin; y < ymax; ++y)
             {
                 mSum.ReadHorizontalLine(y, sumLine);
                 mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
@@ -197,7 +254,7 @@ void Viewport::PostProcess()
             Vector4 blurredLine[Bitmap::MaxSize];
             Vector4 sumLine[Bitmap::MaxSize];
 
-            for (Uint32 y = 0; y < height; ++y)
+            for (Uint32 y = ymin; y < ymax; ++y)
             {
                 mBlurred.ReadHorizontalLine(y, blurredLine);
                 mSum.ReadHorizontalLine(y, sumLine);
@@ -220,7 +277,7 @@ void Viewport::PostProcess()
         Vector4 sumLine[Bitmap::MaxSize];
         Vector4 frontBufferLine[Bitmap::MaxSize];
 
-        for (Uint32 y = 0; y < height; ++y)
+        for (Uint32 y = ymin; y < ymax; ++y)
         {
             mSum.ReadHorizontalLine(y, sumLine);
             mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
@@ -239,30 +296,6 @@ void Viewport::PostProcess()
             mSum.WriteHorizontalLine(y, sumLine);
             mFrontBuffer.WriteHorizontalLine(y, frontBufferLine);
         }
-    }
-}
-
-void Viewport::Paint()
-{
-    BITMAPINFO bmi;
-    ZeroMemory(&bmi, sizeof(bmi));
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = GetWidth();
-    bmi.bmiHeader.biHeight = GetHeight();
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
-    bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = 4 * GetWidth() * GetHeight();
-    bmi.bmiHeader.biXPelsPerMeter = 1;
-    bmi.bmiHeader.biYPelsPerMeter = 1;
-
-    if (0 == StretchDIBits(mDC,
-                           0, 0, GetWidth(), GetHeight(),
-                           0, 0, GetWidth(), GetHeight(),
-                           mFrontBuffer.GetData(),
-                           &bmi, DIB_RGB_COLORS, SRCCOPY))
-    {
-        RT_LOG_ERROR("Paint failed");
     }
 }
 

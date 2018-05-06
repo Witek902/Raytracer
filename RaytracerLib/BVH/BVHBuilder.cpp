@@ -43,7 +43,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     mLeafBoxes = data;
     mNumLeaves = numLeaves;
     mParams = params;
-    mTarget.AllocateNodes(2 * mNumLeaves - 1); // TODO this is too big, reallocate at the end
+    mTarget.AllocateNodes(2 * mNumLeaves); // TODO this is too big, reallocate at the end
 
     mNumGeneratedNodes = 0;
     mNumGeneratedLeaves = 0;

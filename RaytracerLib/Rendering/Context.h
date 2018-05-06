@@ -2,8 +2,10 @@
 
 #include "Counters.h"
 
-#include "../Math/Random.h"
+#include "../Traversal/RayPacket.h"
+#include "../Traversal/HitPoint.h"
 
+#include "../Math/Random.h"
 
 namespace rt {
 
@@ -13,8 +15,9 @@ enum class RenderingMode : Uint8
 
     // geometry
     Depth,                      // visualize depth
+    Position,                   // visualize world-space position
     Normals,                    // visualize normal vectors (in world space)
-    //Tangent,
+    Tangents,
     TexCoords,
 
     // material
@@ -33,15 +36,23 @@ struct RenderingParams
     // Setting to values above 1 will blur the image
     Float antiAliasingSpread;
 
+    // number of primary rays to be generated for image pixel
+    Uint32 samplesPerPixel;
+
     // maximum ray depth
-    Uint8 maxRayDepth;
+    Uint32 maxRayDepth;
+
+    // ray depth after which Russian Roulette algorithm kicks in
+    Uint32 minRussianRouletteDepth;
 
     // allows to enable debug rendering mode
     RenderingMode renderingMode;
 
     RenderingParams()
-        : maxRayDepth(8)
-        , antiAliasingSpread(1.5f) // blur a little bit - real images are not perfectly sharp
+        : maxRayDepth(20)
+        , minRussianRouletteDepth(2)
+        , samplesPerPixel(1)
+        , antiAliasingSpread(1.2f) // blur a little bit - real images are not perfectly sharp
         , renderingMode(RenderingMode::Regular)
     { }
 };
@@ -60,6 +71,16 @@ struct RenderingContext
 
     // per-thread counters
     RayTracingCounters& counters;
+
+    // for motion blur sampling
+    float time;
+
+    // counters used in local ray traversal routines
+    LocalCounters localCounters;
+
+    RayPacket rayPacket;
+
+    HitPoint_Packet hitPoints;
 
     RenderingContext(math::Random& randomGenerator, const RenderingParams& params, RayTracingCounters& counters)
         : params(params)

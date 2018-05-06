@@ -21,9 +21,8 @@ public:
 
     // splat single box
     RT_FORCE_INLINE Box_Simd4(const Box& box)
-        // TODO splat version
-        : min(box.min, box.min, box.min, box.min)
-        , max(box.max, box.max, box.max, box.max)
+        : min(box.min)
+        , max(box.max)
     { }
 
     // build SIMD box from 4 boxes

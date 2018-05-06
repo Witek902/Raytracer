@@ -4,6 +4,7 @@
 
 #include "../Math/Vector4.h"
 #include "../Math/Box.h"
+#include "../Math/Simd8Box.h"
 #include "../Utils/AlignmentAllocator.h"
 
 #include <string>
@@ -39,6 +40,21 @@ public:
         RT_FORCE_INLINE math::Box GetBox() const
         {
             return math::Box(box.min & math::VECTOR_MASK_XYZ, box.max & math::VECTOR_MASK_XYZ);
+        }
+
+        RT_FORCE_INLINE math::Box_Simd8 GetBox_Simd8() const
+        {
+            math::Box_Simd8 ret;
+
+            ret.min.x = _mm256_broadcast_ss(data.min + 0);
+            ret.min.y = _mm256_broadcast_ss(data.min + 1);
+            ret.min.z = _mm256_broadcast_ss(data.min + 2);
+
+            ret.max.x = _mm256_broadcast_ss(data.max + 0);
+            ret.max.y = _mm256_broadcast_ss(data.max + 1);
+            ret.max.z = _mm256_broadcast_ss(data.max + 2);
+
+            return ret;
         }
 
         RT_FORCE_INLINE bool IsLeaf() const

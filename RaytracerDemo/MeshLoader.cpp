@@ -79,7 +79,9 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tin
     material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2]);
     material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2]);
     material->baseColorMap = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
-    material->specularColorMap = LoadTexture(baseDir, sourceMaterial.specular_texname);
+    material->specularMap = LoadTexture(baseDir, sourceMaterial.specular_texname);
+
+    material->Compile();
 
     return material;
 }
@@ -270,7 +272,9 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     material->debugName = "default";
     material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f);
     material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f);
-    material->baseColorMap = LoadTexture("../../../../MODELS/cube/", "default.bmp");
+    material->baseColorMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_COL_VAR1_6K.bmp");
+    material->specularMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_REFL_6K.bmp");
+    material->Compile();
 
     const rt::Material* materials[] = { material.get() };
     const Uint32 materialIndices[] = { 0, 0 };
@@ -309,9 +313,9 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     const Float texCoords[] =
     {
         0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        scale, 0.0f,
+        scale, scale,
+        0.0f, scale,
     };
 
     rt::MeshDesc meshDesc;

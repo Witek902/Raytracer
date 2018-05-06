@@ -48,6 +48,23 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
+    // extract four vectors (inverse constructor)
+    RT_FORCE_INLINE void Extract(Vector4& v0, Vector4& v1, Vector4& v2, Vector4& v3) const
+    {
+        // transpose
+        const __m128 w = _mm_setzero_ps();
+        const __m128 tmp0 = _mm_shuffle_ps(x, y, 0x44);
+        const __m128 tmp1 = _mm_shuffle_ps(z, w, 0x44);
+        const __m128 tmp2 = _mm_shuffle_ps(x, y, 0xEE);
+        const __m128 tmp3 = _mm_shuffle_ps(z, w, 0xEE);
+        v0 = _mm_shuffle_ps(tmp0, tmp1, 0x88);
+        v1 = _mm_shuffle_ps(tmp0, tmp1, 0xDD);
+        v2 = _mm_shuffle_ps(tmp2, tmp3, 0x88);
+        v3 = _mm_shuffle_ps(tmp2, tmp3, 0xDD);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
     RT_FORCE_INLINE Vector3_Simd4 operator + (const Vector3_Simd4& rhs) const
     {
         return Vector3_Simd4(

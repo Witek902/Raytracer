@@ -2,15 +2,11 @@
 
 #include "../RayLib.h"
 
-#include "Settings.h"
+#include "Context.h"
 
 #include "../Utils/Bitmap.h"
 #include "../Utils/ThreadPool.h"
 #include "../Math/Random.h"
-
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
 
 
 namespace rt {
@@ -29,9 +25,9 @@ struct PostprocessParams
 
     PostprocessParams()
         : exposure(0.8f)
-        , bloomSize(20.0f)
+        , bloomSize(10.0f)
         , bloomStrength(0.0f)
-        , noiseStrength(0.025f)
+        , noiseStrength(0.01f)
     { }
 };
 
@@ -48,13 +44,14 @@ class RAYLIB_API Viewport
 public:
     Viewport();
 
-    bool Initialize(HWND windowHandle);
     bool Resize(Uint32 width, Uint32 height);
-    bool Render(const Scene* scene, const Camera& camera);
+    bool Render(const Scene* scene, const Camera& camera, const RenderingParams& params);
     bool SetPostprocessParams(const PostprocessParams& params);
     void GetPostprocessParams(PostprocessParams& params);
     void Reset();
 
+    RT_FORCE_INLINE Uint32 GetNumSamplesRendered() const { return mNumSamplesRendered; }
+    RT_FORCE_INLINE rt::Bitmap& GetFrontBuffer() { return mFrontBuffer; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return mRenderTarget.GetWidth(); }
     RT_FORCE_INLINE Uint32 GetHeight() const { return mRenderTarget.GetHeight(); }
 
@@ -66,15 +63,9 @@ private:
                     Uint32 x0, Uint32 y0, Uint32 width, Uint32 height);
 
     // generate "front buffer" image from "average" image
-    void PostProcess();
-
-    // paint image into the window
-    void Paint();
+    void PostProcess(Uint32 ymin, Uint32 ymax, Uint32 threadID);
 
     ThreadPool mThreadPool;
-
-    HWND mWindow;
-    HDC mDC;
 
     std::vector<ThreadData> mThreadData;
 
@@ -85,8 +76,6 @@ private:
 
     PostprocessParams mPostprocessingParams;
     Uint32 mNumSamplesRendered; // number of samples averaged
-
-    Uint32 mFrameID;
 };
 
 } // namespace rt

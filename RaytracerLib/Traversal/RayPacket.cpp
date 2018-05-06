@@ -13,4 +13,9 @@ void RayPacket::PushRay(const math::Ray& ray, const math::Vector4& weight, const
     numRays++;
 }
 
+void RayPacket::Clear()
+{
+    numRays = 0;
+}
+
 } // namespace rt

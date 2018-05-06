@@ -4,6 +4,10 @@
 #include <stddef.h>
 
 
+// C++ nonstandard extension: nameless struct
+#pragma warning(disable : 4201)
+
+
 #define RT_UNUSED(x) (void)(x)
 #define RT_INLINE inline
 #define RT_FORCE_INLINE __forceinline
@@ -12,6 +16,7 @@
 
 #define RT_CACHE_LINE_SIZE 64
 
+#define RT_PREFETCH(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0);
 
 #if defined(__LINUX__) | defined(__linux__)
 typedef uint64_t Uint64;

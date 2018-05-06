@@ -48,6 +48,18 @@ struct RT_ALIGN(32) Vector8
         return f[index];
     }
 
+    // extract lower lanes
+    RT_FORCE_INLINE Vector4 Low() const
+    {
+        return Vector4(_mm256_extractf128_ps(v, 0));
+    }
+
+    // extract higher lanes
+    RT_FORCE_INLINE Vector4 High() const
+    {
+        return Vector4(_mm256_extractf128_ps(v, 1));
+    }
+
     /// simple arithmetics
     RT_FORCE_INLINE Vector8 operator- () const;
     RT_FORCE_INLINE Vector8 operator+ (const Vector8& b) const;
@@ -79,6 +91,8 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8& operator|= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator^= (const Vector8& b);
     RT_FORCE_INLINE static Vector8 Splat(Float f);
+    RT_FORCE_INLINE static Vector8 Splat(Int32 i);
+    RT_FORCE_INLINE static Vector8 Splat(Uint32 u);
 
     RT_FORCE_INLINE static Vector8 Floor(const Vector8& v);
     RT_FORCE_INLINE static Vector8 Sqrt(const Vector8& v);
@@ -103,7 +117,7 @@ struct RT_ALIGN(32) Vector8
      */
     RT_FORCE_INLINE int GetSignMask() const;
 
-    
+
     /**
      * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
      */
@@ -130,7 +144,7 @@ struct RT_ALIGN(32) Vector8
      * @return  a * b - c
      */
     RT_FORCE_INLINE static Vector8 MulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
-        
+
     /**
      * Fused multiply (negated) and add.
      * @return  - a * b + c

@@ -18,6 +18,22 @@
 namespace rt {
 namespace math {
 
+// Union providing easy manipulations on 32-bit values
+union Bits32
+{
+    float f;
+    Uint32 ui;
+    Int32 si;
+};
+
+// Union providing easy manipulations on 64-bit values
+union Bits64
+{
+    double f;
+    Uint64 ui;
+    Int64 si;
+};
+
 /**
  * Minimum.
  */
@@ -53,7 +69,7 @@ RT_FORCE_INLINE T Abs(const T x)
 /**
  * Returns x with sign of y
  */
-RT_FORCE_INLINE float CopySignF(const float x, const float y)
+RT_FORCE_INLINE float CopySign(const float x, const float y)
 {
     Bits32 xInt, yInt;
     xInt.f = x;

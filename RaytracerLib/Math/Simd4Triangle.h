@@ -27,6 +27,13 @@ public:
         , v1(t0.v1, t1.v1, t2.v1, t3.v1)
         , v2(t0.v2, t1.v2, t2.v2, t3.v2)
     { }
+
+    // splat a single triangle
+    RT_FORCE_INLINE explicit Triangle_Simd4(const Triangle& tri)
+        : v0(tri.v0)
+        , v1(tri.v1)
+        , v2(tri.v2)
+    { }
 };
 
 

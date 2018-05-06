@@ -2,6 +2,10 @@
 
 #include "Math.h"
 
+#include "Float2.h"
+#include "Float3.h"
+
+
 #define RT_USE_FMA
 
 namespace rt {
@@ -15,8 +19,8 @@ struct RT_ALIGN(16) Vector4
     union
     {
         Float f[4];
-        int i[4];
-        unsigned int u[4];
+        Int32 i[4];
+        Uint32 u[4];
         __m128 v;
     };
 
@@ -41,8 +45,11 @@ struct RT_ALIGN(16) Vector4
     // constructors
     RT_FORCE_INLINE Vector4();
     RT_FORCE_INLINE explicit Vector4(Float x, Float y = 0.0f, Float z = 0.0f, Float w = 0.0f);
-    RT_FORCE_INLINE explicit Vector4(int x, int y = 0, int z = 0, int w = 0);
+    RT_FORCE_INLINE explicit Vector4(Int32 x, Int32 y = 0, Int32 z = 0, Int32 w = 0);
+    RT_FORCE_INLINE explicit Vector4(Uint32 x, Uint32 y = 0, Uint32 z = 0, Uint32 w = 0);
     RT_FORCE_INLINE explicit Vector4(const Float* src);
+    RT_FORCE_INLINE explicit Vector4(const Float2& src);
+    RT_FORCE_INLINE explicit Vector4(const Float3& src);
     RT_FORCE_INLINE void Set(Float scalar);
     RT_FORCE_INLINE static Vector4 FromIntegers(Uint32 x, Uint32 y = 0, Uint32 z = 0, Uint32 w = 0);
 
@@ -117,6 +124,9 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE void Store4(Uint8* dest) const;
 
     RT_FORCE_INLINE void Store(Float* dest) const;
+    RT_FORCE_INLINE void Store(Float2* dest) const;
+    RT_FORCE_INLINE void Store(Float3* dest) const;
+
     RT_FORCE_INLINE static Vector4 Splat(Float f);
 
     RT_FORCE_INLINE static Vector4 Floor(const Vector4& v);

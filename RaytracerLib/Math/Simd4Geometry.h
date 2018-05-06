@@ -14,8 +14,7 @@ public:
     Vector4 farDists;
 };
 
-RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& box,
-                                         SimdRayBoxSegment4& segment)
+RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& box, Vector4& outDistance)
 {
     // calculate all box planes distances
     const Vector3_Simd4 tmp1 = (box.min - ray.origin) * ray.invDir;
@@ -28,8 +27,7 @@ RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& 
     const Vector4 maxDist = Vector4::Min(lmax.z, Vector4::Min(lmax.x, lmax.y));
     const Vector4 minDist = Vector4::Max(lmin.z, Vector4::Max(lmin.x, lmin.y));
 
-    segment.nearDists = minDist;
-    segment.farDists = maxDist;
+    outDistance = minDist;
 
     return Vector4(_mm_cmpge_ps(maxDist, _mm_setzero_ps())) & Vector4(_mm_cmpge_ps(maxDist, minDist));
 }

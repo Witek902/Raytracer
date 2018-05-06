@@ -2,21 +2,27 @@
 
 #include "../RayLib.h"
 
-#include "MeshInstance.h"
+#include "SceneObject.h"
 
-#include "../Traversal/IntersectionData.h"
-
+#include "../Color/RayColor.h"
+#include "../Traversal/HitPoint.h"
+#include "../BVH/BVH.h"
 
 #include <vector>
 
 
 namespace rt {
 
+class Bitmap;
 class Camera;
 struct RenderingContext;
+struct ShadingData;
+struct LocalCounters;
 
 namespace math {
 class Ray;
+class Ray_Simd4;
+class Ray_Simd8;
 } // namespace math
 
 using LightID = Uint32;
@@ -30,14 +36,12 @@ struct SceneEnvironment
 {
     math::Vector4 backgroundColor;
 
-    // describes how much of background light will "leak" to a ray
-    float fogDensity;
-
-    // TODO background texture
+    // optional spherical texture
+    Bitmap* texture;
 
     SceneEnvironment()
-        : backgroundColor(math::Vector4(0.3f, 0.4f, 0.5f))
-        , fogDensity(0.01f)
+        : backgroundColor(math::Vector4(1.0f, 1.0f, 1.0f))
+        , texture(nullptr)
     { }
 };
 
@@ -45,25 +49,50 @@ struct SceneEnvironment
  * Rendering scene.
  * Allows for placing objects (meshes, lights, etc.) and raytracing them.
  */
-class RAYLIB_API Scene
+class RAYLIB_API RT_ALIGN(16) Scene
 {
 public:
     Scene();
 
-    MeshInstanceID CreateMeshInstance(const MeshInstance& data);
-    void DestroyMeshInstance(MeshInstanceID id);
-    void UpdateMeshInstance(MeshInstanceID id, const MeshInstance& data);
+    void SetEnvironment(const SceneEnvironment& env);
 
-    // trace single (non-SIMD) ray
-    RT_FORCE_NOINLINE math::Vector4 TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
+    void AddObject(SceneObjectPtr object);
 
-    // traverse a packet and return intersection data
-    RT_FORCE_NOINLINE void Traverse_Packet(const RayPacket& packet, RenderingContext& context, RayPacketIntersectionData& outIntersectionData) const;
+    bool BuildBVH();
+
+    // traverse the scene, returns hit points
+    RT_FORCE_NOINLINE void Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint, RenderingContext& context) const;
+    RT_FORCE_NOINLINE void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint, RenderingContext& context) const;
+
+    void ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, ShadingData& outShadingData) const;
+
+    RT_FORCE_NOINLINE RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
+    RT_FORCE_NOINLINE void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, RayColor* outColors) const;
+
+    /*
+    RT_FORCE_NOINLINE void Traverse_Packet(const RayPacket& packet, RenderingContext& context, HitPoint_Packet& outHitPoints) const;
+
+    // perform ray packet shading:
+    // 1. apply calculated color to render target
+    // 2. generate secondary rays
+    RT_FORCE_NOINLINE void ShadePacket(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
+    */
+
+    // sample background color
+    RayColor GetBackgroundColor(const math::Ray& ray) const;
 
 private:
+    Scene(const Scene&) = delete;
+    Scene& operator = (const Scene&) = delete;
+
+    static RayColor HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData);
+
     SceneEnvironment mEnvironment;
 
-    std::vector<MeshInstance> mMeshInstances;
+    std::vector<SceneObjectPtr> mObjects;
+
+    // bounding volume hierarchy for scene object
+    BVH mBVH;
 };
 
 } // namespace rt

@@ -22,8 +22,8 @@ public:
     Ray(const Vector4& origin, const Vector4& direction)
         : origin(origin)
     {
-        dir = direction.FastNormalized3();
-        invDir = Vector4::FastReciprocal(dir);
+        dir = direction.Normalized3();
+        invDir = Vector4::Reciprocal(dir);
     }
 };
 

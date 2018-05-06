@@ -9,7 +9,7 @@ namespace rt {
 
 // maximum number of rays in ray stream
 // TODO experiment with this value
-static const Uint32 MaxRayPacketSize = 1024;
+static const Uint32 MaxRayPacketSize = 2048;
 
 struct ImageLocationInfo
 {
@@ -37,6 +37,7 @@ struct RT_ALIGN(16) RayPacket
     { }
 
     void PushRay(const math::Ray& ray, const math::Vector4& weight, const ImageLocationInfo& imageLocation);
+    void Clear();
 };
 
 // packet of coherent rays (8-SIMD version)

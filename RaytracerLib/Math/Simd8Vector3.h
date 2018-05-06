@@ -2,6 +2,7 @@
 
 #include "Math.h"
 #include "Vector8.h"
+#include "Simd4Vector3.h"
 
 
 namespace rt {
@@ -26,13 +27,20 @@ public:
     { }
 
     // splat single 3D vector
-    RT_FORCE_INLINE Vector3_Simd8(const Vector4& v)
+    RT_FORCE_INLINE explicit Vector3_Simd8(const Vector4& v)
     {
         const Vector8 temp(v, v); // copy "v" onto both AVX lanes
         x = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(0, 0, 0, 0));
         y = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 1, 1, 1));
         z = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(2, 2, 2, 2));
     }
+
+    // construct from two Vector3_Simd4
+    RT_FORCE_INLINE Vector3_Simd8(const Vector3_Simd4& lo, const Vector3_Simd4& hi)
+        : x(lo.x, hi.x)
+        , y(lo.y, hi.y)
+        , z(lo.z, hi.z)
+    { }
 
     // build from eight 3D vectors
     RT_FORCE_INLINE Vector3_Simd8(const Vector4& v0, const Vector4& v1, const Vector4& v2, const Vector4& v3,
@@ -93,6 +101,11 @@ public:
     RT_FORCE_INLINE Vector3_Simd8 operator * (const Vector3_Simd8& rhs) const
     {
         return Vector3_Simd8(x * rhs.x, y * rhs.y,z * rhs.z);
+    }
+
+    RT_FORCE_INLINE Vector3_Simd8 operator * (const Vector8& rhs) const
+    {
+        return Vector3_Simd8(x * rhs, y * rhs, z * rhs);
     }
 
     RT_FORCE_INLINE Vector3_Simd8 operator / (const Vector3_Simd8& rhs) const
@@ -156,6 +169,42 @@ public:
         );
     }
 
+    RT_FORCE_INLINE static Vector3_Simd8 MulAndAdd(const Vector3_Simd8& a, const Vector3_Simd8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::MulAndAdd(a.x, b.x, c.x),
+            Vector8::MulAndAdd(a.y, b.y, c.y),
+            Vector8::MulAndAdd(a.z, b.z, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 MulAndSub(const Vector3_Simd8& a, const Vector3_Simd8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::MulAndSub(a.x, b.x, c.x),
+            Vector8::MulAndSub(a.y, b.y, c.y),
+            Vector8::MulAndSub(a.z, b.z, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 NegMulAndAdd(const Vector3_Simd8& a, const Vector3_Simd8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::NegMulAndAdd(a.x, b.x, c.x),
+            Vector8::NegMulAndAdd(a.y, b.y, c.y),
+            Vector8::NegMulAndAdd(a.z, b.z, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 NegMulAndSub(const Vector3_Simd8& a, const Vector3_Simd8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::NegMulAndSub(a.x, b.x, c.x),
+            Vector8::NegMulAndSub(a.y, b.y, c.y),
+            Vector8::NegMulAndSub(a.z, b.z, c.z)
+        );
+    }
+
     //////////////////////////////////////////////////////////////////////////
 
     // 3D dot product
@@ -168,19 +217,17 @@ public:
     // 3D cross product
     RT_FORCE_INLINE static Vector3_Simd8 Cross(const Vector3_Simd8& a, const Vector3_Simd8& b)
     {
-        return Vector3_Simd8(
-            a.y * b.z - a.z * b.y,
-            a.z * b.x - a.x * b.z,
-            a.x * b.y - a.y * b.x
-        );
+        //return Vector3_Simd8(
+        //    a.y * b.z - a.z * b.y,
+        //    a.z * b.x - a.x * b.z,
+        //    a.x * b.y - a.y * b.x
+        //);
 
-        /*
         return Vector3_Simd8(
             Vector8::NegMulAndAdd(a.z, b.y, a.y * b.z),
             Vector8::NegMulAndAdd(a.x, b.z, a.z * b.x),
-            Vector8::NegMulAndAdd(a.y, b.x, a.x * b.y) 
+            Vector8::NegMulAndAdd(a.y, b.x, a.x * b.y)
         );
-        */
     }
 
     //////////////////////////////////////////////////////////////////////////

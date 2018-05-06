@@ -62,12 +62,14 @@ struct RT_ALIGN(32) Vector8i
 // some commonly used constants
 const Vector8f VECTOR8_EPSILON = { { { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON } } };
 const Vector8f VECTOR8_HALVES = { { { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f } } };
+const Vector8f VECTOR8_MAX = { { { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX } } };
 const Vector8f VECTOR8_ONE = { { { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f } } };
 const Vector8f VECTOR8_MINUS_ONE = { { { -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f } } };
 const Vector8i VECTOR8_MASK_X = { { { 0xFFFFFFFF, 0, 0, 0 } } };
 const Vector8i VECTOR8_MASK_Y = { { { 0, 0xFFFFFFFF, 0, 0 } } };
 const Vector8i VECTOR8_MASK_Z = { { { 0, 0, 0xFFFFFFFF, 0 } } };
 const Vector8i VECTOR8_MASK_W = { { { 0, 0, 0, 0xFFFFFFFF } } };
+const Vector8i VECTOR8_MASK_ALL = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF } } };
 const Vector8i VECTOR8_MASK_ABS = { { { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF } } };
 
 const Vector8f VECTOR8_INV_255 = { { { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f } } };

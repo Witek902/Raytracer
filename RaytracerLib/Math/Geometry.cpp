@@ -61,35 +61,5 @@ bool Intersect(const Sphere& sphere1, const Sphere& sphere2)
 }
 
 
-// Ray-Sphere intersection functions ==============================================================
-
-RT_FORCE_INLINE bool RaySphereIntersectInline(const Ray& ray, const Sphere& sphere, float& dist)
-{
-    Vector4 d = sphere.origin - ray.origin;
-    float v = Vector4::Dot3(ray.dir, d);
-    float det = sphere.r * sphere.r - Vector4::Dot3(d, d) + v * v;
-
-    if (det > 0.0f)
-    {
-        dist = v - sqrtf(det);
-        return true;
-    }
-    return false;
-}
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Sphere& sphere)
-{
-    float unusedDist;
-    return RaySphereIntersectInline(ray, sphere, unusedDist);
-}
-
-template<> RAYLIB_API
-bool Intersect(const Ray& ray, const Sphere& sphere, float& dist)
-{
-    return RaySphereIntersectInline(ray, sphere, dist);
-}
-
-
 } // namespace Math
 } // namespace NFE

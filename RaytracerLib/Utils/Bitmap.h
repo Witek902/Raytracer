@@ -33,14 +33,14 @@ struct SamplerDesc
 class RAYLIB_API Bitmap
 {
 public:
-    // TODO
-    static constexpr Uint32 MaxSize = 4096;
+    static constexpr Uint32 MaxSize = 4 * 1024; // TODO
 
-    enum class Format
+    enum class Format : Uint8
     {
-        Unknown,
+        Unknown = 0,
         B8G8R8_Uint,
         B8G8R8A8_Uint,
+        R32G32B32_Float,
         R32G32B32A32_Float,
 
         // TODO monochromatic, compressed, half-float, etc.
@@ -57,10 +57,13 @@ public:
     RT_FORCE_INLINE Format GetFormat() const { return mFormat; }
 
     // initialize bitmap with data (or clean if passed nullptr)
-    Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr);
+    Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
 
     // load from BMP file
     Bool Load(const char* path);
+
+    // set to zero
+    void Clear();
 
     // release memory
     void Release();
@@ -102,6 +105,9 @@ private:
     Bitmap(const Bitmap&) = delete;
     Bitmap& operator = (const Bitmap&) = delete;
 
+    bool LoadBMP(FILE* file, const char* path);
+    bool LoadDDS(FILE* file, const char* path);
+
     static void BoxBlur_Internal(math::Vector4* targetLine, const math::Vector4* srcLine,
                                  const Uint32 radius, const Uint32 width, const Float factor);
 
@@ -109,6 +115,7 @@ private:
     Uint16 mWidth;
     Uint16 mHeight;
     Format mFormat;
+    bool mLinearSpace;
 };
 
 

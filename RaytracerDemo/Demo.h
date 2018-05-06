@@ -8,6 +8,7 @@
 #include "../RaytracerLib/Rendering/Viewport.h"
 #include "../RaytracerLib/Material/Material.h"
 #include "../RaytracerLib/Utils/Bitmap.h"
+#include "../RaytracerLib/Rendering/Context.h"
 
 
 struct RT_ALIGN(16) CameraSetup
@@ -27,6 +28,7 @@ class RT_ALIGN(16) DemoWindow : public Window
 {
 public:
     DemoWindow();
+    ~DemoWindow();
 
     bool Initialize();
 
@@ -42,27 +44,44 @@ public:
      */
     void Reset();
 
+    void ResetFrame();
+
     void Render();
 
 private:
     std::unique_ptr<rt::Viewport> mViewport;
+
     rt::Camera mCamera;
+    rt::RenderingParams mRenderingParams;
+    rt::PostprocessParams mPostprocessParams;
+    CameraSetup mCameraSetup;
 
     // TODO move to Main
     std::vector<std::unique_ptr<rt::Material>> mMaterials;
-    std::unique_ptr<rt::Mesh> mMesh;
+    std::vector<std::unique_ptr<rt::Mesh>> mMeshes;
     std::unique_ptr<rt::Scene> mScene;
 
     Float mCameraSpeed;
-    CameraSetup mCameraSetup;
 
     Uint32 mFrameNumber;
     Uint32 mFrameCounterForAverage;
 
     Double mDeltaTime;
-    Double mMinDeltaTime;
-    Double mTotalTime;
     Double mRefreshTime;
+
+    Double mAverageRenderDeltaTime;
+    Double mAccumulatedRenderTime;
+    Double mRenderDeltaTime;
+    Double mMinRenderDeltaTime;
+    Double mTotalRenderTime;
+
+    // device context
+    HDC mDC;
+
+    rt::Material* mSelectedMaterial;
+
+    void InitializeUI();
+    void RenderUI();
 
     virtual void OnMouseDown(Uint32 key, int x, int y) override;
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;

@@ -40,6 +40,11 @@ public:
         max = Vector4::Max(a.max, b.max);
     }
 
+    RT_FORCE_INLINE Box operator + (const Vector4& offset) const
+    {
+        return Box{ min + offset, max + offset };
+    }
+
     RT_FORCE_INLINE Vector4 GetCenter() const;
     RT_FORCE_INLINE Vector4 GetVertex(int id) const;
     RT_FORCE_INLINE Vector4 SupportVertex(const Vector4& dir) const;
