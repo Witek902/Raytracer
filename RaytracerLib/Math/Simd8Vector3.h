@@ -35,6 +35,14 @@ public:
         z = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(2, 2, 2, 2));
     }
 
+    // splat single 3D vector
+    RT_FORCE_INLINE explicit Vector3_Simd8(const Float3& v)
+    {
+        x = _mm256_broadcast_ss(&v.x);
+        y = _mm256_broadcast_ss(&v.y);
+        z = _mm256_broadcast_ss(&v.z);
+    }
+
     // construct from two Vector3_Simd4
     RT_FORCE_INLINE Vector3_Simd8(const Vector3_Simd4& lo, const Vector3_Simd4& hi)
         : x(lo.x, hi.x)
@@ -84,6 +92,34 @@ public:
         x = _mm256_permute2f128_ps(tt0, tt4, 0x20);
         y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
         z = _mm256_permute2f128_ps(tt2, tt6, 0x20);
+    }
+
+    // unpack to 8x Vector4
+    RT_FORCE_INLINE void Unpack(Vector4 output[8]) const
+    {
+        __m256 row0 = x;
+        __m256 row1 = y;
+        __m256 row2 = z;
+        __m256 row3 = _mm256_setzero_ps();
+        __m256 tmp3, tmp2, tmp1, tmp0;
+
+        tmp0 = _mm256_shuffle_ps(row0, row1, 0x44);
+        tmp2 = _mm256_shuffle_ps(row0, row1, 0xEE);
+        tmp1 = _mm256_shuffle_ps(row2, row3, 0x44);
+        tmp3 = _mm256_shuffle_ps(row2, row3, 0xEE);
+        row0 = _mm256_shuffle_ps(tmp0, tmp1, 0x88);
+        row1 = _mm256_shuffle_ps(tmp0, tmp1, 0xDD);
+        row2 = _mm256_shuffle_ps(tmp2, tmp3, 0x88);
+        row3 = _mm256_shuffle_ps(tmp2, tmp3, 0xDD);
+
+        output[0] = _mm256_castps256_ps128(row0);
+        output[1] = _mm256_castps256_ps128(row1);
+        output[2] = _mm256_castps256_ps128(row2);
+        output[3] = _mm256_castps256_ps128(row3);
+        output[4] = _mm256_extractf128_ps(row0, 1);
+        output[5] = _mm256_extractf128_ps(row1, 1);
+        output[6] = _mm256_extractf128_ps(row2, 1);
+        output[7] = _mm256_extractf128_ps(row3, 1);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -160,6 +196,16 @@ public:
         return *this;
     }
 
+    RT_FORCE_INLINE static Vector3_Simd8 Reciprocal(const Vector3_Simd8& v)
+    {
+        return Vector3_Simd8(
+            Vector8::Reciprocal(v.x),
+            Vector8::Reciprocal(v.y),
+            Vector8::Reciprocal(v.z)
+        );
+    }
+
+
     RT_FORCE_INLINE static Vector3_Simd8 FastReciprocal(const Vector3_Simd8& v)
     {
         return Vector3_Simd8(
@@ -168,6 +214,8 @@ public:
             Vector8::FastReciprocal(v.z)
         );
     }
+
+    //////////////////////////////////////////////////////////////////////////
 
     RT_FORCE_INLINE static Vector3_Simd8 MulAndAdd(const Vector3_Simd8& a, const Vector3_Simd8& b, const Vector3_Simd8& c)
     {
@@ -202,6 +250,44 @@ public:
             Vector8::NegMulAndSub(a.x, b.x, c.x),
             Vector8::NegMulAndSub(a.y, b.y, c.y),
             Vector8::NegMulAndSub(a.z, b.z, c.z)
+        );
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    RT_FORCE_INLINE static Vector3_Simd8 MulAndAdd(const Vector3_Simd8& a, const Vector8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::MulAndAdd(a.x, b, c.x),
+            Vector8::MulAndAdd(a.y, b, c.y),
+            Vector8::MulAndAdd(a.z, b, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 MulAndSub(const Vector3_Simd8& a, const Vector8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::MulAndSub(a.x, b, c.x),
+            Vector8::MulAndSub(a.y, b, c.y),
+            Vector8::MulAndSub(a.z, b, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 NegMulAndAdd(const Vector3_Simd8& a, const Vector8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::NegMulAndAdd(a.x, b, c.x),
+            Vector8::NegMulAndAdd(a.y, b, c.y),
+            Vector8::NegMulAndAdd(a.z, b, c.z)
+        );
+    }
+
+    RT_FORCE_INLINE static Vector3_Simd8 NegMulAndSub(const Vector3_Simd8& a, const Vector8& b, const Vector3_Simd8& c)
+    {
+        return Vector3_Simd8(
+            Vector8::NegMulAndSub(a.x, b, c.x),
+            Vector8::NegMulAndSub(a.y, b, c.y),
+            Vector8::NegMulAndSub(a.z, b, c.z)
         );
     }
 

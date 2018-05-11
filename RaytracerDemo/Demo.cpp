@@ -159,10 +159,11 @@ void DemoWindow::ResetCamera()
     mCameraSetup.pitch = -0.1f;
     mCameraSetup.yaw = -3.13f;
 
+
     // sponza
-    //mCameraSetup.position = Vector4(7.0f, 3.0f, 0.1f);
-    //mCameraSetup.pitch = -0.09f;
-    //mCameraSetup.yaw = -1.73f;
+    mCameraSetup.position = Vector4(7.0f, 3.0f, 0.1f);
+    mCameraSetup.pitch = -0.09f;
+    mCameraSetup.yaw = -1.73f;
 
     //mCameraSetup.position = Vector4(0.0f, 0.75f, 0.0f);
     //mCameraSetup.pitch = -1.70f;
@@ -173,12 +174,12 @@ bool DemoWindow::InitScene()
 {
     // EVERYTHING HERE IS TEMPORARY !
 
-    //mMesh = helpers::LoadMesh("../../../../MODELS/sibenik/sibenik.obj", mMaterials);
-    auto cornellBox = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mMaterials);
+    //auto bunny = helpers::LoadMesh("../../../../MODELS/bunny.obj", mMaterials);
+    //auto cornellBox = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mMaterials);
     //mMesh = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Mirror.obj", mMaterials);
     //mMesh = helpers::LoadMesh("../../../../MODELS/living_room/living_room.obj", mMaterials);
-    //mMesh = helpers::LoadMesh("../../../../MODELS/cube/cube.obj", mMaterials);
-    //mMesh = helpers::LoadMesh("../../../../MODELS/crytek-sponza/sponza.obj", mMaterials, 0.01f);
+    auto cubeMesh = helpers::LoadMesh("../../../../MODELS/cube/cube.obj", mMaterials);
+    auto sponza = helpers::LoadMesh("../../../../MODELS/crytek-sponza/sponza.obj", mMaterials, 0.01f);
     auto planeMesh = helpers::CreatePlaneMesh(mMaterials, 100.0f);
 
     // SCENE
@@ -190,26 +191,13 @@ bool DemoWindow::InitScene()
         env.backgroundColor = Vector4::Splat(1.0f);
         mScene->SetEnvironment(env);
 
-        // floor
         {
-            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(planeMesh.get());
-            meshInstance->mPosition = Vector4(0.0f, -0.5f, 0.0f);
+            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(sponza.get());
+            meshInstance->mPosition = Vector4(0.0f, 0.0f, 0.0f);
             mScene->AddObject(std::move(meshInstance));
         }
 
-        {
-            auto material = std::make_unique<Material>("plasticA");
-            material->baseColor = Vector4(0.2535f, 0.95f, 0.95f);
-            material->roughness = 0.1f;
-            material->emissionColor = Vector4();
-            material->Compile();
-            SceneObjectPtr meshInstance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            meshInstance->mPosition = Vector4(0.0f, 0.0f, -1.0f);
-            mScene->AddObject(std::move(meshInstance));
-
-            mMaterials.push_back(std::move(material));
-        }
-
+        /*
         {
             auto material = std::make_unique<Material>("plasticB");
             material->baseColor = Vector4(0.95f, 0.212f, 0.95f);
@@ -217,7 +205,7 @@ bool DemoWindow::InitScene()
             material->emissionColor = Vector4();
             material->Compile();
             SceneObjectPtr meshInstance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            meshInstance->mPosition = Vector4(1.0f, 0.0f, -1.0f);
+            meshInstance->mPosition = Vector4(1.0f, 0.5f, -1.0f);
             mScene->AddObject(std::move(meshInstance));
 
             mMaterials.push_back(std::move(material));
@@ -231,12 +219,15 @@ bool DemoWindow::InitScene()
             meshInstance->mPosition = Vector4(0.241f, 0.0f, -3.0f);
             mScene->AddObject(std::move(meshInstance));
         }
+        */
     }
 
     mScene->BuildBVH();
 
+    //mMeshes.push_back(std::move(bunny));
+    mMeshes.push_back(std::move(cubeMesh));
     mMeshes.push_back(std::move(planeMesh));
-    mMeshes.push_back(std::move(cornellBox));
+    mMeshes.push_back(std::move(sponza));
 
     // TODO remove
     mSelectedMaterial = mMaterials.back().get();
@@ -257,10 +248,8 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         Uint32 width, height;
         GetSize(width, height);
 
-        Random randomGenerator;
         rt::RenderingParams params;
-        rt::RayTracingCounters counters;
-        rt::RenderingContext context(randomGenerator, params, counters);
+        rt::RenderingContext context(&params);
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height);
         const Ray ray = mCamera.GenerateRay(coords, context);
@@ -271,7 +260,7 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         if (hitPoint.objectId != UINT32_MAX)
         {
             ShadingData shadingData;
-            mScene->ExtractShadingData(ray, hitPoint, shadingData);
+            mScene->ExtractShadingData(ray.origin, ray.dir, hitPoint, shadingData);
 
             mSelectedMaterial = const_cast<Material*>(shadingData.material);
         }
@@ -405,16 +394,18 @@ bool DemoWindow::Loop()
         mMinRenderDeltaTime = Min(mMinRenderDeltaTime, mRenderDeltaTime);
         mFrameCounterForAverage++;
         mFrameNumber++;
+        mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
 
+        /*
         // refresh averages
         mRefreshTime += mDeltaTime;
         if (mRefreshTime > 1.0)
         {
-            mAverageRenderDeltaTime = mAccumulatedRenderTime / (double)mFrameCounterForAverage;
             mAccumulatedRenderTime = 0.0;
             mFrameCounterForAverage = 0;
             mRefreshTime = 0.0;
         }
+        */
     }
 
     return true;
@@ -436,12 +427,15 @@ void DemoWindow::RenderUI()
     io.KeyAlt = (GetKeyState(VK_MENU) & 0x8000) != 0;
     io.KeySuper = false;
 
+    static int renderingModeIndex = 3;
+
     ImGui::NewFrame();
     {
         static bool showStats = true;
         if (ImGui::Begin("Stats", &showStats))
         {
             ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
+            ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
             ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
             ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
             ImGui::Text("Frame number:        %u", mFrameNumber);
@@ -457,6 +451,16 @@ void DemoWindow::RenderUI()
 
             if (ImGui::TreeNode("Rendering"))
             {
+                const char* items[] =
+                {
+                    "Regular",
+                    "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords",
+                    "BaseColor",
+                    "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
+                };
+                resetFrame |= ImGui::Combo("Mode", &renderingModeIndex, items, IM_ARRAYSIZE(items));
+
+
                 resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 1, 50);
                 ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
                 resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
@@ -467,6 +471,7 @@ void DemoWindow::RenderUI()
 
             if (ImGui::TreeNode("Camera"))
             {
+                resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
                 resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
                 resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
                 resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionFactor, 0.0f, 0.2f);
@@ -477,7 +482,8 @@ void DemoWindow::RenderUI()
             if (ImGui::TreeNode("Postprocess"))
             {
                 ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, 0.01f, 10.0f, "%.3f", 2.0f);
-                ImGui::SliderFloat("Noise", &mPostprocessParams.noiseStrength, 0.0f, 0.1f);
+                ImGui::SliderFloat("Film grain", &mPostprocessParams.filmGrainStrength, 0.0f, 0.1f);
+                ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
                 ImGui::SliderFloat("Bloom strength", &mPostprocessParams.bloomStrength, 0.0f, 1.0f);
                 ImGui::SliderFloat("Bloom size", &mPostprocessParams.bloomSize, 0.0f, 50.0f);
 
@@ -510,6 +516,11 @@ void DemoWindow::RenderUI()
                 }
             }
 
+            if (ImGui::Button("Take screenshot"))
+            {
+                mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
+            }
+
             if (resetFrame)
             {
                 ResetFrame();
@@ -523,6 +534,8 @@ void DemoWindow::RenderUI()
 
     const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
     paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight(), sw_options);
+
+    mRenderingParams.renderingMode = static_cast<rt::RenderingMode>(renderingModeIndex);
 }
 
 void DemoWindow::Render()
@@ -595,7 +608,7 @@ void DemoWindow::UpdateCamera()
     mCamera.SetPerspective(mCameraSetup.position, direction,
                            Vector4(0.0f, 1.0f, 0.0f),
                            (Float)width / (Float)height,
-                           RT_PI / 180.0f * 65.0f);
+                           RT_PI / 180.0f * mCameraSetup.fov);
 
     mCamera.Update();
 }

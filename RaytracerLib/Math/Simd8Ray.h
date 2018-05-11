@@ -2,6 +2,7 @@
 
 #include "Simd8Vector3.h"
 #include "Ray.h"
+#include "Simd4Ray.h"
 
 namespace rt {
 namespace math {
@@ -12,10 +13,10 @@ namespace math {
 class RT_ALIGN(32) Ray_Simd8
 {
 public:
-    Vector3_Simd8 origin;
-    Vector3_Simd8 dir;
     Vector3_Simd8 invDir;
     Vector3_Simd8 originDivDir;
+    Vector3_Simd8 origin;
+    Vector3_Simd8 dir;
 
     Ray_Simd8() = default;
     Ray_Simd8(const Ray_Simd8&) = default;
@@ -46,6 +47,14 @@ public:
         , origin(ray0.origin, ray1.origin, ray2.origin, ray3.origin, ray4.origin, ray5.origin, ray6.origin, ray7.origin)
         , invDir(ray0.invDir, ray1.invDir, ray2.invDir, ray3.invDir, ray4.invDir, ray5.invDir, ray6.invDir, ray7.invDir)
     {
+        originDivDir = origin * invDir;
+    }
+
+    RT_FORCE_INLINE Ray_Simd8(const Vector3_Simd8& origin, const Vector3_Simd8& dir)
+        : origin(origin)
+        , dir(dir)
+    {
+        invDir = Vector3_Simd8::FastReciprocal(dir);
         originDivDir = origin * invDir;
     }
 };

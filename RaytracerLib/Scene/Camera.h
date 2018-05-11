@@ -6,6 +6,9 @@
 #include "../Math/Matrix.h"
 #include "../Math/Ray.h"
 #include "../Math/Random.h"
+#include "../Math/Simd8Vector2.h"
+#include "../Math/Simd8Ray.h"
+
 
 namespace rt {
 
@@ -56,6 +59,7 @@ public:
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
     math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
+    math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2_Simd8& coords, RenderingContext& context) const;
 
     // TODO generate ray packet
 

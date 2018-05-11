@@ -6,23 +6,6 @@ namespace rt {
 
 class Material;
 
-enum class VertexDataFormat : Uint8
-{
-    None,
-    Float,
-    HalfFloat,
-    Int32,
-    Int16,
-    Int8,
-};
-
-enum class IndexDataFormat : Uint8
-{
-    Int32,
-    Int16,
-    Int8,
-};
-
 /**
  * Structure describing a vertex buffer.
  */
@@ -32,22 +15,13 @@ struct VertexBufferDesc
     Uint32 numTriangles;
     Uint32 numMaterials;
 
-    const void* vertexIndexBuffer;
-    const void* positions;
-    const void* normals;
-    const void* tangents;
-    const void* texCoords;
-    const void* materialIndexBuffer;
+    const Uint32* vertexIndexBuffer;
+    const float* positions;
+    const float* normals;
+    const float* tangents;
+    const float* texCoords;
+    const Uint32* materialIndexBuffer;
     const Material** materials;
-
-    IndexDataFormat vertexIndexFormat;
-    VertexDataFormat positionsFormat;
-    VertexDataFormat normalsFormat;
-    VertexDataFormat tangentsFormat;
-    VertexDataFormat texCoordsFormat;
-    VertexDataFormat materialIndexFormat;
-
-    Float scale;
 
     VertexBufferDesc::VertexBufferDesc()
         : numVertices(0)
@@ -60,13 +34,6 @@ struct VertexBufferDesc
         , texCoords(nullptr)
         , materials(nullptr)
         , materialIndexBuffer(nullptr)
-        , vertexIndexFormat(IndexDataFormat::Int32)
-        , positionsFormat(VertexDataFormat::None)
-        , normalsFormat(VertexDataFormat::None)
-        , tangentsFormat(VertexDataFormat::None)
-        , texCoordsFormat(VertexDataFormat::None)
-        , materialIndexFormat(VertexDataFormat::None)
-        , scale(1.0f)
     { }
 };
 

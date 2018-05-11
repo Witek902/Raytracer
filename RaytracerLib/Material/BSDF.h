@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../RayLib.h"
-
+#include "../Utils/AlignmentAllocator.h"
 #include "../Math/Ray.h"
 
 namespace rt {
@@ -14,7 +14,7 @@ class Random;
 // Abstract class for Bidirectional Scattering Density Function
 // Handles both reflection and transmission
 // NOTE: all the calculations are performed in local-space of the hit point on a surface: X is tangent, Z is normal
-class BSDF
+class BSDF : public Aligned<16>
 {
 public:
     virtual ~BSDF() = default;

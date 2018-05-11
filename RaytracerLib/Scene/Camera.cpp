@@ -9,7 +9,7 @@ using namespace math;
 
 Camera::Camera()
     : mAspectRatio(1.0f)
-    , mFieldOfView(RT_PI * 80.0f / 180.0f)
+    , mFieldOfView(RT_PI * 10.0f / 180.0f)
     , barrelDistortionFactor(0.0f)
 { }
 
@@ -64,6 +64,38 @@ math::Ray Camera::GenerateRay(const math::Vector4 coords, RenderingContext& cont
     }
 
     return Ray(origin, direction);
+}
+
+math::Ray_Simd8 Camera::GenerateRay_Simd8(const math::Vector2_Simd8& coords, RenderingContext& context) const
+{
+    Vector3_Simd8 origin(mPosition + mPositionDelta * context.time);
+    Vector2_Simd8 offsetedCoords = coords * 2.0f - Vector2_Simd8::One();
+
+    // barrel distortion
+    if (barrelDistortionFactor != 0.0f)
+    {
+        const Vector8 radius = Vector2_Simd8::Dot(offsetedCoords, offsetedCoords);
+        offsetedCoords += offsetedCoords * (radius * barrelDistortionFactor);
+    }
+
+    // calculate ray direction (ideal, without DoF)
+    Vector3_Simd8 direction = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mRightScaled), offsetedCoords.x, Vector3_Simd8(mForwardInternal));
+    direction = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mUpScaled), offsetedCoords.y, direction);
+
+    // depth of field
+    if (mDOF.aperture > 0.001f)
+    {
+        const Vector3_Simd8 focusPoint = origin + direction * mDOF.focalPlaneDistance;
+
+        // TODO different bokeh shapes, texture, etc.
+        const Vector2_Simd8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
+        origin = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mRightInternal), randomPointOnCircle.x, origin);
+        origin = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mUpInternal), randomPointOnCircle.y, origin);
+
+        direction = focusPoint - origin;
+    }
+
+    return Ray_Simd8(origin, direction);
 }
 
 

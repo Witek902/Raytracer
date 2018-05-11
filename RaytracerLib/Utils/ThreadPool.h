@@ -27,6 +27,8 @@ public:
 
     void RunParallelTask(const ParallelTask& task, Uint32 rows, Uint32 columns);
 
+    RT_FORCE_INLINE size_t GetNumThreads() const { return mThreads.size(); }
+
 private:
     using Lock = std::unique_lock<std::mutex>;
 

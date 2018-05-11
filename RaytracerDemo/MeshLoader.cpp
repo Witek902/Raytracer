@@ -155,9 +155,9 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
                     attrib.vertices[3 * idx[i].vertex_index + 1],
                     attrib.vertices[3 * idx[i].vertex_index + 2]);
 
-                vertexPositions.push_back(verts[i][0]);
-                vertexPositions.push_back(verts[i][1]);
-                vertexPositions.push_back(verts[i][2]);
+                vertexPositions.push_back(scale * verts[i][0]);
+                vertexPositions.push_back(scale * verts[i][1]);
+                vertexPositions.push_back(scale * verts[i][2]);
             }
 
             math::Vector4 normals[3];
@@ -248,13 +248,6 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     meshDesc.vertexBufferDesc.normals = vertexNormals.data();
     meshDesc.vertexBufferDesc.tangents = vertexTangents.data();
     meshDesc.vertexBufferDesc.texCoords = vertexTexCoords.data();
-    meshDesc.vertexBufferDesc.positionsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.normalsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.tangentsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.texCoordsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.vertexIndexFormat = rt::IndexDataFormat::Int32;
-    meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
-    meshDesc.vertexBufferDesc.scale = scale;
 
     std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
     bool result = mesh->Initialize(meshDesc);
@@ -280,7 +273,7 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     const Uint32 materialIndices[] = { 0, 0 };
     outMaterials.push_back(std::move(material));
 
-    const Int32 indices[] =
+    const Uint32 indices[] =
     {
         0, 1, 2,
         0, 2, 3,
@@ -288,10 +281,10 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
 
     const Float vertices[] =
     {
-        -1.0f,  0.0f, -1.0f,
-         1.0f,  0.0f, -1.0f,
-         1.0f,  0.0f,  1.0f,
-        -1.0f,  0.0f,  1.0f,
+        -scale,  0.0f, -scale,
+         scale,  0.0f, -scale,
+         scale,  0.0f,  scale,
+        -scale,  0.0f,  scale,
     };
 
     const Float normals[] =
@@ -330,13 +323,6 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     meshDesc.vertexBufferDesc.normals = normals;
     meshDesc.vertexBufferDesc.tangents = tangents;
     meshDesc.vertexBufferDesc.texCoords = texCoords;
-    meshDesc.vertexBufferDesc.positionsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.normalsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.tangentsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.texCoordsFormat = rt::VertexDataFormat::Float;
-    meshDesc.vertexBufferDesc.vertexIndexFormat = rt::IndexDataFormat::Int32;
-    meshDesc.vertexBufferDesc.materialIndexFormat = rt::VertexDataFormat::Int32;
-    meshDesc.vertexBufferDesc.scale = scale;
 
     std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
     bool result = mesh->Initialize(meshDesc);

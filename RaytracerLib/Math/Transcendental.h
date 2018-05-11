@@ -3,6 +3,8 @@
 #include "../Common.h"
 
 #include "Vector4.h"
+#include "Vector8.h"
+
 
 namespace rt {
 namespace math {
@@ -19,8 +21,8 @@ namespace math {
  */
 float Sin(float x);
 float Cos(float x);
-
 Vector4 Sin(Vector4 x);
+Vector8 Sin(Vector8 x);
 
 /**
  * Accurate inverse trigonometric functions.

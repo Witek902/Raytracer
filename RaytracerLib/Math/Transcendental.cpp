@@ -95,11 +95,39 @@ Vector4 Sin(Vector4 x)
     y = Vector4::MulAndAdd(y, x2, c0);
     y *= x;
 
-    //Vector4 y = x * (c0 + x2 * (c1 + x2 * (c2 + x2 * (c3 + x2 * (c4 + x2 * c5)))));
-
     // equivalent of: (i & 1) ? -y : y;
     const __m128i cmpMaks = _mm_cmpeq_epi32(_mm_and_si128(i, _mm_set1_epi32(1)), _mm_setzero_si128());
     return _mm_xor_ps(y, _mm_andnot_ps(VECTOR_MASK_ABS, _mm_castsi128_ps(cmpMaks)));
+}
+
+Vector8 Sin(Vector8 x)
+{
+    // based on:
+    // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
+
+    // range reduction
+    __m256i i = _mm256_cvtps_epi32(x * (1.0f / RT_PI));
+    x -= Vector8(_mm256_cvtepi32_ps(i)) * RT_PI;
+
+    const Vector8 x2 = x * x;
+
+    const Vector8 c0 = Vector8::Splat(9.9999970197e-01f);
+    const Vector8 c1 = Vector8::Splat(-1.6666577756e-01f);
+    const Vector8 c2 = Vector8::Splat(8.3325579762e-03f);
+    const Vector8 c3 = Vector8::Splat(-1.9812576647e-04f);
+    const Vector8 c4 = Vector8::Splat(2.7040521217e-06f);
+    const Vector8 c5 = Vector8::Splat(-2.0532988642e-08f);
+
+    Vector8 y = Vector8::MulAndAdd(c4, x2, c5);
+    y = Vector8::MulAndAdd(y, x2, c3);
+    y = Vector8::MulAndAdd(y, x2, c2);
+    y = Vector8::MulAndAdd(y, x2, c1);
+    y = Vector8::MulAndAdd(y, x2, c0);
+    y *= x;
+
+    // equivalent of: (i & 1) ? -y : y;
+    const __m256i cmpMaks = _mm256_cmpeq_epi32(_mm256_and_si256(i, _mm256_set1_epi32(1)), _mm256_setzero_si256());
+    return _mm256_xor_ps(y, _mm256_andnot_ps(VECTOR8_MASK_ABS, _mm256_castsi256_ps(cmpMaks)));
 }
 
 float Cos(float x)

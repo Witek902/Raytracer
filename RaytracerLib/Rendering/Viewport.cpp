@@ -20,10 +20,12 @@ Viewport::Viewport()
 
 void Viewport::InitThreadData()
 {
-    mThreadData.resize(std::thread::hardware_concurrency());
-    for (size_t i = 0; i < std::thread::hardware_concurrency(); ++i)
+    const size_t numThreads = mThreadPool.GetNumThreads();
+
+    mThreadData.resize(numThreads);
+    for (size_t i = 0; i < numThreads; ++i)
     {
-        mThreadData[i].random.Reset(2654435761u * static_cast<Uint32>(i));
+        mThreadData[i].randomGenerator.Reset();
     }
 }
 
@@ -68,7 +70,7 @@ RT_FORCE_INLINE static Vector4 ToneMap(Vector4 color)
     const Vector4 t0 = color *  Vector4::MulAndAdd(color, b, VECTOR_HALVES);
     const Vector4 t1 = Vector4::MulAndAdd(color, b, c);
     const Vector4 t2 = Vector4::MulAndAdd(color, t1, d);
-    return t0 / t2;
+    return t0 * Vector4::FastReciprocal(t2);
 }
 
 bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingParams& params)
@@ -90,13 +92,13 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
 
     // render
     {
-        const Uint32 tileSize = 32;
+        const Uint32 tileSize = params.tileSize;
 
         const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
         {
-            Random& randomGenerator = mThreadData[threadID].random;
-            RayTracingCounters counters;
-            RenderingContext context(randomGenerator, params, counters);
+            RenderingContext& context = mThreadData[threadID];
+            context.params = &params;
+            context.localCounters.Reset();
             RenderTile(*scene, camera, context, tileSize * tileX, tileSize * tileY, tileSize, tileSize);
         };
 
@@ -134,6 +136,8 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
     return true;
 }
 
+//#define RT_SINGLE_TRACING
+
 void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context,
                           Uint32 x0, Uint32 y0, Uint32 tileWidth, Uint32 tileHeight)
 {
@@ -143,6 +147,10 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
     const Uint32 maxY = Min(y0 + tileHeight, GetHeight());
 
     const bool verticalFlip = true;
+
+    context.time = 0.0f; // TODO randomize time
+
+#ifdef RT_SINGLE_TRACING
 
     // single ray tracing
     for (Uint32 y = y0; y < maxY; ++y)
@@ -154,16 +162,14 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             const Vector4 baseCoords = Vector4::FromIntegers(x, realY);
 
             RayColor color;
-            for (Uint16 i = 0; i < context.params.samplesPerPixel; ++i)
+            for (Uint16 i = 0; i < context.params->samplesPerPixel; ++i)
             {
                 const Vector4 u = context.randomGenerator.GetVector4();
 
-                // randomize time
-                context.time = u[2];
 
                 // randomize pixel offset
                 // TODO stratified sampling
-                const Vector4 coords = baseCoords + (u - VECTOR_HALVES) * context.params.antiAliasingSpread;
+                const Vector4 coords = baseCoords + (u - VECTOR_HALVES) * context.params->antiAliasingSpread;
 
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
@@ -175,35 +181,65 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
         }
     }
 
-    /*
-    RayPacket& rayPacket = context.rayPacket;
+#else // !RT_SINGLE_TRACING
 
+    // RayPacket& rayPacket = context.rayPacket;
     for (Uint32 y = y0; y < maxY; ++y)
     {
+        const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
+
         for (Uint32 x = x0; x < maxX; ++x)
         {
-            const Vector4 baseCoords = Vector4::FromIntegers(x, y);
+            // generate primary SIMD rays
+            Vector2_Simd8 coords(Vector4::FromIntegers(x, realY));
+            coords.x += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
+            coords.y += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
+            coords.x *= invSize[0];
+            coords.y *= invSize[1];
 
-            for (Uint16 i = 0; i < context.params.samplesPerPixel; ++i)
+            Ray_Simd8 simdRay = camera.GenerateRay_Simd8(coords, context);
+
+            RayColor colors[8];
+            scene.TraceRay_Simd8(simdRay, context, colors);
+
+            RayColor color;
+            for (Uint16 i = 0; i < 8; ++i)
             {
-                const Vector4 coords = baseCoords + (context.randomGenerator.GetVector4() - VECTOR_HALVES) * context.params.antiAliasingSpread;
-
-                // generate primary ray
-                const Ray ray = camera.GenerateRay(coords * invSize, context.randomGenerator);
-                rayPacket.PushRay(ray, math::VECTOR_ONE3, ImageLocationInfo{ (Uint16)x, (Uint16)y });
-
-                // TODO flush packet when full
+                color += colors[i];
             }
+            color *= 1.0f / 8.0f;
+
+
+            mRenderTarget.SetPixel(x, y, color.values);
         }
     }
 
+#endif // RT_SINGLE_TRACING
+
+    /*
     HitPoint_Packet& hitPoints = context.hitPoints;
     scene.Traverse_Packet(rayPacket, context, hitPoints);
 
     scene.ShadePacket(rayPacket, hitPoints, context, mRenderTarget);
     */
 
-    context.counters.numPrimaryRays += tileWidth * tileHeight * context.params.samplesPerPixel;
+    // fill rate test
+    /*
+    (void)camera;
+    (void)scene;
+    for (Uint32 y = y0; y < maxY; ++y)
+    {
+        const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
+
+        for (Uint32 x = x0; x < maxX; ++x)
+        {
+            Vector4 color = Vector4::FromIntegers(x, realY) * invSize;
+            mRenderTarget.SetPixel(x, y, color);
+        }
+    }
+    */
+
+    context.counters.numPrimaryRays += tileWidth * tileHeight * context.params->samplesPerPixel;
 }
 
 bool Viewport::SetPostprocessParams(const PostprocessParams& params)
@@ -220,29 +256,25 @@ void Viewport::GetPostprocessParams(PostprocessParams& params)
 void Viewport::PostProcess(Uint32 ymin, Uint32 ymax, Uint32 threadID)
 {
     const Uint32 width = GetWidth();
-    Random& randomGenerator = mThreadData[threadID].random;
+    Random& randomGenerator = mThreadData[threadID].randomGenerator;
 
-    const Float scalingFactor = 1.0f / (Float)mNumSamplesRendered;
+    const Float scalingFactor = mPostprocessingParams.exposure / (Float)mNumSamplesRendered;
 
+    /*
     if (mPostprocessingParams.bloomStrength > 0.0f)
     {
         // composite "summed" image
         {
-            Vector4 renderTargetLine[Bitmap::MaxSize];
-            Vector4 sumLine[Bitmap::MaxSize];
-
             for (Uint32 y = ymin; y < ymax; ++y)
             {
-                mSum.ReadHorizontalLine(y, sumLine);
-                mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
+                Vector4* sumLine = mSum.GetPixels(0, y);
+                const Vector4* renderTargetLine = mRenderTarget.GetPixels(0, y);
 
                 for (Uint32 x = 0; x < width; ++x)
                 {
                     const Vector4 newSum = sumLine[x] + renderTargetLine[x];
                     sumLine[x] = newSum;
                 }
-
-                mSum.WriteHorizontalLine(y, sumLine);
             }
         }
 
@@ -273,30 +305,35 @@ void Viewport::PostProcess(Uint32 ymin, Uint32 ymax, Uint32 threadID)
     }
     else
     {
-        Vector4 renderTargetLine[Bitmap::MaxSize];
-        Vector4 sumLine[Bitmap::MaxSize];
+    */
         Vector4 frontBufferLine[Bitmap::MaxSize];
 
+        // TODO use AVX
         for (Uint32 y = ymin; y < ymax; ++y)
         {
-            mSum.ReadHorizontalLine(y, sumLine);
-            mRenderTarget.ReadHorizontalLine(y, renderTargetLine);
+            Vector4* sumLine = mSum.GetPixels(0, y);
+            const Vector4* renderTargetLine = mRenderTarget.GetPixels(0, y);
 
             for (Uint32 x = 0; x < width; ++x)
             {
                 const Vector4 newSum = sumLine[x] + renderTargetLine[x];
-                sumLine[x] = newSum;
 
-                const Vector4& color = sumLine[x];
-                const Vector4 toneMappedColor = ToneMap(color * (scalingFactor * mPostprocessingParams.exposure));
-                const Vector4 noiseValue = (randomGenerator.GetVector4() - VECTOR_HALVES) * mPostprocessingParams.noiseStrength;
-                frontBufferLine[x] = toneMappedColor + noiseValue;
+                Vector4 filmGrain;
+                if (mPostprocessingParams.filmGrainStrength > 0.0f)
+                {
+                    filmGrain = randomGenerator.GetVector4Bipolar() + randomGenerator.GetVector4Bipolar() + randomGenerator.GetVector4Bipolar();
+                    filmGrain *= mPostprocessingParams.filmGrainStrength;
+                }
+
+                const Vector4 dither = randomGenerator.GetVector4Bipolar() * (mPostprocessingParams.ditheringStrength * 0.5f);
+
+                sumLine[x] = newSum;
+                frontBufferLine[x] = ToneMap(newSum * scalingFactor + filmGrain) + dither;
             }
 
-            mSum.WriteHorizontalLine(y, sumLine);
             mFrontBuffer.WriteHorizontalLine(y, frontBufferLine);
         }
-    }
+    //}
 }
 
 void Viewport::Reset()

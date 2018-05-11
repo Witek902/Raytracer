@@ -4,9 +4,14 @@
 
 #include "../Math/Vector4.h"
 #include "../Math/Triangle.h"
+#include "../Math/Float3.h"
 
 
 namespace rt {
+
+namespace math {
+class Triangle_Simd8;
+}
 
 class Material;
 
@@ -15,6 +20,14 @@ struct VertexIndices
     Uint32 i0;
     Uint32 i1;
     Uint32 i2;
+    Uint32 materialIndex;
+};
+
+struct VertexShadingData
+{
+    math::Float3 normal;
+    math::Float3 tangent;
+    math::Float2 texCoord;
 };
 
 
@@ -34,53 +47,34 @@ public:
     bool Initialize(const VertexBufferDesc& desc);
 
     // get vertex indices for given triangle
-    RT_FORCE_NOINLINE void GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const;
+    void GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const;
 
     // get material for given a triangle
-    const Material* GetMaterial(const Uint32 triangleIndex) const;
+    const Material* GetMaterial(const Uint32 materialIndex) const;
 
-    // extract vertex data (for one triangle)
-    RT_FORCE_NOINLINE void GetVertexPositions(const VertexIndices& indices, math::Triangle& data) const;
-    RT_FORCE_NOINLINE void GetVertexNormals(const VertexIndices& indices, math::Triangle& data) const;
-    RT_FORCE_NOINLINE void GetVertexTangents(const VertexIndices& indices, math::Triangle& data) const;
-    RT_FORCE_NOINLINE void GetVertexTexCoords(const VertexIndices& indices, math::Triangle& data) const;
+    // extract preprocessed triangle data (for one triangle)
+    math::ProcessedTriangle GetTriangle(const Uint32 triangleIndex) const;
+    void GetTriangle(const Uint32 triangleIndex, math::Triangle_Simd8& outTriangle) const;
+
+    void GetShadingData(const VertexIndices& indices, VertexShadingData& a, VertexShadingData& b, VertexShadingData& c) const;
 
     Uint32 GetNumVertices() const { return mNumVertices; }
     Uint32 GetNumTriangles() const { return mNumTriangles; }
 
-    // Change triangles order (for internal use)
-    void ReorderTriangles(const std::vector<Uint32>& newOrder);
-
 private:
 
-    math::Vector4 mVertexPositionScale;
+    char* mBuffer;
+    math::ProcessedTriangle* mPreprocessedTriangles;
+
+    size_t mVertexIndexBufferOffset;
+    size_t mShadingDataBufferOffset;
+    size_t mMaterialBufferOffset;
 
     Uint32 mNumVertices;
     Uint32 mNumTriangles;
+    Uint32 mNumMaterials;
 
-    char* mBuffer;
-
-    Uint32 mVertexIndexBufferOffset;
-    Uint32 mPositionsBufferOffset;
-    Uint32 mNormalsBufferOffset;
-    Uint32 mTangentsBufferOffset;
-    Uint32 mTexCoordsBufferOffset;
-    Uint32 mMaterialIndexBufferOffset;
-    Uint32 mMaterialBufferOffset;
-
-    // data buffers formats
-    IndexDataFormat mVertexIndexFormat;
-    VertexDataFormat mPositionsFormat;
-    VertexDataFormat mNormalsFormat;
-    VertexDataFormat mTangentsFormat;
-    VertexDataFormat mTexCoordsFormat;
-    VertexDataFormat mMaterialIndexFormat;
-
-    static Uint32 GetElementSize(VertexDataFormat format);
-    static Uint32 GetElementSize(IndexDataFormat format);
-
-    RT_FORCE_INLINE static void ExtractTriangleData2(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
-    RT_FORCE_INLINE static void ExtractTriangleData3(const void* dataBuffer, VertexDataFormat format, const VertexIndices& indices, math::Triangle& data);
+    static void ExtractTriangleData3(const void* dataBuffer, const VertexIndices& indices, math::Triangle& data);
 };
 
 

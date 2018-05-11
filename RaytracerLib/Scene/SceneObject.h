@@ -3,6 +3,7 @@
 #include "../RayLib.h"
 #include "../Math/Matrix.h"
 #include "../Math/Box.h"
+#include "../Utils/AlignmentAllocator.h"
 
 #include <memory>
 
@@ -21,7 +22,7 @@ struct HitPoint_Simd8;
 struct ShadingData;
 
 // Object on a scene
-class RAYLIB_API ISceneObject
+class RAYLIB_API ISceneObject : public Aligned<16>
 {
 public:
     virtual ~ISceneObject();

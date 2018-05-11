@@ -169,6 +169,12 @@
     <ClInclude Include="Math\Transcendental.h">
       <Filter>Math\Transcendental</Filter>
     </ClInclude>
+    <ClInclude Include="Traversal\Traversal.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Simd8Vector2.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

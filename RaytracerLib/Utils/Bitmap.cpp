@@ -103,7 +103,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
     Release();
 
     // align to cache line
-    const Uint32 marigin = 16;
+    const Uint32 marigin = RT_CACHE_LINE_SIZE;
     mData = _aligned_malloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
     if (!mData)
     {
@@ -194,6 +194,93 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
+    return true;
+}
+
+#pragma pack(push, 2)
+struct BitmapFileHeader
+{
+    BITMAPFILEHEADER fileHeader;
+    BITMAPINFOHEADER infoHeader;
+};
+#pragma pack(pop)
+
+
+bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
+{
+    Uint32 dataSize = 3 * mWidth * mHeight;
+
+    std::vector<Uint8> tmpData(dataSize);
+    if (mFormat == Format::B8G8R8A8_Uint)
+    {
+        const Uint8* data = reinterpret_cast<const Uint8*>(mData);
+
+        Uint32 i = 0;
+        for (Uint32 y = 0; y < (Uint32)mHeight; ++y)
+        {
+            const Uint32 realY = flipVertically ? mHeight - 1 - y : y;
+            for (Uint32 x = 0; x < (Uint32)mWidth; ++x)
+            {
+                const Uint32 p = mWidth * realY + x;
+                tmpData[i++] = data[4 * p];
+                tmpData[i++] = data[4 * p + 1];
+                tmpData[i++] = data[4 * p + 2];
+            }
+        }
+    }
+    else
+    {
+        RT_LOG_ERROR("Bitmap::SaveBMP: Unsupported format");
+        return false;
+    }
+
+    const BitmapFileHeader header =
+    {
+        // BITMAPFILEHEADER
+        {
+            /* bfType */        0x4D42,
+            /* bfSize */        sizeof(BitmapFileHeader) + dataSize,
+            /* bfReserved1 */   0,
+            /* bfReserved2 */   0,
+            /* bfOffBits */     sizeof(BitmapFileHeader),
+        },
+
+        // BITMAPINFOHEADER
+        {
+            sizeof(BITMAPINFOHEADER),
+            (LONG)mWidth,
+            (LONG)mHeight,
+            1,
+            24,
+            BI_RGB,
+            dataSize,
+            96, 96, 0, 0
+        },
+    };
+
+    FILE* file = fopen(path, "wb");
+    if (!file)
+    {
+        RT_LOG_ERROR("Failed to open target image '%s', code = %u", path, stderr);
+        return false;
+    }
+
+    if (fwrite(&header, sizeof(BitmapFileHeader), 1, file) != 1)
+    {
+        RT_LOG_ERROR("Failed to write bitmap header to file '%s', code = %u", path, stderr);
+        fclose(file);
+        return false;
+    }
+
+    if (fwrite(tmpData.data(), dataSize, 1, file) != 1)
+    {
+        RT_LOG_ERROR("Failed to write bitmap image data to file '%s', code = %u", path, stderr);
+        fclose(file);
+        return false;
+    }
+
+    RT_LOG_INFO("Image file '%s' written successfully", path);
+    fclose(file);
     return true;
 }
 
@@ -446,6 +533,20 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     }
 
     return color;
+}
+
+Vector4* Bitmap::GetPixels(Uint32 x, Uint32 y)
+{
+    assert(mFormat == Format::R32G32B32A32_Float);
+
+    return reinterpret_cast<Vector4*>(mData) + (mWidth * y + x);
+}
+
+const Vector4* Bitmap::GetPixels(Uint32 x, Uint32 y) const
+{
+    assert(mFormat == Format::R32G32B32A32_Float);
+
+    return reinterpret_cast<const Vector4*>(mData) + (mWidth * y + x);
 }
 
 void Bitmap::WriteHorizontalLine(Uint32 y, const Vector4* values)

@@ -18,6 +18,7 @@ enum class RenderingMode : Uint8
     Position,                   // visualize world-space position
     Normals,                    // visualize normal vectors (in world space)
     Tangents,
+    Bitangents,
     TexCoords,
 
     // material
@@ -39,6 +40,9 @@ struct RenderingParams
     // number of primary rays to be generated for image pixel
     Uint32 samplesPerPixel;
 
+    // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
+    Uint32 tileSize;
+
     // maximum ray depth
     Uint32 maxRayDepth;
 
@@ -50,6 +54,7 @@ struct RenderingParams
 
     RenderingParams()
         : maxRayDepth(20)
+        , tileSize(8)
         , minRussianRouletteDepth(2)
         , samplesPerPixel(1)
         , antiAliasingSpread(1.2f) // blur a little bit - real images are not perfectly sharp
@@ -61,16 +66,16 @@ struct RenderingParams
  * A structure with local (per-thread) data.
  * It's like a hub for all global params (read only) and local state (read write).
  */
-struct RenderingContext
+struct RT_ALIGN(64) RenderingContext
 {
-    // global rendering parameters
-    const RenderingParams& params;
-
     // per-thread pseudo-random number generator
-    math::Random& randomGenerator;
+    math::Random randomGenerator;
+
+    // global rendering parameters
+    const RenderingParams* params;
 
     // per-thread counters
-    RayTracingCounters& counters;
+    RayTracingCounters counters;
 
     // for motion blur sampling
     float time;
@@ -82,10 +87,8 @@ struct RenderingContext
 
     HitPoint_Packet hitPoints;
 
-    RenderingContext(math::Random& randomGenerator, const RenderingParams& params, RayTracingCounters& counters)
+    RT_FORCE_INLINE RenderingContext(const RenderingParams* params = nullptr)
         : params(params)
-        , randomGenerator(randomGenerator)
-        , counters(counters)
     { }
 };
 

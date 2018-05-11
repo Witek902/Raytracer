@@ -57,7 +57,7 @@ struct HitPoint_Simd4
 };
 
 // Ray-scene intersection data (SIMD-8)
-struct HitPoint_Simd8
+struct RT_ALIGN(32) HitPoint_Simd8
 {
     math::Vector8 distance;
     math::Vector8 u;

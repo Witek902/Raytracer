@@ -94,17 +94,16 @@ RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& out
     return _mm_movemask_ps(_mm_cmpge_ps(lmax, lmin)) == 0xF;
 }
 
-RT_FORCE_INLINE bool Intersect_TriangleRay(const Ray& ray, const Triangle& tri, float& outU, float& outV, float& outDistance)
+RT_FORCE_INLINE bool Intersect_TriangleRay(const Ray& ray, const ProcessedTriangle& tri, float& outU, float& outV, float& outDistance)
 {
     // Based on "Fast, Minimum Storage Ray/Triangle Intersection" by Tomas Möller and Ben Trumbore.
 
-    // TODO these can be precalculated
     // find vectors for two edges sharing v0
-    Vector4 edge0 = tri.v1 - tri.v0;
-    Vector4 edge1 = tri.v2 - tri.v0;
+    const Vector4 edge0(tri.edge1);
+    const Vector4 edge1(tri.edge2);
 
     // calculate distance from vert0 to ray origin
-    Vector4 tvec = ray.origin - tri.v0;
+    Vector4 tvec = ray.origin - Vector4(tri.v0);
 
     // begin calculating determinant - also used to calculate U parameter
     Vector4 pvec = Vector4::Cross3(ray.dir, edge1);

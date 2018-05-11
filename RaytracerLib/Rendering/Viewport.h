@@ -3,10 +3,12 @@
 #include "../RayLib.h"
 
 #include "Context.h"
+#include "Counters.h"
 
+#include "../Math/Random.h"
 #include "../Utils/Bitmap.h"
 #include "../Utils/ThreadPool.h"
-#include "../Math/Random.h"
+#include "../Utils/AlignmentAllocator.h"
 
 
 namespace rt {
@@ -19,7 +21,8 @@ struct PostprocessParams
     float exposure;
     float bloomStrength;
     float bloomSize;
-    float noiseStrength; // dithering
+    float filmGrainStrength; // applied before tonemapping
+    float ditheringStrength; // applied after tonemapping
 
     // TODO color correction parameters
 
@@ -27,14 +30,9 @@ struct PostprocessParams
         : exposure(0.8f)
         , bloomSize(10.0f)
         , bloomStrength(0.0f)
-        , noiseStrength(0.01f)
+        , filmGrainStrength(0.0f)
+        , ditheringStrength(0.005f)
     { }
-};
-
-struct ThreadData
-{
-    math::Random random;
-    char padding[64];
 };
 
 // Allows for rendering to a window
@@ -67,7 +65,7 @@ private:
 
     ThreadPool mThreadPool;
 
-    std::vector<ThreadData> mThreadData;
+    std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 
     rt::Bitmap mRenderTarget;   // target image for rendering (floating point)
     rt::Bitmap mSum;            // image with summed up samples (floating point)

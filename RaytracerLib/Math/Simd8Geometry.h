@@ -23,9 +23,9 @@ RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Ray_Simd8& ray, const Box_S
     const Vector3_Simd8 tmp2 = Vector3_Simd8::MulAndSub(box.max, ray.invDir, ray.originDivDir);
 
     // TODO we can get rid of this 3 mins and 3 maxes by sorting the rays into octants
-    // and processing each octant separately (a.k.a. stored split axis)
-    const Vector3_Simd8 lmin = Vector3_Simd8::Min(tmp1, tmp2);
+    // and processing each octant separately
     const Vector3_Simd8 lmax = Vector3_Simd8::Max(tmp1, tmp2);
+    const Vector3_Simd8 lmin = Vector3_Simd8::Min(tmp1, tmp2);
 
     // calculate minimum and maximum plane distances by taking min and max of all 3 components
     const Vector8 maxT = Vector8::Min(lmax.z, Vector8::Min(lmax.x, lmax.y));

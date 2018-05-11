@@ -16,7 +16,8 @@
 
 #define RT_CACHE_LINE_SIZE 64
 
-#define RT_PREFETCH(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0);
+#define RT_PREFETCH_L1(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0);
+#define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);
 
 #if defined(__LINUX__) | defined(__linux__)
 typedef uint64_t Uint64;

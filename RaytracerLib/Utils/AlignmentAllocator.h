@@ -3,6 +3,46 @@
 #include <stdlib.h>
 #include <malloc.h>
 
+/**
+* Override this class to align children objects.
+*/
+template <size_t Alignment = 16>
+class Aligned
+{
+public:
+    void* operator new(size_t size)
+    {
+        return _aligned_malloc(size, Alignment);
+    }
+
+    void operator delete(void* ptr)
+    {
+        _aligned_free(ptr);
+    }
+
+    void* operator new[](size_t size)
+    {
+        return _aligned_malloc(size, Alignment);
+    }
+
+    void operator delete[](void* ptr)
+    {
+        _aligned_free(ptr);
+    }
+
+    void* operator new(size_t size, void* ptr)
+    {
+        RT_UNUSED(size);
+        return ptr;
+    }
+
+    void* operator new[](size_t size, void* ptr)
+    {
+        RT_UNUSED(size);
+        return ptr;
+    }
+};
+
 template <typename T, std::size_t N = alignof(T)>
 class AlignmentAllocator
 {

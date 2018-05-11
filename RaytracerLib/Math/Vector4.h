@@ -126,6 +126,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE void Store(Float* dest) const;
     RT_FORCE_INLINE void Store(Float2* dest) const;
     RT_FORCE_INLINE void Store(Float3* dest) const;
+    RT_FORCE_INLINE Float3 ToFloat3() const;
 
     RT_FORCE_INLINE static Vector4 Splat(Float f);
 

@@ -5,13 +5,12 @@
 
 #include "BVH/BVHBuilder.h"
 
-#include "Traversal/HitPoint.h"
+#include "Traversal/Traversal.h"
 #include "Rendering/Counters.h"
 
 #include "Math/Triangle.h"
 #include "Math/Geometry.h"
-#include "Math/Simd4Geometry.h"
-#include "Math/Simd8Geometry.h"
+
 
 #include "Utils/Logger.h"
 #include "Utils/Logger.h"
@@ -37,29 +36,28 @@ Mesh::~Mesh()
 
 bool Mesh::Initialize(const MeshDesc& desc)
 {
-    if (!mVertexBuffer.Initialize(desc.vertexBufferDesc))
-    {
-        RT_LOG_ERROR("Failed to initialize vertex buffer");
-        return false;
-    }
+    mBoundingBox = Box::Empty();
+
+    const Float3* positions = (const Float3*)desc.vertexBufferDesc.positions;
+    const Uint32* indexBuffer = desc.vertexBufferDesc.vertexIndexBuffer;
 
     std::vector<Box, AlignmentAllocator<Box>> boxes;
-
-    const Uint32 numTriangles = mVertexBuffer.GetNumTriangles();
-    for (Uint32 i = 0; i < numTriangles; ++i)
+    for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
     {
-        VertexIndices indices;
-        mVertexBuffer.GetVertexIndices(i, indices);
+        const Vector4 v0(positions[indexBuffer[3 * i + 0]]);
+        const Vector4 v1(positions[indexBuffer[3 * i + 1]]);
+        const Vector4 v2(positions[indexBuffer[3 * i + 2]]);
 
-        Triangle tri;
-        mVertexBuffer.GetVertexPositions(indices, tri);
-
-
-        Box triBox(tri.v0, tri.v1, tri.v2);
+        Box triBox(v0, v1, v2);
+        const Vector4 size = triBox.max - triBox.min;
+        triBox.min -= size * 0.001f;
+        triBox.max += size * 0.001f;
         triBox.min -= VECTOR_EPSILON;
         triBox.max += VECTOR_EPSILON;
 
         boxes.push_back(triBox);
+
+        mBoundingBox = Box(mBoundingBox, triBox);
     }
 
     BVHBuilder::BuildingParams params;
@@ -67,7 +65,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
 
     BVHBuilder::Indices newTrianglesOrder;
     BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.data(), numTriangles, params, newTrianglesOrder))
+    if (!bvhBuilder.Build(boxes.data(), desc.vertexBufferDesc.numTriangles, params, newTrianglesOrder))
     {
         return false;
     }
@@ -91,10 +89,31 @@ bool Mesh::Initialize(const MeshDesc& desc)
         RT_LOG_INFO("    - leaf nodes histogram: %s", str.str().c_str());
     }
 
-    const std::string bvhCachePath = desc.path + ".bvhcache";
-    mBVH.SaveToFile(bvhCachePath);
+    // reorder triangles
+    {
+        std::vector<Uint32> newIndexBuffer(desc.vertexBufferDesc.numTriangles * 3);
+        std::vector<Uint32> newMaterialIndexBuffer(desc.vertexBufferDesc.numTriangles);
+        for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
+        {
+            const Uint32 newTriangleIndex = newTrianglesOrder[i];
+            assert(newTriangleIndex < mNumTriangles);
 
-    mVertexBuffer.ReorderTriangles(newTrianglesOrder);
+            newIndexBuffer[3 * i] = indexBuffer[3 * newTriangleIndex];
+            newIndexBuffer[3 * i + 1] = indexBuffer[3 * newTriangleIndex + 1];
+            newIndexBuffer[3 * i + 2] = indexBuffer[3 * newTriangleIndex + 2];
+            newMaterialIndexBuffer[i] = desc.vertexBufferDesc.materialIndexBuffer[newTriangleIndex];
+        }
+
+        VertexBufferDesc vertexBufferDesc = desc.vertexBufferDesc;
+        vertexBufferDesc.vertexIndexBuffer = newIndexBuffer.data();
+        vertexBufferDesc.materialIndexBuffer = newMaterialIndexBuffer.data();
+
+        if (!mVertexBuffer.Initialize(vertexBufferDesc))
+        {
+            RT_LOG_ERROR("Failed to initialize vertex buffer");
+            return false;
+        }
+    }
 
     // TODO reorder indices
 
@@ -110,11 +129,7 @@ void Mesh::Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, Hit
     {
         const Uint32 triangleIndex = node.data.childIndex + i;
 
-        VertexIndices indices;
-        mVertexBuffer.GetVertexIndices(triangleIndex, indices);
-
-        Triangle tri;
-        mVertexBuffer.GetVertexPositions(indices, tri);
+        const math::ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
 
         if (Intersect_TriangleRay(ray, tri, u, v, distance))
         {
@@ -129,11 +144,10 @@ void Mesh::Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, Hit
     }
 }
 
-void Mesh::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, const Uint32 instanceID, HitPoint_Simd8& outHitPoint) const
+void Mesh::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const
 {
-    const Vector8 vInstanceID = Vector8::Splat(instanceID);
-
     Vector8 distance, u, v;
+    Triangle_Simd8 tri;
 
     // TODO counters
 
@@ -141,15 +155,9 @@ void Mesh::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node
     {
         const Uint32 triangleIndex = node.data.childIndex + i;
 
-        VertexIndices indices;
-        mVertexBuffer.GetVertexIndices(triangleIndex, indices);
+        mVertexBuffer.GetTriangle(triangleIndex, tri);
 
-        Triangle tri;
-        mVertexBuffer.GetVertexPositions(indices, tri);
-
-        const Triangle_Simd8 simdTri(tri);
-
-        const Vector8 mask = Intersect_TriangleRay_Simd8(ray, simdTri, outHitPoint.distance, u, v, distance);
+        const Vector8 mask = Intersect_TriangleRay_Simd8(ray, tri, outHitPoint.distance, u, v, distance);
 
         if (mask.GetSignMask())
         {
@@ -158,156 +166,18 @@ void Mesh::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node
             outHitPoint.v = Vector8::SelectBySign(outHitPoint.v, v, mask);
             outHitPoint.distance = Vector8::SelectBySign(outHitPoint.distance, distance, mask);
             outHitPoint.triangleId = Vector8::SelectBySign(outHitPoint.triangleId, Vector8::Splat(triangleIndex), mask);
-            outHitPoint.objectId = Vector8::SelectBySign(outHitPoint.objectId, vInstanceID, mask);
         }
     }
 }
 
-void Mesh::Traverse_Single(const Ray& ray, HitPoint& data) const
+void Mesh::Traverse_Single(const Ray& ray, HitPoint& outHitPoint) const
 {
-    float distanceA, distanceB;
-
-    if (mBVH.GetNumNodes() == 0)
-    {
-        // tree is empty
-        return;
-    }
-
-    // all nodes
-    const BVH::Node* nodes = mBVH.GetNodes();
-
-    // "nodes to visit" stack
-    Uint32 stackSize = 0;
-    const BVH::Node* nodesStack[BVH::MaxDepth];
-
-    // BVH traversal
-    for (const BVH::Node* currentNode = nodes;;)
-    {
-        if (currentNode->IsLeaf())
-        {
-            Traverse_Leaf_Single(ray, *currentNode, data);
-        }
-        else
-        {
-            const BVH::Node* childA = nodes + currentNode->data.childIndex;
-            const BVH::Node* childB = childA + 1;
-
-            // prefetch grand-children
-            RT_PREFETCH(nodes + childA->data.childIndex);
-            RT_PREFETCH(nodes + childB->data.childIndex);
-
-            bool hitA = Intersect_BoxRay(ray, childA->GetBox(), distanceA);
-            bool hitB = Intersect_BoxRay(ray, childB->GetBox(), distanceB);
-
-            // box occlusion
-            hitA &= (distanceA < data.distance);
-            hitB &= (distanceB < data.distance);
-
-            if (hitA && hitB)
-            {
-                // will push [childA, childB] or [childB, childA] depending on distances
-                const bool order = distanceA < distanceB;
-                nodesStack[stackSize++] = order ? childB : childA; // push node
-                currentNode = order ? childA : childB;
-                continue;
-            }
-            else if (hitA)
-            {
-                currentNode = childA;
-                continue;
-            }
-            else if (hitB)
-            {
-                currentNode = childB;
-                continue;
-            }
-        }
-
-        if (stackSize == 0)
-        {
-            break;
-        }
-
-        // pop a node
-        currentNode = nodesStack[--stackSize];
-    }
+    GenericTraverse_Single(mBVH, ray, outHitPoint, this);
 }
 
-void Mesh::Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& hitPoint, Uint32 instanceID) const
+void Mesh::Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
 {
-    // all nodes
-    const BVH::Node* nodes = mBVH.GetNodes();
-
-    // "nodes to visit" stack
-    Uint32 stackSize = 0;
-    const BVH::Node* nodesStack[BVH::MaxDepth];
-
-    // BVH traversal
-    for (const BVH::Node* currentNode = nodes;;)
-    {
-        if (currentNode->IsLeaf())
-        {
-            Traverse_Leaf_Simd8(ray, *currentNode, instanceID, hitPoint);
-        }
-        else
-        {
-            const BVH::Node* childA = nodes + currentNode->data.childIndex;
-            const BVH::Node* childB = childA + 1;
-
-            // prefetch grand-children
-            RT_PREFETCH(nodes + childA->data.childIndex);
-            RT_PREFETCH(nodes + childB->data.childIndex);
-
-            // 4 rays - 2 boxes test
-            Vector8 distanceA, distanceB;
-            const Vector8 maskA = Intersect_BoxRay_Simd8(ray, childA->GetBox_Simd8(), hitPoint.distance, distanceA);
-            const Vector8 maskB = Intersect_BoxRay_Simd8(ray, childB->GetBox_Simd8(), hitPoint.distance, distanceB);
-
-            const int intMaskA = maskA.GetSignMask();
-            const int intMaskB = maskB.GetSignMask();
-            const int intMaskAB = intMaskA & intMaskB;
-
-            if (intMaskAB)
-            {
-                const Vector8 orderMask(_mm256_cmp_ps(distanceA, distanceB, _CMP_LT_OQ));
-                const int intOrderMask = orderMask.GetSignMask();
-                const int orderMaskA = intOrderMask & intMaskAB;
-                const int orderMaskB = (~intOrderMask) & intMaskAB;
-
-                // traverse to child node A if majority rays hit it before the child B
-                if (__popcnt(orderMaskA) > __popcnt(orderMaskB))
-                {
-                    nodesStack[stackSize++] = childB;
-                    currentNode = childA;
-                }
-                else
-                {
-                    nodesStack[stackSize++] = childA;
-                    currentNode = childB;
-                }
-
-                continue;
-            }
-            else if (intMaskA)
-            {
-                currentNode = childA;
-                continue;
-            }
-            else if (intMaskB)
-            {
-                currentNode = childB;
-                continue;
-            }
-        }
-
-        if (stackSize == 0)
-        {
-            break;
-        }
-
-        // pop a node
-        currentNode = nodesStack[--stackSize];
-    }
+    GenericTraverse_Simd8(mBVH, ray, outHitPoint, this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,30 +287,44 @@ void Mesh::Traverse_Packet(const RayPacket& packet, HitPoint_Packet& data, Uint3
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
-{
-    const Material* material = mVertexBuffer.GetMaterial(hitPoint.triangleId);
-    outShadingData.material = material ? material : &gDefaultMaterial;
-
+ {
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
 
-    Triangle normals, tangents, texCoords;
-    mVertexBuffer.GetVertexTexCoords(indices, texCoords);
-    mVertexBuffer.GetVertexNormals(indices, normals);
-    mVertexBuffer.GetVertexTangents(indices, tangents);
+    const Material* material = mVertexBuffer.GetMaterial(indices.materialIndex);
+    outShadingData.material = material ? material : &gDefaultMaterial;
 
-    const Vector4 coeff0 = Vector4::Splat(1.0f - hitPoint.u - hitPoint.v);
+    VertexShadingData vertexShadingData[3];
+    mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);
+
     const Vector4 coeff1 = Vector4::Splat(hitPoint.u);
     const Vector4 coeff2 = Vector4::Splat(hitPoint.v);
+    const Vector4 coeff0 = Vector4(VECTOR_ONE) - coeff1 - coeff2;
 
-    outShadingData.texCoord = coeff0 * texCoords.v0 + coeff1 * texCoords.v1 + coeff2 * texCoords.v2;
-    outShadingData.normal = coeff0 * normals.v0 + coeff1 * normals.v1 + coeff2 * normals.v2;
-    outShadingData.tangent = coeff0 * tangents.v0 + coeff1 * tangents.v1 + coeff2 * tangents.v2;
-    outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+    const Vector4 texCoord0(&vertexShadingData[0].texCoord.x);
+    const Vector4 texCoord1(&vertexShadingData[1].texCoord.x);
+    const Vector4 texCoord2(&vertexShadingData[2].texCoord.x);
+    outShadingData.texCoord = coeff1 * texCoord1;
+    outShadingData.texCoord = Vector4::MulAndAdd(coeff2, texCoord2, outShadingData.texCoord);
+    outShadingData.texCoord = Vector4::MulAndAdd(coeff0, texCoord0, outShadingData.texCoord);
 
+    const Vector4 normal0(&vertexShadingData[0].normal.x);
+    const Vector4 normal1(&vertexShadingData[1].normal.x);
+    const Vector4 normal2(&vertexShadingData[2].normal.x);
+    outShadingData.normal = coeff1 * normal1;
+    outShadingData.normal = Vector4::MulAndAdd(coeff2, normal2, outShadingData.normal);
+    outShadingData.normal = Vector4::MulAndAdd(coeff0, normal0, outShadingData.normal);
     outShadingData.normal.FastNormalize3();
+
+    const Vector4 tangent0(&vertexShadingData[0].tangent.x);
+    const Vector4 tangent1(&vertexShadingData[1].tangent.x);
+    const Vector4 tangent2(&vertexShadingData[2].tangent.x);
+    outShadingData.tangent = coeff1 * tangent1;
+    outShadingData.tangent = Vector4::MulAndAdd(coeff2, tangent2, outShadingData.tangent);
+    outShadingData.tangent = Vector4::MulAndAdd(coeff0, tangent0, outShadingData.tangent);
     outShadingData.tangent.FastNormalize3();
-    outShadingData.bitangent.FastNormalize3();
+
+    outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
 }
 
 rt::math::Vector4 ShadingData::LocalToWorld(const math::Vector4 localCoords) const

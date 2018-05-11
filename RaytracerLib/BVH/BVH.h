@@ -18,7 +18,7 @@ class BVH
 public:
     static constexpr Uint32 MaxDepth = 64;
 
-    struct RT_ALIGN(16) Node
+    struct RT_ALIGN(32) Node
     {
         union
         {

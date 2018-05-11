@@ -45,7 +45,7 @@ void MeshSceneObject::Traverse_Single(const Ray& ray, HitPoint& hitPoint) const
 
 void MeshSceneObject::Traverse_Simd8(const Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
 {
-    mMesh->Traverse_Simd8(ray, outHitPoint, 0); // TODO
+    mMesh->Traverse_Simd8(ray, outHitPoint); // TODO
 }
 
 void MeshSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const
@@ -64,11 +64,12 @@ SphereSceneObject::SphereSceneObject(const float radius, const Material* materia
 
 Box SphereSceneObject::GetBoundingBox() const
 {
-    const Vector4 radius = Vector4::Splat(mRadius);
+    const Vector4 radius = Vector4(mRadius, mRadius, mRadius);
 
-    const Box start(mPosition - radius, mPosition + radius);
-    const Box end(mPosition + mPositionOffset - radius, mPosition + mPositionOffset + radius);
-    return Box(start, end);
+    const Box localBox(mPosition - radius, mPosition + radius);
+
+    // TODO include rotation
+    return Box(localBox, localBox + mPositionOffset);
 }
 
 void SphereSceneObject::Traverse_Single(const Ray& ray, HitPoint& hitPoint) const

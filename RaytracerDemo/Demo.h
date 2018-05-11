@@ -16,10 +16,12 @@ struct RT_ALIGN(16) CameraSetup
     rt::math::Vector4 position;
     Float yaw;
     Float pitch;
+    Float fov;
 
     CameraSetup()
         : yaw(0.0f)
         , pitch(0.0f)
+        , fov(60.0f)
     { }
 };
 

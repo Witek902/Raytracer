@@ -59,8 +59,11 @@ public:
     // initialize bitmap with data (or clean if passed nullptr)
     Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
 
-    // load from BMP file
+    // load from file
     Bool Load(const char* path);
+
+    // save to BMP file
+    bool SaveBMP(const char* path, bool flipVertically) const;
 
     // set to zero
     void Clear();
@@ -81,6 +84,11 @@ public:
 
     // sample the bitmap (including filtering and coordinates wrapping)
     math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
+
+    // get direct pointer to pixel data
+    // Note: format must be R32G32B32A32_Float
+    math::Vector4* GetPixels(Uint32 x, Uint32 y);
+    const math::Vector4* GetPixels(Uint32 x, Uint32 y) const;
 
     // write whole pixels row
     void WriteHorizontalLine(Uint32 y, const math::Vector4* values);

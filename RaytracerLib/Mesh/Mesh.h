@@ -59,17 +59,17 @@ public:
 
     // Trace the mesh to obtain intersection data (aka. hit point)
     // Note: 'distance' is used for narrowing of intersection search range
-    void Traverse_Single(const math::Ray& ray, HitPoint& hitPoint) const;
-    void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& hitPoint, Uint32 instanceID) const;
-    void Traverse_Packet(const RayPacket& packet, HitPoint_Packet& data, Uint32 instanceID) const;
+    void Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint) const;
+    void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const;
+    void Traverse_Packet(const RayPacket& packet, HitPoint_Packet& outHitPoint, Uint32 instanceID) const;
 
     // Calculate input data for shading routine
     void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const;
 
-private:
-
     void Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& outHitPoint) const;
-    void Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, const Uint32 instanceID, HitPoint_Simd8& outHitPoint) const;
+    void Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const;
+
+private:
 
     // bounding box after scaling
     math::Box mBoundingBox;

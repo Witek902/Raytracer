@@ -117,6 +117,11 @@ void Vector4::Store(Float3* dest) const
     _mm_store_ss(&dest->z, vz);
 }
 
+Float3 Vector4::ToFloat3() const
+{
+    return Float3(f[0], f[1], f[2]);
+}
+
 template<bool x, bool y, bool z, bool w>
 Vector4 Vector4::ChangeSign() const
 {
@@ -354,7 +359,10 @@ Vector4 Vector4::Reciprocal(const Vector4& V)
 
 Vector4 Vector4::FastReciprocal(const Vector4& v)
 {
-    return _mm_rcp_ps(v);
+    const __m128 rcp = _mm_rcp_ps(v);
+    const __m128 rcpSqr = _mm_mul_ps(rcp, rcp);
+    const __m128 rcp2 = _mm_add_ps(rcp, rcp);
+    return _mm_fnmadd_ps(rcpSqr, v, rcp2);
 }
 
 Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight)

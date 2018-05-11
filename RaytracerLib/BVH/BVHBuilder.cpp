@@ -83,12 +83,13 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     {
         Context context(mNumLeaves);
 
-        BVH::Node& rootNode = mTarget.mNodes[mNumGeneratedNodes++];
+        BVH::Node& rootNode = mTarget.mNodes.front();
+        mNumGeneratedNodes += 2;
         BuildNode(rootWorkSet, context, rootNode);
     }
 
     assert(mNumGeneratedLeaves == mNumLeaves); // Number of generated leaves is invalid
-    assert(mNumGeneratedNodes < 2 * mNumLeaves); // Number of generated nodes is invalid
+    assert(mNumGeneratedNodes <= 2 * mNumLeaves); // Number of generated nodes is invalid
 
     // shrink BVH nodes array
     mTarget.mNumNodes = mNumGeneratedNodes;

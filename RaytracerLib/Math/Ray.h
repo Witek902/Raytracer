@@ -23,7 +23,7 @@ public:
         : origin(origin)
     {
         dir = direction.Normalized3();
-        invDir = Vector4::Reciprocal(dir);
+        invDir = Vector4::FastReciprocal(dir);
     }
 };
 

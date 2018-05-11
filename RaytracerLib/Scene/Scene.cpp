@@ -7,6 +7,8 @@
 #include "Math/Transcendental.h"
 #include "Utils/Bitmap.h"
 #include "BVH/BVHBuilder.h"
+#include "Traversal/Traversal.h"
+
 
 namespace rt {
 
@@ -61,48 +63,48 @@ bool Scene::BuildBVH()
 // TODO this has nothing to do with a scene
 RayColor Scene::HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData)
 {
-    if (context.params.renderingMode == RenderingMode::Depth)
+    if (context.params->renderingMode == RenderingMode::Depth)
     {
         const float logDepth = std::max<float>(0.0f, (log2f(hitPoint.distance) + 5.0f) / 10.0f);
         return Vector4::Splat(logDepth);
     }
-    else if (context.params.renderingMode == RenderingMode::RayBoxIntersection)
+    else if (context.params->renderingMode == RenderingMode::RayBoxIntersection)
     {
         const float num = static_cast<float>(context.localCounters.numRayBoxTests);
         return Vector4(num * 0.02f, num * 0.005f, num * 0.001f);
     }
-    else if (context.params.renderingMode == RenderingMode::RayBoxIntersectionPassed)
+    else if (context.params->renderingMode == RenderingMode::RayBoxIntersectionPassed)
     {
         const float num = static_cast<float>(context.localCounters.numPassedRayBoxTests);
         return Vector4(num * 0.02f, num * 0.005f, num * 0.001f);
     }
-    else if (context.params.renderingMode == RenderingMode::RayTriIntersection)
+    else if (context.params->renderingMode == RenderingMode::RayTriIntersection)
     {
         const float num = static_cast<float>(context.localCounters.numRayTriangleTests);
         return Vector4(num * 0.02f, num * 0.005f, num * 0.001f);
     }
-    else if (context.params.renderingMode == RenderingMode::RayTriIntersectionPassed)
+    else if (context.params->renderingMode == RenderingMode::RayTriIntersectionPassed)
     {
         const float num = static_cast<float>(context.localCounters.numPassedRayTriangleTests);
         return Vector4(num * 0.02f, num * 0.005f, num * 0.001f);
     }
-    else if (context.params.renderingMode == RenderingMode::Normals)
+    else if (context.params->renderingMode == RenderingMode::Normals)
     {
         return 0.5f * shadingData.normal + math::VECTOR_HALVES;
     }
-    else if (context.params.renderingMode == RenderingMode::Tangents)
+    else if (context.params->renderingMode == RenderingMode::Tangents)
     {
         return 0.5f * shadingData.tangent + math::VECTOR_HALVES;
     }
-    else if (context.params.renderingMode == RenderingMode::Position)
+    else if (context.params->renderingMode == RenderingMode::Position)
     {
         return 0.5f * shadingData.position + math::VECTOR_HALVES;
     }
-    else if (context.params.renderingMode == RenderingMode::TexCoords)
+    else if (context.params->renderingMode == RenderingMode::TexCoords)
     {
         return Vector4(fmodf(shadingData.texCoord[0], 1.0f), fmodf(shadingData.texCoord[1], 1.0f));
     }
-    else if (context.params.renderingMode == RenderingMode::BaseColor)
+    else if (context.params->renderingMode == RenderingMode::BaseColor)
     {
         return shadingData.material->GetBaseColor(shadingData.texCoord);
     }
@@ -110,14 +112,15 @@ RayColor Scene::HandleSpecialRenderingMode(RenderingContext& context, const HitP
     return RayColor();
 }
 
-void Scene::Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint, RenderingContext& context) const
+void Scene::Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& outHitPoint) const
 {
-    // TODO BVH traversal
-    for (size_t i = 0; i < mObjects.size(); ++i)
+    for (Uint32 i = 0; i < node.data.numLeaves; ++i)
     {
-        const ISceneObject* object = mObjects[i].get();
+        const Uint32 objectIndex = node.data.childIndex + i;
+        const ISceneObject* object = mObjects[objectIndex].get();
 
-        const auto invTransform = object->GetInverseTransform(context.time);
+        const float time = 0.0f; // TODO
+        const auto invTransform = object->GetInverseTransform(time);
 
         // transform ray to local-space
         math::Ray transformedRay;
@@ -130,47 +133,55 @@ void Scene::Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint, Renderi
 
         if (outHitPoint.distance != previousDistance)
         {
-            // we hit this mesh instance
-            outHitPoint.objectId = (Uint32)i;
+            // we hit this object
+            outHitPoint.objectId = objectIndex;
         }
     }
 }
 
-void Scene::Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint, RenderingContext& context) const
+void Scene::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const
 {
-    // TODO BVH traversal
-    for (size_t i = 0; i < mObjects.size(); ++i)
+    for (Uint32 i = 0; i < node.data.numLeaves; ++i)
     {
-        const ISceneObject* object = mObjects[i].get();
+        const Uint32 objectIndex = node.data.childIndex + i;
+        const ISceneObject* object = mObjects[objectIndex].get();
 
-        const auto invTransform = object->GetInverseTransform(context.time);
+        const float time = 0.0f; // TODO
+        const auto invTransform = object->GetInverseTransform(time);
 
         // transform ray to local-space
-        math::Ray_Simd8 transformedRay;
+        math::Ray_Simd8 transformedRay = ray;
         transformedRay.origin = invTransform.TransformPoint(ray.origin);
         transformedRay.dir = invTransform.TransformVector(ray.dir);
         transformedRay.invDir = Vector3_Simd8::FastReciprocal(transformedRay.dir);
 
-        // TODO
-        (void)outHitPoint;
-        /*
-        const float previousDistance = outHitPoint.distance;
-        object->Traverse_Single(transformedRay, outHitPoint);
+        const Vector8 previousDistance = outHitPoint.distance;
+        object->Traverse_Simd8(transformedRay, outHitPoint);
 
-        if (outHitPoint.distance != previousDistance)
-        {
-            // we hit this mesh instance
-            outHitPoint.objectId = (Uint32)i;
-        }
-        */
+        const __m256 compareMask = _mm256_cmp_ps(outHitPoint.distance, previousDistance, _CMP_NEQ_OQ);
+        outHitPoint.objectId = _mm256_blendv_ps(outHitPoint.objectId, Vector8::Splat(objectIndex), compareMask);
     }
 }
 
-void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, ShadingData& outShadingData) const
+void Scene::Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint, RenderingContext& context) const
+{
+    (void)context;
+
+    GenericTraverse_Single(mBVH, ray, outHitPoint, this);
+}
+
+void Scene::Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint, RenderingContext& context) const
+{
+    (void)context;
+
+    GenericTraverse_Simd8(mBVH, ray, outHitPoint, this);
+}
+
+void Scene::ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
     const float time = 0.0f;
 
-    outShadingData.position = ray.origin + ray.dir * hitPoint.distance;
+    outShadingData.position = Vector4::MulAndAdd(rayDir, Vector4::Splat(hitPoint.distance), rayOrigin);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     const ISceneObject* object = mObjects[hitPoint.objectId].get();
@@ -188,7 +199,7 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
 {
     const float epsilon = 0.001f;
 
-    const bool regularRenderingMode = context.params.renderingMode == RenderingMode::Regular;
+    const bool regularRenderingMode = context.params->renderingMode == RenderingMode::Regular;
 
     Ray currentRay = ray;
 
@@ -198,7 +209,7 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
 
     ShadingData shadingData;
 
-    for (Uint32 depth = 0; depth < context.params.maxRayDepth; ++depth)
+    for (Uint32 depth = 0; depth < context.params->maxRayDepth; ++depth)
     {
         HitPoint hitPoint;
         Traverse_Single(currentRay, hitPoint, context);
@@ -217,7 +228,7 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
             break;
         }
 
-        ExtractShadingData(currentRay, hitPoint, shadingData);
+        ExtractShadingData(currentRay.origin, currentRay.dir, hitPoint, shadingData);
 
         if (!regularRenderingMode)
         {
@@ -229,7 +240,7 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
         resultColor += throughput * shadingData.material->emissionColor;
 
         // Russian roulette algorithm
-        if (depth >= context.params.minRussianRouletteDepth)
+        if (depth >= context.params->minRussianRouletteDepth)
         {
             const float threshold = throughput.values.HorizontalMax()[0];
             if (context.randomGenerator.GetFloat() > threshold)
@@ -257,43 +268,47 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
 
 void Scene::TraceRay_Simd8(const math::Ray_Simd8& simdRay, RenderingContext& context, RayColor* outColors) const
 {
-    const bool regularRenderingMode = context.params.renderingMode == RenderingMode::Regular;
+    const bool regularRenderingMode = context.params->renderingMode == RenderingMode::Regular;
 
-    HitPoint_Simd8 hitPoint;
-    ShadingData shadingData;
-    Traverse_Simd8(simdRay, hitPoint, context);
+    HitPoint_Simd8 hitPoints;
+    Traverse_Simd8(simdRay, hitPoints, context);
 
-    for (Uint32 i = 0; i < 8; ++i)
+    // TODO if all rays hit the same triangle, use the SIMD version
     {
-        RayColor resultColor;
+        Vector4 rayOrigins[8];
+        Vector4 rayDirs[8];
 
-        // ray missed - return background color
-        if (hitPoint.objectId.u[i] == UINT32_MAX)
+        simdRay.origin.Unpack(rayOrigins);
+        simdRay.dir.Unpack(rayDirs);
+
+        ShadingData shadingData;
+
+        for (Uint32 i = 0; i < 8; ++i)
         {
-            const Vector4 backgroundColor = regularRenderingMode ? mEnvironment.backgroundColor : Vector4(1.0f, 0.0f, 1.0f);
-            //resultColor += throughput * mEnvironment.backgroundColor;
-            resultColor = backgroundColor;
+            RayColor resultColor;
+
+            // ray missed - return background color
+            if (hitPoints.objectId.u[i] == UINT32_MAX)
+            {
+                const Vector4 backgroundColor = regularRenderingMode ? mEnvironment.backgroundColor : Vector4(1.0f, 0.0f, 1.0f);
+                //resultColor += throughput * mEnvironment.backgroundColor;
+                resultColor = backgroundColor;
+            }
+            else
+            {
+                const HitPoint hitPoint = hitPoints.Get(i);
+                ExtractShadingData(rayOrigins[i], rayDirs[i], hitPoint, shadingData);
+
+                if (!regularRenderingMode)
+                {
+                    resultColor = HandleSpecialRenderingMode(context, hitPoint, shadingData);
+                }
+            }
+
+            // TODO push secondary rays to output stream
+
+            outColors[i] = resultColor;
         }
-        else
-        {
-            /*
-            // TODO remove
-            Ray ray;
-            ray.dir = Vector4(simdRay.dir.x[i], simdRay.dir.y[i], simdRay.dir.z[i]);
-            ray.origin = Vector4(simdRay.origin.x[i], simdRay.origin.y[i], simdRay.origin.z[i]);
-            //ray.invDir = Vector4(simdRay.dir.x[i], simdRay.dir.y[i], simdRay.dir.z[i]);
-
-            const MeshInstance& meshInstance = mMeshInstances[hitPoint.objectId.u[i]];
-            meshInstance.mMesh->EvaluateShadingData_Single(ray, hitPoint.Get(i), shadingData);
-            //resultColor = shadingData.material->GetBaseColor(shadingData.texCoord);
-
-            resultColor = shadingData.normal * 0.5f + VECTOR_HALVES;
-            */
-        }
-
-        // TODO push secondary rays to output stream
-
-        outColors[i] = resultColor;
     }
 }
 
@@ -322,7 +337,7 @@ void Scene::Traverse_Packet(const RayPacket& packet, RenderingContext& context, 
 
 void Scene::ShadePacket(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const
 {
-    const bool regularRenderingMode = context.params.renderingMode == RenderingMode::Regular;
+    const bool regularRenderingMode = context.params->renderingMode == RenderingMode::Regular;
 
     ShadingData shadingData;
 

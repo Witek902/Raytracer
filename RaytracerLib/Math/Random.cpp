@@ -9,52 +9,60 @@ namespace math {
 
 Random::Random()
 {
-    Reset(1);
+    Reset();
 }
 
-void Random::Reset(Uint32 seed)
+void Random::Reset()
 {
-    seed = Hash(seed);
+    mSeed = GetEntropy();
+    mSeed0 = _mm_set_epi64x(GetEntropy(), GetEntropy());
+    mSeed1 = _mm_set_epi64x(GetEntropy(), GetEntropy());
+    mSeed0_Simd8 = _mm256_set_epi64x(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+    mSeed1_Simd8 = _mm256_set_epi64x(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+}
 
-    mSeed = seed;
-    mSeed0 = _mm_set_epi32(seed ^ 0x2f558471, seed ^ 0x61cb8acc, seed ^ 0xd6974cff, seed ^ 0x241e5c86);
-    mSeed1 = _mm_set_epi32(seed ^ 0x24e64b29, seed ^ 0xe4f8e2d6, seed ^ 0xbb3399b9, seed ^ 0xa144f054);
+Uint64 Random::GetEntropy()
+{
+    Uint64 val = 0;
+    while (_rdrand64_step(&val) == 0) { }
+    return val;
 }
 
 Uint64 Random::GetLong()
 {
-    Shuffle();
-    return mSeed;
+    Uint64 val = mSeed;
+
+    // XOR-shift algorithm
+    mSeed ^= (mSeed << 21);
+    mSeed ^= (mSeed >> 35);
+    mSeed ^= (mSeed << 4);
+
+    return val;
 }
 
 Uint32 Random::GetInt()
 {
-    Shuffle();
-    return static_cast<Uint32>(mSeed);
+    return static_cast<Uint32>(GetLong());
 }
-
 
 float Random::GetFloat()
 {
-    Shuffle();
     Bits32 myrand;
-    myrand.ui = 1 + ((static_cast<Uint32>(mSeed) & 0x007fffff) | 0x3f800000);
+    myrand.ui = 1 + ((GetInt() & 0x007fffff) | 0x3f800000);
     return myrand.f - 1.0f;
 }
 
 float Random::GetFloatBipolar()
 {
-    Shuffle();
     Bits32 myrand;
-    myrand.ui = 1 + ((static_cast<Uint32>(mSeed) & 0x007fffff) | 0x40000000);
+    myrand.ui = 1 + ((GetInt() & 0x007fffff) | 0x40000000);
     return myrand.f - 3.0f;
 }
 
 double Random::GetDouble()
 {
-    Shuffle();
     Bits64 myrand;
-    myrand.ui = 1L + ((mSeed & 0x000fffffffffffffUL) | 0x3ff0000000000000UL);
+    myrand.ui = 1L + ((GetLong() & 0x000fffffffffffffUL) | 0x3ff0000000000000UL);
     return myrand.f - 1.0;
 }
 
@@ -82,6 +90,54 @@ Vector4 Random::GetVector4()
     return result;
 }
 
+Vector4 Random::GetVector4Bipolar()
+{
+    // xorshift128+ algorithm
+    const __m128i s0 = mSeed1;
+    __m128i s1 = mSeed0;
+    __m128i v = _mm_add_epi64(s0, s1);
+    s1 = _mm_slli_epi64(s1, 23);
+    const __m128i t0 = _mm_srli_epi64(s0, 5);
+    const __m128i t1 = _mm_srli_epi64(s1, 18);
+    mSeed0 = s0;
+    mSeed1 = _mm_xor_si128(_mm_xor_si128(s1, t1), _mm_xor_si128(s0, t0));
+
+    // setup float mask
+    v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
+    v = _mm_or_si128(v, _mm_set1_epi32(0x40000000u));
+    v = _mm_add_epi32(v, _mm_set1_epi32(1u));
+
+    // convert to float and go from [2, 4) to [-1, 1) range
+    Vector4 result = _mm_castsi128_ps(v);
+    result -= Vector4::Splat(3.0f);
+
+    return result;
+}
+
+Vector8 Random::GetVector8()
+{
+    // xorshift128+ algorithm
+    const __m256i s0 = mSeed1_Simd8;
+    __m256i s1 = mSeed0_Simd8;
+    __m256i v = _mm256_add_epi64(s0, s1);
+    s1 = _mm256_slli_epi64(s1, 23);
+    const __m256i t0 = _mm256_srli_epi64(s0, 5);
+    const __m256i t1 = _mm256_srli_epi64(s1, 18);
+    mSeed0_Simd8 = s0;
+    mSeed1_Simd8 = _mm256_xor_si256(_mm256_xor_si256(s1, t1), _mm256_xor_si256(s0, t0));
+
+    // setup float mask
+    v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
+    v = _mm256_or_si256(v, _mm256_set1_epi32(0x3f800000u));
+    v = _mm256_add_epi32(v, _mm256_set1_epi32(1u));
+
+    // convert to float and go from [1, 2) to [0, 1) range
+    Vector8 result = _mm256_castsi256_ps(v);
+    result -= VECTOR8_ONE;
+
+    return result;
+}
+
 Vector4 Random::GetCircle()
 {
     const Vector4 v = GetVector4();
@@ -96,6 +152,21 @@ Vector4 Random::GetCircle()
     const Vector4 sinCos = Sin(Vector4(theta, theta + RT_PI / 2.0f));
 
     return r * sinCos;
+}
+
+Vector2_Simd8 Random::GetCircle_Simd8()
+{
+    // angle (uniform distribution)
+    const Vector8 theta = (2.0f * RT_PI) * GetVector8();
+
+    // radius (corrected distribution)
+    const Vector8 u = GetVector8() + GetVector8();
+    const Vector8 r = Vector8::SelectBySign(Vector8::Splat(2.0f) - u, u, u - Vector8::Splat(1.0f));
+
+    const Vector8 vSin = Sin(theta);
+    const Vector8 vCos = Sin(theta + Vector8::Splat(RT_PI / 2.0f));
+
+    return { r * vSin, r * vCos };
 }
 
 Vector4 Random::GetHemishpereCos()
