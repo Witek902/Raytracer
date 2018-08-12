@@ -73,21 +73,25 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -197,7 +201,8 @@
     <ClInclude Include="BVH\BVHBuilder.h" />
     <ClInclude Include="Color\Color.h" />
     <ClInclude Include="Color\ColorChecker.h" />
-    <ClInclude Include="Color\RayColor.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Material\BSDF.h" />
     <ClInclude Include="Material\Material.h" />
     <ClInclude Include="Material\MaterialLayer.h" />
@@ -220,33 +225,43 @@
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
     <ClInclude Include="Math\Simd8Triangle.h" />
-    <ClInclude Include="Math\Simd8Vector2.h" />
-    <ClInclude Include="Math\Simd8Vector3.h" />
+    <ClInclude Include="Math\Vector2x8.h" />
+    <ClInclude Include="Math\Vector3x8.h" />
     <ClInclude Include="Math\Sphere.h" />
     <ClInclude Include="Math\Transcendental.h" />
     <ClInclude Include="Math\Triangle.h" />
     <ClInclude Include="Math\Vector4.h" />
     <ClInclude Include="Math\Vector8.h" />
-    <ClInclude Include="Math\Vector8Constants.h" />
     <ClInclude Include="Math\Vector8Impl.h" />
-    <ClInclude Include="Math\Vector4Constants.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
+    <ClInclude Include="Math\VectorInt8.h" />
+    <ClInclude Include="Math\VectorInt8Impl.h" />
     <ClInclude Include="Mesh\Mesh.h" />
     <ClInclude Include="Mesh\VertexBuffer.h" />
     <ClInclude Include="Mesh\VertexBufferDesc.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="RayLib.h" />
     <ClInclude Include="Rendering\Counters.h" />
     <ClInclude Include="Rendering\Context.h" />
+    <ClInclude Include="Rendering\ShadingData.h" />
     <ClInclude Include="Rendering\Viewport.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Light.h" />
     <ClInclude Include="Scene\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Scene\SceneObject_Box.h" />
+    <ClInclude Include="Scene\SceneObject_Mesh.h" />
+    <ClInclude Include="Scene\SceneObject_Sphere.h" />
     <ClInclude Include="Traversal\HitPoint.h" />
     <ClInclude Include="Traversal\RayPacket.h" />
     <ClInclude Include="Traversal\RayStream.h" />
-    <ClInclude Include="Traversal\Traversal.h" />
+    <ClInclude Include="Traversal\TraversalContext.h" />
+    <ClInclude Include="Traversal\Traversal_Packet.h" />
+    <ClInclude Include="Traversal\Traversal_Simd.h" />
+    <ClInclude Include="Traversal\Traversal_Single.h" />
     <ClInclude Include="Utils\AlignmentAllocator.h" />
     <ClInclude Include="Utils\Bitmap.h" />
+    <ClInclude Include="Utils\BlockCompression.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\Timer.h" />
@@ -269,14 +284,21 @@
     <ClCompile Include="Math\Transcendental.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Math\Vector8.cpp" />
+    <ClCompile Include="Math\VectorInt8.cpp" />
     <ClCompile Include="Mesh\Mesh.cpp" />
     <ClCompile Include="Mesh\VertexBuffer.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Scene\SceneObject_Box.cpp" />
+    <ClCompile Include="Scene\SceneObject_Mesh.cpp" />
+    <ClCompile Include="Scene\SceneObject_Sphere.cpp" />
     <ClCompile Include="Traversal\RayPacket.cpp" />
+    <ClCompile Include="Traversal\RayStream.cpp" />
+    <ClCompile Include="Traversal\Traversal_Packet.cpp" />
     <ClCompile Include="Utils\Bitmap.cpp" />
+    <ClCompile Include="Utils\BlockCompression.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />

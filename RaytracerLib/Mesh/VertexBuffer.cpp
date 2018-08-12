@@ -13,16 +13,6 @@ static_assert(sizeof(VertexShadingData) == 32, "Invalid size");
 
 using namespace math;
 
-template<typename T>
-static T RoundUp(T x, T multiple)
-{
-    T remainder = x % multiple;
-    if (remainder == 0)
-        return x;
-
-    return x + multiple - remainder;
-}
-
 
 VertexBuffer::VertexBuffer()
     : mBuffer(nullptr)
@@ -204,9 +194,9 @@ ProcessedTriangle VertexBuffer::GetTriangle(const Uint32 triangleIndex) const
 void VertexBuffer::GetTriangle(const Uint32 triangleIndex, Triangle_Simd8& outTriangle) const
 {
     const ProcessedTriangle& tri = mPreprocessedTriangles[triangleIndex];
-    outTriangle.v0 = Vector3_Simd8(tri.v0);
-    outTriangle.edge1 = Vector3_Simd8(tri.edge1);
-    outTriangle.edge2 = Vector3_Simd8(tri.edge2);
+    outTriangle.v0 = Vector3x8(tri.v0);
+    outTriangle.edge1 = Vector3x8(tri.edge1);
+    outTriangle.edge2 = Vector3x8(tri.edge2);
 }
 
 void VertexBuffer::GetShadingData(const VertexIndices& indices, VertexShadingData& a, VertexShadingData& b, VertexShadingData& c) const

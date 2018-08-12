@@ -7,12 +7,14 @@ namespace rt {
 
 
 // Ray stream - generator of ray packets
-// Input single incoherent rays, outputs sorted ray packets
+// Push incoherent rays, pops coherent ray packets
 class RayStream
 {
 public:
+    static constexpr Uint32 MaxRays = 1024 * 1024;
 
-    // TODO packet generation for primary rays (can skip sorting)
+    RayStream();
+    ~RayStream();
 
     // push a new ray to the stream
     void PushRay(const math::Ray& ray, const math::Vector4& weight, const ImageLocationInfo& imageLocation);
@@ -22,15 +24,22 @@ public:
     void Sort();
 
     // Pop generated packet
-    // If there's no packets pending the function returns NULL
+    // If there's no packets pending the function returns false
     // Note: ray stream keeps the packet ownership
-    const RayPacket* PopPacket();
+    bool PopPacket(RayPacket& outPacket);
 
 private:
 
-    // TODO sort rays by position (median axis split partitioning) - O(N log N) or can be better?
+    struct PendingRay
+    {
+        math::Vector4 rayWeight;
+        math::Float3 rayOrigin;
+        math::Float3 rayDir;
+        ImageLocationInfo imageLocation;
+    };
 
-    // TODO sort rays by direction (map ray direction to cube-map grids) - O(N)
+    Uint32 mNumRays;
+    PendingRay mRays[MaxRays];
 };
 
 

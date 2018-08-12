@@ -61,5 +61,15 @@ public:
     float mRougness;
 };
 
+// TODO general Cook-Torrance specular reflection/refraction BSDF
+class TransparencyBSDF : public BSDF
+{
+public:
+    TransparencyBSDF(float ior);
+    virtual void Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const override;
+    virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const override;
+
+    float IOR;
+};
 
 } // namespace rt

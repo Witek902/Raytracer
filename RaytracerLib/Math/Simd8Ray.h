@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Simd8Vector3.h"
+#include "Vector3x8.h"
 #include "Ray.h"
 #include "Simd4Ray.h"
 
@@ -13,10 +13,9 @@ namespace math {
 class RT_ALIGN(32) Ray_Simd8
 {
 public:
-    Vector3_Simd8 invDir;
-    Vector3_Simd8 originDivDir;
-    Vector3_Simd8 origin;
-    Vector3_Simd8 dir;
+    Vector3x8 invDir;
+    Vector3x8 origin;
+    Vector3x8 dir;
 
     Ray_Simd8() = default;
     Ray_Simd8(const Ray_Simd8&) = default;
@@ -28,7 +27,6 @@ public:
         , origin(ray.origin)
         , invDir(ray.invDir)
     {
-        originDivDir = origin * invDir;
     }
 
     // from two SIMD-4 rays
@@ -37,7 +35,6 @@ public:
         , dir(rayLo.dir, rayHi.dir)
         , invDir(rayLo.invDir, rayHi.invDir)
     {
-        originDivDir = origin * invDir;
     }
 
     // build SIMD ray from 8 rays
@@ -47,15 +44,28 @@ public:
         , origin(ray0.origin, ray1.origin, ray2.origin, ray3.origin, ray4.origin, ray5.origin, ray6.origin, ray7.origin)
         , invDir(ray0.invDir, ray1.invDir, ray2.invDir, ray3.invDir, ray4.invDir, ray5.invDir, ray6.invDir, ray7.invDir)
     {
-        originDivDir = origin * invDir;
     }
 
-    RT_FORCE_INLINE Ray_Simd8(const Vector3_Simd8& origin, const Vector3_Simd8& dir)
+    RT_FORCE_INLINE Ray_Simd8(const Vector3x8& origin, const Vector3x8& dir)
         : origin(origin)
         , dir(dir)
     {
-        invDir = Vector3_Simd8::FastReciprocal(dir);
-        originDivDir = origin * invDir;
+        invDir = Vector3x8::FastReciprocal(dir);
+    }
+
+    // return rays octant if all the rays are in the same on
+    // otherwise, returns 0xFFFFFFFF
+    RT_FORCE_INLINE Uint32 GetOctant() const
+    {
+        const Int32 countX = __popcnt(dir.x.GetSignMask());
+        const Int32 countY = __popcnt(dir.y.GetSignMask());
+        const Int32 countZ = __popcnt(dir.z.GetSignMask());
+
+        const Uint32 xPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 0u };
+        const Uint32 yPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 1u };
+        const Uint32 zPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 2u };
+
+        return xPart[countX] | yPart[countY] | zPart[countZ];
     }
 };
 

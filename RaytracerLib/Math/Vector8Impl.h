@@ -31,7 +31,12 @@ Vector8::Vector8(Float e0, Float e1, Float e2, Float e3, Float e4, Float e5, Flo
     v = _mm256_set_ps(e0, e1, e2, e3, e4, e5, e6, e7);
 }
 
-Vector8::Vector8(int e0, int e1, int e2, int e3, int e4, int e5, int e6, int e7)
+Vector8::Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7)
+{
+    v = _mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7));
+}
+
+Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7)
 {
     v = _mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7));
 }
@@ -41,31 +46,35 @@ Vector8::Vector8(const Float* src)
     v = _mm256_loadu_ps(src);
 }
 
-void Vector8::Set(Float scalar)
+Vector8::Vector8(const Float scalar)
 {
     v = _mm256_set1_ps(scalar);
 }
 
-// Elements rearrangement =========================================================================
-
-Vector8 Vector8::Splat(Float f)
+Vector8::Vector8(const Int32 i)
 {
-    return Vector8(_mm256_set1_ps(f));
+	v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
 }
 
-Vector8 Vector8::Splat(Int32 i)
+Vector8::Vector8(const Uint32 u)
 {
-    return Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
-}
-
-Vector8 Vector8::Splat(Uint32 u)
-{
-    return Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
+	v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
 }
 
 Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
 {
     return _mm256_blendv_ps(a, b, sel);
+}
+
+template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+Vector8 Vector8::Swizzle() const
+{
+    static_assert(ix < 4, "Invalid X element index");
+    static_assert(iy < 4, "Invalid Y element index");
+    static_assert(iz < 4, "Invalid Z element index");
+    static_assert(iw < 4, "Invalid W element index");
+
+    return _mm256_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
 }
 
 // Logical operations =============================================================================
@@ -281,7 +290,7 @@ Vector8 Vector8::Clamped(const Vector8& min, const Vector8& max) const
     return Min(max, Max(min, *this));
 }
 
-int Vector8::GetSignMask() const
+Int32 Vector8::GetSignMask() const
 {
     return _mm256_movemask_ps(v);
 }
@@ -306,32 +315,32 @@ Vector8 Vector8::HorizontalMax() const
 
 // Comparison functions ===========================================================================
 
-int Vector8::EqualMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::EqualMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_EQ_OQ));
 }
 
-int Vector8::LessMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::LessMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_LT_OQ));
 }
 
-int Vector8::LessEqMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::LessEqMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_LE_OQ));
 }
 
-int Vector8::GreaterMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::GreaterMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_GT_OQ));
 }
 
-int Vector8::GreaterEqMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::GreaterEqMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_GE_OQ));
 }
 
-int Vector8::NotEqualMask(const Vector8& v1, const Vector8& v2)
+Int32 Vector8::NotEqualMask(const Vector8& v1, const Vector8& v2)
 {
     return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_NEQ_OQ));
 }

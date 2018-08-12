@@ -72,8 +72,8 @@ public:
     {
         return
         {
-            Vector8::Splat(1.0f),
-            Vector8::Splat(1.0f),
+            Vector8(1.0f),
+            Vector8(1.0f),
         };
     }
 

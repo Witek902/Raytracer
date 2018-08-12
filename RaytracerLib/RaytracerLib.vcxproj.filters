@@ -19,16 +19,10 @@
     <ClInclude Include="Math\Vector4.h">
       <Filter>Math\Vector4</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector4Constants.h">
-      <Filter>Math\Vector4</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Vector4Impl.h">
       <Filter>Math\Vector4</Filter>
     </ClInclude>
     <ClInclude Include="Math\Vector8.h">
-      <Filter>Math\Vector8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector8Constants.h">
       <Filter>Math\Vector8</Filter>
     </ClInclude>
     <ClInclude Include="Math\Vector8Impl.h">
@@ -53,9 +47,6 @@
       <Filter>Math\Simd8</Filter>
     </ClInclude>
     <ClInclude Include="Math\Simd8Ray.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd8Vector3.h">
       <Filter>Math\Simd8</Filter>
     </ClInclude>
     <ClInclude Include="Math\Simd4Triangle.h">
@@ -130,9 +121,6 @@
     <ClInclude Include="Color\ColorChecker.h">
       <Filter>Color</Filter>
     </ClInclude>
-    <ClInclude Include="Color\RayColor.h">
-      <Filter>Color</Filter>
-    </ClInclude>
     <ClInclude Include="Traversal\HitPoint.h">
       <Filter>Traversal</Filter>
     </ClInclude>
@@ -169,11 +157,48 @@
     <ClInclude Include="Math\Transcendental.h">
       <Filter>Math\Transcendental</Filter>
     </ClInclude>
-    <ClInclude Include="Traversal\Traversal.h">
+    <ClInclude Include="Math\Vector3x8.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector2x8.h">
+      <Filter>Math\Simd8</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneObject_Mesh.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneObject_Sphere.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShadingData.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneObject_Box.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BlockCompression.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\VectorInt8.h">
+      <Filter>Math\VectorInt8</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\VectorInt8Impl.h">
+      <Filter>Math\VectorInt8</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="RayLib.h" />
+    <ClInclude Include="Traversal\Traversal_Single.h">
       <Filter>Traversal</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Simd8Vector2.h">
-      <Filter>Math\Simd8</Filter>
+    <ClInclude Include="Traversal\Traversal_Simd.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\Traversal_Packet.h">
+      <Filter>Traversal</Filter>
+    </ClInclude>
+    <ClInclude Include="Traversal\TraversalContext.h">
+      <Filter>Traversal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -258,6 +283,27 @@
     <ClCompile Include="Math\Transcendental.cpp">
       <Filter>Math\Transcendental</Filter>
     </ClCompile>
+    <ClCompile Include="Traversal\RayStream.cpp">
+      <Filter>Traversal</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneObject_Mesh.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneObject_Sphere.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneObject_Box.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BlockCompression.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\VectorInt8.cpp">
+      <Filter>Math\VectorInt8</Filter>
+    </ClCompile>
+    <ClCompile Include="Traversal\Traversal_Packet.cpp">
+      <Filter>Traversal</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
@@ -310,6 +356,9 @@
     </Filter>
     <Filter Include="Math\Transcendental">
       <UniqueIdentifier>{6a1d1b11-3fc9-4e67-9d6e-ed998c2eb174}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\VectorInt8">
+      <UniqueIdentifier>{7db96b75-b505-4bcf-9d3d-ed0081bbab1e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

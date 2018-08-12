@@ -1,6 +1,8 @@
 #include "PCH.h"
 #include "Bitmap.h"
 #include "Logger.h"
+#include "BlockCompression.h"
+#include "Timer.h"
 
 #include <cassert>
 
@@ -39,7 +41,9 @@ namespace rt {
 
 using namespace math;
 
-size_t Bitmap::BitsPerPixel(Format format)
+static_assert(sizeof(Bitmap) <= 64, "Bitmap structure is too big");
+
+Uint32 Bitmap::BitsPerPixel(Format format)
 {
     switch (format)
     {
@@ -48,9 +52,40 @@ size_t Bitmap::BitsPerPixel(Format format)
     case Format::B8G8R8A8_Uint:         return 8 * 4;
     case Format::R32G32B32_Float:       return 8 * 4 * 3;
     case Format::R32G32B32A32_Float:    return 8 * 4 * 4;
+	case Format::BC1:					return 4;
+    case Format::BC4:					return 4;
+    case Format::BC5:					return 8;
     }
 
     return 0;
+}
+
+const char* Bitmap::FormatToString(Format format)
+{
+    switch (format)
+    {
+    case Format::B8G8R8_Uint:           return "B8G8R8_Uint";
+    case Format::B8G8R8A8_Uint:         return "B8G8R8A8_Uint";
+    case Format::R32G32B32_Float:       return "R32G32B32_Float";
+    case Format::R32G32B32A32_Float:    return "R32G32B32A32_Float";
+    case Format::BC1:					return "BC1";
+    case Format::BC4:					return "BC4";
+    case Format::BC5:					return "BC5";
+    }
+
+    return "<unknown>";
+}
+
+size_t Bitmap::GetDataSize(Uint32 width, Uint32 height, Format format)
+{
+    const Uint64 dataSize = (Uint64)width * (Uint64)height * (Uint64)BitsPerPixel(format) / 8;
+
+    if (dataSize >= (Uint64)std::numeric_limits<size_t>::max())
+    {
+        return std::numeric_limits<size_t>::max();
+    }
+
+    return (size_t)dataSize;
 }
 
 Bitmap::Bitmap()
@@ -74,6 +109,7 @@ void Bitmap::Release()
         mData = nullptr;
     }
 
+	mTileOrder = 0;
     mWidth = 0;
     mHeight = 0;
     mFormat = Format::Unknown;
@@ -81,22 +117,15 @@ void Bitmap::Release()
 
 Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, bool linearSpace)
 {
-    if (width > MaxSize)
-    {
-        RT_LOG_ERROR("Bitmap width is too large");
-        return false;
-    }
-
-    if (height > MaxSize)
-    {
-        RT_LOG_ERROR("Bitmap height is too large");
-        return false;
-    }
-
-    const size_t dataSize = width * height * BitsPerPixel(format) / 8;
+    const size_t dataSize = GetDataSize(width, height, format);
     if (dataSize == 0)
     {
         RT_LOG_ERROR("Invalid bitmap format");
+        return false;
+    }
+    if (dataSize == std::numeric_limits<size_t>::max())
+    {
+        RT_LOG_ERROR("Texture is too big");
         return false;
     }
 
@@ -104,7 +133,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
     // align to cache line
     const Uint32 marigin = RT_CACHE_LINE_SIZE;
-    mData = _aligned_malloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
+    mData = (Uint8*)_aligned_malloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
     if (!mData)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -116,16 +145,72 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
         memcpy(mData, data, dataSize);
     }
 
+	mTileOrder = 0;
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
+	mSize = Vector4((Float)width, (Float)height, 0.0f, 0.0f);
     mFormat = format;
     mLinearSpace = linearSpace;
 
     return true;
 }
 
+bool Bitmap::MakeTiled(Uint8 order)
+{
+	assert(order <= 16);
+
+	const Uint32 bitsPerPixel = BitsPerPixel(mFormat);
+	const Uint32 bytesPerPixel = bitsPerPixel / 8;
+
+	const size_t dataSize = mWidth * mHeight * bitsPerPixel / 8;
+	if (dataSize == 0)
+	{
+		RT_LOG_ERROR("Invalid bitmap format");
+		return false;
+	}
+
+	// align to cache line
+	Uint8* newData = (Uint8*)_aligned_malloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
+	if (!newData)
+	{
+		RT_LOG_ERROR("Memory allocation failed");
+		return false;
+	}
+
+	const Uint32 tileSize = 1 << order;
+	const Uint32 bytesPerTileRow = bytesPerPixel << order;
+	const Uint32 bytesPerTile = bytesPerPixel << (2 * order);
+	const Uint32 numTilesX = mWidth >> order;
+	const Uint32 numTilesY = mHeight >> order;
+
+	for (Uint32 y = 0; y < numTilesY; ++y)
+	{
+		for (Uint32 x = 0; x < numTilesX; ++x)
+		{
+			for (Uint32 i = 0; i < tileSize; ++i)
+			{
+				const Uint32 textureX = x * tileSize;
+				const Uint32 textureY = y * tileSize + i;
+
+				const Uint8* srcData = mData + bytesPerPixel * (mWidth * textureY + textureX);
+				Uint8* destData = newData + bytesPerTile * ((numTilesX * y) + x) + i * bytesPerTileRow;
+				memcpy(destData, srcData, bytesPerTileRow);
+			}
+		}
+	}
+
+	// swap texture data
+	_aligned_free(mData);
+	mData = newData;
+	mTileOrder = order;
+
+	return true;
+}
+
 Bool Bitmap::Load(const char* path)
 {
+    Timer timer;
+
     FILE* file = fopen(path, "rb");
     if (!file)
     {
@@ -147,7 +232,8 @@ Bool Bitmap::Load(const char* path)
 
     fclose(file);
 
-    RT_LOG_ERROR("Bitmap '%hs' loaded: width=%u, height=%u", path, mWidth, mHeight);
+    const float elapsedTime = static_cast<float>(1000.0 * timer.Stop());
+    RT_LOG_INFO("Bitmap '%hs' loaded in %.3fms: format=%s, width=%u, height=%u", path, elapsedTime, FormatToString(mFormat), mWidth, mHeight);
     return true;
 }
 
@@ -325,6 +411,15 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
         Uint32 dwReserved2;
     };
 
+    struct HeaderDX10
+    {
+        Uint32 dxgiFormat;
+        Uint32 resourceDimension;
+        Uint32 miscFlag;
+        Uint32 arraySize;
+        Uint32 miscFlags2;
+    };
+
     // read header
     Header header;
     if (fread(&header, sizeof(header), 1, file) != 1)
@@ -366,14 +461,47 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
         {
             // format = Format::R16G16B16A16_Float;
         }
-        if (pf.dwFourCC == 114) // DXGI_FORMAT_R32_FLOAT
+        else if (pf.dwFourCC == 114) // DXGI_FORMAT_R32_FLOAT
         {
             // format = Format::R32_Float;
         }
-        if (pf.dwFourCC == 116) // D3DFMT_A32B32G32R32F
+        else if (pf.dwFourCC == 116) // D3DFMT_A32B32G32R32F
         {
             format = Format::R32G32B32A32_Float;
             linearSpace = true;
+        }
+        else if (MAKEFOURCC('D', 'X', 'T', '1') == pf.dwFourCC)
+            format = Format::BC1; //DXGI_FORMAT_BC1_UNORM
+        else if (MAKEFOURCC('A', 'T', 'I', '1') == pf.dwFourCC)
+            format = Format::BC4; //DXGI_FORMAT_BC4_UNORM
+        else if (MAKEFOURCC('B', 'C', '4', 'U') == pf.dwFourCC)
+            format = Format::BC4; //DXGI_FORMAT_BC4_UNORM
+        else if (MAKEFOURCC('B', 'C', '4', 'S') == pf.dwFourCC)
+            format = Format::BC4; //DXGI_FORMAT_BC4_SNORM
+        else if (MAKEFOURCC('A', 'T', 'I', '2') == pf.dwFourCC)
+            format = Format::BC5; //DXGI_FORMAT_BC5_UNORM
+        else if (MAKEFOURCC('B', 'C', '5', 'U') == pf.dwFourCC)
+            format = Format::BC5; //DXGI_FORMAT_BC5_UNORM
+        else if (MAKEFOURCC('D', 'X', '1', '0') == pf.dwFourCC)
+        {
+            // read DX10 header
+            HeaderDX10 headerDX10;
+            if (fread(&headerDX10, sizeof(headerDX10), 1, file) != 1)
+            {
+                RT_LOG_ERROR("Failed to read DX10 header '%hs'", path);
+                return false;
+            }
+
+            if (headerDX10.dxgiFormat == 2) // DXGI_FORMAT_R32G32B32A32_FLOAT
+            {
+                format = Format::R32G32B32A32_Float;
+                linearSpace = true;
+            }
+            else if (headerDX10.dxgiFormat == 87) // DXGI_FORMAT_B8G8R8A8_UNORM
+            {
+                format = Format::B8G8R8A8_Uint;
+                linearSpace = true;
+            }
         }
     }
 
@@ -388,7 +516,8 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
         return false;
     }
 
-    const Uint32 dataSize = width * height * (Uint32)BitsPerPixel(format) / 8;
+	// TODO support for DXT textures that has dimension non-4-multiply
+    const size_t dataSize = GetDataSize(width, height, format);
     if (fread(mData, dataSize, 1, file) != 1)
     {
         RT_LOG_ERROR("Failed to read bitmap data from file '%hs', errno = %u", path, errno);
@@ -396,15 +525,6 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
     }
 
     return true;
-}
-
-void Bitmap::Clear()
-{
-    if (mData)
-    {
-        const size_t dataSize = mWidth * mHeight * BitsPerPixel(mFormat) / 8;
-        memset(mData, 0, dataSize);
-    }
 }
 
 void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
@@ -415,9 +535,9 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
     {
         case Format::B8G8R8A8_Uint:
         {
-            Uint8* target = reinterpret_cast<Uint8*>(mData) + (4 * offset);
+            Uint8* target = mData + (4 * offset);
             const Vector4 clampedValue = value.Swizzle<2, 1, 0, 3>() * 255.0f;
-            clampedValue.Store4(target);
+            clampedValue.Store4_NonTemporal(target);
             break;
         }
 
@@ -432,121 +552,155 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
 
         case Format::R32G32B32A32_Float:
         {
-            Vector4* target = reinterpret_cast<Vector4*>(mData) + offset;
-            *target = value;
+            float* target = reinterpret_cast<float*>(mData) + 4 * offset;
+            _mm_stream_ps(target, value);
+            //Vector4* target = reinterpret_cast<Vector4*>(mData) + offset;
+            //*target = value;
             break;
         }
     }
 }
 
-Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y) const
+Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 {
-    using namespace math;
+	assert(x < mWidth);
+	assert(y < mHeight);
 
-    const Uint32 offset = mWidth * y + x;
+	const Uint32 tileSize = 1 << mTileOrder;
+	const Uint32 tileX = x >> mTileOrder;
+	const Uint32 tileY = y >> mTileOrder;
+	const Uint32 tilesInRow = mWidth >> mTileOrder;
 
+	// calculate position inside tile
+	const Uint32 tileMask = tileSize - 1;
+	x &= tileMask;
+	y &= tileMask;
+
+	const Uint32 offset = tileSize * (tileSize * (tilesInRow * tileY + tileX) + y ) + x;
+
+	Vector4 color;
     switch (mFormat)
     {
+		case Format::B8G8R8_Uint:
+		{
+			const Uint8* source = mData + (3 * offset);
+			color = Vector4::LoadBGR_UNorm(source);
+			break;
+		}
+
         case Format::B8G8R8A8_Uint:
         {
-            const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            return Vector4::Load4(source).Swizzle<2, 1, 0, 3>() / 255.0f;
+            const Uint8* source = mData + (4 * offset);
+			color = Vector4::Load4(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
+			break;
         }
 
         case Format::R32G32B32_Float:
         {
             const float* source = reinterpret_cast<float*>(mData) + 3 * offset;
-            return Vector4(source[0], source[1], source[2]);
+			color = Vector4(source[0], source[1], source[2], 0.0f);
+			break;
         }
 
         case Format::R32G32B32A32_Float:
         {
             const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
-            return *source;
+			RT_PREFETCH_L2(source - mWidth);
+			RT_PREFETCH_L2(source + mWidth);
+			color = *source;
+			break;
+        }
+
+		case Format::BC1:
+		{
+            const Uint32 flippedY = mHeight - 1 - y;
+			color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+			break;
+		}
+
+        case Format::BC4:
+        {
+            const Uint32 flippedY = mHeight - 1 - y;
+            color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
+        }
+
+        case Format::BC5:
+        {
+            const Uint32 flippedY = mHeight - 1 - y;
+            color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
         }
     }
 
-    return Vector4();
+	if (!mLinearSpace && !forceLinearSpace)
+	{
+		color *= color;
+	}
+
+	return color;
 }
 
 Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 {
-    // TODO
-    (void)sampler;
+	// FPU version
+	/*
+	const Int32 intU = static_cast<Int32>(coords.x);
+	const Int32 intV = static_cast<Int32>(coords.y);
+	coords.x -= (Float)intU;
+	coords.y -= (Float)intV;
 
-    // TODO SSE this !!!!
+	coords.x *= mWidth;
+	coords.y *= mHeight;
+	const Int32 u0 = static_cast<Int32>(coords.x);
+	const Int32 v0 = static_cast<Int32>(coords.y);
+	*/
 
-    Int32 intU = (Int32)coords[0];
-    Int32 intV = (Int32)coords[1];
+	//_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
 
-    coords[0] -= (Float)intU;
-    coords[1] -= (Float)intV;
+	// perform wrapping
+	
+	__m128i intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
+	coords -= _mm_cvtepi32_ps(intCoords);
 
-    Int32 x = static_cast<Int32>(coords[0] * mWidth);
-    Int32 y = static_cast<Int32>(coords[1] * mHeight);
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x >= mWidth) x = mWidth - 1;
-    if (y >= mHeight) y = mHeight - 1;
+	coords *= mSize;
+	intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
 
-    assert(x < mWidth);
-    assert(y < mHeight);
+	Int32 u0 = _mm_extract_epi32(intCoords, 0);
+	Int32 v0 = _mm_extract_epi32(intCoords, 1);
+	if (u0 >= mWidth) u0 = 0;
+	if (v0 >= mHeight) v0 = 0;
 
-    const Uint32 offset = mWidth * y + x;
+	return GetPixel(u0, v0, sampler.forceLinearSpace);
 
-    Vector4 color;
-    switch (mFormat)
-    {
-        case Format::B8G8R8_Uint:
-        {
-            const Uint8* source = reinterpret_cast<Uint8*>(mData) + (3 * offset);
-            const Vector4 raw = Vector4::Load4(source).Swizzle<2, 1, 0, 3>();
-            color = (raw & VECTOR_MASK_XYZ) / 255.0f;
-            break;
-        }
+	/*
+    Int32 u1 = u0 + 1;
+    Int32 v1 = v0 + 1;
+    if (u1 >= mWidth) u1 = 0;
+    if (v1 >= mHeight) v1 = 0;
 
-        case Format::B8G8R8A8_Uint:
-        {
-            const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
-            color = Vector4::Load4(source).Swizzle<2, 1, 0, 3>() / 255.0f;
-            break;
-        }
+    const Float weightU = coords.x - u0;
+    const Float weightV = coords.y - v0;
 
-        case Format::R32G32B32_Float:
-        {
-            const float* source = reinterpret_cast<float*>(mData) + 3 * offset;
-            color = Vector4(source[0], source[1], source[2]);
-            break;
-        }
+    // TODO this is slowa
+    const Vector4 value00 = GetPixel(u0, v0, sampler.forceLinearSpace);
+    const Vector4 value01 = GetPixel(u0, v1, sampler.forceLinearSpace);
+    const Vector4 value10 = GetPixel(u1, v0, sampler.forceLinearSpace);
+    const Vector4 value11 = GetPixel(u1, v1, sampler.forceLinearSpace);
 
-        case Format::R32G32B32A32_Float:
-        {
-            const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
-            color = *source;
-            break;
-        }
-    }
-
-    if (!mLinearSpace)
-    {
-        color *= color;
-    }
-
-    return color;
+    // bilinear interpolation
+    const Vector4 value0 = Vector4::Lerp(value00, value01, weightV);
+    const Vector4 value1 = Vector4::Lerp(value10, value11, weightV);
+	return Vector4::Lerp(value0, value1, weightU);
+	*/
 }
 
-Vector4* Bitmap::GetPixels(Uint32 x, Uint32 y)
+void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, Uint32 y, const math::Vector4 value)
 {
     assert(mFormat == Format::R32G32B32A32_Float);
-
-    return reinterpret_cast<Vector4*>(mData) + (mWidth * y + x);
-}
-
-const Vector4* Bitmap::GetPixels(Uint32 x, Uint32 y) const
-{
-    assert(mFormat == Format::R32G32B32A32_Float);
-
-    return reinterpret_cast<const Vector4*>(mData) + (mWidth * y + x);
+    
+    Vector4* typedData = reinterpret_cast<Vector4*>(mData);
+    typedData[mWidth * y + x] += value;
 }
 
 void Bitmap::WriteHorizontalLine(Uint32 y, const Vector4* values)
@@ -557,11 +711,11 @@ void Bitmap::WriteHorizontalLine(Uint32 y, const Vector4* values)
     {
         case Format::B8G8R8A8_Uint:
         {
-            Uint8* target = reinterpret_cast<Uint8*>(mData) + 4 * offset;
+            Uint8* target = mData + 4 * offset;
             for (Uint32 x = 0; x < mWidth; ++x)
             {
                 const Vector4 clampedValue = values[x].Swizzle<2, 1, 0, 3>() * 255.0f;
-                clampedValue.Store4(target + 4 * x);
+                clampedValue.Store4_NonTemporal(target + 4 * x);
             }
             break;
         }
@@ -596,11 +750,11 @@ void Bitmap::WriteVerticalLine(Uint32 x, const Vector4* values)
     {
         case Format::B8G8R8A8_Uint:
         {
-            Uint8* target = reinterpret_cast<Uint8*>(mData) + 4 * x;
+            Uint8* target = mData + 4 * x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
                 const Vector4 clampedValue = values[y].Swizzle<2, 1, 0, 3>() * 255.0f;
-                clampedValue.Store4(target + 4 * mWidth * y);
+                clampedValue.Store4_NonTemporal(target + 4 * mWidth * y);
             }
             break;
         }
@@ -625,10 +779,10 @@ void Bitmap::ReadHorizontalLine(Uint32 y, Vector4* outValues) const
     {
         case Format::B8G8R8A8_Uint:
         {
-            const Uint8* source = reinterpret_cast<Uint8*>(mData) + (4 * offset);
+            const Uint8* source = mData + (4 * offset);
             for (Uint32 x = 0; x < mWidth; ++x)
             {
-                outValues[x] = Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>() / 255.0f;
+				outValues[x] = Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
             }
             break;
         }
@@ -664,10 +818,10 @@ void Bitmap::ReadVerticalLine(Uint32 x, Vector4* outValues) const
     {
         case Format::B8G8R8A8_Uint:
         {
-            const Uint8* source = reinterpret_cast<Uint8*>(mData) + 4 * x;
+            const Uint8* source = mData + 4 * x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
-                outValues[x] = Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>() / 255.0f;
+				outValues[x] = Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
             }
             break;
         }
@@ -688,8 +842,7 @@ void Bitmap::Zero()
 {
     if (mData)
     {
-        size_t dataSize = mWidth * mHeight * BitsPerPixel(mFormat) / 8;
-        ZeroMemory(mData, dataSize);
+        ZeroMemory(mData, GetDataSize(mWidth, mHeight, mFormat));
     }
 }
 
@@ -738,6 +891,10 @@ Bool Bitmap::VerticalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 rad
         return false;
     }
 
+    (void)radius;
+
+    // TODO
+    /*
     Vector4 srcLine[MaxSize];
     Vector4 targetLine[MaxSize];
 
@@ -749,6 +906,7 @@ Bool Bitmap::VerticalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 rad
         BoxBlur_Internal(targetLine, srcLine, radius, src.mHeight, factor);
         target.WriteVerticalLine(i, targetLine);
     }
+    */
 
     return true;
 }
@@ -761,6 +919,10 @@ Bool Bitmap::HorizontalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 r
         return false;
     }
 
+    (void)radius;
+
+    // TODO
+    /*
     Vector4 srcLine[MaxSize];
     Vector4 targetLine[MaxSize];
 
@@ -772,6 +934,7 @@ Bool Bitmap::HorizontalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 r
         BoxBlur_Internal(targetLine, srcLine, radius, src.mWidth, factor);
         target.WriteHorizontalLine(i, targetLine);
     }
+    */
 
     return true;
 }

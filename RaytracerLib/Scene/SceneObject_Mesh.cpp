@@ -2,7 +2,9 @@
 #include "SceneObject_Mesh.h"
 #include "Mesh/Mesh.h"
 #include "Math/Geometry.h"
-
+#include "Traversal/Traversal_Single.h"
+#include "Traversal/Traversal_Simd.h"
+#include "Traversal/Traversal_Packet.h"
 
 namespace rt {
 
@@ -20,19 +22,19 @@ Box MeshSceneObject::GetBoundingBox() const
     return Box(localBox + mPosition, localBox + (mPosition + mPositionOffset));
 }
 
-void MeshSceneObject::Traverse_Single(const Uint32 objectID, const Ray& ray, HitPoint& hitPoint) const
+void MeshSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    mMesh->Traverse_Single(ray, hitPoint, objectID);
+    GenericTraverse_Single<Mesh>(context, objectID, mMesh);
 }
 
-void MeshSceneObject::Traverse_Simd8(const Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
+void MeshSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
-    mMesh->Traverse_Simd8(ray, outHitPoint);
+    GenericTraverse_Simd8<Mesh>(context, objectID, mMesh);
 }
 
-void MeshSceneObject::Traverse_Packet(const RayPacket& rayPacket, HitPoint_Packet& outHitPoint) const
+void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
 {
-    mMesh->Traverse_Packet(rayPacket, outHitPoint);
+    GenericTraverse_Packet<Mesh>(context, objectID, mMesh);
 }
 
 void MeshSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const

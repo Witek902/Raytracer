@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Simd8Vector3.h"
+#include "Vector3x8.h"
 #include "Box.h"
 
 
@@ -9,13 +9,13 @@ namespace math {
 
 
 /**
- * 4 boxes (SIMD version).
+ * Eight boxes (SIMD version).
  */
 class RT_ALIGN(32) Box_Simd8
 {
 public:
-    Vector3_Simd8 min;
-    Vector3_Simd8 max;
+    Vector3x8 min;
+    Vector3x8 max;
 
     Box_Simd8() = default;
     Box_Simd8(const Box_Simd8&) = default;

@@ -49,9 +49,22 @@ RT_FORCE_INLINE bool Intersect_RaySphere(const Ray& ray, const float radius, flo
     const float v = Vector4::Dot3(ray.dir, d);
     const float det = radius * radius - Vector4::Dot3(d, d) + v * v;
 
-    if (det > 0.0f)
+    if (det < 0.0f)
     {
-        outDistance = v - sqrtf(det);
+        return false;
+    }
+
+    const float sqrtDet = sqrtf(det);
+
+    outDistance = v - sqrtDet;
+    if (outDistance > 0.0f)
+    {
+        return true;
+    }
+
+    outDistance = v + sqrtDet;
+    if (outDistance > 0.0f)
+    {
         return true;
     }
 
@@ -92,6 +105,35 @@ RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& out
     // The check below is a little bit redundant (we perform 4 comparisons), so
     // all 4 comparisons must return success (that's why we check if mask is 0xF).
     return _mm_movemask_ps(_mm_cmpge_ps(lmax, lmin)) == 0xF;
+}
+
+RT_FORCE_INLINE bool Intersect_BoxRay_TwoSided(const Ray& ray, const Box& box, float& outNearDist, float& outFarDist)
+{
+    // The algorithm is based on "slabs" method. More info can be found here:
+    // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+
+    Vector4 lmin, lmax, tmp1, tmp2;
+
+    // calculate all box planes distances
+    tmp1 = (box.min - ray.origin) * ray.invDir;
+    tmp2 = (box.max - ray.origin) * ray.invDir;
+    lmin = Vector4::Min(tmp1, tmp2);
+    lmax = Vector4::Max(tmp1, tmp2);
+
+    // transpose (we need to calculate min and max of X, Y and Z)
+    Vector4 lx = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(0, 0, 0, 0));
+    Vector4 ly = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(1, 1, 1, 1));
+    Vector4 lz = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(2, 2, 2, 2));
+
+    // calculate minimum and maximum plane distances by taking min and max
+    // of all 3 components
+    lmin = Vector4::Max(lx, Vector4::Max(ly, lz));
+    lmax = Vector4::Min(lx, Vector4::Min(ly, lz));
+
+    outNearDist = lmin[0];
+    outFarDist  = lmax[2];
+
+    return outNearDist < outFarDist;
 }
 
 RT_FORCE_INLINE bool Intersect_TriangleRay(const Ray& ray, const ProcessedTriangle& tri, float& outU, float& outV, float& outDistance)

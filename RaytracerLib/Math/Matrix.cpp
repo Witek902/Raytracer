@@ -59,7 +59,7 @@ Matrix Matrix::MakeScaling(const Vector4& scale)
     return Matrix(Vector4(scale.f[0], 0.0f, 0.0f, 0.0f),
                   Vector4(0.0f, scale.f[1], 0.0f, 0.0f),
                   Vector4(0.0f, 0.0f, scale.f[2], 0.0f),
-                  Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                  VECTOR_W);
 }
 
 Matrix Matrix::operator* (const Matrix& b) const

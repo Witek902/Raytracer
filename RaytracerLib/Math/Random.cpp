@@ -6,6 +6,10 @@
 namespace rt {
 namespace math {
 
+static RT_FORCE_INLINE Uint64 Rotl64(const Uint64 x, const int k)
+{
+    return (x << k) | (x >> (64 - k));
+}
 
 Random::Random()
 {
@@ -14,30 +18,35 @@ Random::Random()
 
 void Random::Reset()
 {
-    mSeed = GetEntropy();
-    mSeed0 = _mm_set_epi64x(GetEntropy(), GetEntropy());
-    mSeed1 = _mm_set_epi64x(GetEntropy(), GetEntropy());
-    mSeed0_Simd8 = _mm256_set_epi64x(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
-    mSeed1_Simd8 = _mm256_set_epi64x(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+    for (Uint32 i = 0; i < 2; ++i)
+    {
+        mSeed[i] = ((Uint64)GetEntropy() << 32) | (Uint64)GetEntropy();
+        mSeedSimd4[i] = _mm_set_epi32(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+        mSeedSimd8[i] = _mm256_set_epi32(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+    }
 }
 
-Uint64 Random::GetEntropy()
+Uint32 Random::GetEntropy()
 {
-    Uint64 val = 0;
-    while (_rdrand64_step(&val) == 0) { }
+    Uint32 val = 0;
+	while (_rdrand32_step(&val) == 0) {}
     return val;
 }
 
 Uint64 Random::GetLong()
 {
-    Uint64 val = mSeed;
+    // xoroshiro128+ algorithm
+    // http://xoshiro.di.unimi.it/xoroshiro128plus.c
 
-    // XOR-shift algorithm
-    mSeed ^= (mSeed << 21);
-    mSeed ^= (mSeed >> 35);
-    mSeed ^= (mSeed << 4);
+    const Uint64 s0 = mSeed[0];
+    Uint64 s1 = mSeed[1];
+    const Uint64 result = s0 + s1;
 
-    return val;
+    s1 ^= s0;
+    mSeed[0] = Rotl64(s0, 24) ^ s1 ^ (s1 << 16);
+    mSeed[1] = Rotl64(s1, 37);
+
+    return result;
 }
 
 Uint32 Random::GetInt()
@@ -59,24 +68,43 @@ float Random::GetFloatBipolar()
     return myrand.f - 3.0f;
 }
 
-double Random::GetDouble()
+__m128i Random::GetIntVector4()
 {
-    Bits64 myrand;
-    myrand.ui = 1L + ((GetLong() & 0x000fffffffffffffUL) | 0x3ff0000000000000UL);
-    return myrand.f - 1.0;
+    // NOTE: xoroshiro128+ is faster when using general purpose registers, because there's
+    // no rotate left/right instruction in SSE2 (it's only in AVX512)
+
+	// xorshift128+ algorithm
+	const __m128i s0 = mSeedSimd4[1];
+	__m128i s1 = mSeedSimd4[0];
+	__m128i v = _mm_add_epi64(s0, s1);
+	s1 = _mm_slli_epi64(s1, 23);
+	const __m128i t0 = _mm_srli_epi64(s0, 5);
+	const __m128i t1 = _mm_srli_epi64(s1, 18);
+	mSeedSimd4[0] = s0;
+	mSeedSimd4[1] = _mm_xor_si128(_mm_xor_si128(s0, s1), _mm_xor_si128(t0, t1));
+	return v;
+}
+
+__m256i Random::GetIntVector8()
+{
+    // NOTE: xoroshiro128+ is faster when using general purpose registers, because there's
+    // no rotate left/right instruction in AVX2 (it's only in AVX512)
+
+    // xorshift128+ algorithm
+    const __m256i s0 = mSeedSimd8[1];
+    __m256i s1 = mSeedSimd8[0];
+    __m256i v = _mm256_add_epi64(s0, s1);
+    s1 = _mm256_slli_epi64(s1, 23);
+    const __m256i t0 = _mm256_srli_epi64(s0, 5);
+    const __m256i t1 = _mm256_srli_epi64(s1, 18);
+    mSeedSimd8[0] = s0;
+    mSeedSimd8[1] = _mm256_xor_si256(_mm256_xor_si256(s0, s1), _mm256_xor_si256(t0, t1));
+    return v;
 }
 
 Vector4 Random::GetVector4()
 {
-    // xorshift128+ algorithm
-    const __m128i s0 = mSeed1;
-    __m128i s1 = mSeed0;
-    __m128i v = _mm_add_epi64(s0, s1);
-    s1 = _mm_slli_epi64(s1, 23);
-    const __m128i t0 = _mm_srli_epi64(s0, 5);
-    const __m128i t1 = _mm_srli_epi64(s1, 18);
-    mSeed0 = s0;
-    mSeed1 = _mm_xor_si128(_mm_xor_si128(s1, t1), _mm_xor_si128(s0, t0));
+	__m128i v = GetIntVector4();
 
     // setup float mask
     v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
@@ -92,15 +120,7 @@ Vector4 Random::GetVector4()
 
 Vector4 Random::GetVector4Bipolar()
 {
-    // xorshift128+ algorithm
-    const __m128i s0 = mSeed1;
-    __m128i s1 = mSeed0;
-    __m128i v = _mm_add_epi64(s0, s1);
-    s1 = _mm_slli_epi64(s1, 23);
-    const __m128i t0 = _mm_srli_epi64(s0, 5);
-    const __m128i t1 = _mm_srli_epi64(s1, 18);
-    mSeed0 = s0;
-    mSeed1 = _mm_xor_si128(_mm_xor_si128(s1, t1), _mm_xor_si128(s0, t0));
+	__m128i v = GetIntVector4();
 
     // setup float mask
     v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
@@ -109,22 +129,14 @@ Vector4 Random::GetVector4Bipolar()
 
     // convert to float and go from [2, 4) to [-1, 1) range
     Vector4 result = _mm_castsi128_ps(v);
-    result -= Vector4::Splat(3.0f);
+    result -= Vector4(3.0f);
 
     return result;
 }
 
 Vector8 Random::GetVector8()
 {
-    // xorshift128+ algorithm
-    const __m256i s0 = mSeed1_Simd8;
-    __m256i s1 = mSeed0_Simd8;
-    __m256i v = _mm256_add_epi64(s0, s1);
-    s1 = _mm256_slli_epi64(s1, 23);
-    const __m256i t0 = _mm256_srli_epi64(s0, 5);
-    const __m256i t1 = _mm256_srli_epi64(s1, 18);
-    mSeed0_Simd8 = s0;
-    mSeed1_Simd8 = _mm256_xor_si256(_mm256_xor_si256(s1, t1), _mm256_xor_si256(s0, t0));
+	__m256i v = GetIntVector8();
 
     // setup float mask
     v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
@@ -138,6 +150,22 @@ Vector8 Random::GetVector8()
     return result;
 }
 
+Vector8 Random::GetVector8Bipolar()
+{
+	__m256i v = GetIntVector8();
+
+	// setup float mask
+	v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
+	v = _mm256_or_si256(v, _mm256_set1_epi32(0x40000000u));
+	v = _mm256_add_epi32(v, _mm256_set1_epi32(1u));
+
+	// convert to float and go from [2, 4) to [-1, 1) range
+	Vector8 result = _mm256_castsi256_ps(v);
+	result -= Vector8(3.0f);
+
+	return result;
+}
+
 Vector4 Random::GetCircle()
 {
     const Vector4 v = GetVector4();
@@ -149,24 +177,44 @@ Vector4 Random::GetCircle()
     const float u = v[1] + v[2];
     const float r = (u > 1.0f) ? (2.0f - u) : u;
 
-    const Vector4 sinCos = Sin(Vector4(theta, theta + RT_PI / 2.0f));
+    const Vector4 sinCos = Sin(Vector4(theta, theta + RT_PI / 2.0f, 0.0f, 0.0f));
 
     return r * sinCos;
 }
 
-Vector2_Simd8 Random::GetCircle_Simd8()
+Vector2x8 Random::GetCircle_Simd8()
 {
     // angle (uniform distribution)
     const Vector8 theta = (2.0f * RT_PI) * GetVector8();
 
     // radius (corrected distribution)
     const Vector8 u = GetVector8() + GetVector8();
-    const Vector8 r = Vector8::SelectBySign(Vector8::Splat(2.0f) - u, u, u - Vector8::Splat(1.0f));
+    const Vector8 r = Vector8::SelectBySign(Vector8(2.0f) - u, u, u - Vector8(1.0f));
 
     const Vector8 vSin = Sin(theta);
-    const Vector8 vCos = Sin(theta + Vector8::Splat(RT_PI / 2.0f));
+    const Vector8 vCos = Sin(theta + Vector8(RT_PI / 2.0f));
 
     return { r * vSin, r * vCos };
+}
+
+namespace {
+    static const Float2 g_hexVectors[] =
+    {
+        { -1.0f, 0.0f },
+        { 0.5f, 0.8660254f }, // sqrt(3.0f) / 2.0f
+        { 0.5f, -0.8660254f }, // sqrt(3.0f) / 2.0f
+        { -1.0f, 0.0f },
+    };
+} // namespace
+
+Vector4 Random::GetHexagon()
+{
+    const Uint32 x = GetInt() % 3u;
+    const Float2 a = g_hexVectors[x];
+    const Float2 b = g_hexVectors[x + 1];
+    const Vector4 xy = GetVector4();
+
+    return Vector4(xy.x * a.x + xy.y * b.x, xy.x * a.y + xy.y * b.y, 0.0f, 0.0f);
 }
 
 Vector4 Random::GetHemishpereCos()
@@ -174,10 +222,10 @@ Vector4 Random::GetHemishpereCos()
     const Vector4 u = GetVector4();
 
     // TODO optimize sqrtf, sin and cos (use approximations)
-    const Vector4 t = Vector4::Sqrt4(Vector4(u[0], 1.0f - u[0]));
+    const Vector4 t = Vector4::Sqrt4(Vector4(u[0], 1.0f - u[0], 0.0f, 0.0f));
 
     float theta = 2.0f * RT_PI * u[1];
-    return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1]);
+    return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1], 0.0f);
 
 }
 

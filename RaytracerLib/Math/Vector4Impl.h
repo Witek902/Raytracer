@@ -10,17 +10,22 @@ Vector4::Vector4()
     v = _mm_setzero_ps();
 }
 
-Vector4::Vector4(Float x, Float y, Float z, Float w)
+Vector4::Vector4(const Float s)
+{
+    v = _mm_set1_ps(s);
+}
+
+Vector4::Vector4(const Float x, const Float y, const Float z, const Float w)
 {
     v = _mm_set_ps(w, z, y, x);
 }
 
-Vector4::Vector4(Int32 x, Int32 y, Int32 z, Int32 w)
+Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
 {
     v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
 }
 
-Vector4::Vector4(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
+Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
 {
     v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
 }
@@ -60,31 +65,37 @@ Vector4 Vector4::FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
 
 Vector4 Vector4::Load4(const Uint8* src)
 {
-    static const Vectori mask = {{{0xFF, 0xFF00, 0xFF0000, 0xFF000000}}};
-    static const __m128 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
-    static const Vectori flipW = {{{0, 0, 0, 0x80000000}}};
-    static const __m128 unsignedOffset = {0, 0, 0, 32768.0f * 65536.0f};
+    static const Vector4 mask = { 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
+    static const Vector4 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
+    static const Vector4 unsignedOffset = { 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
 
     __m128 vTemp = _mm_load_ps1((const Float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
-    vTemp = _mm_xor_ps(vTemp, flipW.v);
+    vTemp = _mm_xor_ps(vTemp, VECTOR_MASK_SIGN_W);
 
     // convert to Float
-    vTemp = _mm_cvtepi32_ps(reinterpret_cast<const __m128i*>(&vTemp)[0]);
+	vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
     vTemp = _mm_add_ps(vTemp, unsignedOffset);
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
 
-/**
- * Convert a Vector4 to 4 unsigned chars.
- */
-void Vector4::Store4(Uint8* dest) const
+Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 {
-    static const __m128 MaxUByte4 = {255.0f, 255.0f, 255.0f, 255.0f};
+	static const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
+	static const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
-    // Clamp
-    __m128 vResult = _mm_max_ps(v, _mm_setzero_ps());
-    vResult = _mm_min_ps(vResult, MaxUByte4);
+	__m128 vTemp = _mm_load_ps1((const Float*)src);
+	vTemp = _mm_and_ps(vTemp, mask.v);
+
+	// convert to Float
+	vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
+	return _mm_mul_ps(vTemp, LoadUByte4Mul);
+}
+
+void Vector4::Store4_NonTemporal(Uint8* dest) const
+{
+    // Clamp to Uint8 range
+    const Vector4 vResult = Clamp(*this, Vector4(), VECTOR_255);
 
     // Convert to int & extract components
     __m128i vResulti = _mm_cvttps_epi32(vResult);
@@ -93,7 +104,8 @@ void Vector4::Store4(Uint8* dest) const
     __m128i Wi = _mm_srli_si128(vResulti, 9);
 
     vResulti = _mm_or_si128(_mm_or_si128(Wi, Zi), _mm_or_si128(Yi, vResulti));
-    _mm_store_ss(reinterpret_cast<Float*>(dest), reinterpret_cast<const __m128*>(&vResulti)[0]);
+
+	_mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
 }
 
 void Vector4::Store(Float* dest) const
@@ -169,11 +181,6 @@ Vector4 Vector4::SplatZ() const
 Vector4 Vector4::SplatW() const
 {
     return _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 3, 3, 3));
-}
-
-Vector4 Vector4::Splat(Float f)
-{
-    return _mm_set_ps1(f);
 }
 
 Vector4 Vector4::SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel)
@@ -367,17 +374,14 @@ Vector4 Vector4::FastReciprocal(const Vector4& v)
 
 Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight)
 {
-    __m128 vTemp = _mm_sub_ps(v2, v1);
-    vTemp = _mm_mul_ps(vTemp, weight);
-    return _mm_add_ps(v1, vTemp);
+    const Vector4 diff = v2 - v1;
+    return Vector4::MulAndAdd(diff, weight, v1);
 }
 
 Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, Float weight)
 {
-    __m128 vWeight = _mm_set_ps1(weight);
-    __m128 vTemp = _mm_sub_ps(v2, v1);
-    vTemp = _mm_mul_ps(vTemp, vWeight);
-    return _mm_add_ps(v1, vTemp);
+    const Vector4 diff = v2 - v1;
+    return Vector4::MulAndAdd(diff, Vector4(weight), v1);
 }
 
 Vector4 Vector4::Min(const Vector4& a, const Vector4& b)

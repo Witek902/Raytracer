@@ -9,6 +9,7 @@
 // SSE
 #include <xmmintrin.h>
 #include <smmintrin.h>
+#include <immintrin.h>
 
 #include <vector>
 #include <memory>

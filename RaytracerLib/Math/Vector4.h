@@ -22,21 +22,16 @@ struct RT_ALIGN(16) Vector4
         Int32 i[4];
         Uint32 u[4];
         __m128 v;
+
+        struct
+        {
+            float x;
+            float y;
+            float z;
+            float w;
+        };
     };
 
-    // conversion to/from SSE types
-    RT_FORCE_INLINE operator __m128() const
-    {
-        return v;
-    }
-    RT_FORCE_INLINE operator __m128i() const
-    {
-        return reinterpret_cast<const __m128i*>(&v)[0];
-    }
-    RT_FORCE_INLINE operator __m128d() const
-    {
-        return reinterpret_cast<const __m128d*>(&v)[0];
-    }
     RT_FORCE_INLINE Vector4(const __m128& src)
     {
         v = src;
@@ -44,26 +39,20 @@ struct RT_ALIGN(16) Vector4
 
     // constructors
     RT_FORCE_INLINE Vector4();
-    RT_FORCE_INLINE explicit Vector4(Float x, Float y = 0.0f, Float z = 0.0f, Float w = 0.0f);
-    RT_FORCE_INLINE explicit Vector4(Int32 x, Int32 y = 0, Int32 z = 0, Int32 w = 0);
-    RT_FORCE_INLINE explicit Vector4(Uint32 x, Uint32 y = 0, Uint32 z = 0, Uint32 w = 0);
+    RT_FORCE_INLINE explicit Vector4(const Float s); // splat
+    RT_FORCE_INLINE Vector4(const Float x, const Float y, const Float z, const Float w);
+    RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
+    RT_FORCE_INLINE Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w);
     RT_FORCE_INLINE explicit Vector4(const Float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
     RT_FORCE_INLINE void Set(Float scalar);
     RT_FORCE_INLINE static Vector4 FromIntegers(Uint32 x, Uint32 y = 0, Uint32 z = 0, Uint32 w = 0);
 
-    // element access
-    RT_FORCE_INLINE Float operator[] (int index) const
-    {
-        return f[index];
-    }
-
-    // element access (reference)
-    RT_FORCE_INLINE Float& operator[] (int index)
-    {
-        return f[index];
-    }
+    RT_FORCE_INLINE operator __m128() const { return v; }
+    RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
+    RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
+    RT_FORCE_INLINE Float& operator[] (Uint32 index) { return f[index]; }
 
     /// simple arithmetics
     RT_FORCE_INLINE Vector4 operator- () const;
@@ -118,17 +107,20 @@ struct RT_ALIGN(16) Vector4
      */
     RT_FORCE_INLINE static Vector4 Load4(const Uint8* src);
 
+	/**
+     * Convert 3 uint8 to a Vector4 and scale to 0...1 range.
+     */
+	RT_FORCE_INLINE static Vector4 LoadBGR_UNorm(const Uint8* src);
+
     /**
      * Convert a Vector4 to 4 unsigned chars.
      */
-    RT_FORCE_INLINE void Store4(Uint8* dest) const;
+    RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
 
     RT_FORCE_INLINE void Store(Float* dest) const;
     RT_FORCE_INLINE void Store(Float2* dest) const;
     RT_FORCE_INLINE void Store(Float3* dest) const;
     RT_FORCE_INLINE Float3 ToFloat3() const;
-
-    RT_FORCE_INLINE static Vector4 Splat(Float f);
 
     RT_FORCE_INLINE static Vector4 Floor(const Vector4& v);
     RT_FORCE_INLINE static Vector4 Sqrt(const Vector4& v);
@@ -312,7 +304,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON)
     {
         Vector4 diff = Abs(v1 - v2);
-        Vector4 epsilonV = Vector4::Splat(epsilon);
+        Vector4 epsilonV = Vector4(epsilon);
         return diff < epsilonV;
     }
 
@@ -363,8 +355,36 @@ struct RT_ALIGN(16) Vector4
 RT_FORCE_INLINE Vector4 operator*(Float a, const Vector4& b);
 
 
+// some commonly used constants
+
+RT_GLOBAL_CONST Vector4 VECTOR_EPSILON = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
+RT_GLOBAL_CONST Vector4 VECTOR_HALVES = { 0.5f, 0.5f, 0.5f, 0.5f };
+RT_GLOBAL_CONST Vector4 VECTOR_MAX = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
+RT_GLOBAL_CONST Vector4 VECTOR_ONE = { 1.0f, 1.0f, 1.0f, 1.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_ONE3 = { 1.0f, 1.0f, 1.0f, 0.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_ONE2 = { 1.0f, 1.0f, 0.0f, 0.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_MINUS_ONE = { -1.0f, -1.0f, -1.0f, -1.0f };
+
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_X = { 0xFFFFFFFFu, 0u, 0u, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_Y = { 0u, 0xFFFFFFFFu, 0u, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_Z = { 0u, 0u, 0xFFFFFFFFu, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_W = { 0u, 0u, 0u, 0xFFFFFFFFu };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_XY = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0u, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZ = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZW = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu };
+
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_ABS = { 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN = { 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN_W = { 0u, 0u, 0u, 0x80000000u };
+
+RT_GLOBAL_CONST Vector4 VECTOR_INV_255 = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_255 = { 255.0f, 255.0f, 255.0f, 255.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_X = { 1.0f, 0.0f, 0.0f, 0.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_Y = { 0.0f, 1.0f, 0.0f, 0.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_Z = { 0.0f, 0.0f, 1.0f, 0.0f };
+RT_GLOBAL_CONST Vector4 VECTOR_W = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 } // namespace math
 } // namespace rt
 
-#include "Vector4Constants.h"
 #include "Vector4Impl.h"

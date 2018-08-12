@@ -4,28 +4,37 @@
 #include "Simd8Box.h"
 #include "Simd8Triangle.h"
 
+// Defining it will replace VBLENDVPS instruction with VMINPS/VMAXPS
+// Makes the code faster on Haswell and Broadwell
+// Probably not needed on Skylake (and higher) and AMD
+#define RT_ARCH_SLOW_BLENDV
+
 namespace rt {
 namespace math {
 
-class RT_ALIGN(32) SimdRayBoxSegment8
+template<Uint32 Octatnt>
+RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8_Octant(const Vector3x8& rayInvDir, const Vector3x8& rayOriginDivDir,
+    const Box_Simd8& box, const Vector8& maxDistance, Vector8& outDistance)
 {
-public:
-    Vector8 nearDists;
-    Vector8 farDists;
-};
+    static_assert(Octatnt < 8, "Invalid octant");
 
-RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Ray_Simd8& ray, const Box_Simd8& box, const Vector8& maxDistance, Vector8& outDistance)
-{
     // same as:
-    // const Vector3_Simd8 tmp1 = box.min * ray.invDir - ray.originDivDir;
-    // const Vector3_Simd8 tmp2 = box.max * ray.invDir - ray.originDivDir;
-    const Vector3_Simd8 tmp1 = Vector3_Simd8::MulAndSub(box.min, ray.invDir, ray.originDivDir);
-    const Vector3_Simd8 tmp2 = Vector3_Simd8::MulAndSub(box.max, ray.invDir, ray.originDivDir);
+    // const Vector3x8 tmp1 = box.min * ray.invDir - ray.originDivDir;
+    // const Vector3x8 tmp2 = box.max * ray.invDir - ray.originDivDir;
+    const Vector3x8 tmp1 = Vector3x8::MulAndSub(box.min, rayInvDir, rayOriginDivDir);
+    const Vector3x8 tmp2 = Vector3x8::MulAndSub(box.max, rayInvDir, rayOriginDivDir);
 
-    // TODO we can get rid of this 3 mins and 3 maxes by sorting the rays into octants
-    // and processing each octant separately
-    const Vector3_Simd8 lmax = Vector3_Simd8::Max(tmp1, tmp2);
-    const Vector3_Simd8 lmin = Vector3_Simd8::Min(tmp1, tmp2);
+    constexpr Uint32 maskX = Octatnt & 1 ? 0xFF : 0;
+    constexpr Uint32 maskY = Octatnt & 2 ? 0xFF : 0;
+    constexpr Uint32 maskZ = Octatnt & 4 ? 0xFF : 0;
+
+    Vector3x8 lmin, lmax;
+    lmax.x = _mm256_blend_ps(tmp2.x, tmp1.x, maskX);
+    lmax.y = _mm256_blend_ps(tmp2.y, tmp1.y, maskY);
+    lmax.z = _mm256_blend_ps(tmp2.z, tmp1.z, maskZ);
+    lmin.x = _mm256_blend_ps(tmp1.x, tmp2.x, maskX);
+    lmin.y = _mm256_blend_ps(tmp1.y, tmp2.y, maskY);
+    lmin.z = _mm256_blend_ps(tmp1.z, tmp2.z, maskZ);
 
     // calculate minimum and maximum plane distances by taking min and max of all 3 components
     const Vector8 maxT = Vector8::Min(lmax.z, Vector8::Min(lmax.x, lmax.y));
@@ -38,27 +47,66 @@ RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Ray_Simd8& ray, const Box_S
     return _mm256_andnot_ps(maxT, cond); // trick: replace greater-than-zero compare with and-not
 }
 
-RT_INLINE Vector8 Intersect_TriangleRay_Simd8(const Ray_Simd8& ray, const Triangle_Simd8& tri, const Vector8& maxDistance,
+RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Vector3x8& rayInvDir, const Vector3x8& rayOriginDivDir,
+                                               const Box_Simd8& box, const Vector8& maxDistance, Vector8& outDistance)
+{
+    // same as:
+    // const Vector3x8 tmp1 = box.min * ray.invDir - ray.originDivDir;
+    // const Vector3x8 tmp2 = box.max * ray.invDir - ray.originDivDir;
+    const Vector3x8 tmp1 = Vector3x8::MulAndSub(box.min, rayInvDir, rayOriginDivDir);
+    const Vector3x8 tmp2 = Vector3x8::MulAndSub(box.max, rayInvDir, rayOriginDivDir);
+
+    // TODO we can get rid of this 3 mins and 3 maxes by sorting the rays into octants
+    // and processing each octant separately
+#ifdef RT_ARCH_SLOW_BLENDV
+    const Vector3x8 lmax = Vector3x8::Max(tmp1, tmp2);
+    const Vector3x8 lmin = Vector3x8::Min(tmp1, tmp2);
+#else // RT_ARCH_SLOW_BLENDV
+    Vector3x8 lmin, lmax;
+    lmax.x = _mm256_blendv_ps(tmp2.x, tmp1.x, rayInvDir.x);
+    lmax.y = _mm256_blendv_ps(tmp2.y, tmp1.y, rayInvDir.y);
+    lmax.z = _mm256_blendv_ps(tmp2.z, tmp1.z, rayInvDir.z);
+    lmin.x = _mm256_blendv_ps(tmp1.x, tmp2.x, rayInvDir.x);
+    lmin.y = _mm256_blendv_ps(tmp1.y, tmp2.y, rayInvDir.y);
+    lmin.z = _mm256_blendv_ps(tmp1.z, tmp2.z, rayInvDir.z);
+#endif // RT_ARCH_SLOW_BLENDV
+
+    // calculate minimum and maximum plane distances by taking min and max of all 3 components
+    const Vector8 maxT = Vector8::Min(lmax.z, Vector8::Min(lmax.x, lmax.y));
+    const Vector8 minT = Vector8::Max(lmin.z, Vector8::Max(lmin.x, lmin.y));
+
+    outDistance = minT;
+
+    // return (maxT > 0 && minT < maxT && maxT < maxDistance)
+    const Vector8 cond = _mm256_cmp_ps(Vector8::Min(maxDistance, maxT), minT, _CMP_GE_OQ);
+    return _mm256_andnot_ps(maxT, cond); // trick: replace greater-than-zero compare with and-not
+}
+
+
+RT_INLINE Vector8 Intersect_TriangleRay_Simd8(const Vector3x8& rayDir, const Vector3x8& rayOrigin,
+                                              const Triangle_Simd8& tri, const Vector8& maxDistance,
                                               Vector8& outU, Vector8& outV, Vector8& outDist)
 {
+    // Möller–Trumbore algorithm
+
     const Vector8 one = VECTOR8_ONE;
 
     // begin calculating determinant - also used to calculate U parameter
-    const Vector3_Simd8 pvec = Vector3_Simd8::Cross(ray.dir, tri.edge2);
+    const Vector3x8 pvec = Vector3x8::Cross(rayDir, tri.edge2);
 
     // if determinant is near zero, ray lies in plane of triangle
-    const Vector8 det = Vector3_Simd8::Dot(tri.edge1, pvec);
-    const Vector8 invDet = one / det;
+    const Vector8 det = Vector3x8::Dot(tri.edge1, pvec);
+    const Vector8 invDet = one / det; // Vector8::FastReciprocal(det);
 
     // calculate distance from vert0 to ray origin
-    const Vector3_Simd8 tvec = ray.origin - tri.v0;
+    const Vector3x8 tvec = rayOrigin - tri.v0;
 
     // prepare to test V parameter
-    const Vector3_Simd8 qvec = Vector3_Simd8::Cross(tvec, tri.edge1);
+    const Vector3x8 qvec = Vector3x8::Cross(tvec, tri.edge1);
 
-    const Vector8 u = invDet * Vector3_Simd8::Dot(tvec, pvec);
-    const Vector8 v = invDet * Vector3_Simd8::Dot(ray.dir, qvec);
-    const Vector8 t = invDet * Vector3_Simd8::Dot(tri.edge2, qvec);
+    const Vector8 u = invDet * Vector3x8::Dot(tvec, pvec);
+    const Vector8 v = invDet * Vector3x8::Dot(rayDir, qvec);
+    const Vector8 t = invDet * Vector3x8::Dot(tri.edge2, qvec);
 
     outU = u;
     outV = v;
@@ -69,6 +117,7 @@ RT_INLINE Vector8 Intersect_TriangleRay_Simd8(const Ray_Simd8& ray, const Triang
     const Vector8 condB = _mm256_andnot_ps(t, _mm256_cmp_ps(t, maxDistance, _CMP_LE_OQ));
     return _mm256_andnot_ps(v, _mm256_and_ps(condA, condB));
 }
+
 
 } // namespace math
 } // namespace rt

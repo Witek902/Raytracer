@@ -5,10 +5,14 @@
 #include "../RaytracerLib/Math/Matrix.h"
 #include "../RaytracerLib/Mesh/Mesh.h"
 #include "../RaytracerLib/Material/Material.h"
-
 #include "../RaytracerLib/Utils/Timer.h"
 #include "../RaytracerLib/Utils/Logger.h"
 #include "../RaytracerLib/Rendering/Context.h"
+#include "../RaytracerLib/Rendering/ShadingData.h"
+#include "../RaytracerLib/Traversal/TraversalContext.h"
+#include "../RaytracerLib/Scene/SceneObject_Mesh.h"
+#include "../RaytracerLib/Scene/SceneObject_Sphere.h"
+#include "../RaytracerLib/Scene/SceneObject_Box.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui.h>
@@ -17,13 +21,6 @@
 
 using namespace rt;
 using namespace math;
-
-namespace {
-
-Uint32 WINDOW_WIDTH = 1280;
-Uint32 WINDOW_HEIGHT = 720;
-
-}
 
 DemoWindow::DemoWindow()
     : mFrameNumber(0)
@@ -45,7 +42,7 @@ DemoWindow::~DemoWindow()
     ImGui::DestroyContext();
 }
 
-bool DemoWindow::Initialize()
+bool DemoWindow::Initialize(const Options& options)
 {
     InitializeUI();
 
@@ -55,7 +52,7 @@ bool DemoWindow::Initialize()
         return false;
     }
 
-    SetSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    SetSize(options.windowWidth, options.windowHeight);
     SetTitle("Raytracer Demo");
 
     if (!Open())
@@ -65,9 +62,37 @@ bool DemoWindow::Initialize()
     }
 
     mViewport = std::make_unique<Viewport>();
-    mViewport->Resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    mViewport->Resize(options.windowWidth, options.windowHeight);
 
     mDC = GetDC(reinterpret_cast<HWND>(GetHandle()));
+
+    mCamera.mDOF.aperture = 0.02f;
+    mCamera.barrelDistortionFactor = 0.0f;
+
+   // initialize scene
+    {
+        RT_LOG_INFO("Using data path: %hs", options.dataPath.c_str());
+
+        mScene = std::make_unique<Scene>();
+
+        if (!options.envMapPath.empty())
+        {
+            SceneEnvironment env;
+            env.texture = helpers::LoadTexture(options.dataPath, options.envMapPath);
+            mScene->SetEnvironment(env);
+        }
+
+        if (!options.modelPath.empty())
+        {
+            auto mesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
+            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(mesh.get());
+            meshInstance->mPosition = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+            mScene->AddObject(std::move(meshInstance));
+            mMeshes.push_back(std::move(mesh));
+        }
+
+        mScene->BuildBVH();
+    }
 
     return true;
 }
@@ -155,84 +180,22 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 void DemoWindow::ResetCamera()
 {
     // cornell box
-    mCameraSetup.position = Vector4(0.0f, 0.2f, 1.0f);
+    mCameraSetup.position = Vector4(0.0f, 0.0f, 1.8f, 0.0f);
     mCameraSetup.pitch = -0.1f;
     mCameraSetup.yaw = -3.13f;
 
+    ////mCameraSetup.position = Vector4(0.0f, 0.5f, 0.0f, 0.0f);
+    //mCameraSetup.pitch = -1.0f;
+    //mCameraSetup.yaw = 0.01f;
 
     // sponza
-    mCameraSetup.position = Vector4(7.0f, 3.0f, 0.1f);
+    mCameraSetup.position = Vector4(700.0f, 300.0f, 10.0f, 0.0f);
     mCameraSetup.pitch = -0.09f;
     mCameraSetup.yaw = -1.73f;
 
-    //mCameraSetup.position = Vector4(0.0f, 0.75f, 0.0f);
+    //mCameraSetup.position = Vector4(0.0f, 0.75f, 0.0f, 0.0f);
     //mCameraSetup.pitch = -1.70f;
     //mCameraSetup.yaw = -1.73f;
-}
-
-bool DemoWindow::InitScene()
-{
-    // EVERYTHING HERE IS TEMPORARY !
-
-    //auto bunny = helpers::LoadMesh("../../../../MODELS/bunny.obj", mMaterials);
-    //auto cornellBox = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Original.obj", mMaterials);
-    //mMesh = helpers::LoadMesh("../../../../MODELS/CornellBox/CornellBox-Mirror.obj", mMaterials);
-    //mMesh = helpers::LoadMesh("../../../../MODELS/living_room/living_room.obj", mMaterials);
-    auto cubeMesh = helpers::LoadMesh("../../../../MODELS/cube/cube.obj", mMaterials);
-    auto sponza = helpers::LoadMesh("../../../../MODELS/crytek-sponza/sponza.obj", mMaterials, 0.01f);
-    auto planeMesh = helpers::CreatePlaneMesh(mMaterials, 100.0f);
-
-    // SCENE
-    {
-        mScene = std::make_unique<Scene>();
-
-        SceneEnvironment env;
-        env.texture = helpers::LoadTexture("../../../../TEXTURES/", "ENV/Topanga_Forest_B_3k.dds");
-        env.backgroundColor = Vector4::Splat(1.0f);
-        mScene->SetEnvironment(env);
-
-        {
-            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(sponza.get());
-            meshInstance->mPosition = Vector4(0.0f, 0.0f, 0.0f);
-            mScene->AddObject(std::move(meshInstance));
-        }
-
-        /*
-        {
-            auto material = std::make_unique<Material>("plasticB");
-            material->baseColor = Vector4(0.95f, 0.212f, 0.95f);
-            material->roughness = 0.1f;
-            material->emissionColor = Vector4();
-            material->Compile();
-            SceneObjectPtr meshInstance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            meshInstance->mPosition = Vector4(1.0f, 0.5f, -1.0f);
-            mScene->AddObject(std::move(meshInstance));
-
-            mMaterials.push_back(std::move(material));
-        }
-
-        {
-            Material* material = new Material;
-            material->emissionColor = Vector4(6.0f, 6.0f, 6.0f);
-            material->Compile();
-            SceneObjectPtr meshInstance = std::make_unique<SphereSceneObject>(0.5f, material);
-            meshInstance->mPosition = Vector4(0.241f, 0.0f, -3.0f);
-            mScene->AddObject(std::move(meshInstance));
-        }
-        */
-    }
-
-    mScene->BuildBVH();
-
-    //mMeshes.push_back(std::move(bunny));
-    mMeshes.push_back(std::move(cubeMesh));
-    mMeshes.push_back(std::move(planeMesh));
-    mMeshes.push_back(std::move(sponza));
-
-    // TODO remove
-    mSelectedMaterial = mMaterials.back().get();
-
-    return true;
 }
 
 void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
@@ -251,11 +214,11 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         rt::RenderingParams params;
         rt::RenderingContext context(&params);
 
-        const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height);
+        const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, context);
 
         HitPoint hitPoint;
-        mScene->Traverse_Single(ray, hitPoint, context);
+        mScene->Traverse_Single({ ray, hitPoint, context });
 
         if (hitPoint.objectId != UINT32_MAX)
         {
@@ -342,19 +305,19 @@ void DemoWindow::OnKeyPress(Uint32 key)
         {
             PostprocessParams params;
             mViewport->GetPostprocessParams(params);
-            params.exposure /= 1.1f;
+            params.exposure -= 0.25f;
             mViewport->SetPostprocessParams(params);
         }
         else if (key == VK_OEM_6) // ]
         {
             PostprocessParams params;
             mViewport->GetPostprocessParams(params);
-            params.exposure *= 1.1f;
+            params.exposure += 0.25f;
             mViewport->SetPostprocessParams(params);
         }
         else if (key == 'P') // printscreen
         {
-
+            mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
         }
     }
 }
@@ -411,6 +374,158 @@ bool DemoWindow::Loop()
     return true;
 }
 
+void DemoWindow::RenderUI_Stats()
+{
+    ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
+    ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
+    ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
+    ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
+    ImGui::Text("Frame number:        %u", mFrameNumber);
+
+    ImGui::Separator();
+
+    ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
+
+    ImGui::Separator();
+
+    const RayTracingCounters& counters = mViewport->GetCounters();
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    ImGui::Text("Ray-box tests (total):  %.2fM", (float)counters.numRayBoxTests / 1000000.0f);
+    ImGui::Text("Ray-box tests (passed): %.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f);
+    ImGui::Text("Ray-tri tests (total):  %.2fM", (float)counters.numRayTriangleTests / 1000000.0f);
+    ImGui::Text("Ray-tri tests (passed): %.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f);
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+}
+
+void DemoWindow::RenderUI_Settings()
+{
+    bool resetFrame = false;
+
+    if (ImGui::TreeNode("Rendering"))
+    {
+        resetFrame |= RenderUI_Settings_Rendering();
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Camera"))
+    {
+        resetFrame |= RenderUI_Settings_Camera();
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Postprocess"))
+    {
+        resetFrame |= RenderUI_Settings_PostProcess();
+        ImGui::TreePop();
+    }
+
+    if (mSelectedMaterial)
+    {
+        if (ImGui::TreeNode("Material", "Material (%s)", mSelectedMaterial->debugName.c_str()))
+        {
+            resetFrame |= RenderUI_Settings_Material();
+            ImGui::TreePop();
+        }
+    }
+
+    if (ImGui::Button("Take screenshot"))
+    {
+        mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
+    }
+
+    if (resetFrame)
+    {
+        ResetFrame();
+    }
+}
+
+bool DemoWindow::RenderUI_Settings_Rendering()
+{
+    bool resetFrame = false;
+
+    int renderingModeIndex = static_cast<int>(mRenderingParams.renderingMode);
+    int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
+    int tileOrder = static_cast<int>(mRenderingParams.tileOrder);
+
+    const char* renderingModeItems[] =
+    {
+        "Regular", "BaseColor",
+        "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords", "TriangleID",
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+        "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+    };
+    resetFrame |= ImGui::Combo("Rendering mode", &renderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
+
+    const char* traversalModeItems[] = { "Single", "SIMD", "Packet" };
+    resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
+
+    ImGui::SliderInt("Tile order", (int*)&tileOrder, 0, 8); // max 256x256 tile
+
+    resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 1, 50);
+    ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
+    resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
+    resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
+
+    mRenderingParams.renderingMode = static_cast<RenderingMode>(renderingModeIndex);
+    mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
+    mRenderingParams.tileOrder = static_cast<Uint8>(tileOrder);
+
+    return resetFrame;
+}
+
+bool DemoWindow::RenderUI_Settings_Camera()
+{
+    bool resetFrame = false;
+
+    const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box" };
+    int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
+
+    resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
+
+    resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
+    resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
+    resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
+    resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
+    resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionFactor, 0.0f, 0.2f);
+
+    mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
+
+    return resetFrame;
+}
+
+bool DemoWindow::RenderUI_Settings_PostProcess()
+{
+    ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
+    ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
+
+    return false;
+}
+
+bool DemoWindow::RenderUI_Settings_Material()
+{
+    bool materialChanged = false;
+
+    materialChanged |= ImGui::Checkbox("Metal", &mSelectedMaterial->metal);
+    materialChanged |= ImGui::Checkbox("Transparent", &mSelectedMaterial->transparent);
+    materialChanged |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emissionColor[0], ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+    materialChanged |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
+    materialChanged |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
+    materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
+
+    if (mSelectedMaterial->metal)
+    {
+        materialChanged |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
+    }
+
+    if (materialChanged)
+    {
+        mSelectedMaterial->Compile();
+    }
+
+    return materialChanged;
+}
+
 void DemoWindow::RenderUI()
 {
     static bool test = false;
@@ -427,104 +542,19 @@ void DemoWindow::RenderUI()
     io.KeyAlt = (GetKeyState(VK_MENU) & 0x8000) != 0;
     io.KeySuper = false;
 
-    static int renderingModeIndex = 3;
-
     ImGui::NewFrame();
     {
         static bool showStats = true;
         if (ImGui::Begin("Stats", &showStats))
         {
-            ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
-            ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
-            ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
-            ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
-            ImGui::Text("Frame number:        %u", mFrameNumber);
-            ImGui::Separator();
-            ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
+            RenderUI_Stats();
         }
         ImGui::End();
 
         static bool showRenderSettings = false;
         if (ImGui::Begin("Settings", &showRenderSettings))
         {
-            bool resetFrame = false;
-
-            if (ImGui::TreeNode("Rendering"))
-            {
-                const char* items[] =
-                {
-                    "Regular",
-                    "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords",
-                    "BaseColor",
-                    "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
-                };
-                resetFrame |= ImGui::Combo("Mode", &renderingModeIndex, items, IM_ARRAYSIZE(items));
-
-
-                resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 1, 50);
-                ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
-                resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
-                resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
-
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Camera"))
-            {
-                resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
-                resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
-                resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
-                resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionFactor, 0.0f, 0.2f);
-
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Postprocess"))
-            {
-                ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, 0.01f, 10.0f, "%.3f", 2.0f);
-                ImGui::SliderFloat("Film grain", &mPostprocessParams.filmGrainStrength, 0.0f, 0.1f);
-                ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
-                ImGui::SliderFloat("Bloom strength", &mPostprocessParams.bloomStrength, 0.0f, 1.0f);
-                ImGui::SliderFloat("Bloom size", &mPostprocessParams.bloomSize, 0.0f, 50.0f);
-
-                ImGui::TreePop();
-            }
-
-            if (mSelectedMaterial)
-            {
-                if (ImGui::TreeNode("Material", "Material (%s)", mSelectedMaterial->debugName.c_str()))
-                {
-                    bool materialChanged = false;
-
-                    materialChanged |= ImGui::Checkbox("Metal", &mSelectedMaterial->metal);
-                    materialChanged |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emissionColor[0], ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-                    materialChanged |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
-                    materialChanged |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
-                    materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
-                    if (mSelectedMaterial->metal)
-                    {
-                        materialChanged |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
-                    }
-
-                    if (materialChanged)
-                    {
-                        mSelectedMaterial->Compile();
-                    }
-
-                    ImGui::TreePop();
-                    resetFrame |= materialChanged;
-                }
-            }
-
-            if (ImGui::Button("Take screenshot"))
-            {
-                mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
-            }
-
-            if (resetFrame)
-            {
-                ResetFrame();
-            }
+            RenderUI_Settings();
         }
         ImGui::End();
     }
@@ -534,8 +564,6 @@ void DemoWindow::RenderUI()
 
     const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
     paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight(), sw_options);
-
-    mRenderingParams.renderingMode = static_cast<rt::RenderingMode>(renderingModeIndex);
 }
 
 void DemoWindow::Render()
@@ -578,7 +606,8 @@ void DemoWindow::UpdateCamera()
     const float cosPitch = cosf(mCameraSetup.pitch);
     const Vector4 direction = Vector4(sinf(mCameraSetup.yaw) * cosPitch,
                                       sinf(mCameraSetup.pitch),
-                                      cosf(mCameraSetup.yaw) * cosPitch);
+                                      cosf(mCameraSetup.yaw) * cosPitch,
+                                      0.0f);
 
     Vector4 movement;
     if (IsKeyPressed('W'))
@@ -586,9 +615,9 @@ void DemoWindow::UpdateCamera()
     if (IsKeyPressed('S'))
         movement -= direction;
     if (IsKeyPressed('A'))
-        movement += Vector4(-direction[2], 0.0f, direction[0]);
+        movement += Vector4(-direction[2], 0.0f, direction[0], 0.0f);
     if (IsKeyPressed('D'))
-        movement -= Vector4(-direction[2], 0.0f, direction[0]);
+        movement -= Vector4(-direction[2], 0.0f, direction[0], 0.0f);
 
     if (movement.Length3() > RT_EPSILON)
     {
@@ -606,7 +635,7 @@ void DemoWindow::UpdateCamera()
     }
 
     mCamera.SetPerspective(mCameraSetup.position, direction,
-                           Vector4(0.0f, 1.0f, 0.0f),
+                           Vector4(0.0f, 1.0f, 0.0f, 0.0f),
                            (Float)width / (Float)height,
                            RT_PI / 180.0f * mCameraSetup.fov);
 

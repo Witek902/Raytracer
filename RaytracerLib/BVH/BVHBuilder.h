@@ -46,7 +46,7 @@ private:
         Context(Uint32 numLeaves);
     };
 
-    struct WorkSet
+    struct RT_ALIGN(16) WorkSet
     {
         math::Box box;
         Indices leafIndices;

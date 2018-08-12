@@ -22,7 +22,8 @@ struct Float2
     };
 
     RT_INLINE constexpr Float2();
-    RT_INLINE constexpr explicit Float2(float x, float y = 0.0f);
+    RT_INLINE constexpr explicit Float2(float v);
+    RT_INLINE constexpr Float2(float x, float y);
     RT_INLINE constexpr explicit Float2(const float* src);
 
     /// element access

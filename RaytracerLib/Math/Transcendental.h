@@ -34,6 +34,12 @@ float ACos(float x);
 float ATan(float x);
 
 /**
+ * Fast atan2f.
+ * Max relative error ~ 3.6e-5
+ */
+float FastATan2(const float y, const float x);
+
+/**
  * Fast exponent.
  * @note    This is much faster than expf
  * @note    Maximum relative error: about 0.2%

@@ -3,6 +3,7 @@
 #include "../RayLib.h"
 
 #include "../Math/Vector4.h"
+#include "../Math/Float3.h"
 #include "../Math/Box.h"
 #include "../Math/Simd8Box.h"
 #include "../Utils/AlignmentAllocator.h"
@@ -20,46 +21,44 @@ public:
 
     struct RT_ALIGN(32) Node
     {
-        union
-        {
-            math::Box box;
-
-            struct Data
-            {
-                float min[3];
-                Uint32 childIndex; // first child node / leaf index
-                float max[3];
-                Uint32 numLeaves;
-            } data;
-        };
-
-        Node()
-            : box()
-        { }
+        // TODO revisit this structure: keeping a pointer to child would be faster than index
+        math::Float3 min;
+        math::Float3 max;
+        Uint32 childIndex; // first child node / leaf index
+        Uint32 splitAxis : 2;
+        Uint32 numLeaves : 30;
 
         RT_FORCE_INLINE math::Box GetBox() const
         {
-            return math::Box(box.min & math::VECTOR_MASK_XYZ, box.max & math::VECTOR_MASK_XYZ);
+            return math::Box(
+                math::Vector4(&min.x) & math::VECTOR_MASK_XYZ,
+                math::Vector4(&max.x) & math::VECTOR_MASK_XYZ
+            );
         }
 
         RT_FORCE_INLINE math::Box_Simd8 GetBox_Simd8() const
         {
             math::Box_Simd8 ret;
 
-            ret.min.x = _mm256_broadcast_ss(data.min + 0);
-            ret.min.y = _mm256_broadcast_ss(data.min + 1);
-            ret.min.z = _mm256_broadcast_ss(data.min + 2);
+            ret.min.x = _mm256_broadcast_ss(&min.x);
+            ret.min.y = _mm256_broadcast_ss(&min.y);
+            ret.min.z = _mm256_broadcast_ss(&min.z);
 
-            ret.max.x = _mm256_broadcast_ss(data.max + 0);
-            ret.max.y = _mm256_broadcast_ss(data.max + 1);
-            ret.max.z = _mm256_broadcast_ss(data.max + 2);
+            ret.max.x = _mm256_broadcast_ss(&max.x);
+            ret.max.y = _mm256_broadcast_ss(&max.y);
+            ret.max.z = _mm256_broadcast_ss(&max.z);
 
             return ret;
         }
 
         RT_FORCE_INLINE bool IsLeaf() const
         {
-            return data.numLeaves > 0;
+            return numLeaves != 0;
+        }
+
+        RT_FORCE_INLINE Uint32 GetSplitAxis() const
+        {
+            return splitAxis;
         }
     };
 

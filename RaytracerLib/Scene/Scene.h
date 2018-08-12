@@ -4,7 +4,7 @@
 
 #include "SceneObject.h"
 
-#include "../Color/RayColor.h"
+#include "../Color/Color.h"
 #include "../Traversal/HitPoint.h"
 #include "../BVH/BVH.h"
 
@@ -40,7 +40,7 @@ struct SceneEnvironment
     Bitmap* texture;
 
     SceneEnvironment()
-        : backgroundColor(math::Vector4(1.0f, 1.0f, 1.0f))
+        : backgroundColor(math::Vector4(1.0f, 1.0f, 1.0f, 0.0f))
         , texture(nullptr)
     { }
 };
@@ -60,27 +60,27 @@ public:
 
     bool BuildBVH();
 
+    RT_FORCE_NOINLINE const BVH& GetBVH() const { return mBVH; }
+
     // traverse the scene, returns hit points
-    RT_FORCE_NOINLINE void Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint, RenderingContext& context) const;
-    RT_FORCE_NOINLINE void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint, RenderingContext& context) const;
+    RT_FORCE_NOINLINE void Traverse_Single(const SingleTraversalContext& context) const;
+    RT_FORCE_NOINLINE void Traverse_Packet(const PacketTraversalContext& context) const;
 
     void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, ShadingData& outShadingData) const;
 
     RT_FORCE_NOINLINE RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
     RT_FORCE_NOINLINE void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, RayColor* outColors) const;
 
+    RT_FORCE_NOINLINE void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
+    RT_FORCE_NOINLINE void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
+    RT_FORCE_NOINLINE void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const;
 
-    RT_FORCE_NOINLINE void Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& outHitPoint) const;
-    RT_FORCE_NOINLINE void Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const;
-
-    /*
-    RT_FORCE_NOINLINE void Traverse_Packet(const RayPacket& packet, RenderingContext& context, HitPoint_Packet& outHitPoints) const;
+    RT_FORCE_NOINLINE void Shade_Simd8(const math::Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, RenderingContext& context, RayColor* outColors) const;
 
     // perform ray packet shading:
     // 1. apply calculated color to render target
     // 2. generate secondary rays
-    RT_FORCE_NOINLINE void ShadePacket(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
-    */
+    RT_FORCE_NOINLINE void Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
 
     // sample background color
     RayColor GetBackgroundColor(const math::Ray& ray) const;

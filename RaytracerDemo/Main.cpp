@@ -1,30 +1,74 @@
 #include "PCH.h"
 #include "Demo.h"
 
+#include "../External/cxxopts.hpp"
+#include "../RaytracerLib/Utils/Logger.h"
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+bool ParseOptions(int argc, char** argv, Options& outOptions)
 {
-    RT_UNUSED(hPrevInstance);
-    RT_UNUSED(lpCmdLine);
+    cxxopts::Options options("Raytracer Demo", "CPU raytracer by Michal Witanowski");
+    options.add_options()
+        ("w,width", "Window width", cxxopts::value<Uint32>())
+        ("h,height", "Window width", cxxopts::value<Uint32>())
+        ("d,data", "Data path", cxxopts::value<std::string>())
+        ("m,model", "OBJ model to load", cxxopts::value<std::string>())
+        ("e,env", "Environment map path", cxxopts::value<std::string>())
+        ;
+
+    try
+    {
+        auto result = options.parse(argc, argv);
+
+        if (result.count("w"))
+            outOptions.windowWidth = result["w"].as<Uint32>();
+
+        if (result.count("h"))
+            outOptions.windowHeight = result["h"].as<Uint32>();
+
+        if (result.count("d"))
+            outOptions.dataPath = result["d"].as<std::string>();
+
+        if (result.count("m"))
+            outOptions.modelPath = result["m"].as<std::string>();
+
+        if (result.count("e"))
+            outOptions.envMapPath = result["e"].as<std::string>();
+    }
+    catch (cxxopts::OptionParseException& e)
+    {
+        RT_LOG_ERROR("Failed to parse commandline: %hs", e.what());
+        return false;
+    }
+
+    return true;
+}
+
+
+int main(int argc, char* argv[])
+{
+    Options options;
+    if (!ParseOptions(argc, argv, options))
+    {
+        return 1;
+    }
 
     {
         DemoWindow demo;
 
-        if (!demo.Initialize())
+        if (!demo.Initialize(options))
         {
             return 2;
         }
 
-        if (!demo.InitScene())
-        {
-            return 3;
-        }
+        RT_LOG_INFO("Initialized.");
 
         if (!demo.Loop())
         {
-            return 4;
+            return 3;
         }
     }
+
+    RT_LOG_INFO("Closing.");
 
 #ifdef _DEBUG
     _CrtDumpMemoryLeaks();

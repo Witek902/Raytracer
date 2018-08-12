@@ -5,15 +5,17 @@
 
 #include "BVH/BVHBuilder.h"
 
-#include "Traversal/Traversal.h"
-#include "Rendering/Counters.h"
+#include "Rendering/ShadingData.h"
+#include "Rendering/Context.h"
+#include "Traversal/TraversalContext.h"
 
 #include "Math/Triangle.h"
 #include "Math/Geometry.h"
-
+#include "Math/Simd8Triangle.h"
+#include "Math/Simd8Geometry.h"
 
 #include "Utils/Logger.h"
-#include "Utils/Logger.h"
+#include "Utils/Bitmap.h"
 #include "Utils/AlignmentAllocator.h"
 
 #include <vector>
@@ -49,11 +51,6 @@ bool Mesh::Initialize(const MeshDesc& desc)
         const Vector4 v2(positions[indexBuffer[3 * i + 2]]);
 
         Box triBox(v0, v1, v2);
-        const Vector4 size = triBox.max - triBox.min;
-        triBox.min -= size * 0.001f;
-        triBox.max += size * 0.001f;
-        triBox.min -= VECTOR_EPSILON;
-        triBox.max += VECTOR_EPSILON;
 
         boxes.push_back(triBox);
 
@@ -96,7 +93,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
         for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
         {
             const Uint32 newTriangleIndex = newTrianglesOrder[i];
-            assert(newTriangleIndex < mNumTriangles);
+            assert(newTriangleIndex < desc.vertexBufferDesc.numTriangles);
 
             newIndexBuffer[3 * i] = indexBuffer[3 * newTriangleIndex];
             newIndexBuffer[3 * i + 1] = indexBuffer[3 * newTriangleIndex + 1];
@@ -121,167 +118,138 @@ bool Mesh::Initialize(const MeshDesc& desc)
     return true;
 }
 
-void Mesh::Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& hitPoint) const
+void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     float distance, u, v;
 
-    for (Uint32 i = 0; i < node.data.numLeaves; ++i)
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    context.context.localCounters.numRayTriangleTests += node.numLeaves;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+    for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
-        const Uint32 triangleIndex = node.data.childIndex + i;
+        const Uint32 triangleIndex = node.childIndex + i;
 
         const math::ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
 
-        if (Intersect_TriangleRay(ray, tri, u, v, distance))
+        if (Intersect_TriangleRay(context.ray, tri, u, v, distance))
         {
-            if (distance < hitPoint.distance)
+            HitPoint& hitPoint = context.hitPoint;
+            if (distance < hitPoint.distance && (hitPoint.triangleId != triangleIndex || hitPoint.objectId != objectID))
             {
                 hitPoint.distance = distance;
                 hitPoint.triangleId = triangleIndex;
+                hitPoint.objectId = objectID;
                 hitPoint.u = u;
                 hitPoint.v = v;
+
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+                context.context.localCounters.numPassedRayTriangleTests++;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
             }
         }
     }
 }
 
-void Mesh::Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const
+void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
+    const VectorInt8 objectIndexVec(objectID);
+
     Vector8 distance, u, v;
     Triangle_Simd8 tri;
 
-    // TODO counters
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    context.context.localCounters.numRayTriangleTests += 8 * node.numLeaves;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    for (Uint32 i = 0; i < node.data.numLeaves; ++i)
+    for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
-        const Uint32 triangleIndex = node.data.childIndex + i;
+        HitPoint_Simd8& hitPoint = context.hitPoint;
+        const Uint32 triangleIndex = node.childIndex + i;
+        const VectorInt8 triangleIndexVec(triangleIndex);
 
         mVertexBuffer.GetTriangle(triangleIndex, tri);
 
-        const Vector8 mask = Intersect_TriangleRay_Simd8(ray, tri, outHitPoint.distance, u, v, distance);
+        const Vector8 mask = Intersect_TriangleRay_Simd8(context.ray.dir, context.ray.origin, tri, hitPoint.distance, u, v, distance);
+        const Uint32 intMask = mask.GetSignMask();
 
-        if (mask.GetSignMask())
+        // TODO triangle & object filtering
+        if (intMask)
         {
             // combine results according to mask
-            outHitPoint.u = Vector8::SelectBySign(outHitPoint.u, u, mask);
-            outHitPoint.v = Vector8::SelectBySign(outHitPoint.v, v, mask);
-            outHitPoint.distance = Vector8::SelectBySign(outHitPoint.distance, distance, mask);
-            outHitPoint.triangleId = Vector8::SelectBySign(outHitPoint.triangleId, Vector8::Splat(triangleIndex), mask);
+            hitPoint.u = Vector8::SelectBySign(hitPoint.u, u, mask);
+            hitPoint.v = Vector8::SelectBySign(hitPoint.v, v, mask);
+            hitPoint.distance = Vector8::SelectBySign(hitPoint.distance, distance, mask);
+            hitPoint.triangleId = VectorInt8::SelectBySign(hitPoint.triangleId, triangleIndexVec, mask);
+            hitPoint.objectId = VectorInt8::SelectBySign(hitPoint.objectId, objectIndexVec, mask);
+
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+            context.context.localCounters.numPassedRayTriangleTests += __popcnt(intMask);
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
         }
     }
 }
 
-void Mesh::Traverse_Single(const Ray& ray, HitPoint& outHitPoint) const
+void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
 {
-    GenericTraverse_Single(mBVH, ray, outHitPoint, this);
-}
+    RT_UNUSED(context);
 
-void Mesh::Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
-{
-    GenericTraverse_Simd8(mBVH, ray, outHitPoint, this);
-}
+    const Uint32 numGroups = context.ray.GetNumGroups();
+    const VectorInt8 objectIndexVec(objectID);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+    Vector8 distance, u, v;
+    Triangle_Simd8 tri;
 
-void Mesh::Traverse_Packet(const RayPacket& packet, HitPoint_Packet& data, Uint32 instanceID) const
-{
-    (void)packet;
-    (void)data;
-    (void)instanceID;
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    context.context.localCounters.numRayTriangleTests += 8 * node.numLeaves * numActiveGroups;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    /*
-    // all nodes
-    const BVH::Node* nodes = mBVH.GetNodes();
-
-    struct StackItem
+    for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
-        const BVH::Node* node;
-        Uint32 numActiveRays;
-        Uint16 activeRays[MaxRayPacketSize];
-    };
+        const Uint32 triangleIndex = node.childIndex + i;
+        const Vector8 triangleIndexVec(triangleIndex);
 
-    // "nodes to visit" stack
-    Uint32 stackSize = 0;
-    StackItem nodesStack[BVH::MaxDepth];
+        mVertexBuffer.GetTriangle(triangleIndex, tri);
 
-    // BVH traversal
-    for (const BVH::Node* currentNode = nodes;;)
-    {
-        if (currentNode->IsLeaf())
+        for (Uint32 j = 0; j < numActiveGroups; ++j)
         {
-            float distance, u, v;
+            RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
 
-            for (Uint32 i = 0; i < currentNode->data.numLeaves; ++i)
+            const Vector8 mask = Intersect_TriangleRay_Simd8(rayGroup.rays.dir, rayGroup.rays.origin, tri, rayGroup.maxDistances, u, v, distance);
+            const Uint32 intMask = mask.GetSignMask();
+
+            // TODO triangle & object filtering
+            if (intMask)
             {
-                const Uint32 triangleIndex = node.data.childIndex + i;
+                rayGroup.maxDistances = Vector8::SelectBySign(rayGroup.maxDistances, distance, mask);
+                // TODO write object & triangle ID
+                //rayGroup.objectIndex = Vector8::SelectBySign(rayGroup.objectIndex, objectIndexVec, mask);
+                //rayGroup.triangleIndex = Vector8::SelectBySign(rayGroup.triangleIndex, triangleIndexVec, mask);
 
-                VertexIndices indices;
-                mVertexBuffer.GetVertexIndices(triangleIndex, indices);
-
-                Triangle tri;
-                mVertexBuffer.GetVertexPositions(indices, tri);
-
-                if (Intersect_TriangleRay(ray, tri, u, v, distance))
+                // write back the intersection result
+                for (Uint32 k = 0; k < 8; ++k)
                 {
-                    if (distance < data.distance)
+                    // TODO this is not very optimal...
+                    if ((intMask >> k) & 1)
                     {
-                        data.distance = distance;
-                        data.triangle = triangleIndex;
-                        data.u = u;
-                        data.v = v;
+                        const Uint32 rayOffset = rayGroup.rayOffsets[k];
+                        const Uint32 subOffset = rayOffset % 8; // offset within hit point group
+                        HitPoint_Simd8& hitPoint = context.hitPoint[rayOffset / 8];
+
+                        hitPoint.u[subOffset] = u[k];
+                        hitPoint.v[subOffset] = v[k];
+                        hitPoint.distance[subOffset] = distance[k];
+                        hitPoint.triangleId[subOffset] = triangleIndex;
+                        hitPoint.objectId[subOffset] = objectID;
                     }
                 }
+
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+                context.context.localCounters.numPassedRayTriangleTests += __popcnt(intMask);
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
             }
         }
-        else
-        {
-            const BVH::Node* childA = nodes + currentNode->data.childIndex;
-            const BVH::Node* childB = childA + 1;
-
-            // prefetch grand-children
-            RT_PREFETCH(nodes + childA->data.childIndex);
-            RT_PREFETCH(nodes + childB->data.childIndex);
-
-            for (Uint32 i = 0; i < numActiveRays; ++i)
-            {
-                const Ray& ray = packet.rays[activeRays[i]];
-            }
-
-            bool hitA = Intersect_BoxRay(ray, childA->GetBox(), distanceA);
-            bool hitB = Intersect_BoxRay(ray, childB->GetBox(), distanceB);
-
-            // box occlusion
-            hitA &= (distanceA < data.distance);
-            hitB &= (distanceB < data.distance);
-
-            if (hitA && hitB)
-            {
-                // will push [childA, childB] or [childB, childA] depending on distances
-                const bool order = distanceA < distanceB;
-                nodesStack[stackSize++] = order ? childB : childA; // push node
-                currentNode = order ? childA : childB;
-                continue;
-            }
-            else if (hitA)
-            {
-                currentNode = childA;
-                continue;
-            }
-            else if (hitB)
-            {
-                currentNode = childB;
-                continue;
-            }
-        }
-
-        if (stackSize == 0)
-        {
-            break;
-        }
-
-        // pop a node
-        currentNode = nodesStack[--stackSize];
     }
-    */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -291,14 +259,13 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
 
-    const Material* material = mVertexBuffer.GetMaterial(indices.materialIndex);
-    outShadingData.material = material ? material : &gDefaultMaterial;
+    outShadingData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
 
     VertexShadingData vertexShadingData[3];
     mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);
 
-    const Vector4 coeff1 = Vector4::Splat(hitPoint.u);
-    const Vector4 coeff2 = Vector4::Splat(hitPoint.v);
+    const Vector4 coeff1 = Vector4(hitPoint.u);
+    const Vector4 coeff2 = Vector4(hitPoint.v);
     const Vector4 coeff0 = Vector4(VECTOR_ONE) - coeff1 - coeff2;
 
     const Vector4 texCoord0(&vertexShadingData[0].texCoord.x);
@@ -325,6 +292,24 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     outShadingData.tangent.FastNormalize3();
 
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+
+    if (outShadingData.material->normalMap)
+    {
+        Vector4 localNormal = outShadingData.material->GetNormalVector(outShadingData.texCoord);
+
+        // TODO normal map strength
+        //localNormal = Vector4::Lerp(VECTOR_Z, localNormal, 0.5f);
+
+        // transform normal vector
+        outShadingData.normal = outShadingData.tangent * localNormal.x + outShadingData.bitangent * localNormal.y + outShadingData.normal * localNormal.z;
+        outShadingData.normal.FastNormalize3();
+
+        // orthogonalize tangent vector
+        outShadingData.tangent -= Vector4::Dot3V(outShadingData.tangent, outShadingData.normal) * outShadingData.normal;
+        outShadingData.tangent.FastNormalize3();
+
+        outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+    }
 }
 
 rt::math::Vector4 ShadingData::LocalToWorld(const math::Vector4 localCoords) const
@@ -335,9 +320,9 @@ rt::math::Vector4 ShadingData::LocalToWorld(const math::Vector4 localCoords) con
 math::Vector4 ShadingData::WorldToLocal(const math::Vector4 worldCoords) const
 {
     // TODO optimize transposition
-    const Vector4 worldToLocalX = Vector4(tangent[0], bitangent[0], normal[0]);
-    const Vector4 worldToLocalY = Vector4(tangent[1], bitangent[1], normal[1]);
-    const Vector4 worldToLocalZ = Vector4(tangent[2], bitangent[2], normal[2]);
+    const Vector4 worldToLocalX = Vector4(tangent[0], bitangent[0], normal[0], 0.0f);
+    const Vector4 worldToLocalY = Vector4(tangent[1], bitangent[1], normal[1], 0.0f);
+    const Vector4 worldToLocalZ = Vector4(tangent[2], bitangent[2], normal[2], 0.0f);
 
     return worldToLocalX * worldCoords[0] + worldToLocalY * worldCoords[1] + worldToLocalZ * worldCoords[2];
 }

@@ -15,26 +15,10 @@
 
 namespace rt {
 
-struct LocalCounters;
-
-struct ShadingData
-{
-    const Material* material = nullptr;
-
-    math::Vector4 position;
-
-    math::Vector4 tangent;
-    math::Vector4 bitangent;
-    math::Vector4 normal;
-
-    math::Vector4 texCoord;
-
-    math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
-    math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
-};
-
-
-class Material;
+struct ShadingData;
+struct SingleTraversalContext;
+struct SimdTraversalContext;
+struct PacketTraversalContext;
 
 struct MeshDesc
 {
@@ -56,18 +40,15 @@ public:
     bool Initialize(const MeshDesc& desc);
 
     RT_FORCE_INLINE const math::Box& GetBoundingBox() const { return mBoundingBox; }
+    RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
 
-    // Trace the mesh to obtain intersection data (aka. hit point)
-    // Note: 'distance' is used for narrowing of intersection search range
-    void Traverse_Single(const math::Ray& ray, HitPoint& outHitPoint) const;
-    void Traverse_Simd8(const math::Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const;
-    void Traverse_Packet(const RayPacket& packet, HitPoint_Packet& outHitPoint, Uint32 instanceID) const;
+    // Intersect ray(s) with BVH leaf
+    void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
+    void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
+    void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const;
 
     // Calculate input data for shading routine
     void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const;
-
-    void Traverse_Leaf_Single(const math::Ray& ray, const BVH::Node& node, HitPoint& outHitPoint) const;
-    void Traverse_Leaf_Simd8(const math::Ray_Simd8& ray, const BVH::Node& node, HitPoint_Simd8& outHitPoint) const;
 
 private:
 

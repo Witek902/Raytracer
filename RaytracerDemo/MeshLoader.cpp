@@ -48,7 +48,7 @@ rt::Bitmap* LoadTexture(const std::string& baseDir, const std::string& path)
     }
 
     std::string fullPath = baseDir + path;
-    if (fullPath.rfind(".png") == fullPath.length() - 4)
+    if ((fullPath.rfind(".png") == fullPath.length() - 4) || (fullPath.rfind(".jpg") == fullPath.length() - 4))
     {
         fullPath.replace(fullPath.length() - 4, 4, ".bmp");
     }
@@ -76,14 +76,27 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tin
     auto material = std::make_unique<rt::Material>();
 
     material->debugName = sourceMaterial.name;
-    material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2]);
-    material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2]);
+    material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
+    material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
     material->baseColorMap = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
-    material->specularMap = LoadTexture(baseDir, sourceMaterial.specular_texname);
+    material->normalMap = LoadTexture(baseDir, sourceMaterial.normal_texname);
 
     material->Compile();
 
     return material;
+}
+
+const rt::Material* CreateDefaultMaterial(MaterialsList& outMaterials)
+{
+    auto material = std::make_unique<rt::Material>();
+    material->debugName = "default";
+    material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
+    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->roughness = 0.75f;
+    material->Compile();
+
+    outMaterials.push_back(std::move(material));
+    return outMaterials.back().get();
 }
 
 std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale)
@@ -153,7 +166,8 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
                 verts[i] = math::Vector4(
                     attrib.vertices[3 * idx[i].vertex_index + 0],
                     attrib.vertices[3 * idx[i].vertex_index + 1],
-                    attrib.vertices[3 * idx[i].vertex_index + 2]);
+                    attrib.vertices[3 * idx[i].vertex_index + 2],
+                    0.0f);
 
                 vertexPositions.push_back(scale * verts[i][0]);
                 vertexPositions.push_back(scale * verts[i][1]);
@@ -169,7 +183,8 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
                     normals[i] = math::Vector4(
                         attrib.normals[3 * idx[i].normal_index + 0],
                         attrib.normals[3 * idx[i].normal_index + 1],
-                        attrib.normals[3 * idx[i].normal_index + 2]);
+                        attrib.normals[3 * idx[i].normal_index + 2],
+                        0.0f);
                 }
             }
             else
@@ -232,15 +247,28 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
         outMaterials.emplace_back(std::move(material));
     }
 
+    // fallback to default material
+    if (materials.empty())
+    {
+        RT_LOG_WARNING("No materials found in mesh '%s'. Falling back to the default material.");
+
+        const rt::Material* defaultMaterial = CreateDefaultMaterial(outMaterials);
+        materialPointers.push_back(defaultMaterial);
+
+        for (Uint32& index : materialIndices)
+        {
+            index = 0;
+        }
+    }
 
     RT_LOG_DEBUG("Mesh file '%s' loaded, shapes = %zu, materials = %zu, indices = %u",
-                 filePath.c_str(), shapes.size(), materials.size(), totalIndices);
+                 filePath.c_str(), shapes.size(), materialPointers.size(), totalIndices);
 
     rt::MeshDesc meshDesc;
     meshDesc.path = filePath;
     meshDesc.vertexBufferDesc.numTriangles = static_cast<Uint32>(vertexIndices.size() / 3);
     meshDesc.vertexBufferDesc.numVertices = static_cast<Uint32>(vertexPositions.size() / 3);
-    meshDesc.vertexBufferDesc.numMaterials = static_cast<Uint32>(materials.size());
+    meshDesc.vertexBufferDesc.numMaterials = static_cast<Uint32>(materialPointers.size());
     meshDesc.vertexBufferDesc.materials = materialPointers.data();
     meshDesc.vertexBufferDesc.materialIndexBuffer = materialIndices.data();
     meshDesc.vertexBufferDesc.vertexIndexBuffer = vertexIndices.data();
@@ -263,10 +291,17 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
 {
     auto material = std::make_unique<rt::Material>();
     material->debugName = "default";
-    material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f);
-    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f);
-    material->baseColorMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_COL_VAR1_6K.bmp");
-    material->specularMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_REFL_6K.bmp");
+    material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f, 0.0f);
+    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->roughness = 0.5f;
+
+	//material->baseColorMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_COL_VAR2_6K.bmp");
+	//material->normalMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_NRM_6K.bmp");
+    //material->baseColorMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_COL_VAR1_6K.bmp");
+    //material->normalMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
+	//material->baseColorMap->MakeTiled(4);
+	//material->normalMap->MakeTiled(4);
+
     material->Compile();
 
     const rt::Material* materials[] = { material.get() };

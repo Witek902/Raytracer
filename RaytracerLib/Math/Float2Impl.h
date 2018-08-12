@@ -20,6 +20,10 @@ constexpr Float2::Float2(const float* src)
     : x(src[0]), y(src[1])
 { }
 
+constexpr Float2::Float2(float v)
+    : x(v), y(v)
+{ }
+
 constexpr Float2::Float2(float x, float y)
     : x(x), y(y)
 { }

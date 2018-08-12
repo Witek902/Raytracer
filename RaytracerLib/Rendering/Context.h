@@ -5,6 +5,8 @@
 #include "../Traversal/RayPacket.h"
 #include "../Traversal/HitPoint.h"
 
+#include "../Utils/Bitmap.h" // TODO remove
+
 #include "../Math/Random.h"
 
 namespace rt {
@@ -13,6 +15,9 @@ enum class RenderingMode : Uint8
 {
     Regular = 0,
 
+    // material
+    BaseColor,                  // visualize base color of the first intersection
+
     // geometry
     Depth,                      // visualize depth
     Position,                   // visualize world-space position
@@ -20,15 +25,23 @@ enum class RenderingMode : Uint8
     Tangents,
     Bitangents,
     TexCoords,
+    TriangleID,                 // draw every triangle with random color
 
-    // material
-    BaseColor,                  // visualize base color of the first intersection
 
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
     // stats
     RayBoxIntersection,         // visualize number of performed ray-box intersections
     RayBoxIntersectionPassed,   // visualize number of passed ray-box intersections
     RayTriIntersection,         // visualize number of performed ray-triangle intersections
     RayTriIntersectionPassed,   // visualize number of passed ray-triangle intersections
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+};
+
+enum class TraversalMode : Uint8
+{
+    Single = 0,
+    Simd,
+    Packet,
 };
 
 struct RenderingParams
@@ -40,27 +53,33 @@ struct RenderingParams
     // number of primary rays to be generated for image pixel
     Uint32 samplesPerPixel;
 
-    // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
-    Uint32 tileSize;
-
     // maximum ray depth
     Uint32 maxRayDepth;
 
     // ray depth after which Russian Roulette algorithm kicks in
     Uint32 minRussianRouletteDepth;
 
+    // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
+    Uint8 tileOrder;
+
+    // select mode of ray traversal
+    TraversalMode traversalMode;
+
     // allows to enable debug rendering mode
     RenderingMode renderingMode;
 
     RenderingParams()
         : maxRayDepth(20)
-        , tileSize(8)
+        , tileOrder(4)
         , minRussianRouletteDepth(2)
         , samplesPerPixel(1)
-        , antiAliasingSpread(1.2f) // blur a little bit - real images are not perfectly sharp
-        , renderingMode(RenderingMode::Regular)
+        , antiAliasingSpread(1.1f)
+        , traversalMode(TraversalMode::Packet)
+        , renderingMode(RenderingMode::TriangleID)
     { }
 };
+
+
 
 /**
  * A structure with local (per-thread) data.
@@ -68,6 +87,15 @@ struct RenderingParams
  */
 struct RT_ALIGN(64) RenderingContext
 {
+    // two packets because of buffering
+    RayPacket rayPackets[2];
+
+    HitPoint_Packet hitPoints;
+
+    // TODO separate stacks for scene and mesh
+    Uint8 activeRaysMask[RayPacket::MaxNumGroups];
+    Uint16 activeGroupsIndices[RayPacket::MaxNumGroups];
+
     // per-thread pseudo-random number generator
     math::Random randomGenerator;
 
@@ -77,15 +105,11 @@ struct RT_ALIGN(64) RenderingContext
     // per-thread counters
     RayTracingCounters counters;
 
-    // for motion blur sampling
-    float time;
-
     // counters used in local ray traversal routines
     LocalCounters localCounters;
 
-    RayPacket rayPacket;
-
-    HitPoint_Packet hitPoints;
+    // for motion blur sampling
+    float time;
 
     RT_FORCE_INLINE RenderingContext(const RenderingParams* params = nullptr)
         : params(params)

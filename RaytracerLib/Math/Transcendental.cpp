@@ -81,12 +81,12 @@ Vector4 Sin(Vector4 x)
 
     const Vector4 x2 = x * x;
 
-    const Vector4 c0 = Vector4::Splat(9.9999970197e-01f);
-    const Vector4 c1 = Vector4::Splat(-1.6666577756e-01f);
-    const Vector4 c2 = Vector4::Splat(8.3325579762e-03f);
-    const Vector4 c3 = Vector4::Splat(-1.9812576647e-04f);
-    const Vector4 c4 = Vector4::Splat(2.7040521217e-06f);
-    const Vector4 c5 = Vector4::Splat(-2.0532988642e-08f);
+    const Vector4 c0 = Vector4(9.9999970197e-01f);
+    const Vector4 c1 = Vector4(-1.6666577756e-01f);
+    const Vector4 c2 = Vector4(8.3325579762e-03f);
+    const Vector4 c3 = Vector4(-1.9812576647e-04f);
+    const Vector4 c4 = Vector4(2.7040521217e-06f);
+    const Vector4 c5 = Vector4(-2.0532988642e-08f);
 
     Vector4 y = Vector4::MulAndAdd(c4, x2, c5);
     y = Vector4::MulAndAdd(y, x2, c3);
@@ -111,12 +111,12 @@ Vector8 Sin(Vector8 x)
 
     const Vector8 x2 = x * x;
 
-    const Vector8 c0 = Vector8::Splat(9.9999970197e-01f);
-    const Vector8 c1 = Vector8::Splat(-1.6666577756e-01f);
-    const Vector8 c2 = Vector8::Splat(8.3325579762e-03f);
-    const Vector8 c3 = Vector8::Splat(-1.9812576647e-04f);
-    const Vector8 c4 = Vector8::Splat(2.7040521217e-06f);
-    const Vector8 c5 = Vector8::Splat(-2.0532988642e-08f);
+    const Vector8 c0 = Vector8(9.9999970197e-01f);
+    const Vector8 c1 = Vector8(-1.6666577756e-01f);
+    const Vector8 c2 = Vector8(8.3325579762e-03f);
+    const Vector8 c3 = Vector8(-1.9812576647e-04f);
+    const Vector8 c4 = Vector8(2.7040521217e-06f);
+    const Vector8 c5 = Vector8(-2.0532988642e-08f);
 
     Vector8 y = Vector8::MulAndAdd(c4, x2, c5);
     y = Vector8::MulAndAdd(y, x2, c3);
@@ -266,6 +266,30 @@ float FastLog(float x)
     return r;
 }
 
+float FastATan2(const float y, const float x)
+{
+    // https://stackoverflow.com/questions/46210708/atan2-approximation-with-11bits-in-mantissa-on-x86with-sse2-and-armwith-vfpv4
+
+    float a, r, s, t, c, q, ax, ay, mx, mn;
+    ax = math::Abs(x);
+    ay = math::Abs(y);
+    mx = math::Max(ay, ax);
+    mn = math::Min(ay, ax);
+    a = mn / mx;
+    /* Minimax polynomial approximation to atan(a) on [0,1] */
+    s = a * a;
+    c = s * a;
+    q = s * s;
+    r = 0.024840285f * q + 0.18681418f;
+    t = -0.094097948f * q - 0.33213072f;
+    r = r * s + t;
+    r = r * c + a;
+    /* Map to full circle */
+    if (ay > ax) r = 1.57079637f - r;
+    if (x < 0) r = RT_PI - r;
+    if (y < 0) r = -r;
+    return r;
+}
 
 } // namespace math
 } // namespace rt

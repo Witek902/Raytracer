@@ -17,7 +17,7 @@ Timer::Timer()
     static double gPeriod = GetCounterPeriod();
     mPeriod = gPeriod;
 
-    mStart.QuadPart = 0;
+    Start();
 }
 
 void Timer::Start()

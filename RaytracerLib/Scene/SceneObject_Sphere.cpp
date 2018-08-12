@@ -2,7 +2,7 @@
 #include "SceneObject_Sphere.h"
 #include "Math/Geometry.h"
 #include "Rendering/ShadingData.h"
-
+#include "Traversal/TraversalContext.h"
 
 namespace rt {
 
@@ -24,42 +24,41 @@ Box SphereSceneObject::GetBoundingBox() const
     return Box(localBox, localBox + mPositionOffset);
 }
 
-void SphereSceneObject::Traverse_Single(const Uint32 objectID, const Ray& ray, HitPoint& hitPoint) const
+void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    if (hitPoint.filterObjectId == objectID)
+    if (context.hitPoint.objectId != objectID)
     {
-        return;
-    }
-
-    float dist;
-    if (Intersect_RaySphere(ray, mRadius, dist))
-    {
-        if (dist > 0.0f && dist < hitPoint.distance)
+        float dist;
+        if (Intersect_RaySphere(context.ray, mRadius, dist))
         {
-            hitPoint.distance = dist;
-            hitPoint.objectId = objectID;
-            hitPoint.triangleId = 0;
+            if (dist > 0.0f && dist < context.hitPoint.distance)
+            {
+                context.hitPoint.distance = dist;
+                context.hitPoint.objectId = objectID;
+                context.hitPoint.triangleId = 0;
+            }
         }
     }
 }
 
-void SphereSceneObject::Traverse_Simd8(const Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
+void SphereSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
-    (void)ray;
-    (void)outHitPoint;
+    RT_UNUSED(objectID);
+    (void)context;
     // TODO
 }
 
-void SphereSceneObject::Traverse_Packet(const RayPacket& rayPacket, HitPoint_Packet& outHitPoint) const
+void SphereSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
 {
-    (void)rayPacket;
-    (void)outHitPoint;
+    RT_UNUSED(objectID);
+    (void)context;
     // TODO
 }
 
 void SphereSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
     RT_UNUSED(hitPoint);
+    RT_UNUSED(worldToLocal);
 
     outShadingData.material = mMaterial;
 

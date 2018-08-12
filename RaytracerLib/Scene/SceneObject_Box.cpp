@@ -2,7 +2,7 @@
 #include "SceneObject_Box.h"
 #include "Math/Geometry.h"
 #include "Rendering/ShadingData.h"
-
+#include "Traversal/TraversalContext.h"
 
 namespace rt {
 
@@ -114,18 +114,21 @@ Box BoxSceneObject::GetBoundingBox() const
     return Box(localBox, localBox + mPositionOffset);
 }
 
-void BoxSceneObject::Traverse_Single(const Uint32 objectID, const Ray& ray, HitPoint& hitPoint) const
+void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
     const Box box(-mSize, mSize);
 
     float nearDist, farDist;
-    if (Intersect_BoxRay_TwoSided(ray, box, nearDist, farDist))
+    if (Intersect_BoxRay_TwoSided(context.ray, box, nearDist, farDist))
     {
+        const Ray& ray = context.ray;
+        HitPoint& hitPoint = context.hitPoint;
+
         if (nearDist > 0.0f && nearDist < hitPoint.distance)
         {
             const Vector4 cubePoint = (ray.origin + ray.dir * nearDist) / mSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
-            if (hitPoint.filterObjectId != objectID || hitPoint.filterTriangleId != side)
+            if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
             {
                 hitPoint.distance = nearDist;
                 hitPoint.objectId = objectID;
@@ -138,7 +141,7 @@ void BoxSceneObject::Traverse_Single(const Uint32 objectID, const Ray& ray, HitP
         {
             const Vector4 cubePoint = (ray.origin + ray.dir * farDist) / mSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
-            if (hitPoint.filterObjectId != objectID || hitPoint.filterTriangleId != side)
+            if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
             {
                 hitPoint.distance = farDist;
                 hitPoint.objectId = objectID;
@@ -170,17 +173,17 @@ void BoxSceneObject::Traverse_Single(const Uint32 objectID, const Ray& ray, HitP
     */
 }
 
-void BoxSceneObject::Traverse_Simd8(const Ray_Simd8& ray, HitPoint_Simd8& outHitPoint) const
+void BoxSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
-    (void)ray;
-    (void)outHitPoint;
+    RT_UNUSED(objectID);
+    (void)context;
     // TODO
 }
 
-void BoxSceneObject::Traverse_Packet(const RayPacket& rayPacket, HitPoint_Packet& outHitPoint) const
+void BoxSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
 {
-    (void)rayPacket;
-    (void)outHitPoint;
+    RT_UNUSED(objectID);
+    (void)context;
     // TODO
 }
 
@@ -189,7 +192,7 @@ void BoxSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, cons
     RT_UNUSED(hitPoint);
     RT_UNUSED(worldToLocal);
 
-    const Vector4 normalsAndTangnts[] = 
+    const Vector4 normalsAndTangnts[] =
     {
         Vector4(+1.0f, 0.0f, 0.0f, 0.0f),   Vector4(0.0f, 0.0f, -1.0f, 0.0f),
         Vector4(-1.0f, 0.0f, 0.0f, 0.0f),   Vector4(0.0f, 0.0f, +1.0f, 0.0f),

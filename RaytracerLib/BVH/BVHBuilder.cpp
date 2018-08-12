@@ -105,8 +105,8 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
 
 void BVHBuilder::GenerateLeaf(const WorkSet& workSet, BVH::Node& targetNode)
 {
-    targetNode.data.numLeaves = workSet.numLeaves;
-    targetNode.data.childIndex = mNumGeneratedLeaves;
+    targetNode.numLeaves = workSet.numLeaves;
+    targetNode.childIndex = mNumGeneratedLeaves;
 
     for (Uint32 i = 0; i < workSet.numLeaves; ++i)
     {
@@ -123,7 +123,8 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
     assert(workSet.depth < mNumLeaves);
     assert(workSet.depth <= BVH::MaxDepth);
 
-    targetNode.box = workSet.box;
+    targetNode.min = workSet.box.min.ToFloat3();
+    targetNode.max = workSet.box.max.ToFloat3();
 
     if (workSet.numLeaves <= mParams.maxLeafNodeSize)
     {
@@ -195,8 +196,9 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
     const Uint32 leftNodeIndex = mNumGeneratedNodes;
     mNumGeneratedNodes += 2;
 
-    targetNode.data.childIndex = leftNodeIndex;
-    targetNode.data.numLeaves = 0;
+    targetNode.childIndex = leftNodeIndex;
+    targetNode.numLeaves = 0;
+    targetNode.splitAxis = bestAxis;
 
     WorkSet childWorkSet;
     childWorkSet.sortedBy = bestAxis;

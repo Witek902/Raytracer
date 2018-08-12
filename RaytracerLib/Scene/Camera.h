@@ -6,17 +6,20 @@
 #include "../Math/Matrix.h"
 #include "../Math/Ray.h"
 #include "../Math/Random.h"
-#include "../Math/Simd8Vector2.h"
 #include "../Math/Simd8Ray.h"
 
 
 namespace rt {
 
+namespace math {
+class Vector2x8;
+}
+
 struct RenderingContext;
 
 enum class BokehShape : Uint8
 {
-    Circle,
+    Circle = 0,
     Hexagon,
     Square,
 };
@@ -36,7 +39,7 @@ struct DOFSettings
 
     DOFSettings()
         : focalPlaneDistance(2.0f)
-        , aperture(0.002f)
+        , aperture(0.02f)
         , bokehType(BokehShape::Circle)
     { }
 };
@@ -59,7 +62,9 @@ public:
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
     math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
-    math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2_Simd8& coords, RenderingContext& context) const;
+    math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2x8& coords, RenderingContext& context) const;
+
+    RT_FORCE_INLINE math::Vector4 GenerateBokeh(RenderingContext& context) const;
 
     // TODO generate ray packet
 

@@ -23,7 +23,6 @@
     <ClCompile Include="Demo.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
-    <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="..\External\tiny_obj_loader.cc">
       <Filter>External</Filter>
     </ClCompile>
@@ -39,6 +38,9 @@
     <ClCompile Include="..\External\imgui\imgui_sw.cpp">
       <Filter>External\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="MeshLoader.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -48,7 +50,6 @@
     <ClInclude Include="Demo.h">
       <Filter>Demo</Filter>
     </ClInclude>
-    <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="..\External\tiny_obj_loader.h">
       <Filter>External</Filter>
     </ClInclude>
@@ -63,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui_sw.hpp">
       <Filter>External\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshLoader.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\cxxopts.hpp">
+      <Filter>External</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

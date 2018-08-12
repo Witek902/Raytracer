@@ -38,7 +38,7 @@ public:
     // a.k.a. albedo
     // for metals this is specular/reflection color
     // for dielectrics this is diffuse color
-    math::Vector4 baseColor = math::Vector4(0.6f, 0.6f, 0.6f);
+    math::Vector4 baseColor = math::Vector4(0.6f, 0.6f, 0.6f, 0.0f);
 
     // amount of reflection
     float specular = 1.0f;
@@ -55,18 +55,20 @@ public:
     // TODO make it float that blends the models smoothly
     bool metal;
 
+    bool transparent;
+
     // textures
     Bitmap* emissionColorMap = nullptr;
     Bitmap* baseColorMap = nullptr;
-    Bitmap* specularMap = nullptr;
-    // TODO metal map
+    Bitmap* normalMap = nullptr;
+    // TODO metal/roughness map
 
     // TODO material layers
 
     void Compile();
 
     math::Vector4 GetBaseColor(const math::Vector4 uv) const;
-    float GetSpecularValue(const math::Vector4 uv) const;
+    math::Vector4 GetNormalVector(const math::Vector4 uv) const;
 
     // Shade a ray and generate secondary ray
     // TODO wavelength

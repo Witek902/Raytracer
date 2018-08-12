@@ -13,9 +13,9 @@ namespace math {
 class RT_ALIGN(16) Ray
 {
 public:
-    Vector4 dir; // TODO remove?
     Vector4 invDir;
     Vector4 origin;
+    Vector4 dir;
 
     Ray() {}
 
@@ -23,7 +23,7 @@ public:
         : origin(origin)
     {
         dir = direction.Normalized3();
-        invDir = Vector4::FastReciprocal(dir);
+        invDir = Vector4::Reciprocal(dir);
     }
 };
 

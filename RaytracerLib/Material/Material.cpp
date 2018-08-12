@@ -2,35 +2,73 @@
 #include "Material.h"
 #include "BSDF.h"
 #include "Mesh/Mesh.h"
+#include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
 #include "Math/Random.h"
 
+#pragma optimize("", off)
 
 namespace rt {
 
 using namespace math;
 
-float FresnelDielectric(const float NdotV, const float eta)
+
+
+
+float FresnelDielectric(float NdotV, float eta, bool& totalInternalReflection)
 {
-    float c = fabsf(NdotV);
-    float g = eta * eta - 1.0f + c * c;
-    if (g > 0.0f)
+    if (NdotV > 0.0f)
     {
-        g = sqrtf(g);
+        eta = 1.0f / eta;
+    }
+
+    /*
+    if (NdotV > 0.0f)
+    {
+        eta = 1.0f / eta;
+    }
+    else
+    {
+        NdotV = -NdotV;
+    }
+
+    float k = eta * eta * (1.0f - NdotV * NdotV);
+    if (k > 1.0f)
+    {
+        //totalInternalReflection = true;
+        return 1.0f; // TIR
+    }
+
+    const float g = sqrtf(1.0f - k);
+    const float A = (NdotV - eta * g) / (NdotV + eta * g);
+    const float B = (eta * NdotV - g) / (eta * NdotV + g);
+
+    totalInternalReflection = false;
+    return 0.5f * (A * A + B * B);
+    */
+
+    const float c = fabsf(NdotV);
+    float g = eta * eta * (1.0f - NdotV * NdotV);
+    if (g < 1.0f)
+    {
+        totalInternalReflection = false;
+        g = sqrtf(1.0f - g);
         const float A = (g - c) / (g + c);
         const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
         return 0.5f * A * A * (1.0f + B * B);
     }
+
+    totalInternalReflection = true;
     return 1.0f;
 }
 
 float FresnelMetal(const float NdotV, const float eta, const float k)
 {
-    float NdotV2 = NdotV * NdotV;
-    float a = eta * eta + k * k;
-    float b = a * NdotV2;
-    float rs = (b - (2.0f * eta * NdotV) + 1.0f) / (b + (2.0f * eta * NdotV) + 1.0f);
-    float rp = (a - (2.0f * eta * NdotV) + NdotV2) / (a + (2.0f * eta * NdotV) + NdotV2);
+    const float NdotV2 = NdotV * NdotV;
+    const float a = eta * eta + k * k;
+    const float b = a * NdotV2;
+    const float rs = (b - (2.0f * eta * NdotV) + 1.0f) / (b + (2.0f * eta * NdotV) + 1.0f);
+    const float rp = (a - (2.0f * eta * NdotV) + NdotV2) / (a + (2.0f * eta * NdotV) + NdotV2);
     return (rs + rp) * 0.5f;
 }
 
@@ -38,6 +76,7 @@ float FresnelMetal(const float NdotV, const float eta, const float k)
 Material::Material(const char* debugName)
     : debugName(debugName)
     , metal(false)
+    , transparent(false)
     , IoR(1.5f)
     , K(4.0f)
 {
@@ -48,7 +87,15 @@ void Material::Compile()
     emissionColor = Vector4::Max(Vector4(), emissionColor);
     baseColor = Vector4::Max(Vector4(), Vector4::Min(VECTOR_ONE, baseColor));
 
-    mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(baseColor, roughness);
+    if (transparent)
+    {
+        mDiffuseBSDF = std::make_unique<TransparencyBSDF>(IoR); // TODO
+    }
+    else
+    {
+        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(baseColor, roughness);
+    }
+
     mSpecularBSDF = std::make_unique<CookTorranceBSDF>(roughness);
 }
 
@@ -64,16 +111,26 @@ math::Vector4 Material::GetBaseColor(const math::Vector4 uv) const
     return color;
 }
 
-float Material::GetSpecularValue(const math::Vector4 uv) const
+math::Vector4 Material::GetNormalVector(const math::Vector4 uv) const
 {
-    float value = specular;
+    math::Vector4 normal(0.0f, 0.0f, 1.0f, 0.0f);
 
-    if (specularMap)
+    if (normalMap)
     {
-        value *= specularMap->Sample(uv, SamplerDesc())[0];
+        SamplerDesc sampler;
+        sampler.forceLinearSpace = true;
+
+        normal = normalMap->Sample(uv, sampler);
+
+        // scale from [0...1] to [-1...1]
+        normal += normal;
+        normal -= VECTOR_ONE;
+
+        // reconstruct Z
+        normal.z = sqrtf(1.0f - normal.x * normal.x - normal.y * normal.y);
     }
 
-    return value;
+    return normal;
 }
 
 math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
@@ -85,6 +142,7 @@ math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::
     const BSDF* bsdf = nullptr;
     math::Vector4 value;
 
+    // TODO metallic/dielectric smooth blending
     if (metal)
     {
         value = GetBaseColor(shadingData.texCoord);
@@ -93,10 +151,11 @@ math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::
     }
     else
     {
-        const float F = FresnelDielectric(NdotV, IoR);
-        const float specularWeight = F * GetSpecularValue(shadingData.texCoord);
+        bool totalInternalReflection = false;
+        const float F = FresnelDielectric(NdotV, IoR, totalInternalReflection);
+        const float specularWeight = F;
 
-        if (randomGenerator.GetFloat() < specularWeight) // glossy reflection
+        if (randomGenerator.GetFloat() < specularWeight || totalInternalReflection) // glossy reflection
         {
             value = VECTOR_ONE;
             bsdf = mSpecularBSDF.get();
@@ -105,8 +164,6 @@ math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::
         {
             value = GetBaseColor(shadingData.texCoord);
             bsdf = mDiffuseBSDF.get();
-
-            // TODO refraction
         }
     }
 

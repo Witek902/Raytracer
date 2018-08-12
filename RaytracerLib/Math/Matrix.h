@@ -4,7 +4,7 @@
 
 #include "Math.h"
 #include "Vector4.h"
-#include "Simd8Vector3.h"
+#include "Vector3x8.h"
 
 #include <initializer_list>
 
@@ -212,12 +212,12 @@ public:
         return tmp0 + tmp1;
     }
 
-    Vector3_Simd8 TransformPoint(const Vector3_Simd8& a) const
+    Vector3x8 TransformPoint(const Vector3x8& a) const
     {
-        const Vector3_Simd8 row0(r[0]);
-        const Vector3_Simd8 row1(r[1]);
-        const Vector3_Simd8 row2(r[2]);
-        const Vector3_Simd8 row3(r[3]);
+        const Vector3x8 row0(r[0]);
+        const Vector3x8 row1(r[1]);
+        const Vector3x8 row2(r[2]);
+        const Vector3x8 row3(r[3]);
         return row0 * a.x + row1 * a.y + row2 * a.z + row3;
     }
 
@@ -228,11 +228,11 @@ public:
         return tmp0 + tmp1;
     }
 
-    Vector3_Simd8 TransformVector(const Vector3_Simd8& a) const
+    Vector3x8 TransformVector(const Vector3x8& a) const
     {
-        const Vector3_Simd8 row0(r[0]);
-        const Vector3_Simd8 row1(r[1]);
-        const Vector3_Simd8 row2(r[2]);
+        const Vector3x8 row0(r[0]);
+        const Vector3x8 row1(r[1]);
+        const Vector3x8 row2(r[2]);
         return row0 * a.x + row1 * a.y + row2 * a.z;
     }
 
@@ -261,7 +261,7 @@ public:
     RT_FORCE_INLINE static bool Equal(const Matrix& m1, const Matrix& m2, float epsilon)
     {
         Matrix diff = Abs(m1 - m2);
-        Vector4 epsilonV = Vector4::Splat(epsilon);
+        Vector4 epsilonV = Vector4(epsilon);
         return ((diff[0] < epsilonV) && (diff[1] < epsilonV)) &&
                ((diff[2] < epsilonV) && (diff[3] < epsilonV));
     }

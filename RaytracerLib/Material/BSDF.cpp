@@ -2,13 +2,14 @@
 #include "BSDF.h"
 #include "Math/Random.h"
 
+#pragma optimize("", off)
 
 namespace rt {
 
 using namespace math;
 
 OrenNayarBSDF::OrenNayarBSDF()
-    : mBaseColor(1.0f, 1.0f, 1.0f)
+    : mBaseColor(1.0f, 1.0f, 1.0f, 0.0f)
     , mRoughness(0.1f)
 {}
 
@@ -47,7 +48,7 @@ math::Vector4 OrenNayarBSDF::Evaluate(const math::Vector4& outgoingDir, const ma
     RT_UNUSED(outgoingDir);
 
     const float NdotL = incomingDir[2];
-    return Vector4::Splat(NdotL);
+    return Vector4(NdotL);
 }
 
 /////////////////////////////////////////////////////////
@@ -77,31 +78,27 @@ void CookTorranceBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& o
     const float phi = 2.0f * RT_PI * u1;
 
     // microfacet normal (aka. half vector)
-    const Vector4 m(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta);
+    const Vector4 m(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta, 0.0f);
 
     outIncomingDir = -Vector4::Reflect3(outgoingDir, m);
 
     const float NdotH = m[2];
-    const float VdotH = Vector4::Dot3(m, outgoingDir);
-    const float NdotV = outgoingDir[2];
-    const float NdotL = outIncomingDir[2];
+    const float NdotV = fabsf(outgoingDir[2]);
+    const float NdotL = fabsf(outIncomingDir[2]);
 
     // clip the function to avoid division by zero
-    if (NdotV <= 0.0f || NdotL <= 0.0f)
+    if (NdotV <= FLT_EPSILON || NdotL <= FLT_EPSILON)
     {
         outWeight = Vector4();
         return;
     }
-
-    const float a2 = mRougness * mRougness;
 
     // Geometry term
     const float G1 = NdotH * NdotV;
     const float G2 = NdotH * NdotL;
     const float G = Min(1.0f, Max(0.0f, 2.0f * Min(G1, G2)));
 
-    // Note: VdotH here comes from the fact we are sampling Half Vector
-    outWeight = Vector4::Splat(G / NdotV);
+    outWeight = Vector4(G / NdotV);
 }
 
 math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
@@ -130,8 +127,57 @@ math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const
 
     const float D = NormalDistribution(NdotH);
 
-    return Vector4::Splat(D * G2 / (4.0f * NdotV * NdotL));
+    return Vector4(D * G2 / (4.0f * NdotV * NdotL));
 }
 
+/////////////////////////////////////////////////////////
+
+Vector4 Refract(const Vector4& incidentVec, float eta)
+{
+    float NdotV = incidentVec.z;
+    if (NdotV < 0.0f)
+    {
+        eta = 1.0f / eta;
+    }
+
+    const float k = 1.0f - eta * eta * (1.0f - NdotV * NdotV);
+
+    assert(k >= 0.0f);
+    if (k < 0.0f)
+    {
+        return Vector4();
+    }
+
+    Vector4 transmitted = incidentVec * eta - (eta * NdotV + sqrtf(k)) * VECTOR_Z;
+    assert(fabsf(1.0f - transmitted.Length3()) > 0.01f);
+
+    if (NdotV > 0.0f)
+    {
+        transmitted.z = -transmitted.z;
+    }
+
+    return transmitted.Normalized3();
+}
+
+TransparencyBSDF::TransparencyBSDF(float ior)
+    : IOR(ior)
+{
+}
+
+void TransparencyBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const
+{
+    RT_UNUSED(randomGenerator);
+
+    outIncomingDir = Refract(-outgoingDir, IOR);
+    outWeight = VECTOR_ONE;
+}
+
+Vector4 TransparencyBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
+{
+    RT_UNUSED(outgoingDir);
+    RT_UNUSED(incomingDir);
+
+    return Vector4();
+}
 
 } // namespace rt

@@ -16,3 +16,7 @@
 #include <vector>
 #include <memory>
 #include <strsafe.h>
+
+#include "../External/cxxopts.hpp"
+#include "../External/tiny_obj_loader.h"
+#include "../External/imgui/imgui.h"

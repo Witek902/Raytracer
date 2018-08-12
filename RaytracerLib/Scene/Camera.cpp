@@ -13,7 +13,7 @@ Camera::Camera()
     , barrelDistortionFactor(0.0f)
 { }
 
-void Camera::SetPerspective(const math::Vector4& pos, const math::Vector4& dir, const math::Vector4& up, Float aspectRatio, Float FoV)
+void Camera::SetPerspective(const Vector4& pos, const Vector4& dir, const Vector4& up, Float aspectRatio, Float FoV)
 {
     mPosition = pos;
     mForward = dir;
@@ -34,7 +34,7 @@ void Camera::Update()
     mRightScaled = mRightInternal * (tanHalfFoV * mAspectRatio);
 }
 
-math::Ray Camera::GenerateRay(const math::Vector4 coords, RenderingContext& context) const
+Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
 {
     Vector4 origin = mPosition + mPositionDelta * context.time;
     Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
@@ -56,7 +56,7 @@ math::Ray Camera::GenerateRay(const math::Vector4 coords, RenderingContext& cont
         const Vector4 focusPoint = origin + mDOF.focalPlaneDistance * direction;
 
         // TODO different bokeh shapes, texture, etc.
-        const Vector4 randomPointOnCircle = context.randomGenerator.GetCircle() * mDOF.aperture;
+        const Vector4 randomPointOnCircle = GenerateBokeh(context) * mDOF.aperture;
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), mRightInternal, origin);
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), mUpInternal, origin);
 
@@ -66,31 +66,31 @@ math::Ray Camera::GenerateRay(const math::Vector4 coords, RenderingContext& cont
     return Ray(origin, direction);
 }
 
-math::Ray_Simd8 Camera::GenerateRay_Simd8(const math::Vector2_Simd8& coords, RenderingContext& context) const
+Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& context) const
 {
-    Vector3_Simd8 origin(mPosition + mPositionDelta * context.time);
-    Vector2_Simd8 offsetedCoords = coords * 2.0f - Vector2_Simd8::One();
+    Vector3x8 origin(mPosition + mPositionDelta * context.time);
+    Vector2x8 offsetedCoords = coords * 2.0f - Vector2x8::One();
 
     // barrel distortion
     if (barrelDistortionFactor != 0.0f)
     {
-        const Vector8 radius = Vector2_Simd8::Dot(offsetedCoords, offsetedCoords);
+        const Vector8 radius = Vector2x8::Dot(offsetedCoords, offsetedCoords);
         offsetedCoords += offsetedCoords * (radius * barrelDistortionFactor);
     }
 
     // calculate ray direction (ideal, without DoF)
-    Vector3_Simd8 direction = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mRightScaled), offsetedCoords.x, Vector3_Simd8(mForwardInternal));
-    direction = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mUpScaled), offsetedCoords.y, direction);
+    Vector3x8 direction = Vector3x8::MulAndAdd(Vector3x8(mRightScaled), offsetedCoords.x, Vector3x8(mForwardInternal));
+    direction = Vector3x8::MulAndAdd(Vector3x8(mUpScaled), offsetedCoords.y, direction);
 
     // depth of field
     if (mDOF.aperture > 0.001f)
     {
-        const Vector3_Simd8 focusPoint = origin + direction * mDOF.focalPlaneDistance;
+        const Vector3x8 focusPoint = origin + direction * mDOF.focalPlaneDistance;
 
         // TODO different bokeh shapes, texture, etc.
-        const Vector2_Simd8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
-        origin = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mRightInternal), randomPointOnCircle.x, origin);
-        origin = Vector3_Simd8::MulAndAdd(Vector3_Simd8(mUpInternal), randomPointOnCircle.y, origin);
+        const Vector2x8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
+        origin = Vector3x8::MulAndAdd(Vector3x8(mRightInternal), randomPointOnCircle.x, origin);
+        origin = Vector3x8::MulAndAdd(Vector3x8(mUpInternal), randomPointOnCircle.y, origin);
 
         direction = focusPoint - origin;
     }
@@ -98,5 +98,21 @@ math::Ray_Simd8 Camera::GenerateRay_Simd8(const math::Vector2_Simd8& coords, Ren
     return Ray_Simd8(origin, direction);
 }
 
+//////////////////////////////////////////////////////////////////////////
+
+Vector4 Camera::GenerateBokeh(RenderingContext& context) const
+{
+    switch (mDOF.bokehType)
+    {
+    case BokehShape::Circle:
+        return context.randomGenerator.GetCircle();
+    case BokehShape::Hexagon:
+        return context.randomGenerator.GetHexagon();
+    case BokehShape::Square:
+        return context.randomGenerator.GetVector4Bipolar();
+    }
+
+    return Vector4();
+}
 
 } // namespace rt

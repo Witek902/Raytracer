@@ -10,6 +10,16 @@
 #include "../RaytracerLib/Utils/Bitmap.h"
 #include "../RaytracerLib/Rendering/Context.h"
 
+struct Options
+{
+    Uint32 windowWidth = 1280;
+    Uint32 windowHeight = 720;
+    std::string dataPath;
+
+    // TODO JSON scene description
+    std::string modelPath;
+    std::string envMapPath;
+};
 
 struct RT_ALIGN(16) CameraSetup
 {
@@ -32,9 +42,7 @@ public:
     DemoWindow();
     ~DemoWindow();
 
-    bool Initialize();
-
-    bool InitScene();
+    bool Initialize(const Options& options);
 
     /**
      * Main loop.
@@ -83,7 +91,14 @@ private:
     rt::Material* mSelectedMaterial;
 
     void InitializeUI();
+
     void RenderUI();
+    void RenderUI_Stats();
+    void RenderUI_Settings();
+    bool RenderUI_Settings_Rendering();
+    bool RenderUI_Settings_Camera();
+    bool RenderUI_Settings_PostProcess();
+    bool RenderUI_Settings_Material();
 
     virtual void OnMouseDown(Uint32 key, int x, int y) override;
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
