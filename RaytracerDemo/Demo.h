@@ -10,6 +10,8 @@
 #include "../RaytracerLib/Utils/Bitmap.h"
 #include "../RaytracerLib/Rendering/Context.h"
 
+class Renderer;
+
 struct Options
 {
     Uint32 windowWidth = 1280;
@@ -56,8 +58,6 @@ public:
 
     void ResetFrame();
 
-    void Render();
-
 private:
     std::unique_ptr<rt::Viewport> mViewport;
 
@@ -85,6 +85,8 @@ private:
     Double mMinRenderDeltaTime;
     Double mTotalRenderTime;
 
+    std::unique_ptr<Renderer> mRenderer;
+
     // device context
     HDC mDC;
 
@@ -104,9 +106,9 @@ private:
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
     virtual void OnMouseUp(Uint32 button) override;
     virtual void OnScroll(int delta) override;
+    virtual void OnResize(Uint32 width, Uint32 height) override;
 
     void OnKeyPress(Uint32 key) override;
-    void OnResize(Uint32 width, Uint32 height) override;
 
     void ResetCounters();
     void ResetCamera();

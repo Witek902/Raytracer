@@ -2,7 +2,6 @@
 
 #include "Math.h"
 #include "Vector4.h"
-#include "Matrix.h"
 
 namespace rt {
 namespace math {

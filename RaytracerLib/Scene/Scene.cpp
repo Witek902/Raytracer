@@ -67,27 +67,6 @@ bool Scene::BuildBVH()
 }
 
 // TODO this has nothing to do with a scene
-Uint32 Hash(const Uint32 value)
-{
-    // FNV-1a
-    Uint32 hash = 2166136261u;
-
-    hash ^= value & 0xFF;
-    hash *= 16777619u;
-
-    hash ^= (value >> 8) & 0xFF;
-    hash *= 16777619u;
-
-    hash ^= (value >> 16) & 0xFF;
-    hash *= 16777619u;
-
-    hash ^= (value >> 24) & 0xFF;
-    hash *= 16777619u;
-
-    return hash;
-}
-
-// TODO this has nothing to do with a scene
 RayColor Scene::HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData)
 {
     switch (context.params->renderingMode)
@@ -154,6 +133,29 @@ RayColor Scene::HandleSpecialRenderingMode(RenderingContext& context, const HitP
     return RayColor();
 }
 
+void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const
+{
+    const ISceneObject* object = mObjects[objectID].get();
+
+    const float time = 0.0f; // TODO
+    const auto invTransform = object->GetInverseTransform(time);
+
+    // transform ray to local-space
+    math::Ray transformedRay;
+    transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
+    transformedRay.dir = invTransform.TransformVector(context.ray.dir);
+    transformedRay.invDir = Vector4::FastReciprocal(transformedRay.dir);
+
+    SingleTraversalContext objectContext =
+    {
+        transformedRay,
+        context.hitPoint,
+        context.context
+    };
+
+    object->Traverse_Single(objectContext, objectID);
+}
+
 void Scene::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     RT_UNUSED(objectID);
@@ -161,25 +163,7 @@ void Scene::Traverse_Leaf_Single(const SingleTraversalContext& context, const Ui
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 objectIndex = node.childIndex + i;
-        const ISceneObject* object = mObjects[objectIndex].get();
-
-        const float time = 0.0f; // TODO
-        const auto invTransform = object->GetInverseTransform(time);
-
-        // transform ray to local-space
-        math::Ray transformedRay;
-        transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
-        transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-        transformedRay.invDir = Vector4::FastReciprocal(transformedRay.dir);
-
-        SingleTraversalContext objectContext =
-        {
-            transformedRay,
-            context.hitPoint,
-            context.context
-        };
-
-        object->Traverse_Single(objectContext, objectIndex);
+        Traverse_Object_Single(context, objectIndex);
     }
 }
 
@@ -203,7 +187,6 @@ void Scene::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint3
 
         // TODO remove
         //const Vector8 previousDistance = outHitPoint.distance;
-
 
         SimdTraversalContext objectContext =
         {
@@ -239,9 +222,7 @@ void Scene::Traverse_Single(const SingleTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        // TODO transform ray
-
-        mObjects.front()->Traverse_Single(context, 0);
+        Traverse_Object_Single(context, 0);
     }
     else // full BVH traversal
     {
@@ -282,15 +263,17 @@ void Scene::ExtractShadingData(const math::Vector4& rayOrigin, const math::Vecto
 {
     const float time = 0.0f;
 
-    outShadingData.position = Vector4::MulAndAdd(rayDir, Vector4(hitPoint.distance), rayOrigin);
+    const ISceneObject* object = mObjects[hitPoint.objectId].get();
+
+    const Vector4 worldPosition = Vector4::MulAndAdd(rayDir, Vector4(hitPoint.distance), rayOrigin);
+    outShadingData.position = object->GetInverseTransform(time).TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
-    const ISceneObject* object = mObjects[hitPoint.objectId].get();
-    const auto invTransform = object->GetInverseTransform(time); // HACK
-    object->EvaluateShadingData_Single(invTransform, hitPoint, outShadingData);
+    object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
     // transform shading data from local space to world space
     const auto transform = object->GetTransform(time);
+    outShadingData.position = worldPosition;
     outShadingData.tangent = transform.TransformVector(outShadingData.tangent);
     outShadingData.bitangent = transform.TransformVector(outShadingData.bitangent);
     outShadingData.normal = transform.TransformVector(outShadingData.normal);
@@ -310,7 +293,7 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
     {
         hitPoint.distance = FLT_MAX;
         context.localCounters.Reset();
-        Traverse_Single({ ray, hitPoint, context });
+        Traverse_Single({ currentRay, hitPoint, context });
         context.counters.Append(context.localCounters);
 
         // ray missed - return background color
@@ -336,31 +319,37 @@ RayColor Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
             break;
         }
 
+        if (!shadingData.material->GetMaskValue(shadingData.texCoord))
+        {
+            currentRay.origin = shadingData.position;
+            continue;
+        }
+
         // accumulate emission color
         resultColor += throughput * shadingData.material->emissionColor;
 
         // Russian roulette algorithm
         if (depth >= context.params->minRussianRouletteDepth)
         {
-            const float threshold = throughput.values.HorizontalMax()[0];
+            const float threshold = throughput.values.HorizontalMax().x;
             if (context.randomGenerator.GetFloat() > threshold)
                 break;
 
-            throughput *= 1.0f / Max(FLT_EPSILON, threshold);
+            throughput *= 1.0f / threshold;
         }
 
-        const Vector4 outgoingDirWorldSpace = -currentRay.dir;
         Vector4 incomingDirWorldSpace;
-        throughput *= shadingData.material->Shade(outgoingDirWorldSpace, incomingDirWorldSpace, shadingData, context.randomGenerator);
+        throughput *= shadingData.material->Shade(-currentRay.dir, incomingDirWorldSpace, shadingData, context.randomGenerator);
 
         // ray is not visible anymore
-        if (throughput.values.IsZero())
-        {
+        if (Vector4::AlmostEqual(throughput.values, Vector4()))
             break;
-        }
 
         // generate secondary ray
         currentRay = math::Ray(shadingData.position, incomingDirWorldSpace);
+
+        // TODO ray filtering seems broken
+        currentRay.origin += shadingData.normal * 0.001f;
     }
 
     return resultColor;

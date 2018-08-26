@@ -150,9 +150,8 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <CallingConvention>FastCall</CallingConvention>
+      <CallingConvention>VectorCall</CallingConvention>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
@@ -183,9 +182,8 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <CallingConvention>FastCall</CallingConvention>
+      <CallingConvention>VectorCall</CallingConvention>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
@@ -213,7 +211,8 @@
     <ClInclude Include="Math\Float3Impl.h" />
     <ClInclude Include="Math\Geometry.h" />
     <ClInclude Include="Math\Math.h" />
-    <ClInclude Include="Math\Matrix.h" />
+    <ClInclude Include="Math\Quaternion.h" />
+    <ClInclude Include="Math\QuaternionImpl.h" />
     <ClInclude Include="Math\Random.h" />
     <ClInclude Include="Math\Ray.h" />
     <ClInclude Include="Math\Simd4Box.h" />
@@ -225,6 +224,7 @@
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
     <ClInclude Include="Math\Simd8Triangle.h" />
+    <ClInclude Include="Math\Transform.h" />
     <ClInclude Include="Math\Vector2x8.h" />
     <ClInclude Include="Math\Vector3x8.h" />
     <ClInclude Include="Math\Sphere.h" />
@@ -279,9 +279,10 @@
     <ClCompile Include="Math\Float3.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
-    <ClCompile Include="Math\Matrix.cpp" />
+    <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Math\Random.cpp" />
     <ClCompile Include="Math\Transcendental.cpp" />
+    <ClCompile Include="Math\Transform.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Math\Vector8.cpp" />
     <ClCompile Include="Math\VectorInt8.cpp" />

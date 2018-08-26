@@ -135,7 +135,8 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
         if (Intersect_TriangleRay(context.ray, tri, u, v, distance))
         {
             HitPoint& hitPoint = context.hitPoint;
-            if (distance < hitPoint.distance && (hitPoint.triangleId != triangleIndex || hitPoint.objectId != objectID))
+            const bool sameSurface = hitPoint.triangleId == triangleIndex && hitPoint.objectId == objectID;
+            if (distance < hitPoint.distance && !sameSurface)
             {
                 hitPoint.distance = distance;
                 hitPoint.triangleId = triangleIndex;

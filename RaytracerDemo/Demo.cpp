@@ -1,8 +1,8 @@
 #include "PCH.h"
 #include "Demo.h"
 #include "MeshLoader.h"
+#include "Renderer.h"
 
-#include "../RaytracerLib/Math/Matrix.h"
 #include "../RaytracerLib/Mesh/Mesh.h"
 #include "../RaytracerLib/Material/Material.h"
 #include "../RaytracerLib/Utils/Timer.h"
@@ -16,8 +16,9 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui.h>
-#include <imgui/imgui_sw.hpp>
+#include <imgui/imgui_impl_dx11.h>
 
+#define DISABLE_IMGUI
 
 using namespace rt;
 using namespace math;
@@ -38,7 +39,7 @@ DemoWindow::DemoWindow()
 
 DemoWindow::~DemoWindow()
 {
-    imgui_sw::unbind_imgui_painting();
+    ImGui_ImplDX11_Shutdown();
     ImGui::DestroyContext();
 }
 
@@ -66,14 +67,25 @@ bool DemoWindow::Initialize(const Options& options)
 
     mDC = GetDC(reinterpret_cast<HWND>(GetHandle()));
 
-    mCamera.mDOF.aperture = 0.02f;
+    mRenderer = std::make_unique<Renderer>();
+    if (!mRenderer->Init(reinterpret_cast<HWND>(GetHandle())))
+    {
+        RT_LOG_ERROR("Failed to initialize renderer");
+        return false;
+    }
+
+    mCamera.mDOF.aperture = 0.0f;
     mCamera.barrelDistortionFactor = 0.0f;
+
+    Random random;
 
    // initialize scene
     {
         RT_LOG_INFO("Using data path: %hs", options.dataPath.c_str());
 
         mScene = std::make_unique<Scene>();
+
+        auto loadedMesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
 
         if (!options.envMapPath.empty())
         {
@@ -82,15 +94,35 @@ bool DemoWindow::Initialize(const Options& options)
             mScene->SetEnvironment(env);
         }
 
-        if (!options.modelPath.empty())
+        /*
         {
-            auto mesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
+            auto mesh = helpers::CreatePlaneMesh(mMaterials, 100.0f, 0.4f);
             SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(mesh.get());
-            meshInstance->mPosition = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
             mScene->AddObject(std::move(meshInstance));
             mMeshes.push_back(std::move(mesh));
         }
 
+        {
+            auto material = std::make_unique<rt::Material>();
+            material->debugName = "glass";
+            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+            material->roughness = 0.001f;
+            material->transparent = true;
+            material->Compile();
+
+            SceneObjectPtr meshInstance = std::make_unique<BoxSceneObject>(math::Vector4(1.0f, 1.0f, 1.0f, 0.0f), material.get());
+           // meshInstance->mTransform.SetTranslation(Vector4(0.0f, 2.005f, 0.0f, 0.0f));
+            mScene->AddObject(std::move(meshInstance));
+            mMaterials.push_back(std::move(material));
+        }*/
+
+        if (!options.modelPath.empty())
+        {
+            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
+            mScene->AddObject(std::move(meshInstance));
+        }
+
+        mMeshes.push_back(std::move(loadedMesh));
         mScene->BuildBVH();
     }
 
@@ -99,13 +131,10 @@ bool DemoWindow::Initialize(const Options& options)
 
 void DemoWindow::InitializeUI()
 {
-    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
     ImGui::GetIO().Fonts->AddFontDefault();
-
-    imgui_sw::bind_imgui_painting();
 
     //ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/DroidSans.ttf", 10);
     //ImGui::GetIO().Fonts->GetTexDataAsRGBA32()
@@ -166,6 +195,11 @@ void DemoWindow::ResetCounters()
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
 {
+    if (mRenderer)
+    {
+        mRenderer->OnWindowResized(width, height);
+    }
+
     if (mViewport)
     {
         mViewport->Resize(width, height);
@@ -180,18 +214,18 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 void DemoWindow::ResetCamera()
 {
     // cornell box
-    mCameraSetup.position = Vector4(0.0f, 0.0f, 1.8f, 0.0f);
+    mCameraSetup.position = Vector4(0.02f, 1.1f, 1.8f, 0.0f);
     mCameraSetup.pitch = -0.1f;
-    mCameraSetup.yaw = -3.13f;
+    mCameraSetup.yaw = -3.11f;
 
     ////mCameraSetup.position = Vector4(0.0f, 0.5f, 0.0f, 0.0f);
     //mCameraSetup.pitch = -1.0f;
     //mCameraSetup.yaw = 0.01f;
 
     // sponza
-    mCameraSetup.position = Vector4(700.0f, 300.0f, 10.0f, 0.0f);
-    mCameraSetup.pitch = -0.09f;
-    mCameraSetup.yaw = -1.73f;
+    //mCameraSetup.position = Vector4(700.0f, 300.0f, 10.0f, 0.0f);
+    //mCameraSetup.pitch = -0.09f;
+    //mCameraSetup.yaw = -1.73f;
 
     //mCameraSetup.position = Vector4(0.0f, 0.75f, 0.0f, 0.0f);
     //mCameraSetup.pitch = -1.70f;
@@ -212,6 +246,7 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         GetSize(width, height);
 
         rt::RenderingParams params;
+        params.antiAliasingSpread = 0.0f;
         rt::RenderingContext context(&params);
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
@@ -301,24 +336,6 @@ void DemoWindow::OnKeyPress(Uint32 key)
         {
             mViewport->Reset();
         }
-        else if (key == VK_OEM_4) // [
-        {
-            PostprocessParams params;
-            mViewport->GetPostprocessParams(params);
-            params.exposure -= 0.25f;
-            mViewport->SetPostprocessParams(params);
-        }
-        else if (key == VK_OEM_6) // ]
-        {
-            PostprocessParams params;
-            mViewport->GetPostprocessParams(params);
-            params.exposure += 0.25f;
-            mViewport->SetPostprocessParams(params);
-        }
-        else if (key == 'P') // printscreen
-        {
-            mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
-        }
     }
 }
 
@@ -340,8 +357,6 @@ bool DemoWindow::Loop()
             ResetFrame();
         }
 
-        mViewport->SetPostprocessParams(mPostprocessParams);
-
         // render
         renderTimer.Start();
         mViewport->Render(mScene.get(), mCamera, mRenderingParams);
@@ -349,7 +364,7 @@ bool DemoWindow::Loop()
 
         RenderUI();
 
-        Render();
+        mRenderer->Render((const float*)mViewport->GetAccumulatedBuffer().GetData(), mPostprocessParams, mViewport->GetNumSamplesRendered());
 
         mTotalRenderTime += mRenderDeltaTime;
         mRefreshTime += mRenderDeltaTime;
@@ -358,17 +373,6 @@ bool DemoWindow::Loop()
         mFrameCounterForAverage++;
         mFrameNumber++;
         mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
-
-        /*
-        // refresh averages
-        mRefreshTime += mDeltaTime;
-        if (mRefreshTime > 1.0)
-        {
-            mAccumulatedRenderTime = 0.0;
-            mFrameCounterForAverage = 0;
-            mRefreshTime = 0.0;
-        }
-        */
     }
 
     return true;
@@ -426,11 +430,6 @@ void DemoWindow::RenderUI_Settings()
             resetFrame |= RenderUI_Settings_Material();
             ImGui::TreePop();
         }
-    }
-
-    if (ImGui::Button("Take screenshot"))
-    {
-        mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
     }
 
     if (resetFrame)
@@ -506,14 +505,14 @@ bool DemoWindow::RenderUI_Settings_Material()
 {
     bool materialChanged = false;
 
-    materialChanged |= ImGui::Checkbox("Metal", &mSelectedMaterial->metal);
     materialChanged |= ImGui::Checkbox("Transparent", &mSelectedMaterial->transparent);
     materialChanged |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emissionColor[0], ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
     materialChanged |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
     materialChanged |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
+    materialChanged |= ImGui::SliderFloat("Metalness", &mSelectedMaterial->metalness, 0.0f, 1.0f);
     materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
 
-    if (mSelectedMaterial->metal)
+    if (mSelectedMaterial->metalness > 0.0f)
     {
         materialChanged |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
     }
@@ -528,8 +527,7 @@ bool DemoWindow::RenderUI_Settings_Material()
 
 void DemoWindow::RenderUI()
 {
-    static bool test = false;
-    static imgui_sw::SwOptions sw_options;
+    ImGui_ImplDX11_NewFrame();
 
     Uint32 width, height;
     GetSize(width, height);
@@ -561,38 +559,6 @@ void DemoWindow::RenderUI()
     ImGui::EndFrame();
 
     ImGui::Render();
-
-    const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
-    paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight(), sw_options);
-}
-
-void DemoWindow::Render()
-{
-    Uint32 width, height;
-    GetSize(width, height);
-
-    BITMAPINFO bmi;
-    ZeroMemory(&bmi, sizeof(bmi));
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = width;
-    bmi.bmiHeader.biHeight = height;
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
-    bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = 4 * width * height;
-    bmi.bmiHeader.biXPelsPerMeter = 1;
-    bmi.bmiHeader.biYPelsPerMeter = 1;
-
-    const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
-
-    if (0 == StretchDIBits(mDC,
-                           0, height, width, (Uint32)(-(Int32)height), // flip image
-                           0, 0, width, height,
-                           frontBuffer.GetData(),
-                           &bmi, DIB_RGB_COLORS, SRCCOPY))
-    {
-        RT_LOG_ERROR("Paint failed");
-    }
 }
 
 void DemoWindow::UpdateCamera()

@@ -13,9 +13,6 @@
     <ClInclude Include="Math\Ray.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Matrix.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Vector4.h">
       <Filter>Math\Vector4</Filter>
     </ClInclude>
@@ -200,6 +197,15 @@
     <ClInclude Include="Traversal\TraversalContext.h">
       <Filter>Traversal</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Quaternion.h">
+      <Filter>Math\Quaternion</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\QuaternionImpl.h">
+      <Filter>Math\Quaternion</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Transform.h">
+      <Filter>Math\Transform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -209,9 +215,6 @@
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="Math\Geometry.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Matrix.cpp">
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="Math\Vector4.cpp">
@@ -304,6 +307,12 @@
     <ClCompile Include="Traversal\Traversal_Packet.cpp">
       <Filter>Traversal</Filter>
     </ClCompile>
+    <ClCompile Include="Math\Quaternion.cpp">
+      <Filter>Math\Quaternion</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Transform.cpp">
+      <Filter>Math\Transform</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
@@ -359,6 +368,12 @@
     </Filter>
     <Filter Include="Math\VectorInt8">
       <UniqueIdentifier>{7db96b75-b505-4bcf-9d3d-ed0081bbab1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Quaternion">
+      <UniqueIdentifier>{1aeb3236-81e6-4732-a445-590491773073}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Transform">
+      <UniqueIdentifier>{c8f23928-6039-4d6f-b670-760dac871ed1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

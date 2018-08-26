@@ -15,7 +15,7 @@ namespace rt {
 
 struct RenderingContext;
 
-void RemoveMissedGroups(RenderingContext& context, Uint32& numGroups);
+RT_FORCE_NOINLINE void RemoveMissedGroups(RenderingContext& context, Uint32& numGroups);
 
 // test all alive groups in a packet agains a BVH node
 Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context);

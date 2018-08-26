@@ -30,7 +30,7 @@ struct MeshDesc
 /**
  * Class representing a mesh.
  */
-class RAYLIB_API RT_ALIGN(16) Mesh
+class RAYLIB_API RT_ALIGN(16) Mesh : public Aligned<16>
 {
 public:
     Mesh();

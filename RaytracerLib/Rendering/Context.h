@@ -69,16 +69,15 @@ struct RenderingParams
     RenderingMode renderingMode;
 
     RenderingParams()
-        : maxRayDepth(20)
+        : maxRayDepth(5)
         , tileOrder(4)
-        , minRussianRouletteDepth(2)
+        , minRussianRouletteDepth(40)
         , samplesPerPixel(1)
-        , antiAliasingSpread(1.1f)
-        , traversalMode(TraversalMode::Packet)
-        , renderingMode(RenderingMode::TriangleID)
+        , antiAliasingSpread(0.50f)
+        , traversalMode(TraversalMode::Single)
+        , renderingMode(RenderingMode::Regular)
     { }
 };
-
 
 
 /**

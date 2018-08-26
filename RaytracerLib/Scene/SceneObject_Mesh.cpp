@@ -19,7 +19,7 @@ Box MeshSceneObject::GetBoundingBox() const
     const Box localBox = mMesh->GetBoundingBox();
 
     // TODO include rotation
-    return Box(localBox + mPosition, localBox + (mPosition + mPositionOffset));
+    return Box(localBox + mTransform.GetTranslation(), localBox + mTransform.GetTranslation() + mTransform.GetTranslation());
 }
 
 void MeshSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
@@ -37,10 +37,8 @@ void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, con
     GenericTraverse_Packet<Mesh>(context, objectID, mMesh);
 }
 
-void MeshSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const
+void MeshSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
-    RT_UNUSED(worldToLocal);
-
     mMesh->EvaluateShadingData_Single(hitPoint, outShadingData);
 }
 

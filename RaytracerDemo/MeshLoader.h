@@ -13,6 +13,6 @@ using MaterialsList = std::vector<std::unique_ptr<rt::Material>>;
 
 rt::Bitmap* LoadTexture(const std::string& baseDir, const std::string& path);
 std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale = 1.0f);
-std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float scale = 1.0f);
+std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float size, const Float textureScale = 1.0f);
 
 } // namespace helpers

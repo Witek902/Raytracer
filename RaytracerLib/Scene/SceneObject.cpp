@@ -7,18 +7,20 @@ using namespace math;
 
 ISceneObject::~ISceneObject() = default;
 
-Matrix ISceneObject::GetTransform(const float t) const
+Transform ISceneObject::GetTransform(const float t) const
 {
-    Matrix mat;
-    mat.r[3] = mPosition + mPositionOffset * t;
-    return mat;
+    RT_UNUSED(t);
+
+    // TODO motion blur
+    return mTransform;
 }
 
-Matrix ISceneObject::GetInverseTransform(const float t) const
+Transform ISceneObject::GetInverseTransform(const float t) const
 {
-    Matrix mat;
-    mat.r[3] = -(mPosition + mPositionOffset * t);
-    return mat;
+    RT_UNUSED(t);
+
+    // TODO motion blur
+    return mTransform.Inverted();
 }
 
 

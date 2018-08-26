@@ -4,11 +4,14 @@
 #include <stddef.h>
 
 
-// C++ nonstandard extension: nameless struct
+// "C++ nonstandard extension: nameless struct"
 #pragma warning(disable : 4201)
 
-// structure was padded due to alignment specifier
+// "structure was padded due to alignment specifier"
 #pragma warning(disable : 4324)
+
+// "conditional expression is constant"
+#pragma warning(disable : 4127)
 
 
 #define RT_UNUSED(x) (void)(x)

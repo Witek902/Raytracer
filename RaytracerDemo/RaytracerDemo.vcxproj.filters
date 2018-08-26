@@ -29,17 +29,17 @@
     <ClCompile Include="..\External\imgui\imgui.cpp">
       <Filter>External\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
-      <Filter>External\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_draw.cpp">
-      <Filter>External\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_sw.cpp">
       <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="MeshLoader.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
+      <Filter>External\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -62,14 +62,17 @@
     <ClInclude Include="..\External\imgui\imgui_internal.h">
       <Filter>External\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_sw.hpp">
-      <Filter>External\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="MeshLoader.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\External\cxxopts.hpp">
       <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <Filter>External\imgui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -80,6 +80,7 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tin
     material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
     material->baseColorMap = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
     material->normalMap = LoadTexture(baseDir, sourceMaterial.normal_texname);
+    material->maskMap = LoadTexture(baseDir, sourceMaterial.alpha_texname);
 
     material->Compile();
 
@@ -250,7 +251,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     // fallback to default material
     if (materials.empty())
     {
-        RT_LOG_WARNING("No materials found in mesh '%s'. Falling back to the default material.");
+        RT_LOG_WARNING("No materials found in mesh '%s'. Falling back to the default material.", filePath.c_str());
 
         const rt::Material* defaultMaterial = CreateDefaultMaterial(outMaterials);
         materialPointers.push_back(defaultMaterial);
@@ -287,7 +288,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     return mesh;
 }
 
-std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float scale)
+std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float size, const Float textureScale)
 {
     auto material = std::make_unique<rt::Material>();
     material->debugName = "default";
@@ -295,8 +296,9 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.5f;
 
-	//material->baseColorMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_COL_VAR2_6K.bmp");
-	//material->normalMap = LoadTexture("../../../../TEXTURES/Plaster17/6K/", "Plaster17_NRM_6K.bmp");
+	material->baseColorMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_COL_4K.bmp");
+	material->normalMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_NRM_4K.bmp");
+    //material->roughnessMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
     //material->baseColorMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_COL_VAR1_6K.bmp");
     //material->normalMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
 	//material->baseColorMap->MakeTiled(4);
@@ -316,10 +318,10 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
 
     const Float vertices[] =
     {
-        -scale,  0.0f, -scale,
-         scale,  0.0f, -scale,
-         scale,  0.0f,  scale,
-        -scale,  0.0f,  scale,
+        -size,  0.0f, -size,
+         size,  0.0f, -size,
+         size,  0.0f,  size,
+        -size,  0.0f,  size,
     };
 
     const Float normals[] =
@@ -341,9 +343,9 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     const Float texCoords[] =
     {
         0.0f, 0.0f,
-        scale, 0.0f,
-        scale, scale,
-        0.0f, scale,
+        size * textureScale, 0.0f,
+        size * textureScale, size * textureScale,
+        0.0f, size * textureScale,
     };
 
     rt::MeshDesc meshDesc;

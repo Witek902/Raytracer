@@ -108,10 +108,11 @@ BoxSceneObject::BoxSceneObject(const Vector4& size, const Material* material)
 
 Box BoxSceneObject::GetBoundingBox() const
 {
-    const Box localBox(mPosition - mSize, mPosition + mSize);
+    // TODO include rotation
+    const Box localBox(mTransform.GetTranslation() - mSize, mTransform.GetTranslation() + mSize);
 
     // TODO include rotation
-    return Box(localBox, localBox + mPositionOffset);
+    return Box(localBox, localBox + mTransformDelta.GetTranslation());
 }
 
 void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
@@ -187,10 +188,9 @@ void BoxSceneObject::Traverse_Packet(const PacketTraversalContext& context, cons
     // TODO
 }
 
-void BoxSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const
+void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
     RT_UNUSED(hitPoint);
-    RT_UNUSED(worldToLocal);
 
     const Vector4 normalsAndTangnts[] =
     {
@@ -208,10 +208,6 @@ void BoxSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, cons
     outShadingData.normal = normalsAndTangnts[2 * side];
     outShadingData.tangent = normalsAndTangnts[2 * side + 1];
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
-
-    outShadingData.normal.FastNormalize3();
-    outShadingData.tangent.FastNormalize3();
-    outShadingData.bitangent.FastNormalize3();
 }
 
 

@@ -40,8 +40,7 @@ struct SceneEnvironment
     Bitmap* texture;
 
     SceneEnvironment()
-        : backgroundColor(math::Vector4(1.0f, 1.0f, 1.0f, 0.0f))
-        , texture(nullptr)
+        : texture(nullptr)
     { }
 };
 
@@ -88,6 +87,8 @@ public:
 private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;
+
+    void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
     static RayColor HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData);
 

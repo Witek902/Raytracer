@@ -129,9 +129,14 @@ void Vector4::Store(Float3* dest) const
     _mm_store_ss(&dest->z, vz);
 }
 
+Float2 Vector4::ToFloat2() const
+{
+    return Float2{ x, y };
+}
+
 Float3 Vector4::ToFloat3() const
 {
-    return Float3(f[0], f[1], f[2]);
+    return Float3{ x, y, z };
 }
 
 template<bool x, bool y, bool z, bool w>
@@ -144,10 +149,10 @@ Vector4 Vector4::ChangeSign() const
     }
 
     // generate bit negation mask
-    static const Vectori mask = { { {x ? 0x80000000 : 0, y ? 0x80000000 : 0, z ? 0x80000000 : 0, w ? 0x80000000 : 0} } };
+    static const Vector4 mask = {x ? 0x80000000 : 0, y ? 0x80000000 : 0, z ? 0x80000000 : 0, w ? 0x80000000 : 0};
 
     // flip sign bits
-    return _mm_xor_ps(v, _mm_castsi128_ps(mask));
+    return _mm_xor_ps(v, mask);
 }
 
 // Elements rearrangement =========================================================================

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../RayLib.h"
+#include "Float2.h"
+#include "Float3.h"
 #include "Vector4.h"
 #include "Vector2x8.h"
 
@@ -23,6 +25,8 @@ public:
 
     // Generate random float with uniform distribution from range [0.0f, 1.0f)
     float GetFloat();
+    Float2 GetFloat2();
+    Float3 GetFloat3();
 
     // Generate random float with uniform distribution from range [-1.0f, 1.0f)
     // faster than "GetFloat()*2.0f-1.0f"
@@ -52,6 +56,8 @@ public:
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
     // typical usage: Lambertian BRDF sampling
     Vector4 GetHemishpereCos();
+
+    Vector4 GetFloatNormal2();
 
 private:
 	RT_FORCE_INLINE __m128i GetIntVector4();

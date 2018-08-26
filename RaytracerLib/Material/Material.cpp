@@ -57,9 +57,7 @@ float FresnelDielectric(float NdotV, float eta, bool& totalInternalReflection)
         const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
         return 0.5f * A * A * (1.0f + B * B);
     }
-
-    totalInternalReflection = true;
-    return 1.0f;
+    totalInternalReflection = true;return 1.0f;
 }
 
 float FresnelMetal(const float NdotV, const float eta, const float k)
@@ -75,10 +73,6 @@ float FresnelMetal(const float NdotV, const float eta, const float k)
 
 Material::Material(const char* debugName)
     : debugName(debugName)
-    , metal(false)
-    , transparent(false)
-    , IoR(1.5f)
-    , K(4.0f)
 {
 }
 
@@ -133,6 +127,41 @@ math::Vector4 Material::GetNormalVector(const math::Vector4 uv) const
     return normal;
 }
 
+Float Material::GetRoughness(const math::Vector4 uv) const
+{
+    float value = roughness;
+
+    if (roughnessMap)
+    {
+        value *= roughnessMap->Sample(uv, SamplerDesc()).x;
+    }
+
+    return value;
+}
+
+Float Material::GetMetalness(const math::Vector4 uv) const
+{
+    float value = metalness;
+
+    if (metalnessMap)
+    {
+        value *= metalnessMap->Sample(uv, SamplerDesc()).x;
+    }
+
+    return value;
+}
+
+Bool Material::GetMaskValue(const math::Vector4 uv) const
+{
+    if (maskMap)
+    {
+        const float maskTreshold = 0.5f;
+        return maskMap->Sample(uv, SamplerDesc()).x > maskTreshold;
+    }
+
+    return true;
+}
+
 math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
                               const ShadingData& shadingData, math::Random& randomGenerator) const
 {
@@ -142,8 +171,9 @@ math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::
     const BSDF* bsdf = nullptr;
     math::Vector4 value;
 
-    // TODO metallic/dielectric smooth blending
-    if (metal)
+    const float metalnessValue = GetMetalness(shadingData.texCoord);
+
+    if (randomGenerator.GetFloat() < metalnessValue)
     {
         value = GetBaseColor(shadingData.texCoord);
         value *= FresnelMetal(NdotV, IoR, K);

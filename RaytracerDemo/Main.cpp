@@ -44,7 +44,7 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
 }
 
 
-int main(int argc, char* argv[])
+int __cdecl main(int argc, char* argv[])
 {
     Options options;
     if (!ParseOptions(argc, argv, options))

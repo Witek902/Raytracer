@@ -151,6 +151,15 @@ RT_FORCE_INLINE constexpr T RoundUp(const T x, const T multiple)
     return x + multiple - remainder;
 }
 
+RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
+{
+    a = (a ^ 61) ^ (a >> 16);
+    a += (a << 3);
+    a ^= (a >> 4);
+    a *= 0x27d4eb2d;
+    a ^= (a >> 15);
+    return a;
+}
 
 } // namespace math
 } // namespace rt

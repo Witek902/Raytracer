@@ -67,15 +67,14 @@ float CookTorranceBSDF::NormalDistribution(const float NdotH) const
 
 void CookTorranceBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const
 {
-    const float u0 = randomGenerator.GetFloat();
-    const float u1 = randomGenerator.GetFloat();
+    const Float2 u = randomGenerator.GetFloat2();
 
     // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
     const float a = mRougness * mRougness;
-    const float cosThetaSqr = (1.0f - u0) / (1.0f + (a * a - 1.0f) * u0);
+    const float cosThetaSqr = (1.0f - u.x) / (1.0f + (a * a - 1.0f) * u.x);
     const float cosTheta = sqrtf(cosThetaSqr);
     const float sinTheta = sqrtf(1.0f - cosThetaSqr);
-    const float phi = 2.0f * RT_PI * u1;
+    const float phi = 2.0f * RT_PI * u.y;
 
     // microfacet normal (aka. half vector)
     const Vector4 m(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta, 0.0f);
@@ -83,22 +82,23 @@ void CookTorranceBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& o
     outIncomingDir = -Vector4::Reflect3(outgoingDir, m);
 
     const float NdotH = m[2];
-    const float NdotV = fabsf(outgoingDir[2]);
-    const float NdotL = fabsf(outIncomingDir[2]);
+    const float NdotV = outgoingDir[2];
+    const float NdotL = outIncomingDir[2];
 
     // clip the function to avoid division by zero
-    if (NdotV <= FLT_EPSILON || NdotL <= FLT_EPSILON)
+    if (Abs(NdotV) <= FLT_EPSILON || Abs(NdotL) <= FLT_EPSILON || NdotV * NdotL < 0.0f)
     {
         outWeight = Vector4();
         return;
     }
 
     // Geometry term
-    const float G1 = NdotH * NdotV;
-    const float G2 = NdotH * NdotL;
-    const float G = Min(1.0f, Max(0.0f, 2.0f * Min(G1, G2)));
+    //const float G1 = 2.0f * NdotH * NdotV / VdotH;
+    //const float G2 = 2.0f * NdotH * NdotL / VdotH;
+    //const float G = Max(0.0f, Min(1.0f, Min(G1, G2)));
+    const float G = 1.0f;
 
-    outWeight = Vector4(G / NdotV);
+    outWeight = Vector4(G);
 }
 
 math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
@@ -149,7 +149,7 @@ Vector4 Refract(const Vector4& incidentVec, float eta)
     }
 
     Vector4 transmitted = incidentVec * eta - (eta * NdotV + sqrtf(k)) * VECTOR_Z;
-    assert(fabsf(1.0f - transmitted.Length3()) > 0.01f);
+    assert(fabsf(1.0f - transmitted.Length3()) < 0.01f);
 
     if (NdotV > 0.0f)
     {

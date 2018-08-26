@@ -3,7 +3,6 @@
 #include "../RayLib.h"
 
 #include "../Math/Vector4.h"
-#include "../Math/Matrix.h"
 #include "../Math/Ray.h"
 #include "../Math/Random.h"
 #include "../Math/Simd8Ray.h"

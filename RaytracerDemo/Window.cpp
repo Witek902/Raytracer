@@ -100,7 +100,16 @@ void Window::SetSize(Uint32 width, Uint32 height)
     mHeight = height;
 
     if (!mClosed)
-        MoveWindow(mHandle, mLeft, mTop, width, height, TRUE);
+    {
+        RECT windowRect;
+        windowRect.left = (long)mLeft;
+        windowRect.right = (long)(mWidth + mLeft);
+        windowRect.top = (long)mTop;
+        windowRect.bottom = (long)(mHeight + mTop);
+        AdjustWindowRectEx(&windowRect, gWindowedStyle, FALSE, gWindowedExStyle);
+
+        MoveWindow(mHandle, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, FALSE);
+    }
 }
 
 void Window::SetTitle(const char* title)

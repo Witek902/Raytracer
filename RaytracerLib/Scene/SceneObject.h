@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../RayLib.h"
-#include "../Math/Matrix.h"
 #include "../Math/Box.h"
+#include "../Math/Transform.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Traversal/HitPoint.h"
 
@@ -29,18 +29,17 @@ public:
     virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const = 0;
 
     // Calculate input data for shading routine
-    // TODO worldToLocal is a hack. All should be calculated in local space
-    virtual void EvaluateShadingData_Single(const math::Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const = 0;
+    // NOTE: all calculations are performed in local space
+    virtual void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const = 0;
 
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
 
-    // TODO use Transform class (translation + quaternion)
-    math::Matrix GetTransform(const float t) const;
-    math::Matrix GetInverseTransform(const float t) const;
+    math::Transform GetTransform(const float t) const;
+    math::Transform GetInverseTransform(const float t) const;
 
-    math::Vector4 mPosition;
-    math::Vector4 mPositionOffset;
+    math::Transform mTransform;         // local->world transform
+    math::Transform mTransformDelta;    // local transform delta for motion blur
 };
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;

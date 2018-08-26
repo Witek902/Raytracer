@@ -61,6 +61,16 @@ float Random::GetFloat()
     return myrand.f - 1.0f;
 }
 
+Float2 Random::GetFloat2()
+{
+    return GetVector4().ToFloat2();
+}
+
+Float3 Random::GetFloat3()
+{
+    return GetVector4().ToFloat3();
+}
+
 float Random::GetFloatBipolar()
 {
     Bits32 myrand;
@@ -226,7 +236,19 @@ Vector4 Random::GetHemishpereCos()
 
     float theta = 2.0f * RT_PI * u[1];
     return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1], 0.0f);
+}
 
+Vector4 Random::GetFloatNormal2()
+{
+    Vector4 result;
+
+    // Box-Muller method
+    Vector4 uv = GetVector4();
+    float temp = sqrtf(-2.0f * FastLog(uv.x));
+
+    result.x = temp * Cos(2.0f * RT_PI * uv.y);
+    result.y = temp * Sin(2.0f * RT_PI * uv.y);
+    return result;
 }
 
 } // namespace Math

@@ -11,6 +11,7 @@ using namespace math;
 
 SphereSceneObject::SphereSceneObject(const float radius, const Material* material)
     : mRadius(radius)
+    , mInvRadius(1.0f / radius)
     , mMaterial(material)
 { }
 
@@ -18,14 +19,15 @@ Box SphereSceneObject::GetBoundingBox() const
 {
     const Vector4 radius = Vector4(mRadius, mRadius, mRadius, 0.0f);
 
-    const Box localBox(mPosition - radius, mPosition + radius);
+    const Box localBox(mTransform.GetTranslation() - radius, mTransform.GetTranslation() + radius);
 
     // TODO include rotation
-    return Box(localBox, localBox + mPositionOffset);
+    return Box(localBox, localBox + mTransformDelta.GetTranslation());
 }
 
 void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
+    // TODO this breaks transparency, backface culling test is required
     if (context.hitPoint.objectId != objectID)
     {
         float dist;
@@ -44,26 +46,25 @@ void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, c
 void SphereSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
     RT_UNUSED(objectID);
-    (void)context;
+    RT_UNUSED(context);
     // TODO
 }
 
 void SphereSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
 {
     RT_UNUSED(objectID);
-    (void)context;
+    RT_UNUSED(context);
     // TODO
 }
 
-void SphereSceneObject::EvaluateShadingData_Single(const Matrix& worldToLocal, const HitPoint& hitPoint, ShadingData& outShadingData) const
+void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
     RT_UNUSED(hitPoint);
-    RT_UNUSED(worldToLocal);
 
     outShadingData.material = mMaterial;
 
     outShadingData.texCoord = Vector4(); // TODO
-    outShadingData.normal = outShadingData.position + worldToLocal.GetRow(3);
+    outShadingData.normal = outShadingData.position * mInvRadius;
     outShadingData.tangent = Vector4::Cross3(outShadingData.normal, VECTOR_Y);
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
 

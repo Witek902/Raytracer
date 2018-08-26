@@ -22,7 +22,7 @@ class Bitmap;
 class BSDF;
 
 // simple PBR material
-class RAYLIB_API Material
+class RAYLIB_API RT_ALIGN(16) Material : public Aligned<16>
 {
 public:
     Material(const char* debugName = "<unnamed>");
@@ -38,37 +38,38 @@ public:
     // a.k.a. albedo
     // for metals this is specular/reflection color
     // for dielectrics this is diffuse color
-    math::Vector4 baseColor = math::Vector4(0.6f, 0.6f, 0.6f, 0.0f);
-
-    // amount of reflection
-    float specular = 1.0f;
+    math::Vector4 baseColor = math::Vector4(0.7f, 0.7f, 0.7f, 0.0f);
 
     // 0.0 - smooth, perfect mirror
     // 1.0 - rough, maximum dispersion
     float roughness = 0.1f;
 
     // index of refraction (real and imaginary parts)
-    float IoR;
-    float K;
+    float IoR = 1.5f;
+    float K = 4.0f;
 
-    // selects between dielectric/metal models
-    // TODO make it float that blends the models smoothly
-    bool metal;
+    // blends between dielectric/metal models
+    float metalness = 0.0f;
 
-    bool transparent;
+    bool transparent = false;
 
     // textures
+    Bitmap* maskMap = nullptr;
     Bitmap* emissionColorMap = nullptr;
     Bitmap* baseColorMap = nullptr;
     Bitmap* normalMap = nullptr;
-    // TODO metal/roughness map
+    Bitmap* roughnessMap = nullptr;
+    Bitmap* metalnessMap = nullptr;
 
     // TODO material layers
 
     void Compile();
 
-    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
     math::Vector4 GetNormalVector(const math::Vector4 uv) const;
+    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
+    Float GetRoughness(const math::Vector4 uv) const;
+    Float GetMetalness(const math::Vector4 uv) const;
+    Bool GetMaskValue(const math::Vector4 uv) const;
 
     // Shade a ray and generate secondary ray
     // TODO wavelength

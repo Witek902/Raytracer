@@ -40,33 +40,12 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (width == GetWidth() && height == GetHeight())
         return true;
 
-    if (!mRenderTarget.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
-        return false;
-
     if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
-        return false;
-
-    if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
         return false;
 
     Reset();
 
     return true;
-}
-
-template<typename T>
-RT_FORCE_INLINE static T ToneMap(T color)
-{
-    const T a = T(0.004f);
-    const T b = T(6.2f);
-    const T c = T(1.7f);
-    const T d = T(0.06f);
-
-    // Jim Hejl and Richard Burgess-Dawson formula
-    const T t0 = color *  T::MulAndAdd(color, b, T(0.5f));
-    const T t1 = T::MulAndAdd(color, b, c);
-    const T t2 = T::MulAndAdd(color, t1, d);
-    return t0 * T::FastReciprocal(t2);
 }
 
 bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingParams& params)
@@ -101,32 +80,10 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
             RenderTile(*scene, camera, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
         };
 
-        if (params.traversalMode == TraversalMode::Packet)
-        {
-            mRenderTarget.Zero();
-        }
-
         mThreadPool.RunParallelTask(taskCallback, rows, columns);
     }
 
-    // post process
-    {
-        mNumSamplesRendered += params.samplesPerPixel;
-
-        const Uint32 numTiles = (Uint32)std::thread::hardware_concurrency();
-
-        const auto taskCallback = [&](Uint32, Uint32 tileY, Uint32 threadID)
-        {
-            RenderingContext& context = mThreadData[threadID];
-            context.params = &params;
-
-            const Uint32 ymin = GetHeight() * tileY / numTiles;
-            const Uint32 ymax = GetHeight() * (tileY + 1) / numTiles;
-            PostProcess(context, ymin, ymax, threadID);
-        };
-
-        mThreadPool.RunParallelTask(taskCallback, numTiles, 1);
-    }
+    mNumSamplesRendered += params.samplesPerPixel;
 
     // accumulate counters
     mCounters.Reset();
@@ -158,6 +115,9 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
 
     context.time = 0.0f; // TODO randomize time
 
+    const size_t renderTargetWidth = GetWidth();
+    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+
     if (context.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 i = 0; i < tileSize * tileSize; ++i)
@@ -176,11 +136,11 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
 
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
-                const Vector4 u = context.randomGenerator.GetVector4();
+                const Vector4 u = context.randomGenerator.GetFloatNormal2();
 
                 // randomize pixel offset
                 // TODO stratified sampling
-                const Vector4 coords = baseCoords + (u - VECTOR_HALVES) * context.params->antiAliasingSpread;
+                const Vector4 coords = baseCoords + u * context.params->antiAliasingSpread;
 
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
@@ -188,7 +148,9 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             }
 
             // TODO spectral rendering
-            mRenderTarget.SetPixel(x, y, color.values);
+            sumPixels[renderTargetWidth * y + x] += color.values;
+
+            //mRenderTarget.SetPixel(x, y, color.values);
         }
     }
     else if (context.params->traversalMode == TraversalMode::Simd)
@@ -220,7 +182,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
                 }
                 color *= 1.0f / 8.0f;
 
-                mRenderTarget.SetPixel(x, y, color.values);
+                sumPixels[renderTargetWidth * y + x] += color.values;
             }
         }
     }
@@ -258,7 +220,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
         context.localCounters.Reset();
         scene.Traverse_Packet({ primaryPacket, hitPoints, context });
         context.counters.Append(context.localCounters);
-        scene.Shade_Packet(primaryPacket, hitPoints, context, mRenderTarget);
+        scene.Shade_Packet(primaryPacket, hitPoints, context, mSum);
 
         /*
         for (Uint32 y = y0; y < maxY; ++y)
@@ -273,53 +235,6 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
     }
 
     context.counters.numPrimaryRays += tileSize * tileSize * context.params->samplesPerPixel;
-
-    // flush non-temporal stores
-    _mm_mfence();
-}
-
-bool Viewport::SetPostprocessParams(const PostprocessParams& params)
-{
-    mPostprocessingParams = params;
-    return true;
-}
-
-void Viewport::GetPostprocessParams(PostprocessParams& params)
-{
-    params = mPostprocessingParams;
-}
-
-void Viewport::PostProcess(RenderingContext& context, Uint32 ymin, Uint32 ymax, Uint32 threadID)
-{
-    (void)context;
-
-    const size_t width = GetWidth();
-    const size_t minIndex = (size_t)ymin * width;
-    const size_t maxIndex = (size_t)ymax * width;
-
-    Random& randomGenerator = mThreadData[threadID].randomGenerator;
-
-    const Float scalingFactor = exp2f(mPostprocessingParams.exposure) / (Float)mNumSamplesRendered;
-
-    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
-    const Vector4* __restrict renderTargetPixel = reinterpret_cast<const Vector4*>(mRenderTarget.GetData());
-    Uint8* frontBufferPixels = reinterpret_cast<Uint8*>(mFrontBuffer.GetData());
-
-    for (size_t i = minIndex; i < maxIndex; ++i)
-    {
-        const Vector4 sum = sumPixels[i];
-        const Vector4 renderTargetValue = renderTargetPixel[i];
-        const Vector4 newSum = sum + renderTargetValue;
-
-        const Vector4 dither = randomGenerator.GetVector4Bipolar() * mPostprocessingParams.ditheringStrength;
-        const Vector4 toneMapped = ToneMap(newSum * scalingFactor) + dither;
-
-        sumPixels[i] = newSum;
-
-        const Vector4 clampedValue = toneMapped.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
-        clampedValue.Store4_NonTemporal(frontBufferPixels + 4 * i);
-    }
-
 
     // flush non-temporal stores
     _mm_mfence();
