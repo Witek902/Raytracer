@@ -19,9 +19,20 @@ VectorInt8::VectorInt8(const __m256& m)
     : f(m)
 {}
 
-VectorInt8::VectorInt8(const Vector8& v)
-    : f(v)
-{}
+VectorInt8 VectorInt8::Cast(const Vector8& v)
+{
+    return _mm256_castps_si256(v);
+}
+
+VectorInt8 VectorInt8::Convert(const Vector8& v)
+{
+    return _mm256_cvtps_epi32(v);
+}
+
+Vector8 VectorInt8::ConvertToFloat() const
+{
+    return _mm256_cvtepi32_ps(v);
+}
 
 VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7)
 {
@@ -30,12 +41,12 @@ VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int
 
 VectorInt8::VectorInt8(const Int32 i)
 {
-	v = _mm256_set1_epi32(i);
+    v = _mm256_set1_epi32(i);
 }
 
 VectorInt8::VectorInt8(const Uint32 u)
 {
-	v = _mm256_set1_epi32(u);
+    v = _mm256_set1_epi32(u);
 }
 
 VectorInt8 VectorInt8::SelectBySign(const VectorInt8& a, const VectorInt8& b, const VectorInt8& sel)
@@ -43,63 +54,85 @@ VectorInt8 VectorInt8::SelectBySign(const VectorInt8& a, const VectorInt8& b, co
     return VectorInt8(_mm256_blendv_ps(a.f, b.f, sel.f));
 }
 
-VectorInt8 VectorInt8::operator& (const VectorInt8& b) const
+VectorInt8 VectorInt8::operator & (const VectorInt8& b) const
 {
     return _mm256_and_si256(v, b);
 }
 
-VectorInt8 VectorInt8::operator| (const VectorInt8& b) const
+VectorInt8 VectorInt8::operator | (const VectorInt8& b) const
 {
     return _mm256_or_si256(v, b);
 }
 
-VectorInt8 VectorInt8::operator^ (const VectorInt8& b) const
+VectorInt8 VectorInt8::operator ^ (const VectorInt8& b) const
 {
     return _mm256_xor_si256(v, b);
 }
 
-VectorInt8& VectorInt8::operator&= (const VectorInt8& b)
+VectorInt8& VectorInt8::operator &= (const VectorInt8& b)
 {
     v = _mm256_and_si256(v, b);
     return *this;
 }
 
-VectorInt8& VectorInt8::operator|= (const VectorInt8& b)
+VectorInt8& VectorInt8::operator |= (const VectorInt8& b)
 {
     v = _mm256_or_si256(v, b);
     return *this;
 }
 
-VectorInt8& VectorInt8::operator^= (const VectorInt8& b)
+VectorInt8& VectorInt8::operator ^= (const VectorInt8& b)
 {
     v = _mm256_xor_si256(v, b);
     return *this;
 }
 
-VectorInt8 VectorInt8::operator- () const
+VectorInt8 VectorInt8::operator - () const
 {
     return VectorInt8() - (*this);
 }
 
-VectorInt8 VectorInt8::operator+ (const VectorInt8& b) const
+VectorInt8 VectorInt8::operator + (const VectorInt8& b) const
 {
     return _mm256_add_epi32(v, b);
 }
 
-VectorInt8 VectorInt8::operator- (const VectorInt8& b) const
+VectorInt8 VectorInt8::operator - (const VectorInt8& b) const
 {
     return _mm256_sub_epi32(v, b);
 }
 
-VectorInt8& VectorInt8::operator+= (const VectorInt8& b)
+VectorInt8& VectorInt8::operator += (const VectorInt8& b)
 {
     v = _mm256_add_epi32(v, b);
     return *this;
 }
 
-VectorInt8& VectorInt8::operator-= (const VectorInt8& b)
+VectorInt8& VectorInt8::operator -= (const VectorInt8& b)
 {
     v = _mm256_sub_epi32(v, b);
+    return *this;
+}
+
+VectorInt8 VectorInt8::operator + (Int32 b) const
+{
+    return _mm256_add_epi32(v, _mm256_set1_epi32(b));
+}
+
+VectorInt8 VectorInt8::operator - (Int32 b) const
+{
+    return _mm256_sub_epi32(v, _mm256_set1_epi32(b));
+}
+
+VectorInt8& VectorInt8::operator += (Int32 b)
+{
+    v = _mm256_add_epi32(v, _mm256_set1_epi32(b));
+    return *this;
+}
+
+VectorInt8& VectorInt8::operator -= (Int32 b)
+{
+    v = _mm256_sub_epi32(v, _mm256_set1_epi32(b));
     return *this;
 }
 

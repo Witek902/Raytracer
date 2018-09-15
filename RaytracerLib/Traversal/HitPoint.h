@@ -51,8 +51,8 @@ struct RT_ALIGN(32) HitPoint_Simd8
         result.distance = distance[i];
         result.u = u[i];
         result.v = v[i];
-        result.triangleId = triangleId.u[i];
-        result.objectId = objectId.u[i];
+        result.triangleId = triangleId[i];
+        result.objectId = objectId[i];
         return result;
     }
 };

@@ -1,8 +1,10 @@
 #include "PCH.h"
 #include "BSDF.h"
+#include "Material.h"
 #include "Math/Random.h"
+#include "Math/Transcendental.h"
+#include "Color/Color.h"
 
-#pragma optimize("", off)
 
 namespace rt {
 
@@ -18,11 +20,19 @@ OrenNayarBSDF::OrenNayarBSDF(const math::Vector4& baseColor, const float roughne
     , mRoughness(roughness)
 {}
 
-void OrenNayarBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const
+void OrenNayarBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
 {
+    RT_UNUSED(wavelength);
     RT_UNUSED(outgoingDir);
 
-    outIncomingDir = randomGenerator.GetHemishpereCos();
+    // generate random sine-weighted hemisphere vector
+    {
+        // TODO optimize sqrtf, sin and cos (use approximations)
+        const Float2 u = randomGenerator.GetFloat2();
+        const Vector4 t = Vector4::Sqrt4(Vector4(u.x, 1.0f - u.x, 0.0f, 0.0f));
+        float theta = 2.0f * RT_PI * u.y;
+        outIncomingDir = Vector4(t.x * Sin(theta), t.x * Cos(theta), t.y, 0.0f);
+    }
 
     // TODO this is broken
     /*
@@ -40,7 +50,7 @@ void OrenNayarBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outI
     return mBaseColor * ((A + B * s / t) / RT_PI);
     */
 
-    outWeight = VECTOR_ONE;
+    outWeight = Color::One();
 }
 
 math::Vector4 OrenNayarBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
@@ -51,7 +61,7 @@ math::Vector4 OrenNayarBSDF::Evaluate(const math::Vector4& outgoingDir, const ma
     return Vector4(NdotL);
 }
 
-/////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CookTorranceBSDF::CookTorranceBSDF(const float roughness)
     : mRougness(roughness)
@@ -65,12 +75,13 @@ float CookTorranceBSDF::NormalDistribution(const float NdotH) const
     return (a * a) / (RT_PI * denomTerm * denomTerm);
 }
 
-void CookTorranceBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const
+void CookTorranceBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
 {
-    const Float2 u = randomGenerator.GetFloat2();
+    RT_UNUSED(wavelength);
 
     // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
     const float a = mRougness * mRougness;
+    const Float2 u = randomGenerator.GetFloat2();
     const float cosThetaSqr = (1.0f - u.x) / (1.0f + (a * a - 1.0f) * u.x);
     const float cosTheta = sqrtf(cosThetaSqr);
     const float sinTheta = sqrtf(1.0f - cosThetaSqr);
@@ -88,17 +99,18 @@ void CookTorranceBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& o
     // clip the function to avoid division by zero
     if (Abs(NdotV) <= FLT_EPSILON || Abs(NdotL) <= FLT_EPSILON || NdotV * NdotL < 0.0f)
     {
-        outWeight = Vector4();
+        outWeight = Color::One();
         return;
     }
 
+    // TODO this is wrong
     // Geometry term
     //const float G1 = 2.0f * NdotH * NdotV / VdotH;
     //const float G2 = 2.0f * NdotH * NdotL / VdotH;
     //const float G = Max(0.0f, Min(1.0f, Min(G1, G2)));
     const float G = 1.0f;
 
-    outWeight = Vector4(G);
+    outWeight = Color::One() * G;
 }
 
 math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
@@ -130,46 +142,44 @@ math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const
     return Vector4(D * G2 / (4.0f * NdotV * NdotL));
 }
 
-/////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector4 Refract(const Vector4& incidentVec, float eta)
-{
-    float NdotV = incidentVec.z;
-    if (NdotV < 0.0f)
-    {
-        eta = 1.0f / eta;
-    }
-
-    const float k = 1.0f - eta * eta * (1.0f - NdotV * NdotV);
-
-    assert(k >= 0.0f);
-    if (k < 0.0f)
-    {
-        return Vector4();
-    }
-
-    Vector4 transmitted = incidentVec * eta - (eta * NdotV + sqrtf(k)) * VECTOR_Z;
-    assert(fabsf(1.0f - transmitted.Length3()) < 0.01f);
-
-    if (NdotV > 0.0f)
-    {
-        transmitted.z = -transmitted.z;
-    }
-
-    return transmitted.Normalized3();
-}
-
-TransparencyBSDF::TransparencyBSDF(float ior)
-    : IOR(ior)
+TransparencyBSDF::TransparencyBSDF(const Material& material)
+    : material(material)
 {
 }
 
-void TransparencyBSDF::Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const
+void TransparencyBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
 {
     RT_UNUSED(randomGenerator);
 
-    outIncomingDir = Refract(-outgoingDir, IOR);
-    outWeight = VECTOR_ONE;
+    float ior;
+
+    if (material.isDispersive)
+    {
+        const float* B = material.dispersionParams.B;
+        const float* C = material.dispersionParams.C;
+        const float lambda = 1.0e+6f * Wavelength::Lower + wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower);
+        const float lambda2 = lambda * lambda;
+        ior = sqrtf(1.0f + B[0] * lambda / (lambda - C[0]) + B[1] * lambda / (lambda - C[1]) + B[2] * lambda / (lambda - C[2]));
+
+        if (!wavelength.isSingle)
+        {
+            outWeight = Color::SingleWavelengthFallback();
+            wavelength.isSingle = true;
+        }
+        else
+        {
+            outWeight = Color::One();
+        }
+    }
+    else
+    {
+        ior = material.IoR;
+        outWeight = Color::One();
+    }
+
+    outIncomingDir = Vector4::RefractZ(-outgoingDir, ior);
 }
 
 Vector4 TransparencyBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const

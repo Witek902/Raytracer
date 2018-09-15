@@ -84,7 +84,9 @@ public:
     DOFSettings mDOF;
 
     // camera lens distortion (0.0 - no distortion)
-    Float barrelDistortionFactor;
+    Float barrelDistortionConstFactor;
+    Float barrelDistortionVariableFactor;
+    Bool enableBarellDistortion;
 
 private:
     math::Vector4 mForwardInternal;

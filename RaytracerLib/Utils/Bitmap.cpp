@@ -52,9 +52,9 @@ Uint32 Bitmap::BitsPerPixel(Format format)
     case Format::B8G8R8A8_Uint:         return 8 * 4;
     case Format::R32G32B32_Float:       return 8 * 4 * 3;
     case Format::R32G32B32A32_Float:    return 8 * 4 * 4;
-	case Format::BC1:					return 4;
-    case Format::BC4:					return 4;
-    case Format::BC5:					return 8;
+    case Format::BC1:                    return 4;
+    case Format::BC4:                    return 4;
+    case Format::BC5:                    return 8;
     }
 
     return 0;
@@ -68,9 +68,9 @@ const char* Bitmap::FormatToString(Format format)
     case Format::B8G8R8A8_Uint:         return "B8G8R8A8_Uint";
     case Format::R32G32B32_Float:       return "R32G32B32_Float";
     case Format::R32G32B32A32_Float:    return "R32G32B32A32_Float";
-    case Format::BC1:					return "BC1";
-    case Format::BC4:					return "BC4";
-    case Format::BC5:					return "BC5";
+    case Format::BC1:                    return "BC1";
+    case Format::BC4:                    return "BC4";
+    case Format::BC5:                    return "BC5";
     }
 
     return "<unknown>";
@@ -109,7 +109,7 @@ void Bitmap::Release()
         mData = nullptr;
     }
 
-	mTileOrder = 0;
+    mTileOrder = 0;
     mWidth = 0;
     mHeight = 0;
     mFormat = Format::Unknown;
@@ -145,10 +145,10 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
         memcpy(mData, data, dataSize);
     }
 
-	mTileOrder = 0;
+    mTileOrder = 0;
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
-	mSize = Vector4((Float)width, (Float)height, 0.0f, 0.0f);
+    mSize = Vector4((Float)width, (Float)height, 0.0f, 0.0f);
     mFormat = format;
     mLinearSpace = linearSpace;
 
@@ -157,54 +157,54 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
 bool Bitmap::MakeTiled(Uint8 order)
 {
-	assert(order <= 16);
+    assert(order <= 16);
 
-	const Uint32 bitsPerPixel = BitsPerPixel(mFormat);
-	const Uint32 bytesPerPixel = bitsPerPixel / 8;
+    const Uint32 bitsPerPixel = BitsPerPixel(mFormat);
+    const Uint32 bytesPerPixel = bitsPerPixel / 8;
 
-	const size_t dataSize = mWidth * mHeight * bitsPerPixel / 8;
-	if (dataSize == 0)
-	{
-		RT_LOG_ERROR("Invalid bitmap format");
-		return false;
-	}
+    const size_t dataSize = mWidth * mHeight * bitsPerPixel / 8;
+    if (dataSize == 0)
+    {
+        RT_LOG_ERROR("Invalid bitmap format");
+        return false;
+    }
 
-	// align to cache line
-	Uint8* newData = (Uint8*)_aligned_malloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
-	if (!newData)
-	{
-		RT_LOG_ERROR("Memory allocation failed");
-		return false;
-	}
+    // align to cache line
+    Uint8* newData = (Uint8*)_aligned_malloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
+    if (!newData)
+    {
+        RT_LOG_ERROR("Memory allocation failed");
+        return false;
+    }
 
-	const Uint32 tileSize = 1 << order;
-	const Uint32 bytesPerTileRow = bytesPerPixel << order;
-	const Uint32 bytesPerTile = bytesPerPixel << (2 * order);
-	const Uint32 numTilesX = mWidth >> order;
-	const Uint32 numTilesY = mHeight >> order;
+    const Uint32 tileSize = 1 << order;
+    const Uint32 bytesPerTileRow = bytesPerPixel << order;
+    const Uint32 bytesPerTile = bytesPerPixel << (2 * order);
+    const Uint32 numTilesX = mWidth >> order;
+    const Uint32 numTilesY = mHeight >> order;
 
-	for (Uint32 y = 0; y < numTilesY; ++y)
-	{
-		for (Uint32 x = 0; x < numTilesX; ++x)
-		{
-			for (Uint32 i = 0; i < tileSize; ++i)
-			{
-				const Uint32 textureX = x * tileSize;
-				const Uint32 textureY = y * tileSize + i;
+    for (Uint32 y = 0; y < numTilesY; ++y)
+    {
+        for (Uint32 x = 0; x < numTilesX; ++x)
+        {
+            for (Uint32 i = 0; i < tileSize; ++i)
+            {
+                const Uint32 textureX = x * tileSize;
+                const Uint32 textureY = y * tileSize + i;
 
-				const Uint8* srcData = mData + bytesPerPixel * (mWidth * textureY + textureX);
-				Uint8* destData = newData + bytesPerTile * ((numTilesX * y) + x) + i * bytesPerTileRow;
-				memcpy(destData, srcData, bytesPerTileRow);
-			}
-		}
-	}
+                const Uint8* srcData = mData + bytesPerPixel * (mWidth * textureY + textureX);
+                Uint8* destData = newData + bytesPerTile * ((numTilesX * y) + x) + i * bytesPerTileRow;
+                memcpy(destData, srcData, bytesPerTileRow);
+            }
+        }
+    }
 
-	// swap texture data
-	_aligned_free(mData);
-	mData = newData;
-	mTileOrder = order;
+    // swap texture data
+    _aligned_free(mData);
+    mData = newData;
+    mTileOrder = order;
 
-	return true;
+    return true;
 }
 
 Bool Bitmap::Load(const char* path)
@@ -516,7 +516,7 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
         return false;
     }
 
-	// TODO support for DXT textures that has dimension non-4-multiply
+    // TODO support for DXT textures that has dimension non-4-multiply
     const size_t dataSize = GetDataSize(width, height, format);
     if (fread(mData, dataSize, 1, file) != 1)
     {
@@ -563,60 +563,60 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
 
 Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 {
-	assert(x < mWidth);
-	assert(y < mHeight);
+    assert(x < mWidth);
+    assert(y < mHeight);
 
-	const Uint32 tileSize = 1 << mTileOrder;
-	const Uint32 tileX = x >> mTileOrder;
-	const Uint32 tileY = y >> mTileOrder;
-	const Uint32 tilesInRow = mWidth >> mTileOrder;
+    const Uint32 tileSize = 1 << mTileOrder;
+    const Uint32 tileX = x >> mTileOrder;
+    const Uint32 tileY = y >> mTileOrder;
+    const Uint32 tilesInRow = mWidth >> mTileOrder;
 
-	// calculate position inside tile
-	const Uint32 tileMask = tileSize - 1;
-	x &= tileMask;
-	y &= tileMask;
+    // calculate position inside tile
+    const Uint32 tileMask = tileSize - 1;
+    x &= tileMask;
+    y &= tileMask;
 
-	const Uint32 offset = tileSize * (tileSize * (tilesInRow * tileY + tileX) + y ) + x;
+    const Uint32 offset = tileSize * (tileSize * (tilesInRow * tileY + tileX) + y ) + x;
 
-	Vector4 color;
+    Vector4 color;
     switch (mFormat)
     {
-		case Format::B8G8R8_Uint:
-		{
-			const Uint8* source = mData + (3 * offset);
-			color = Vector4::LoadBGR_UNorm(source);
-			break;
-		}
+        case Format::B8G8R8_Uint:
+        {
+            const Uint8* source = mData + (3 * offset);
+            color = Vector4::LoadBGR_UNorm(source);
+            break;
+        }
 
         case Format::B8G8R8A8_Uint:
         {
             const Uint8* source = mData + (4 * offset);
-			color = Vector4::Load4(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
-			break;
+            color = Vector4::Load4(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
+            break;
         }
 
         case Format::R32G32B32_Float:
         {
             const float* source = reinterpret_cast<float*>(mData) + 3 * offset;
-			color = Vector4(source[0], source[1], source[2], 0.0f);
-			break;
+            color = Vector4(source[0], source[1], source[2], 0.0f);
+            break;
         }
 
         case Format::R32G32B32A32_Float:
         {
             const Vector4* source = reinterpret_cast<Vector4*>(mData) + offset;
-			RT_PREFETCH_L2(source - mWidth);
-			RT_PREFETCH_L2(source + mWidth);
-			color = *source;
-			break;
+            RT_PREFETCH_L2(source - mWidth);
+            RT_PREFETCH_L2(source + mWidth);
+            color = *source;
+            break;
         }
 
-		case Format::BC1:
-		{
+        case Format::BC1:
+        {
             const Uint32 flippedY = mHeight - 1 - y;
-			color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
-			break;
-		}
+            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
+        }
 
         case Format::BC4:
         {
@@ -633,47 +633,49 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
         }
     }
 
-	if (!mLinearSpace && !forceLinearSpace)
-	{
-		color *= color;
-	}
+    if (!mLinearSpace && !forceLinearSpace)
+    {
+        color *= color;
+    }
 
-	return color;
+    return color;
 }
 
 Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 {
-	// FPU version
-	/*
-	const Int32 intU = static_cast<Int32>(coords.x);
-	const Int32 intV = static_cast<Int32>(coords.y);
-	coords.x -= (Float)intU;
-	coords.y -= (Float)intV;
+    // FPU version
+    /*
+    const Int32 intU = static_cast<Int32>(coords.x);
+    const Int32 intV = static_cast<Int32>(coords.y);
+    coords.x -= (Float)intU;
+    coords.y -= (Float)intV;
 
-	coords.x *= mWidth;
-	coords.y *= mHeight;
-	const Int32 u0 = static_cast<Int32>(coords.x);
-	const Int32 v0 = static_cast<Int32>(coords.y);
-	*/
+    coords.x *= mWidth;
+    coords.y *= mHeight;
+    const Int32 u0 = static_cast<Int32>(coords.x);
+    const Int32 v0 = static_cast<Int32>(coords.y);
+    */
 
-	//_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+    //_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
 
-	// perform wrapping
-	
-	__m128i intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
-	coords -= _mm_cvtepi32_ps(intCoords);
+    // perform wrapping
+    
+    __m128i intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
+    coords -= _mm_cvtepi32_ps(intCoords);
 
-	coords *= mSize;
-	intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
+    coords *= mSize;
+    intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
 
-	Int32 u0 = _mm_extract_epi32(intCoords, 0);
-	Int32 v0 = _mm_extract_epi32(intCoords, 1);
-	if (u0 >= mWidth) u0 = 0;
-	if (v0 >= mHeight) v0 = 0;
+    Int32 u0 = _mm_extract_epi32(intCoords, 0);
+    Int32 v0 = _mm_extract_epi32(intCoords, 1);
+    if (u0 >= mWidth) u0 = 0;
+    if (v0 >= mHeight) v0 = 0;
+    if (u0 < 0) u0 = 0;
+    if (v0 < 0) v0 = 0;
 
-	return GetPixel(u0, v0, sampler.forceLinearSpace);
+    return GetPixel(u0, v0, sampler.forceLinearSpace);
 
-	/*
+    /*
     Int32 u1 = u0 + 1;
     Int32 v1 = v0 + 1;
     if (u1 >= mWidth) u1 = 0;
@@ -691,8 +693,8 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     // bilinear interpolation
     const Vector4 value0 = Vector4::Lerp(value00, value01, weightV);
     const Vector4 value1 = Vector4::Lerp(value10, value11, weightV);
-	return Vector4::Lerp(value0, value1, weightU);
-	*/
+    return Vector4::Lerp(value0, value1, weightU);
+    */
 }
 
 void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, Uint32 y, const math::Vector4 value)
@@ -782,7 +784,7 @@ void Bitmap::ReadHorizontalLine(Uint32 y, Vector4* outValues) const
             const Uint8* source = mData + (4 * offset);
             for (Uint32 x = 0; x < mWidth; ++x)
             {
-				outValues[x] = Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
+                outValues[x] = Vector4::Load4(source + 4 * x).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
             }
             break;
         }
@@ -821,7 +823,7 @@ void Bitmap::ReadVerticalLine(Uint32 x, Vector4* outValues) const
             const Uint8* source = mData + 4 * x;
             for (Uint32 y = 0; y < mHeight; ++y)
             {
-				outValues[x] = Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
+                outValues[x] = Vector4::Load4(source + 4 * mWidth * y).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
             }
             break;
         }

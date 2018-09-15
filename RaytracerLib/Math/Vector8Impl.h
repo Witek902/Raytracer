@@ -53,12 +53,12 @@ Vector8::Vector8(const Float scalar)
 
 Vector8::Vector8(const Int32 i)
 {
-	v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
+    v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
 }
 
 Vector8::Vector8(const Uint32 u)
 {
-	v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
+    v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
 }
 
 Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
@@ -311,6 +311,11 @@ Vector8 Vector8::HorizontalMax() const
     temp = _mm256_max_ps(temp, _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 0, 3, 2)));
     temp = _mm256_max_ps(temp, _mm256_permute2f128_ps(temp, temp, 1));
     return temp;
+}
+
+Vector8 Vector8::Fmod1(const Vector8 x)
+{
+    return _mm256_sub_ps(x, _mm256_round_ps(x, _MM_FROUND_TO_ZERO));
 }
 
 // Comparison functions ===========================================================================

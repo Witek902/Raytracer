@@ -151,6 +151,15 @@ RT_FORCE_INLINE constexpr T RoundUp(const T x, const T multiple)
     return x + multiple - remainder;
 }
 
+// morton order -> 2D cooridnates
+// basically deinterleaves bits
+RT_FORCE_INLINE void DecodeMorton(const Uint32 order, Uint32& x, Uint32& y)
+{
+    x = _pext_u32(order, 0x55555555);
+    y = _pext_u32(order, 0xAAAAAAAA);
+}
+
+// Wang hash
 RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
 {
     a = (a ^ 61) ^ (a >> 16);

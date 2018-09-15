@@ -27,18 +27,30 @@ Box SphereSceneObject::GetBoundingBox() const
 
 void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    // TODO this breaks transparency, backface culling test is required
-    if (context.hitPoint.objectId != objectID)
+    const Vector4 d = -context.ray.origin;
+    const double v = Vector4::Dot3(context.ray.dir, d);
+    const double det = (double)(mRadius * mRadius) - (double)Vector4::Dot3(d, d) + v * v;
+
+    if (det > 0.0)
     {
-        float dist;
-        if (Intersect_RaySphere(context.ray, mRadius, dist))
+        const double sqrtDet = sqrt(det);
+
+        const float nearDist = (float)(v - sqrtDet);
+        if (nearDist > 0.0f && nearDist < context.hitPoint.distance && (objectID != context.hitPoint.objectId || context.hitPoint.triangleId != 0))
         {
-            if (dist > 0.0f && dist < context.hitPoint.distance)
-            {
-                context.hitPoint.distance = dist;
-                context.hitPoint.objectId = objectID;
-                context.hitPoint.triangleId = 0;
-            }
+            context.hitPoint.distance = nearDist;
+            context.hitPoint.objectId = objectID;
+            context.hitPoint.triangleId = 0;
+            return;
+        }
+
+        const float farDist = (float)(v + sqrtDet);
+        if (farDist > 0.0f && farDist < context.hitPoint.distance && (objectID != context.hitPoint.objectId || context.hitPoint.triangleId != 0))
+        {
+            context.hitPoint.distance = farDist;
+            context.hitPoint.objectId = objectID;
+            context.hitPoint.triangleId = 1;
+            return;
         }
     }
 }

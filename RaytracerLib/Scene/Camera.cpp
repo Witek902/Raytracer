@@ -9,8 +9,10 @@ using namespace math;
 
 Camera::Camera()
     : mAspectRatio(1.0f)
-    , mFieldOfView(RT_PI * 10.0f / 180.0f)
-    , barrelDistortionFactor(0.0f)
+    , mFieldOfView(RT_PI * 60.0f / 180.0f)
+    , barrelDistortionConstFactor(0.01f)
+    , barrelDistortionVariableFactor(0.005f)
+    , enableBarellDistortion(true)
 { }
 
 void Camera::SetPerspective(const Vector4& pos, const Vector4& dir, const Vector4& up, Float aspectRatio, Float FoV)
@@ -40,10 +42,11 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
 
     // barrel distortion
-    if (barrelDistortionFactor != 0.0f)
+    if (enableBarellDistortion)
     {
-        const Vector4 radius = Vector4::Dot2V(offsetedCoords, offsetedCoords);
-        offsetedCoords += offsetedCoords * radius * barrelDistortionFactor;
+        Vector4 radius = Vector4::Dot2V(offsetedCoords, offsetedCoords);
+        radius *= (barrelDistortionConstFactor + barrelDistortionVariableFactor * context.randomGenerator.GetFloat());
+        offsetedCoords += offsetedCoords * radius;
     }
 
     // calculate ray direction (ideal, without DoF)
@@ -72,10 +75,11 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
     Vector2x8 offsetedCoords = coords * 2.0f - Vector2x8::One();
 
     // barrel distortion
-    if (barrelDistortionFactor != 0.0f)
+    if (enableBarellDistortion)
     {
-        const Vector8 radius = Vector2x8::Dot(offsetedCoords, offsetedCoords);
-        offsetedCoords += offsetedCoords * (radius * barrelDistortionFactor);
+        Vector8 radius = Vector2x8::Dot(offsetedCoords, offsetedCoords);
+        radius *= (barrelDistortionConstFactor + barrelDistortionVariableFactor * context.randomGenerator.GetFloat());
+        offsetedCoords += offsetedCoords * radius;
     }
 
     // calculate ray direction (ideal, without DoF)

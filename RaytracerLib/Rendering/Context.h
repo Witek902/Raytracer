@@ -5,11 +5,13 @@
 #include "../Traversal/RayPacket.h"
 #include "../Traversal/HitPoint.h"
 
-#include "../Utils/Bitmap.h" // TODO remove
+#include "../Color/Color.h"
 
 #include "../Math/Random.h"
 
 namespace rt {
+
+struct PathDebugData;
 
 enum class RenderingMode : Uint8
 {
@@ -69,16 +71,15 @@ struct RenderingParams
     RenderingMode renderingMode;
 
     RenderingParams()
-        : maxRayDepth(5)
+        : maxRayDepth(10)
         , tileOrder(4)
         , minRussianRouletteDepth(40)
         , samplesPerPixel(1)
-        , antiAliasingSpread(0.50f)
+        , antiAliasingSpread(0.45f)
         , traversalMode(TraversalMode::Single)
         , renderingMode(RenderingMode::Regular)
     { }
 };
-
 
 /**
  * A structure with local (per-thread) data.
@@ -86,6 +87,8 @@ struct RenderingParams
  */
 struct RT_ALIGN(64) RenderingContext
 {
+    Wavelength wavelength;
+
     // two packets because of buffering
     RayPacket rayPackets[2];
 
@@ -99,7 +102,7 @@ struct RT_ALIGN(64) RenderingContext
     math::Random randomGenerator;
 
     // global rendering parameters
-    const RenderingParams* params;
+    const RenderingParams* params = nullptr;
 
     // per-thread counters
     RayTracingCounters counters;
@@ -108,11 +111,10 @@ struct RT_ALIGN(64) RenderingContext
     LocalCounters localCounters;
 
     // for motion blur sampling
-    float time;
+    float time = 0.0f;
 
-    RT_FORCE_INLINE RenderingContext(const RenderingParams* params = nullptr)
-        : params(params)
-    { }
+    // optional path debugging data
+    PathDebugData* pathDebugData = nullptr;
 };
 
 

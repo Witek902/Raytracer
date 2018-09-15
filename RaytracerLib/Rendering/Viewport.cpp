@@ -4,6 +4,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Color/Color.h"
+#include "Color/ColorHelpers.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
@@ -95,14 +96,6 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
     return true;
 }
 
-// morton order -> 2D cooridnates
-// basically deinterleaves bits
-RT_FORCE_INLINE void DecodeMorton(const Uint32 order, Uint32& x, Uint32& y)
-{
-    x = _pext_u32(order, 0x55555555);
-    y = _pext_u32(order, 0xAAAAAAAA);
-}
-
 void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0)
 {
     const Vector4 invSize = Vector4(VECTOR_ONE2) / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
@@ -132,25 +125,22 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
             const Vector4 baseCoords = Vector4::FromIntegers(x, realY);
 
-            RayColor color;
-
+            Vector4 cieXYZ;
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
-                const Vector4 u = context.randomGenerator.GetFloatNormal2();
+                context.wavelength.Randomize(context.randomGenerator);
 
                 // randomize pixel offset
-                // TODO stratified sampling
+                const Vector4 u = context.randomGenerator.GetFloatNormal2();
                 const Vector4 coords = baseCoords + u * context.params->antiAliasingSpread;
 
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
-                color += scene.TraceRay_Single(ray, context);
+                const Color color = scene.TraceRay_Single(ray, context);
+                cieXYZ += color.ToXYZ(context.wavelength);
             }
 
-            // TODO spectral rendering
-            sumPixels[renderTargetWidth * y + x] += color.values;
-
-            //mRenderTarget.SetPixel(x, y, color.values);
+            sumPixels[renderTargetWidth * y + x] += cieXYZ;
         }
     }
     else if (context.params->traversalMode == TraversalMode::Simd)
@@ -172,17 +162,18 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
 
                 Ray_Simd8 simdRay = camera.GenerateRay_Simd8(coords, context);
 
-                RayColor colors[8];
+                Color colors[8];
                 scene.TraceRay_Simd8(simdRay, context, colors);
 
-                RayColor color;
+                Color color;
                 for (Uint16 i = 0; i < 8; ++i)
                 {
                     color += colors[i];
                 }
                 color *= 1.0f / 8.0f;
 
-                sumPixels[renderTargetWidth * y + x] += color.values;
+                const Vector4 cieXYZ = color.ToXYZ(context.wavelength);
+                sumPixels[renderTargetWidth * y + x] += cieXYZ;
             }
         }
     }
@@ -237,7 +228,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
     context.counters.numPrimaryRays += tileSize * tileSize * context.params->samplesPerPixel;
 
     // flush non-temporal stores
-    _mm_mfence();
+    _mm_sfence();
 }
 
 void Viewport::Reset()

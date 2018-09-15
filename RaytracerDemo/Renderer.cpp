@@ -242,6 +242,16 @@ uint3 Rand3()
     return uint3(Rand(), Rand(), Rand());
 }
 
+float3 xyz2rgb(float3 c)
+{
+    const float3x3 mat = float3x3(
+        3.240479f, -1.537150f, -0.498535f,
+        -0.969256f,  1.875991f,  0.041556f,
+        0.055648f, -0.204043f,  1.057311f
+    );
+    return max(float3(0.0, 0.0, 0.0), mul(c, transpose(mat)));
+}
+
 float3 ToneMap(float3 x)
 {
     // Jim Hejl and Richard Burgess-Dawson formula
@@ -251,7 +261,7 @@ float3 ToneMap(float3 x)
 [numthreads(32, 32, 1)]
 void main(uint3 id : SV_DispatchThreadID)
 {
-    float3 input = inputBuffer.Load(int3(id.xy, 0));
+    float3 input = xyz2rgb(inputBuffer.Load(int3(id.xy, 0)));
 
     rng_state = Hash((id.x << 16) + id.y);
     float3 dither = float3(Rand3()) * (1.0 / 4294967296.0);

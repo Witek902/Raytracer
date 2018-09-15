@@ -10,7 +10,6 @@
 
 namespace rt {
 
-class Material;
 struct HitPoint;
 struct ShadingData;
 struct SingleTraversalContext;

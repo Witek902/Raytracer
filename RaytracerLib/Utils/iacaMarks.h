@@ -19,17 +19,17 @@
 */
 
 #if defined (__GNUC__) 
-#define IACA_SSC_MARK( MARK_ID )						\
-__asm__ __volatile__ (									\
-					  "\n\t  movl $"#MARK_ID", %%ebx"	\
-					  "\n\t  .byte 0x64, 0x67, 0x90"	\
-					  : : : "memory" );
+#define IACA_SSC_MARK( MARK_ID )                        \
+__asm__ __volatile__ (                                    \
+                      "\n\t  movl $"#MARK_ID", %%ebx"    \
+                      "\n\t  .byte 0x64, 0x67, 0x90"    \
+                      : : : "memory" );
 
 #else
 #define IACA_SSC_MARK(x) {__asm  mov ebx, x\
-	__asm  _emit 0x64 \
-	__asm  _emit 0x67 \
-	__asm  _emit 0x90 }
+    __asm  _emit 0x64 \
+    __asm  _emit 0x67 \
+    __asm  _emit 0x90 }
 #endif
 
 #define IACA_START {IACA_SSC_MARK(111)}

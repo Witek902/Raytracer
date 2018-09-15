@@ -42,7 +42,7 @@ public:
         B8G8R8A8_Uint,
         R32G32B32_Float,
         R32G32B32A32_Float,
-		BC1,
+        BC1,
         BC4,
         BC5,
 
@@ -74,8 +74,8 @@ public:
     // release memory
     void Release();
 
-	// Convert to tiled texture
-	bool MakeTiled(Uint8 order);
+    // Convert to tiled texture
+    bool MakeTiled(Uint8 order);
 
     // calculate number of bits per pixel for given format
     static Uint32 BitsPerPixel(Format format);
@@ -125,12 +125,12 @@ private:
     static void BoxBlur_Internal(math::Vector4* targetLine, const math::Vector4* srcLine,
                                  const Uint32 radius, const Uint32 width, const Float factor);
 
-	math::Vector4 mSize;
+    math::Vector4 mSize;
     Uint8* mData;
     Uint16 mWidth;
     Uint16 mHeight;
     Format mFormat;
-	Uint8 mTileOrder;
+    Uint8 mTileOrder;
     bool mLinearSpace;
 };
 

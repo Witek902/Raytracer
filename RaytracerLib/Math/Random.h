@@ -43,8 +43,8 @@ public:
     // this is much faster that using GetFloat() 8 times
     Vector8 GetVector8();
 
-	// generate random vector of 8 elements from range [-1.0f, 1.0f)
-	Vector8 GetVector8Bipolar();
+    // generate random vector of 8 elements from range [-1.0f, 1.0f)
+    Vector8 GetVector8Bipolar();
 
     // get random point on a circle (uniform distribution)
     Vector4 GetCircle();
@@ -60,8 +60,8 @@ public:
     Vector4 GetFloatNormal2();
 
 private:
-	RT_FORCE_INLINE __m128i GetIntVector4();
-	RT_FORCE_INLINE __m256i GetIntVector8();
+    RT_FORCE_INLINE __m128i GetIntVector4();
+    RT_FORCE_INLINE __m256i GetIntVector8();
 
     __m256i mSeedSimd8[2];
     __m128i mSeedSimd4[2];

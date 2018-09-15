@@ -1,16 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Math\Random.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Math.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Geometry.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Ray.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\Vector4.h">
@@ -73,9 +67,6 @@
     <ClInclude Include="Mesh\Mesh.h">
       <Filter>Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Material\MaterialLayer.h">
-      <Filter>Material</Filter>
-    </ClInclude>
     <ClInclude Include="Material\Material.h">
       <Filter>Material</Filter>
     </ClInclude>
@@ -113,9 +104,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Color\Color.h">
-      <Filter>Color</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\ColorChecker.h">
       <Filter>Color</Filter>
     </ClInclude>
     <ClInclude Include="Traversal\HitPoint.h">
@@ -206,12 +194,30 @@
     <ClInclude Include="Math\Transform.h">
       <Filter>Math\Transform</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Random.h">
+      <Filter>Math\Random</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\StratifiedRandom.h">
+      <Filter>Math\Random</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PathDebugging.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\ColorHelpers.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Constants.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Utils.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Ray.h">
+      <Filter>Math\Shapes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Random.cpp">
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="Math\Geometry.cpp">
@@ -265,9 +271,6 @@
     <ClCompile Include="Color\Color.cpp">
       <Filter>Color</Filter>
     </ClCompile>
-    <ClCompile Include="Color\ColorChecker.cpp">
-      <Filter>Color</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Float2.cpp">
       <Filter>Math\Float2</Filter>
     </ClCompile>
@@ -312,6 +315,15 @@
     </ClCompile>
     <ClCompile Include="Math\Transform.cpp">
       <Filter>Math\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Random.cpp">
+      <Filter>Math\Random</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\StratifiedRandom.cpp">
+      <Filter>Math\Random</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Utils.cpp">
+      <Filter>Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -374,6 +386,9 @@
     </Filter>
     <Filter Include="Math\Transform">
       <UniqueIdentifier>{c8f23928-6039-4d6f-b670-760dac871ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Random">
+      <UniqueIdentifier>{7de38233-fcb3-471f-8e36-0afe02709002}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

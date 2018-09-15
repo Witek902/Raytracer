@@ -41,6 +41,7 @@ struct SceneEnvironment
 
     SceneEnvironment()
         : texture(nullptr)
+        , backgroundColor(1.0f, 1.0f, 1.0f, 0.0f)
     { }
 };
 
@@ -67,14 +68,14 @@ public:
 
     void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, ShadingData& outShadingData) const;
 
-    RT_FORCE_NOINLINE RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
-    RT_FORCE_NOINLINE void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, RayColor* outColors) const;
+    RT_FORCE_NOINLINE Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
+    RT_FORCE_NOINLINE void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, Color* outColors) const;
 
     RT_FORCE_NOINLINE void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     RT_FORCE_NOINLINE void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     RT_FORCE_NOINLINE void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const;
 
-    RT_FORCE_NOINLINE void Shade_Simd8(const math::Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, RenderingContext& context, RayColor* outColors) const;
+    RT_FORCE_NOINLINE void Shade_Simd8(const math::Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, RenderingContext& context, Color* outColors) const;
 
     // perform ray packet shading:
     // 1. apply calculated color to render target
@@ -82,7 +83,7 @@ public:
     RT_FORCE_NOINLINE void Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
 
     // sample background color
-    RayColor GetBackgroundColor(const math::Ray& ray) const;
+    Color GetBackgroundColor(const math::Ray& ray, RenderingContext& context) const;
 
 private:
     Scene(const Scene&) = delete;
@@ -90,7 +91,7 @@ private:
 
     void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
-    static RayColor HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData);
+    static Color HandleSpecialRenderingMode(RenderingContext& context, const HitPoint& hitPoint, const ShadingData& shadingData);
 
     SceneEnvironment mEnvironment;
 

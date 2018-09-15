@@ -17,7 +17,7 @@ Transform Transform::operator * (const Transform& other) const
 Transform Transform::Inverted() const
 {
     Transform result;
-    result.mRotation = mRotation.Inverted().Normalized();
+    result.mRotation = mRotation.Inverted();
     result.mTranslation = result.mRotation.TransformVector(-mTranslation);
     return result;
 }
@@ -46,6 +46,24 @@ Vector4 Transform::TransformVector(const Vector4& v) const
 Vector3x8 Transform::TransformVector(const Vector3x8& v) const
 {
     return mRotation.TransformVector(v);
+}
+
+Box Transform::TransformBox(const Box& box) const
+{
+    // based on:
+    // http://dev.theomader.com/transform-bounding-boxes/
+
+    const Vector4 xa = mRotation.GetAxisX() * box.min.x;
+    const Vector4 xb = mRotation.GetAxisX() * box.max.x;
+    const Vector4 ya = mRotation.GetAxisY() * box.min.y;
+    const Vector4 yb = mRotation.GetAxisY() * box.max.y;
+    const Vector4 za = mRotation.GetAxisZ() * box.min.z;
+    const Vector4 zb = mRotation.GetAxisZ() * box.max.z;
+
+    return Box(
+        Vector4::Min(xa, xb) + Vector4::Min(ya, yb) + Vector4::Min(za, zb) + mTranslation,
+        Vector4::Max(xa, xb) + Vector4::Max(ya, yb) + Vector4::Max(za, zb) + mTranslation
+    );
 }
 
 Transform Transform::Interpolate(const Transform& t0, const Transform& t1, float t)

@@ -18,9 +18,9 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8(const __m256& m);
     RT_FORCE_INLINE explicit Vector8(const Vector4& lo);
     RT_FORCE_INLINE Vector8(const Vector4& lo, const Vector4& hi);
-	RT_FORCE_INLINE explicit Vector8(const Float scalar);
-	RT_FORCE_INLINE explicit Vector8(const Int32 scalar);
-	RT_FORCE_INLINE explicit Vector8(const Uint32 scalar);
+    RT_FORCE_INLINE explicit Vector8(const Float scalar);
+    RT_FORCE_INLINE explicit Vector8(const Int32 scalar);
+    RT_FORCE_INLINE explicit Vector8(const Uint32 scalar);
     RT_FORCE_INLINE Vector8(Float e0, Float e1, Float e2, Float e3, Float e4, Float e5, Float e6, Float e7);
     RT_FORCE_INLINE Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7);
     RT_FORCE_INLINE Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7);
@@ -152,6 +152,9 @@ struct RT_ALIGN(32) Vector8
      * Calculate horizontal maximum. Result is splatted across all elements.
      */
     RT_FORCE_INLINE Vector8 HorizontalMax() const;
+
+    // Compute fmodf(x, 1.0f)
+    RT_FORCE_INLINE static Vector8 Fmod1(const Vector8 x);
 
 private:
 

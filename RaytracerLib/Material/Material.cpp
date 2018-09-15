@@ -5,76 +5,31 @@
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
 #include "Math/Random.h"
-
-#pragma optimize("", off)
+#include "Math/Utils.h"
 
 namespace rt {
 
 using namespace math;
 
-
-
-
-float FresnelDielectric(float NdotV, float eta, bool& totalInternalReflection)
+DispersionParams::DispersionParams()
 {
-    if (NdotV > 0.0f)
-    {
-        eta = 1.0f / eta;
-    }
-
-    /*
-    if (NdotV > 0.0f)
-    {
-        eta = 1.0f / eta;
-    }
-    else
-    {
-        NdotV = -NdotV;
-    }
-
-    float k = eta * eta * (1.0f - NdotV * NdotV);
-    if (k > 1.0f)
-    {
-        //totalInternalReflection = true;
-        return 1.0f; // TIR
-    }
-
-    const float g = sqrtf(1.0f - k);
-    const float A = (NdotV - eta * g) / (NdotV + eta * g);
-    const float B = (eta * NdotV - g) / (eta * NdotV + g);
-
-    totalInternalReflection = false;
-    return 0.5f * (A * A + B * B);
-    */
-
-    const float c = fabsf(NdotV);
-    float g = eta * eta * (1.0f - NdotV * NdotV);
-    if (g < 1.0f)
-    {
-        totalInternalReflection = false;
-        g = sqrtf(1.0f - g);
-        const float A = (g - c) / (g + c);
-        const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
-        return 0.5f * A * A * (1.0f + B * B);
-    }
-    totalInternalReflection = true;return 1.0f;
+    // BK7 glass
+    B[0] = 1.03961212f;
+    B[1] = 0.231792344f;
+    B[2] = 1.01046945f;
+    C[0] = 6.00069867e-3f;
+    C[1] = 2.00179144e-2f;
+    C[2] = 1.03560653e+2f;
 }
-
-float FresnelMetal(const float NdotV, const float eta, const float k)
-{
-    const float NdotV2 = NdotV * NdotV;
-    const float a = eta * eta + k * k;
-    const float b = a * NdotV2;
-    const float rs = (b - (2.0f * eta * NdotV) + 1.0f) / (b + (2.0f * eta * NdotV) + 1.0f);
-    const float rp = (a - (2.0f * eta * NdotV) + NdotV2) / (a + (2.0f * eta * NdotV) + NdotV2);
-    return (rs + rp) * 0.5f;
-}
-
 
 Material::Material(const char* debugName)
     : debugName(debugName)
 {
 }
+
+Material::~Material() = default;
+Material::Material(Material&&) = default;
+Material& Material::operator = (Material&&) = default;
 
 void Material::Compile()
 {
@@ -83,7 +38,7 @@ void Material::Compile()
 
     if (transparent)
     {
-        mDiffuseBSDF = std::make_unique<TransparencyBSDF>(IoR); // TODO
+        mDiffuseBSDF = std::make_unique<TransparencyBSDF>(*this); // TODO
     }
     else
     {
@@ -162,14 +117,15 @@ Bool Material::GetMaskValue(const math::Vector4 uv) const
     return true;
 }
 
-math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
-                              const ShadingData& shadingData, math::Random& randomGenerator) const
+Color Material::Shade(Wavelength& wavelength,
+                      const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
+                      const ShadingData& shadingData, math::Random& randomGenerator) const
 {
     const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
     const float NdotV = outgoingDirLocalSpace[2];
 
     const BSDF* bsdf = nullptr;
-    math::Vector4 value;
+    math::Vector4 value; // TODO spectral color definitions
 
     const float metalnessValue = GetMetalness(shadingData.texCoord);
 
@@ -198,14 +154,14 @@ math::Vector4 Material::Shade(const math::Vector4& outgoingDirWorldSpace, math::
     }
 
     // BSDF sampling (in local space)
-    Vector4 weight;
+    Color weight;
     Vector4 incomingDirLocalSpace;
-    bsdf->Sample(outgoingDirLocalSpace, incomingDirLocalSpace, weight, randomGenerator);
+    bsdf->Sample(wavelength, outgoingDirLocalSpace, incomingDirLocalSpace, weight, randomGenerator);
 
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(incomingDirLocalSpace);
 
-    return value * weight;
+    return weight * Color::SampleRGB(wavelength, value);
 }
 
 } // namespace rt

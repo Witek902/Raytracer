@@ -3,7 +3,7 @@
 #include "../RayLib.h"
 
 #include "Quaternion.h"
-
+#include "Box.h"
 
 namespace rt {
 namespace math {
@@ -67,6 +67,8 @@ public:
      */
     RAYLIB_API Vector4 TransformVector(const Vector4& v) const;
     RAYLIB_API Vector3x8 TransformVector(const Vector3x8& v) const;
+
+    RAYLIB_API Box TransformBox(const Box& box) const;
 
     /**
      * Interpolate two transforms.

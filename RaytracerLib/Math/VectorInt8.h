@@ -12,21 +12,12 @@ struct Vector8;
  */
 struct RT_ALIGN(32) VectorInt8
 {
-    union
-    {
-        Int32 i[8];
-        Uint32 u[8];
-        __m256 f;
-        __m256i v;
-    };
-
     // constructors
     RT_FORCE_INLINE VectorInt8();
     RT_FORCE_INLINE VectorInt8(const __m256i& m);
-    RT_FORCE_INLINE VectorInt8(const Vector8& v);
     RT_FORCE_INLINE explicit VectorInt8(const __m256& m);
-	RT_FORCE_INLINE explicit VectorInt8(const Int32 scalar);
-	RT_FORCE_INLINE explicit VectorInt8(const Uint32 scalar);
+    RT_FORCE_INLINE explicit VectorInt8(const Int32 scalar);
+    RT_FORCE_INLINE explicit VectorInt8(const Uint32 scalar);
     RT_FORCE_INLINE VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7);
 
     RT_FORCE_INLINE operator __m256i() const { return v; }
@@ -34,32 +25,46 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
     RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
 
-    /// simple arithmetics
-    RT_FORCE_INLINE VectorInt8 operator- () const;
-    RT_FORCE_INLINE VectorInt8 operator+ (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8 operator- (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8& operator+= (const VectorInt8& b);
-    RT_FORCE_INLINE VectorInt8& operator-= (const VectorInt8& b);
+    // simple arithmetics
+    RT_FORCE_INLINE VectorInt8 operator - () const;
+    RT_FORCE_INLINE VectorInt8 operator + (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8 operator - (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8& operator += (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator -= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8 operator + (Int32 b) const;
+    RT_FORCE_INLINE VectorInt8 operator - (Int32 b) const;
+    RT_FORCE_INLINE VectorInt8& operator += (Int32 b);
+    RT_FORCE_INLINE VectorInt8& operator -= (Int32 b);
 
     /// comparison operators (returns true, if all the elements satisfy the equation)
-    RT_FORCE_INLINE bool operator== (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator< (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator<= (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator> (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator>= (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator!= (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator == (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator < (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator <= (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator > (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator >= (const VectorInt8& b) const;
+    RT_FORCE_INLINE bool operator != (const VectorInt8& b) const;
 
     /// bitwise logic operations
-    RT_FORCE_INLINE VectorInt8 operator& (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8 operator| (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8 operator^ (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8& operator&= (const VectorInt8& b);
-    RT_FORCE_INLINE VectorInt8& operator|= (const VectorInt8& b);
-    RT_FORCE_INLINE VectorInt8& operator^= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8 operator & (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8 operator | (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8 operator ^ (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8& operator &= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator |= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator ^= (const VectorInt8& b);
 
     RT_FORCE_INLINE static VectorInt8 Min(const VectorInt8& a, const VectorInt8& b);
     RT_FORCE_INLINE static VectorInt8 Max(const VectorInt8& a, const VectorInt8& b);
     RT_FORCE_INLINE VectorInt8 Clamped(const VectorInt8& min, const VectorInt8& max) const;
+
+    // cast from float vector (preserve bits)
+    RT_FORCE_INLINE static VectorInt8 Cast(const Vector8& v);
+
+    // convert from float vector to integer vector
+    RT_FORCE_INLINE static VectorInt8 Convert(const Vector8& v);
+
+    // convert to float vector
+    RT_FORCE_INLINE Vector8 ConvertToFloat() const;
+
 
     /**
      * Build mask of sign bits.
@@ -70,6 +75,15 @@ struct RT_ALIGN(32) VectorInt8
      * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
      */
     RT_FORCE_INLINE static VectorInt8 SelectBySign(const VectorInt8& a, const VectorInt8& b, const VectorInt8& sel);
+
+private:
+    union
+    {
+        Int32 i[8];
+        Uint32 u[8];
+        __m256 f;
+        __m256i v;
+    };
 };
 
 

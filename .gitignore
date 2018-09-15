@@ -4,6 +4,9 @@
 # Visual Studio intermediate projects' directories
 /Obj
 
+# ImGui config file
+imgui.ini
+
 # Output dir and files
 /Bin
 *.a

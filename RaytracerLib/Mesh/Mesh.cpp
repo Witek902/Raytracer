@@ -181,8 +181,8 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
             hitPoint.u = Vector8::SelectBySign(hitPoint.u, u, mask);
             hitPoint.v = Vector8::SelectBySign(hitPoint.v, v, mask);
             hitPoint.distance = Vector8::SelectBySign(hitPoint.distance, distance, mask);
-            hitPoint.triangleId = VectorInt8::SelectBySign(hitPoint.triangleId, triangleIndexVec, mask);
-            hitPoint.objectId = VectorInt8::SelectBySign(hitPoint.objectId, objectIndexVec, mask);
+            hitPoint.triangleId = VectorInt8::SelectBySign(hitPoint.triangleId, triangleIndexVec, VectorInt8::Cast(mask));
+            hitPoint.objectId = VectorInt8::SelectBySign(hitPoint.objectId, objectIndexVec, VectorInt8::Cast(mask));
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
             context.context.localCounters.numPassedRayTriangleTests += __popcnt(intMask);
@@ -260,7 +260,7 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
 
-    outShadingData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
+    outShadingData.material = indices.materialIndex != -1 ? mVertexBuffer.GetMaterial(indices.materialIndex) : &gDefaultMaterial;
 
     VertexShadingData vertexShadingData[3];
     mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);

@@ -4,6 +4,9 @@
 
 namespace rt {
 
+class Material;
+
+// Primite scene object - box
 class RAYLIB_API BoxSceneObject : public ISceneObject
 {
 public:

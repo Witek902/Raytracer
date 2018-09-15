@@ -291,18 +291,18 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
 std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float size, const Float textureScale)
 {
     auto material = std::make_unique<rt::Material>();
-    material->debugName = "default";
-    material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f, 0.0f);
+    material->debugName = "floor";
+    material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
     material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    material->roughness = 0.5f;
+    material->roughness = 0.3f;
 
-	material->baseColorMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_COL_4K.bmp");
-	material->normalMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_NRM_4K.bmp");
+    //material->baseColorMap = LoadTexture("../../../../TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
+    //material->normalMap = LoadTexture("../../../../TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");
     //material->roughnessMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
-    //material->baseColorMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_COL_VAR1_6K.bmp");
+    material->baseColorMap = LoadTexture("../../../../TEXTURES/", "default.bmp");
     //material->normalMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
-	//material->baseColorMap->MakeTiled(4);
-	//material->normalMap->MakeTiled(4);
+    //material->baseColorMap->MakeTiled(4);
+    //material->normalMap->MakeTiled(4);
 
     material->Compile();
 

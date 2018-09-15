@@ -194,6 +194,14 @@ public:
         return *this;
     }
 
+    RT_FORCE_INLINE Vector3x8& operator *= (const Vector8& rhs)
+    {
+        x *= rhs;
+        y *= rhs;
+        z *= rhs;
+        return *this;
+    }
+
     RT_FORCE_INLINE Vector3x8& operator *= (const float rhs)
     {
         x *= rhs;
@@ -211,7 +219,6 @@ public:
             Vector8::Reciprocal(v.z)
         };
     }
-
 
     RT_FORCE_INLINE static Vector3x8 FastReciprocal(const Vector3x8& v)
     {

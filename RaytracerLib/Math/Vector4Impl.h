@@ -74,22 +74,22 @@ Vector4 Vector4::Load4(const Uint8* src)
     vTemp = _mm_xor_ps(vTemp, VECTOR_MASK_SIGN_W);
 
     // convert to Float
-	vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
+    vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
     vTemp = _mm_add_ps(vTemp, unsignedOffset);
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
 
 Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 {
-	static const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
-	static const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
+    static const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
+    static const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
-	__m128 vTemp = _mm_load_ps1((const Float*)src);
-	vTemp = _mm_and_ps(vTemp, mask.v);
+    __m128 vTemp = _mm_load_ps1((const Float*)src);
+    vTemp = _mm_and_ps(vTemp, mask.v);
 
-	// convert to Float
-	vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
-	return _mm_mul_ps(vTemp, LoadUByte4Mul);
+    // convert to Float
+    vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
+    return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
 
 void Vector4::Store4_NonTemporal(Uint8* dest) const
@@ -105,7 +105,7 @@ void Vector4::Store4_NonTemporal(Uint8* dest) const
 
     vResulti = _mm_or_si128(_mm_or_si128(Wi, Zi), _mm_or_si128(Yi, vResulti));
 
-	_mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
+    _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
 }
 
 void Vector4::Store(Float* dest) const
@@ -149,7 +149,7 @@ Vector4 Vector4::ChangeSign() const
     }
 
     // generate bit negation mask
-    static const Vector4 mask = {x ? 0x80000000 : 0, y ? 0x80000000 : 0, z ? 0x80000000 : 0, w ? 0x80000000 : 0};
+    const Vector4 mask = {x ? 0x80000000 : 0, y ? 0x80000000 : 0, z ? 0x80000000 : 0, w ? 0x80000000 : 0};
 
     // flip sign bits
     return _mm_xor_ps(v, mask);

@@ -78,5 +78,28 @@ struct RT_ALIGN(32) RayPacket
     }
 };
 
+/*
+struct RT_ALIGN(64) RayStream
+{
+    Float rayOriginX[MaxRayPacketSize];
+    Float rayOriginY[MaxRayPacketSize];
+    Float rayOriginZ[MaxRayPacketSize];
+
+    Float rayDirX[MaxRayPacketSize];
+    Float rayDirY[MaxRayPacketSize];
+    Float rayDirZ[MaxRayPacketSize];
+
+    Float distance[MaxRayPacketSize];
+};
+
+struct RT_ALIGN(64) RayStreamHitData
+{
+    Float distance[MaxRayPacketSize];
+    Float u[MaxRayPacketSize];
+    Float v[MaxRayPacketSize];
+    Uint32 triangleId[MaxRayPacketSize];
+    Uint32 objectId[MaxRayPacketSize];
+};
+*/
 
 } // namespace rt

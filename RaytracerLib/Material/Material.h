@@ -1,10 +1,8 @@
 #pragma once
 
 #include "../RayLib.h"
-
-#include "BSDF.h"
-#include "MaterialLayer.h"
-
+#include "../Utils/AlignmentAllocator.h"
+#include "../Color/Color.h"
 #include "../Math/Ray.h"
 
 #include <string>
@@ -21,13 +19,23 @@ struct ShadingData;
 class Bitmap;
 class BSDF;
 
+// coefficients of Sellmeier dispersion equation
+struct RAYLIB_API DispersionParams
+{
+    float B[3];
+    float C[3];
+
+    DispersionParams();
+};
+
 // simple PBR material
 class RAYLIB_API RT_ALIGN(16) Material : public Aligned<16>
 {
 public:
     Material(const char* debugName = "<unnamed>");
-    Material(Material&&) = default;
-    Material& operator = (Material&&) = default;
+    ~Material();
+    Material(Material&&);
+    Material& operator = (Material&&);
 
     std::string debugName;
 
@@ -45,13 +53,22 @@ public:
     float roughness = 0.1f;
 
     // index of refraction (real and imaginary parts)
-    float IoR = 1.5f;
+    float IoR = 1.5f; // NOTE: not used when material is dispersive
     float K = 4.0f;
+
+    // chromatic dispersion parameters (used only if 'isDispersive' is enabled)
+    DispersionParams dispersionParams;
 
     // blends between dielectric/metal models
     float metalness = 0.0f;
 
+    // When enabled, index of refraction depends on wavelength according to Sellmeier equation
+    bool isDispersive = false;
+
     bool transparent = false;
+
+    // if set to true, there won't be reflected ray generated
+    bool light = false;
 
     // textures
     Bitmap* maskMap = nullptr;
@@ -72,12 +89,11 @@ public:
     Bool GetMaskValue(const math::Vector4 uv) const;
 
     // Shade a ray and generate secondary ray
-    // TODO wavelength
-    math::Vector4 Shade(const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
-                        const ShadingData& shadingData, math::Random& randomGenerator) const;
+    Color Shade(Wavelength& wavelength,
+                const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
+                const ShadingData& shadingData, math::Random& randomGenerator) const;
 
 private:
-
     Material(const Material&) = delete;
     Material& operator = (const Material&) = delete;
 

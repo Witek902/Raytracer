@@ -109,10 +109,11 @@ BoxSceneObject::BoxSceneObject(const Vector4& size, const Material* material)
 Box BoxSceneObject::GetBoundingBox() const
 {
     // TODO include rotation
-    const Box localBox(mTransform.GetTranslation() - mSize, mTransform.GetTranslation() + mSize);
+    const Box localBox(-mSize, mSize);
 
-    // TODO include rotation
-    return Box(localBox, localBox + mTransformDelta.GetTranslation());
+    return mTransform.TransformBox(localBox);
+
+    // TODO include movement
 }
 
 void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const

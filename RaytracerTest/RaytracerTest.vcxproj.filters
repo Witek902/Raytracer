@@ -7,7 +7,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Tests.cpp" />
     <ClCompile Include="..\External\googletest\src\gtest-death-test.cc">
       <Filter>External</Filter>
     </ClCompile>
@@ -32,6 +31,8 @@
     <ClCompile Include="..\External\googletest\src\gtest_main.cc">
       <Filter>External</Filter>
     </ClCompile>
+    <ClCompile Include="ColorTest.cpp" />
+    <ClCompile Include="RaytracingTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

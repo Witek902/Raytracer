@@ -6,9 +6,13 @@
 
 namespace rt {
 
+class Material;
+struct Wavelength;
+struct Color;
+
 namespace math
 {
-class Random;
+    class Random;
 }
 
 // Abstract class for Bidirectional Scattering Density Function
@@ -22,8 +26,7 @@ public:
     // Importance sample the BSDF
     // Generates incoming light direction for given outgoing ray direction
     // Ray weight (BSDF+PDF correction) is returned as well.
-    // TODO wavelength
-    virtual void Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const = 0;
+    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const = 0;
 
     // Evaluate BRDF
     // TODO wavelength
@@ -39,7 +42,7 @@ public:
     OrenNayarBSDF();
     explicit OrenNayarBSDF(const math::Vector4& baseColor, const float roughness = 0.1f);
 
-    virtual void Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const override;
+    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
     virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const override;
 
     math::Vector4 mBaseColor;
@@ -52,7 +55,7 @@ class CookTorranceBSDF : public BSDF
 public:
     explicit CookTorranceBSDF(const float roughness = 0.1f);
 
-    virtual void Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const override;
+    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
     virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const override;
 
     // get normal distribution factor (D coefficient)
@@ -65,11 +68,12 @@ public:
 class TransparencyBSDF : public BSDF
 {
 public:
-    TransparencyBSDF(float ior);
-    virtual void Sample(const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, math::Vector4& outWeight, math::Random& randomGenerator) const override;
+    TransparencyBSDF(const Material& material);
+    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
     virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const override;
 
-    float IOR;
+    // HACK
+    const Material& material;
 };
 
 } // namespace rt

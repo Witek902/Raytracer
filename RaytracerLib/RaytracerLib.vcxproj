@@ -198,13 +198,13 @@
     <ClInclude Include="BVH\BVH.h" />
     <ClInclude Include="BVH\BVHBuilder.h" />
     <ClInclude Include="Color\Color.h" />
-    <ClInclude Include="Color\ColorChecker.h" />
+    <ClInclude Include="Color\ColorHelpers.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Material\BSDF.h" />
     <ClInclude Include="Material\Material.h" />
-    <ClInclude Include="Material\MaterialLayer.h" />
     <ClInclude Include="Math\Box.h" />
+    <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Float2.h" />
     <ClInclude Include="Math\Float2Impl.h" />
     <ClInclude Include="Math\Float3.h" />
@@ -224,7 +224,9 @@
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
     <ClInclude Include="Math\Simd8Triangle.h" />
+    <ClInclude Include="Math\StratifiedRandom.h" />
     <ClInclude Include="Math\Transform.h" />
+    <ClInclude Include="Math\Utils.h" />
     <ClInclude Include="Math\Vector2x8.h" />
     <ClInclude Include="Math\Vector3x8.h" />
     <ClInclude Include="Math\Sphere.h" />
@@ -243,6 +245,7 @@
     <ClInclude Include="RayLib.h" />
     <ClInclude Include="Rendering\Counters.h" />
     <ClInclude Include="Rendering\Context.h" />
+    <ClInclude Include="Rendering\PathDebugging.h" />
     <ClInclude Include="Rendering\ShadingData.h" />
     <ClInclude Include="Rendering\Viewport.h" />
     <ClInclude Include="Scene\Camera.h" />
@@ -271,7 +274,6 @@
     <ClCompile Include="BVH\BVH.cpp" />
     <ClCompile Include="BVH\BVHBuilder.cpp" />
     <ClCompile Include="Color\Color.cpp" />
-    <ClCompile Include="Color\ColorChecker.cpp" />
     <ClCompile Include="Material\BSDF.cpp" />
     <ClCompile Include="Material\Material.cpp" />
     <ClCompile Include="Math\Box.cpp" />
@@ -281,8 +283,10 @@
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\StratifiedRandom.cpp" />
     <ClCompile Include="Math\Transcendental.cpp" />
     <ClCompile Include="Math\Transform.cpp" />
+    <ClCompile Include="Math\Utils.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
     <ClCompile Include="Math\Vector8.cpp" />
     <ClCompile Include="Math\VectorInt8.cpp" />

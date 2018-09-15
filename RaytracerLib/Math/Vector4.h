@@ -107,10 +107,10 @@ struct RT_ALIGN(16) Vector4
      */
     RT_FORCE_INLINE static Vector4 Load4(const Uint8* src);
 
-	/**
+    /**
      * Convert 3 uint8 to a Vector4 and scale to 0...1 range.
      */
-	RT_FORCE_INLINE static Vector4 LoadBGR_UNorm(const Uint8* src);
+    RT_FORCE_INLINE static Vector4 LoadBGR_UNorm(const Uint8* src);
 
     /**
      * Convert a Vector4 to 4 unsigned chars.
@@ -279,6 +279,12 @@ struct RT_ALIGN(16) Vector4
      * @details 4th element is ignored.
      */
     RT_FORCE_INLINE static Vector4 Reflect3(const Vector4& i, const Vector4& n);
+
+    /**
+     * Refract a 3D vector assumig Z+ is normal vector.
+     * @param i incident vector
+     */
+    Vector4 static RefractZ(const Vector4& i, float eta);
 
     /**
      * Generate a plane equation from 3 points.

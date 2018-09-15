@@ -9,6 +9,7 @@
 #include "../RaytracerLib/Material/Material.h"
 #include "../RaytracerLib/Utils/Bitmap.h"
 #include "../RaytracerLib/Rendering/Context.h"
+#include "../RaytracerLib/Rendering/PathDebugging.h"
 
 class Renderer;
 
@@ -61,8 +62,11 @@ public:
 private:
     std::unique_ptr<rt::Viewport> mViewport;
 
+    Uint32 mLastKeyDown;
+
     rt::Camera mCamera;
     rt::RenderingParams mRenderingParams;
+    rt::RenderingParams mPreviewRenderingParams;
     rt::PostprocessParams mPostprocessParams;
     CameraSetup mCameraSetup;
 
@@ -90,12 +94,15 @@ private:
     // device context
     HDC mDC;
 
+    // debugging
+    rt::PathDebugData mPathDebugData;
     rt::Material* mSelectedMaterial;
 
     void InitializeUI();
 
     void RenderUI();
     void RenderUI_Stats();
+    void RenderUI_Debugging();
     void RenderUI_Settings();
     bool RenderUI_Settings_Rendering();
     bool RenderUI_Settings_Camera();

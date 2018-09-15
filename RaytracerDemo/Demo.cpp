@@ -33,6 +33,7 @@ DemoWindow::DemoWindow()
     , mAverageRenderDeltaTime(0.0)
     , mCameraSpeed(1.0f)
     , mSelectedMaterial(nullptr)
+    , mLastKeyDown(0)
 {
     Reset();
 }
@@ -45,8 +46,6 @@ DemoWindow::~DemoWindow()
 
 bool DemoWindow::Initialize(const Options& options)
 {
-    InitializeUI();
-
     if (!Init())
     {
         RT_LOG_ERROR("Failed to init window");
@@ -54,13 +53,15 @@ bool DemoWindow::Initialize(const Options& options)
     }
 
     SetSize(options.windowWidth, options.windowHeight);
-    SetTitle("Raytracer Demo");
+    SetTitle("Raytracer Demo [Initializing...]");
 
     if (!Open())
     {
         RT_LOG_ERROR("Failed to open window");
         return false;
     }
+
+    InitializeUI();
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(options.windowWidth, options.windowHeight);
@@ -75,7 +76,6 @@ bool DemoWindow::Initialize(const Options& options)
     }
 
     mCamera.mDOF.aperture = 0.0f;
-    mCamera.barrelDistortionFactor = 0.0f;
 
     Random random;
 
@@ -87,19 +87,48 @@ bool DemoWindow::Initialize(const Options& options)
 
         auto loadedMesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
 
+        SceneEnvironment env;
+        env.backgroundColor = Vector4(2.0f, 2.0f, 2.0f, 0.0f);
         if (!options.envMapPath.empty())
         {
-            SceneEnvironment env;
             env.texture = helpers::LoadTexture(options.dataPath, options.envMapPath);
-            mScene->SetEnvironment(env);
+        }
+        mScene->SetEnvironment(env);
+
+        // mirror sphere on a floor
+        {
+            auto mesh = helpers::CreatePlaneMesh(mMaterials, 500.0f, 1.0f);
+            SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+            instance->mTransform.SetTranslation(Vector4(0.0f, -0.5f, 0.0f, 0.0f));
+            mScene->AddObject(std::move(instance));
+            mMeshes.push_back(std::move(mesh));
         }
 
-        /*
         {
-            auto mesh = helpers::CreatePlaneMesh(mMaterials, 100.0f, 0.4f);
-            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(mesh.get());
-            mScene->AddObject(std::move(meshInstance));
-            mMeshes.push_back(std::move(mesh));
+            auto material = std::make_unique<rt::Material>();
+            material->debugName = "light";
+            material->emissionColor = math::Vector4(20.0f, 20.0f, 20.0f, 0.0f);
+            material->light = true;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+            instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, -2.0f, 0.0f));
+            mScene->AddObject(std::move(instance));
+            mMaterials.push_back(std::move(material));
+        }
+
+        {
+            auto material = std::make_unique<rt::Material>();
+            material->debugName = "default";
+            material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f, 0.0f);
+            material->roughness = 0.2f;
+            material->transparent = false;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+            instance->mTransform.SetTranslation(Vector4(-1.5f, 0.5f, 0.0f, 0.0f));
+            mScene->AddObject(std::move(instance));
+            mMaterials.push_back(std::move(material));
         }
 
         {
@@ -110,17 +139,32 @@ bool DemoWindow::Initialize(const Options& options)
             material->transparent = true;
             material->Compile();
 
-            SceneObjectPtr meshInstance = std::make_unique<BoxSceneObject>(math::Vector4(1.0f, 1.0f, 1.0f, 0.0f), material.get());
-           // meshInstance->mTransform.SetTranslation(Vector4(0.0f, 2.005f, 0.0f, 0.0f));
-            mScene->AddObject(std::move(meshInstance));
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+            instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
+            mScene->AddObject(std::move(instance));
             mMaterials.push_back(std::move(material));
-        }*/
+        }
 
+        {
+            auto material = std::make_unique<rt::Material>();
+            material->debugName = "mirror";
+            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+            material->roughness = 0.002f;
+            material->metalness = 1.0f;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+            instance->mTransform.SetTranslation(Vector4(1.5f, 0.5f, 0.0f, 0.0f));
+            mScene->AddObject(std::move(instance));
+            mMaterials.push_back(std::move(material));
+        }
+
+        /*
         if (!options.modelPath.empty())
         {
             SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
             mScene->AddObject(std::move(meshInstance));
-        }
+        }*/
 
         mMeshes.push_back(std::move(loadedMesh));
         mScene->BuildBVH();
@@ -214,7 +258,7 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 void DemoWindow::ResetCamera()
 {
     // cornell box
-    mCameraSetup.position = Vector4(0.02f, 1.1f, 1.8f, 0.0f);
+    mCameraSetup.position = Vector4(0.02f, 0.3f, 3.2f, 0.0f);
     mCameraSetup.pitch = -0.1f;
     mCameraSetup.yaw = -3.11f;
 
@@ -242,40 +286,47 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
 
     if (button == 0)
     {
+        mPathDebugData.data.clear();
+
         Uint32 width, height;
         GetSize(width, height);
 
-        rt::RenderingParams params;
+        rt::RenderingParams params = mRenderingParams;
         params.antiAliasingSpread = 0.0f;
-        rt::RenderingContext context(&params);
+
+        rt::RenderingContext context;
+        context.params = &params;
+        context.pathDebugData = &mPathDebugData;
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, context);
 
+        const rt::Color color = mScene->TraceRay_Single(ray, context);
+        assert(!mPathDebugData.data.empty());
+
         HitPoint hitPoint;
         mScene->Traverse_Single({ ray, hitPoint, context });
 
-        if (hitPoint.objectId != UINT32_MAX)
+        if (mPathDebugData.data[0].hitPoint.objectId != UINT32_MAX)
         {
-            ShadingData shadingData;
-            mScene->ExtractShadingData(ray.origin, ray.dir, hitPoint, shadingData);
-
-            mSelectedMaterial = const_cast<Material*>(shadingData.material);
+            mSelectedMaterial = const_cast<Material*>(mPathDebugData.data[0].shadingData.material);
         }
-
-        /*
-        if (hitPoint.distance == FLT_MAX)
-        {
-            mCamera.mDOF.focalPlaneDistance = 10000000.0f;
-        }
-        else
-        {
-            mCamera.mDOF.focalPlaneDistance = Vector4::Dot3(mCamera.mForward, ray.dir) * hitPoint.distance;
-        }
-
-        ResetFrame();
-        */
     }
+
+    /*
+    if (button == 0)
+    {
+        //if (hitPoint.distance == FLT_MAX)
+        //{
+        //    mCamera.mDOF.focalPlaneDistance = 10000000.0f;
+        //}
+        //else
+        //{
+        //    mCamera.mDOF.focalPlaneDistance = Vector4::Dot3(mCamera.mForward, ray.dir) * hitPoint.distance;
+        //}
+        //ResetFrame();
+    }
+    */
 }
 
 void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
@@ -286,7 +337,7 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
 
     if (IsMouseButtonDown(1))
     {
-        const Float sensitivity = 0.01f;
+        const Float sensitivity = 0.0001f * mCameraSetup.fov;
         mCameraSetup.yaw += sensitivity * (Float)deltaX;
         mCameraSetup.pitch -= sensitivity * (Float)deltaY;
 
@@ -337,6 +388,8 @@ void DemoWindow::OnKeyPress(Uint32 key)
             mViewport->Reset();
         }
     }
+
+    mLastKeyDown = key;
 }
 
 bool DemoWindow::Loop()
@@ -345,24 +398,35 @@ bool DemoWindow::Loop()
     Timer displayTimer;
     displayTimer.Start();
 
+    char buffer[64];
+
     while (!IsClosed())
     {
+        sprintf(buffer, "Raytracer Demo [Sample %u]", mViewport->GetNumSamplesRendered());
+        SetTitle(buffer);
+
         mDeltaTime = displayTimer.Reset();
 
         ProcessMessages();
         UpdateCamera();
 
-        if (IsMouseButtonDown(1) && mViewport)
+        const bool isPreview = IsMouseButtonDown(1);
+        if (isPreview && mViewport)
         {
+            mPreviewRenderingParams = mRenderingParams;
+            mPreviewRenderingParams.antiAliasingSpread = 0.0f;
+            mPreviewRenderingParams.samplesPerPixel = 1;
+
             ResetFrame();
         }
 
         // render
         renderTimer.Start();
-        mViewport->Render(mScene.get(), mCamera, mRenderingParams);
+        mViewport->Render(mScene.get(), mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
         mRenderDeltaTime = renderTimer.Stop();
 
         RenderUI();
+        mLastKeyDown = 0;
 
         mRenderer->Render((const float*)mViewport->GetAccumulatedBuffer().GetData(), mPostprocessParams, mViewport->GetNumSamplesRendered());
 
@@ -399,6 +463,48 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Text("Ray-tri tests (total):  %.2fM", (float)counters.numRayTriangleTests / 1000000.0f);
     ImGui::Text("Ray-tri tests (passed): %.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f);
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
+}
+
+void DemoWindow::RenderUI_Debugging()
+{
+    if (ImGui::TreeNode("Path"))
+    {
+        for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
+        {
+            ImGui::Text("Ray #%zu", i);
+
+            const rt::PathDebugData::HitPointData data = mPathDebugData.data[i];
+            ImGui::Text("  RayOrigin: [%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z);
+            ImGui::Text("  RayDir:    [%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z);
+
+            if (data.hitPoint.distance != FLT_MAX)
+            {
+                ImGui::Text("  Distance:  %f", data.hitPoint.distance);
+                ImGui::Text("  Object ID: %u", data.hitPoint.objectId);
+                ImGui::Text("  Tri ID:    %u", data.hitPoint.triangleId);
+                ImGui::Text("  Tri UV:    [%f, %f]", data.hitPoint.u, data.hitPoint.v);
+                ImGui::Text("  Position:  [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
+                ImGui::Text("  Normal:    [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
+                //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
+                //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
+                ImGui::Text("  Material:  %s", data.shadingData.material->debugName);
+            }
+        }
+
+        const char* terminationReasonStr = "None";
+        switch (mPathDebugData.terminationReason)
+        {
+        case PathTerminationReason::HitBackground: terminationReasonStr = "Hit background"; break;
+        case PathTerminationReason::HitLight: terminationReasonStr = "Hit light"; break;
+        case PathTerminationReason::Depth: terminationReasonStr = "Depth exeeded"; break;
+        case PathTerminationReason::Throughput: terminationReasonStr = "Throughput too low"; break;
+        case PathTerminationReason::RussianRoulette: terminationReasonStr = "Russian roulette"; break;
+        }
+
+        ImGui::Text("Path termination reason: %s", terminationReasonStr);
+
+        ImGui::TreePop();
+    }
 }
 
 void DemoWindow::RenderUI_Settings()
@@ -486,7 +592,9 @@ bool DemoWindow::RenderUI_Settings_Camera()
     resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
     resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
     resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
-    resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionFactor, 0.0f, 0.2f);
+    resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
+    resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
+    resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);
 
     mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
 
@@ -510,7 +618,18 @@ bool DemoWindow::RenderUI_Settings_Material()
     materialChanged |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
     materialChanged |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
     materialChanged |= ImGui::SliderFloat("Metalness", &mSelectedMaterial->metalness, 0.0f, 1.0f);
-    materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
+    materialChanged |= ImGui::Checkbox("Dispersive", &mSelectedMaterial->isDispersive);
+
+    if (mSelectedMaterial->isDispersive)
+    {
+        materialChanged |= ImGui::InputFloat3("B", mSelectedMaterial->dispersionParams.B);
+        materialChanged |= ImGui::InputFloat3("C", mSelectedMaterial->dispersionParams.C);
+    }
+
+    if (mSelectedMaterial->metalness > 0.0f || !mSelectedMaterial->isDispersive)
+    {
+        materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
+    }
 
     if (mSelectedMaterial->metalness > 0.0f)
     {
@@ -540,21 +659,64 @@ void DemoWindow::RenderUI()
     io.KeyAlt = (GetKeyState(VK_MENU) & 0x8000) != 0;
     io.KeySuper = false;
 
+    memset(io.KeysDown, 0, sizeof(io.KeysDown));
+    if (mLastKeyDown > 0 && mLastKeyDown < 512)
+    {
+        io.KeysDown[mLastKeyDown] = true;
+    }
+    
     ImGui::NewFrame();
     {
-        static bool showStats = true;
-        if (ImGui::Begin("Stats", &showStats))
-        {
-            RenderUI_Stats();
-        }
-        ImGui::End();
-
+        static bool showStats = false;
+        static bool showDebugging = false;
         static bool showRenderSettings = false;
-        if (ImGui::Begin("Settings", &showRenderSettings))
+
+        if (ImGui::BeginMainMenuBar())
         {
-            RenderUI_Settings();
+            if (ImGui::BeginMenu("File"))
+            {
+                // TODO opening/saving scene
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Tools"))
+            {
+                ImGui::Checkbox("Settings", &showRenderSettings);
+                ImGui::Checkbox("Debugging", &showDebugging);
+                ImGui::Checkbox("Stats", &showStats);
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
         }
-        ImGui::End();
+
+        if (showStats)
+        {
+            if (ImGui::Begin("Stats", &showStats))
+            {
+                RenderUI_Stats();
+            }
+            ImGui::End();
+        }
+
+        if (showDebugging)
+        {
+            if (ImGui::Begin("Debugging", &showDebugging))
+            {
+                RenderUI_Debugging();
+            }
+            ImGui::End();
+        }
+
+        if (showRenderSettings)
+        {
+            if (ImGui::Begin("Settings", &showRenderSettings))
+            {
+                RenderUI_Settings();
+            }
+            ImGui::End();
+        }
     }
     ImGui::EndFrame();
 
