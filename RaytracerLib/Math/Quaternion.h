@@ -121,6 +121,23 @@ struct RT_ALIGN(16) Quaternion final
      * Check if two quaternions are almost equal.
      */
     RAYLIB_API static bool AlmostEqual(const Quaternion& a, const Quaternion& b, float epsilon = RT_EPSILON);
+
+    /**
+     * Create quaternion from Euler angles.
+     * @param   pitch   Rotation in X axis (in radians).
+     * @param   yaw     Rotation in Y axis (in radians).
+     * @param   roll    Rotation in Z axis (in radians).
+     */
+    RAYLIB_API static Quaternion FromAngles(float pitch, float yaw, float roll);
+
+    /**
+     * Convert quaternion to Euler angles.
+     * @param   outPitch   Returned rotation in X axis (in radians).
+     * @param   outYaw     Returned rotation in Y axis (in radians).
+     * @param   outRoll    Returned rotation in Z axis (in radians).
+     * @note    This is quite costly method.
+     */
+    RAYLIB_API void ToAngles(float& outPitch, float& outYaw, float& outRoll) const;
 };
 
 

@@ -39,7 +39,6 @@ void Scene::AddObject(SceneObjectPtr object)
 bool Scene::BuildBVH()
 {
     std::vector<Box, AlignmentAllocator<Box>> boxes;
-
     for (const auto& obj : mObjects)
     {
         boxes.push_back(obj->GetBoundingBox());
@@ -154,8 +153,7 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
 {
     const ISceneObject* object = mObjects[objectID].get();
 
-    const float time = 0.0f; // TODO
-    const auto invTransform = object->GetInverseTransform(time);
+    const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
     // transform ray to local-space
     Ray transformedRay;
@@ -193,8 +191,7 @@ void Scene::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint3
         const Uint32 objectIndex = node.childIndex + i;
         const ISceneObject* object = mObjects[objectIndex].get();
 
-        const float time = 0.0f; // TODO
-        const auto invTransform = object->GetInverseTransform(time);
+        const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
         // transform ray to local-space
         Ray_Simd8 transformedRay = context.ray;
@@ -276,25 +273,23 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
 }
 
-void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, const HitPoint& hitPoint, ShadingData& outShadingData) const
+void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const
 {
     if (hitPoint.distance == FLT_MAX)
     {
         return;
     }
 
-    const float time = 0.0f;
-
     const ISceneObject* object = mObjects[hitPoint.objectId].get();
 
     const Vector4 worldPosition = Vector4::MulAndAdd(rayDir, Vector4(hitPoint.distance), rayOrigin);
-    outShadingData.position = object->GetInverseTransform(time).TransformPoint(worldPosition);
+    outShadingData.position = object->ComputeInverseTransform(time).TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
     // transform shading data from local space to world space
-    const auto transform = object->GetTransform(time);
+    const auto transform = object->ComputeTransform(time);
     outShadingData.position = worldPosition;
     outShadingData.tangent = transform.TransformVector(outShadingData.tangent);
     outShadingData.bitangent = transform.TransformVector(outShadingData.bitangent);
@@ -322,7 +317,7 @@ Color Scene::TraceRay_Single(const Ray& ray, RenderingContext& context) const
         Traverse_Single({ currentRay, hitPoint, context });
         context.counters.Append(context.localCounters);
 
-        ExtractShadingData(currentRay.origin, currentRay.dir, hitPoint, shadingData);
+        ExtractShadingData(currentRay.origin, currentRay.dir, hitPoint, context.time, shadingData);
 
         // special rendering mode
         if (context.params->renderingMode != RenderingMode::Regular)
@@ -472,7 +467,7 @@ void Scene::Shade_Simd8(const Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, R
         else
         {
             const HitPoint hitPoint = hitPoints.Get(i);
-            ExtractShadingData(rayOrigins[i], rayDirs[i], hitPoint, shadingData);
+            ExtractShadingData(rayOrigins[i], rayDirs[i], hitPoint, context.time, shadingData);
 
             if (!regularRenderingMode)
             {

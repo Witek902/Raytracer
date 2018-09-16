@@ -97,6 +97,7 @@ private:
     // debugging
     rt::PathDebugData mPathDebugData;
     rt::Material* mSelectedMaterial;
+    rt::ISceneObject* mSelectedObject;
 
     void InitializeUI();
 
@@ -107,15 +108,17 @@ private:
     bool RenderUI_Settings_Rendering();
     bool RenderUI_Settings_Camera();
     bool RenderUI_Settings_PostProcess();
+    bool RenderUI_Settings_Object();
     bool RenderUI_Settings_Material();
+
 
     virtual void OnMouseDown(Uint32 key, int x, int y) override;
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
     virtual void OnMouseUp(Uint32 button) override;
     virtual void OnScroll(int delta) override;
     virtual void OnResize(Uint32 width, Uint32 height) override;
-
-    void OnKeyPress(Uint32 key) override;
+    virtual void OnKeyPress(Uint32 key) override;
+    virtual void OnCharTyped(const char* charUTF8) override;
 
     void ResetCounters();
     void ResetCamera();

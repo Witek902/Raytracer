@@ -17,7 +17,7 @@ Transform Transform::operator * (const Transform& other) const
 Transform Transform::Inverted() const
 {
     Transform result;
-    result.mRotation = mRotation.Inverted();
+    result.mRotation = mRotation.Conjugate();
     result.mTranslation = result.mRotation.TransformVector(-mTranslation);
     return result;
 }

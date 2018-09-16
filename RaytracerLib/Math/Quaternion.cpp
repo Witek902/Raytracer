@@ -141,6 +141,50 @@ bool Quaternion::AlmostEqual(const Quaternion& a, const Quaternion& b, float eps
     return Abs(d) > 1.0f - epsilon;
 }
 
+Quaternion Quaternion::FromAngles(float pitch, float yaw, float roll)
+{
+    // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
+    pitch *= 0.5f;
+    yaw *= 0.5f;
+    roll *= 0.5f;
+
+    Quaternion q;
+    float t0 = Cos(yaw);
+    float t1 = Sin(yaw);
+    float t2 = Cos(roll);
+    float t3 = Sin(roll);
+    float t4 = Cos(pitch);
+    float t5 = Sin(pitch);
+
+    const Vector4 term0 = Vector4(t0, t1, t0, t0);
+    const Vector4 term1 = Vector4(t2, t2, t3, t2);
+    const Vector4 term2 = Vector4(t5, t4, t4, t4);
+
+    const Vector4 term3 = Vector4(t1, -t0, -t1, t1);
+    const Vector4 term4 = Vector4(t3, t3, t2, t3);
+    const Vector4 term5 = Vector4(t4, t5, t5, t5);
+
+    return Quaternion(term0 * term1 * term2 + term3 * term4 * term5);
+}
+
+void Quaternion::ToAngles(float& outPitch, float& outYaw, float& outRoll) const
+{
+    // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
+    float t0 = 2.0f * (q[3] * q[2] + q[0] * q[1]);
+    float t2 = 2.0f * (q[3] * q[0] - q[1] * q[2]);
+    float t3 = 2.0f * (q[3] * q[1] + q[2] * q[0]);
+    float t1 = 1.0f - 2.0f * (q[2] * q[2] + q[0] * q[0]);
+    float t4 = 1.0f - 2.0f * (q[0] * q[0] + q[1] * q[1]);
+
+    t2 = Clamp(t2, -1.0f, 1.0f);
+
+    outRoll = atan2f(t0, t1);
+    outPitch = ASin(t2);
+    outYaw = atan2f(t3, t4);
+}
+
 
 } // namespace math
 } // namespace rt

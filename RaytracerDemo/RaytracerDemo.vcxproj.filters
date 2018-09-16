@@ -41,6 +41,9 @@
     <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
       <Filter>External\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Demo_UserInterface.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

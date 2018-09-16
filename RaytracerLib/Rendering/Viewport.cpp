@@ -106,8 +106,6 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
 
     const bool verticalFlip = true;
 
-    context.time = 0.0f; // TODO randomize time
-
     const size_t renderTargetWidth = GetWidth();
     Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
 
@@ -128,6 +126,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             Vector4 cieXYZ;
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
+                context.time = context.randomGenerator.GetFloat();
                 context.wavelength.Randomize(context.randomGenerator);
 
                 // randomize pixel offset

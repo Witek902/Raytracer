@@ -61,12 +61,13 @@ public:
     bool BuildBVH();
 
     RT_FORCE_NOINLINE const BVH& GetBVH() const { return mBVH; }
+    RT_FORCE_NOINLINE const ISceneObject* GetObject(Uint32 index) const { return mObjects[index].get(); }
 
     // traverse the scene, returns hit points
     RT_FORCE_NOINLINE void Traverse_Single(const SingleTraversalContext& context) const;
     RT_FORCE_NOINLINE void Traverse_Packet(const PacketTraversalContext& context) const;
 
-    void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, ShadingData& outShadingData) const;
+    void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const;
 
     RT_FORCE_NOINLINE Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const;
     RT_FORCE_NOINLINE void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, Color* outColors) const;

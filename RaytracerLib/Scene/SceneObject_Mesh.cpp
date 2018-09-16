@@ -18,8 +18,11 @@ Box MeshSceneObject::GetBoundingBox() const
 {
     const Box localBox = mMesh->GetBoundingBox();
 
-    // TODO include rotation
-    return Box(localBox + mTransform.GetTranslation(), localBox + mTransform.GetTranslation() + mTransform.GetTranslation());
+    // TODO just transformed box may be bigger that bounding box of rotated triangles
+    const Box box0 = mTransform.TransformBox(localBox);
+    const Box box1 = ComputeTransform(1.0f).TransformBox(localBox);
+
+    return Box(box0, box1);
 }
 
 void MeshSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const

@@ -240,7 +240,7 @@ Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbValues)
         }
         else
         {
-            sourceC = rgbToSpectrum_Blue;
+            sourceC = rgbToSpectrum_Green;
             coeffB = b - r;
             coeffC = g - b;
         }

@@ -361,7 +361,6 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             return 0;
         }
 
-
         // MOUSE
         case WM_LBUTTONDOWN:
         {

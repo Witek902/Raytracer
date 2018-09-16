@@ -15,10 +15,7 @@
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui.h>
 #include <imgui/imgui_impl_dx11.h>
-
-#define DISABLE_IMGUI
 
 using namespace rt;
 using namespace math;
@@ -33,6 +30,7 @@ DemoWindow::DemoWindow()
     , mAverageRenderDeltaTime(0.0)
     , mCameraSpeed(1.0f)
     , mSelectedMaterial(nullptr)
+    , mSelectedObject(nullptr)
     , mLastKeyDown(0)
 {
     Reset();
@@ -95,11 +93,10 @@ bool DemoWindow::Initialize(const Options& options)
         }
         mScene->SetEnvironment(env);
 
-        // mirror sphere on a floor
         {
             auto mesh = helpers::CreatePlaneMesh(mMaterials, 500.0f, 1.0f);
             SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
-            instance->mTransform.SetTranslation(Vector4(0.0f, -0.5f, 0.0f, 0.0f));
+            instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             mScene->AddObject(std::move(instance));
             mMeshes.push_back(std::move(mesh));
         }
@@ -164,7 +161,8 @@ bool DemoWindow::Initialize(const Options& options)
         {
             SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
             mScene->AddObject(std::move(meshInstance));
-        }*/
+        }
+        */
 
         mMeshes.push_back(std::move(loadedMesh));
         mScene->BuildBVH();
@@ -310,6 +308,7 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         if (mPathDebugData.data[0].hitPoint.objectId != UINT32_MAX)
         {
             mSelectedMaterial = const_cast<Material*>(mPathDebugData.data[0].shadingData.material);
+            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObject(mPathDebugData.data[0].hitPoint.objectId));
         }
     }
 
@@ -392,6 +391,12 @@ void DemoWindow::OnKeyPress(Uint32 key)
     mLastKeyDown = key;
 }
 
+void DemoWindow::OnCharTyped(const char* charUTF8)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharactersUTF8(charUTF8);
+}
+
 bool DemoWindow::Loop()
 {
     Timer renderTimer;
@@ -440,287 +445,6 @@ bool DemoWindow::Loop()
     }
 
     return true;
-}
-
-void DemoWindow::RenderUI_Stats()
-{
-    ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
-    ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
-    ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
-    ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
-    ImGui::Text("Frame number:        %u", mFrameNumber);
-
-    ImGui::Separator();
-
-    ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
-
-    ImGui::Separator();
-
-    const RayTracingCounters& counters = mViewport->GetCounters();
-#ifdef RT_ENABLE_INTERSECTION_COUNTERS
-    ImGui::Text("Ray-box tests (total):  %.2fM", (float)counters.numRayBoxTests / 1000000.0f);
-    ImGui::Text("Ray-box tests (passed): %.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f);
-    ImGui::Text("Ray-tri tests (total):  %.2fM", (float)counters.numRayTriangleTests / 1000000.0f);
-    ImGui::Text("Ray-tri tests (passed): %.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f);
-#endif // RT_ENABLE_INTERSECTION_COUNTERS
-}
-
-void DemoWindow::RenderUI_Debugging()
-{
-    if (ImGui::TreeNode("Path"))
-    {
-        for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
-        {
-            ImGui::Text("Ray #%zu", i);
-
-            const rt::PathDebugData::HitPointData data = mPathDebugData.data[i];
-            ImGui::Text("  RayOrigin: [%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z);
-            ImGui::Text("  RayDir:    [%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z);
-
-            if (data.hitPoint.distance != FLT_MAX)
-            {
-                ImGui::Text("  Distance:  %f", data.hitPoint.distance);
-                ImGui::Text("  Object ID: %u", data.hitPoint.objectId);
-                ImGui::Text("  Tri ID:    %u", data.hitPoint.triangleId);
-                ImGui::Text("  Tri UV:    [%f, %f]", data.hitPoint.u, data.hitPoint.v);
-                ImGui::Text("  Position:  [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
-                ImGui::Text("  Normal:    [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
-                //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
-                //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
-                ImGui::Text("  Material:  %s", data.shadingData.material->debugName);
-            }
-        }
-
-        const char* terminationReasonStr = "None";
-        switch (mPathDebugData.terminationReason)
-        {
-        case PathTerminationReason::HitBackground: terminationReasonStr = "Hit background"; break;
-        case PathTerminationReason::HitLight: terminationReasonStr = "Hit light"; break;
-        case PathTerminationReason::Depth: terminationReasonStr = "Depth exeeded"; break;
-        case PathTerminationReason::Throughput: terminationReasonStr = "Throughput too low"; break;
-        case PathTerminationReason::RussianRoulette: terminationReasonStr = "Russian roulette"; break;
-        }
-
-        ImGui::Text("Path termination reason: %s", terminationReasonStr);
-
-        ImGui::TreePop();
-    }
-}
-
-void DemoWindow::RenderUI_Settings()
-{
-    bool resetFrame = false;
-
-    if (ImGui::TreeNode("Rendering"))
-    {
-        resetFrame |= RenderUI_Settings_Rendering();
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Camera"))
-    {
-        resetFrame |= RenderUI_Settings_Camera();
-        ImGui::TreePop();
-    }
-
-    if (ImGui::TreeNode("Postprocess"))
-    {
-        resetFrame |= RenderUI_Settings_PostProcess();
-        ImGui::TreePop();
-    }
-
-    if (mSelectedMaterial)
-    {
-        if (ImGui::TreeNode("Material", "Material (%s)", mSelectedMaterial->debugName.c_str()))
-        {
-            resetFrame |= RenderUI_Settings_Material();
-            ImGui::TreePop();
-        }
-    }
-
-    if (resetFrame)
-    {
-        ResetFrame();
-    }
-}
-
-bool DemoWindow::RenderUI_Settings_Rendering()
-{
-    bool resetFrame = false;
-
-    int renderingModeIndex = static_cast<int>(mRenderingParams.renderingMode);
-    int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
-    int tileOrder = static_cast<int>(mRenderingParams.tileOrder);
-
-    const char* renderingModeItems[] =
-    {
-        "Regular", "BaseColor",
-        "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords", "TriangleID",
-#ifdef RT_ENABLE_INTERSECTION_COUNTERS
-        "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
-#endif // RT_ENABLE_INTERSECTION_COUNTERS
-    };
-    resetFrame |= ImGui::Combo("Rendering mode", &renderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
-
-    const char* traversalModeItems[] = { "Single", "SIMD", "Packet" };
-    resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
-
-    ImGui::SliderInt("Tile order", (int*)&tileOrder, 0, 8); // max 256x256 tile
-
-    resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 1, 50);
-    ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
-    resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
-    resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
-
-    mRenderingParams.renderingMode = static_cast<RenderingMode>(renderingModeIndex);
-    mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
-    mRenderingParams.tileOrder = static_cast<Uint8>(tileOrder);
-
-    return resetFrame;
-}
-
-bool DemoWindow::RenderUI_Settings_Camera()
-{
-    bool resetFrame = false;
-
-    const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box" };
-    int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
-
-    resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
-
-    resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
-    resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
-    resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
-    resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
-    resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
-    resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
-    resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);
-
-    mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
-
-    return resetFrame;
-}
-
-bool DemoWindow::RenderUI_Settings_PostProcess()
-{
-    ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
-    ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
-
-    return false;
-}
-
-bool DemoWindow::RenderUI_Settings_Material()
-{
-    bool materialChanged = false;
-
-    materialChanged |= ImGui::Checkbox("Transparent", &mSelectedMaterial->transparent);
-    materialChanged |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emissionColor[0], ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-    materialChanged |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
-    materialChanged |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
-    materialChanged |= ImGui::SliderFloat("Metalness", &mSelectedMaterial->metalness, 0.0f, 1.0f);
-    materialChanged |= ImGui::Checkbox("Dispersive", &mSelectedMaterial->isDispersive);
-
-    if (mSelectedMaterial->isDispersive)
-    {
-        materialChanged |= ImGui::InputFloat3("B", mSelectedMaterial->dispersionParams.B);
-        materialChanged |= ImGui::InputFloat3("C", mSelectedMaterial->dispersionParams.C);
-    }
-
-    if (mSelectedMaterial->metalness > 0.0f || !mSelectedMaterial->isDispersive)
-    {
-        materialChanged |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
-    }
-
-    if (mSelectedMaterial->metalness > 0.0f)
-    {
-        materialChanged |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
-    }
-
-    if (materialChanged)
-    {
-        mSelectedMaterial->Compile();
-    }
-
-    return materialChanged;
-}
-
-void DemoWindow::RenderUI()
-{
-    ImGui_ImplDX11_NewFrame();
-
-    Uint32 width, height;
-    GetSize(width, height);
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)width, (float)height);
-    io.DeltaTime = (float)mDeltaTime;
-    io.KeyCtrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-    io.KeyShift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-    io.KeyAlt = (GetKeyState(VK_MENU) & 0x8000) != 0;
-    io.KeySuper = false;
-
-    memset(io.KeysDown, 0, sizeof(io.KeysDown));
-    if (mLastKeyDown > 0 && mLastKeyDown < 512)
-    {
-        io.KeysDown[mLastKeyDown] = true;
-    }
-    
-    ImGui::NewFrame();
-    {
-        static bool showStats = false;
-        static bool showDebugging = false;
-        static bool showRenderSettings = false;
-
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                // TODO opening/saving scene
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Tools"))
-            {
-                ImGui::Checkbox("Settings", &showRenderSettings);
-                ImGui::Checkbox("Debugging", &showDebugging);
-                ImGui::Checkbox("Stats", &showStats);
-
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMainMenuBar();
-        }
-
-        if (showStats)
-        {
-            if (ImGui::Begin("Stats", &showStats))
-            {
-                RenderUI_Stats();
-            }
-            ImGui::End();
-        }
-
-        if (showDebugging)
-        {
-            if (ImGui::Begin("Debugging", &showDebugging))
-            {
-                RenderUI_Debugging();
-            }
-            ImGui::End();
-        }
-
-        if (showRenderSettings)
-        {
-            if (ImGui::Begin("Settings", &showRenderSettings))
-            {
-                RenderUI_Settings();
-            }
-            ImGui::End();
-        }
-    }
-    ImGui::EndFrame();
-
-    ImGui::Render();
 }
 
 void DemoWindow::UpdateCamera()

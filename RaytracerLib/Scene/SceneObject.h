@@ -34,11 +34,15 @@ public:
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
 
-    math::Transform GetTransform(const float t) const;
-    math::Transform GetInverseTransform(const float t) const;
+    math::Transform ComputeTransform(const float t) const;
+    math::Transform ComputeInverseTransform(const float t) const;
 
-    math::Transform mTransform;         // local->world transform
-    math::Transform mTransformDelta;    // local transform delta for motion blur
+    // local->world transform at time=0.0
+    math::Transform mTransform;
+
+    // local transform delta for motion blur
+    math::Vector4 mLinearVelocity;
+    math::Quaternion mAngularVelocity;
 };
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;
