@@ -339,7 +339,7 @@ bool DemoWindow::Loop()
 
         ProcessMessages();
         UpdateCamera();
-
+        
         const bool isPreview = IsMouseButtonDown(1);
         if (isPreview && mViewport)
         {
@@ -380,11 +380,8 @@ void DemoWindow::UpdateCamera()
     const Camera oldCameraSetup = mCamera;
 
     // calculate camera direction from Euler angles
-    const float cosPitch = cosf(mCameraSetup.pitch);
-    const Vector4 direction = Vector4(sinf(mCameraSetup.yaw) * cosPitch,
-                                      sinf(mCameraSetup.pitch),
-                                      cosf(mCameraSetup.yaw) * cosPitch,
-                                      0.0f);
+    const Quaternion cameraOrientation = Quaternion::FromAngles(-mCameraSetup.pitch, mCameraSetup.yaw, 0.0f);
+    const Vector4 direction = cameraOrientation.GetAxisZ();
 
     Vector4 movement;
     if (IsKeyPressed('W'))
@@ -392,9 +389,9 @@ void DemoWindow::UpdateCamera()
     if (IsKeyPressed('S'))
         movement -= direction;
     if (IsKeyPressed('A'))
-        movement += Vector4(-direction[2], 0.0f, direction[0], 0.0f);
+        movement += Vector4(-direction.z, 0.0f, direction.x, 0.0f);
     if (IsKeyPressed('D'))
-        movement -= Vector4(-direction[2], 0.0f, direction[0], 0.0f);
+        movement -= Vector4(-direction.z, 0.0f, direction.x, 0.0f);
 
     if (movement.Length3() > RT_EPSILON)
     {
@@ -408,13 +405,26 @@ void DemoWindow::UpdateCamera()
         else if (IsKeyPressed(VK_LCONTROL))
             movement /= 5.0f;
 
-        mCameraSetup.position += movement * (Float)mDeltaTime;
+        const Vector4 delta = movement * (float)mDeltaTime;
+        mCameraSetup.position += delta;
+        mCamera.mLinearVelocity = -delta;
+    }
+    else
+    {
+        mCamera.mLinearVelocity = Vector4();
     }
 
-    mCamera.SetPerspective(mCameraSetup.position, direction,
-                           Vector4(0.0f, 1.0f, 0.0f, 0.0f),
-                           (Float)width / (Float)height,
-                           RT_PI / 180.0f * mCameraSetup.fov);
+    const Float aspectRatio = (Float)width / (Float)height;
+    const Float FoV = RT_PI / 180.0f * mCameraSetup.fov;
+    mCamera.SetPerspective(Transform(mCameraSetup.position, cameraOrientation), aspectRatio, FoV);
 
-    mCamera.Update();
+    // rotation motion blur
+    if (mFrameNumber > 0)
+    {
+        mCamera.mAngularVelocity = (cameraOrientation.Inverted() * oldCameraSetup.mTransform.GetRotation()).Normalized();
+    }
+    else
+    {
+        mCamera.mAngularVelocity = Quaternion::Identity();
+    }
 }

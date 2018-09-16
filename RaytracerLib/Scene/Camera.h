@@ -2,7 +2,7 @@
 
 #include "../RayLib.h"
 
-#include "../Math/Vector4.h"
+#include "../Math/Transform.h"
 #include "../Math/Ray.h"
 #include "../Math/Random.h"
 #include "../Math/Simd8Ray.h"
@@ -52,11 +52,10 @@ class RT_ALIGN(16) RAYLIB_API Camera
 public:
     Camera();
 
-    void SetPerspective(const math::Vector4& pos, const math::Vector4& dir, const math::Vector4& up, Float aspectRatio, Float FoV);
+    void SetPerspective(const math::Transform& transform, Float aspectRatio, Float FoV);
 
-    // Update internal state
-    // Should be called once before rendering
-    void Update();
+    // Sample camera transfrom for given time point
+    math::Transform SampleTransform(const float time) const;
 
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
@@ -68,11 +67,11 @@ public:
     // TODO generate ray packet
 
     // camera placement
-    math::Vector4 mPosition;
-    math::Vector4 mForward;
-    math::Vector4 mUp;
+    math::Transform mTransform;
 
-    math::Vector4 mPositionDelta;
+    // camera velocity
+    math::Vector4 mLinearVelocity;
+    math::Quaternion mAngularVelocity;
 
     // width to height ratio
     Float mAspectRatio;
@@ -89,11 +88,7 @@ public:
     Bool enableBarellDistortion;
 
 private:
-    math::Vector4 mForwardInternal;
-    math::Vector4 mRightInternal;
-    math::Vector4 mUpInternal;
-    math::Vector4 mRightScaled;
-    math::Vector4 mUpScaled;
+    Float mTanHalfFoV;
 };
 
 } // namespace rt

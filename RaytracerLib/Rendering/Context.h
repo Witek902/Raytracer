@@ -52,6 +52,10 @@ struct RenderingParams
     // Setting to higher values will blur the image
     Float antiAliasingSpread = 0.45f;
 
+    // Motion blur multiplier
+    // NOTE: must be in [0...1] range
+    Float motionBlurStrength = 0.5f;
+
     // number of primary rays to be generated for image pixel
     Uint32 samplesPerPixel = 1;
 

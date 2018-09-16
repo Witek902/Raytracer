@@ -15,30 +15,36 @@ Camera::Camera()
     , enableBarellDistortion(true)
 { }
 
-void Camera::SetPerspective(const Vector4& pos, const Vector4& dir, const Vector4& up, Float aspectRatio, Float FoV)
+void Camera::SetPerspective(const math::Transform& transform, Float aspectRatio, Float FoV)
 {
-    mPosition = pos;
-    mForward = dir;
-    mUp = up;
+    mTransform = transform;
     mAspectRatio = aspectRatio;
     mFieldOfView = FoV;
+    mTanHalfFoV = tanf(mFieldOfView * 0.5f);
 }
 
-void Camera::Update()
+Transform Camera::SampleTransform(const float time) const
 {
-    mForwardInternal = mForward.Normalized3();
-    mRightInternal = Vector4::Cross3(mUp, mForwardInternal).Normalized3();
-    mUpInternal = Vector4::Cross3(mForwardInternal, mRightInternal).Normalized3();
+    const Vector4 position = mTransform.GetTranslation() + mLinearVelocity * time;
+    const Quaternion rotation0 = mTransform.GetRotation();
+    Quaternion rotation;
 
-    // field of view & aspect ratio
-    const Float tanHalfFoV = tanf(mFieldOfView * 0.5f);
-    mUpScaled = mUpInternal * tanHalfFoV;
-    mRightScaled = mRightInternal * (tanHalfFoV * mAspectRatio);
+    if (Quaternion::AlmostEqual(mAngularVelocity, Quaternion::Identity()))
+    {
+        rotation = rotation0;
+    }
+    else
+    {
+        const Quaternion rotation1 = rotation0 * mAngularVelocity;
+        rotation = Quaternion::Interpolate(rotation0, rotation1, time);
+    }
+
+    return Transform(position, rotation);
 }
 
 Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
 {
-    Vector4 origin = mPosition + mPositionDelta * context.time;
+    const Transform transform = SampleTransform(context.time);
     Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
 
     // barrel distortion
@@ -49,19 +55,30 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
         offsetedCoords += offsetedCoords * radius;
     }
 
+    const Vector4 screenSpaceRayDir
+    (
+        offsetedCoords.x * mTanHalfFoV * mAspectRatio,
+        offsetedCoords.y * mTanHalfFoV,
+        1.0f,
+        0.0f
+    );
+
     // calculate ray direction (ideal, without DoF)
-    Vector4 direction = Vector4::MulAndAdd(offsetedCoords.SplatX(), mRightScaled, mForwardInternal);
-    direction = Vector4::MulAndAdd(offsetedCoords.SplatY(), mUpScaled, direction);
+    Vector4 direction = transform.GetRotation().TransformVector(screenSpaceRayDir);
+    Vector4 origin = transform.GetTranslation();
 
     // depth of field
     if (mDOF.aperture > 0.001f)
     {
         const Vector4 focusPoint = origin + mDOF.focalPlaneDistance * direction;
 
+        const Vector4 right = transform.GetRotation().GetAxisX();
+        const Vector4 up = transform.GetRotation().GetAxisY();
+
         // TODO different bokeh shapes, texture, etc.
         const Vector4 randomPointOnCircle = GenerateBokeh(context) * mDOF.aperture;
-        origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), mRightInternal, origin);
-        origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), mUpInternal, origin);
+        origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), right, origin);
+        origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), up, origin);
 
         direction = focusPoint - origin;
     }
@@ -71,8 +88,16 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
 
 Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& context) const
 {
-    Vector3x8 origin(mPosition + mPositionDelta * context.time);
+    const Transform transform = SampleTransform(context.time);
+
+    Vector3x8 origin(transform.GetTranslation());
     Vector2x8 offsetedCoords = coords * 2.0f - Vector2x8::One();
+
+    const Vector4 forwardInternal = transform.GetRotation().GetAxisZ();
+    const Vector4 rightInternal = transform.GetRotation().GetAxisX();
+    const Vector4 upInternal = transform.GetRotation().GetAxisY();
+    const Vector4 upScaled = upInternal * mTanHalfFoV;
+    const Vector4 rightScaled = rightInternal * (mTanHalfFoV * mAspectRatio);
 
     // barrel distortion
     if (enableBarellDistortion)
@@ -83,8 +108,8 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
     }
 
     // calculate ray direction (ideal, without DoF)
-    Vector3x8 direction = Vector3x8::MulAndAdd(Vector3x8(mRightScaled), offsetedCoords.x, Vector3x8(mForwardInternal));
-    direction = Vector3x8::MulAndAdd(Vector3x8(mUpScaled), offsetedCoords.y, direction);
+    Vector3x8 direction = Vector3x8::MulAndAdd(Vector3x8(rightScaled), offsetedCoords.x, Vector3x8(forwardInternal));
+    direction = Vector3x8::MulAndAdd(Vector3x8(upScaled), offsetedCoords.y, direction);
 
     // depth of field
     if (mDOF.aperture > 0.001f)
@@ -93,8 +118,8 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
 
         // TODO different bokeh shapes, texture, etc.
         const Vector2x8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
-        origin = Vector3x8::MulAndAdd(Vector3x8(mRightInternal), randomPointOnCircle.x, origin);
-        origin = Vector3x8::MulAndAdd(Vector3x8(mUpInternal), randomPointOnCircle.y, origin);
+        origin = Vector3x8::MulAndAdd(Vector3x8(rightInternal), randomPointOnCircle.x, origin);
+        origin = Vector3x8::MulAndAdd(Vector3x8(upInternal), randomPointOnCircle.y, origin);
 
         direction = focusPoint - origin;
     }

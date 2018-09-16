@@ -126,7 +126,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             Vector4 cieXYZ;
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
-                context.time = context.randomGenerator.GetFloat();
+                context.time = context.randomGenerator.GetFloat() * context.params->motionBlurStrength;
                 context.wavelength.Randomize(context.randomGenerator);
 
                 // randomize pixel offset

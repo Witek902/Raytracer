@@ -155,6 +155,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
+    resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);
 
     mRenderingParams.renderingMode = static_cast<RenderingMode>(renderingModeIndex);
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
