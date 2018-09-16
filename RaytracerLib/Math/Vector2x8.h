@@ -33,8 +33,15 @@ public:
     }
 
     // build from eight 3D vectors
-    RT_FORCE_INLINE Vector2x8(const Vector4& v0, const Vector4& v1, const Vector4& v2, const Vector4& v3,
-                                  const Vector4& v4, const Vector4& v5, const Vector4& v6, const Vector4& v7)
+    RT_FORCE_INLINE Vector2x8(
+        const Vector4& v0,
+        const Vector4& v1,
+        const Vector4& v2,
+        const Vector4& v3,
+        const Vector4& v4,
+        const Vector4& v5,
+        const Vector4& v6,
+        const Vector4& v7)
     {
         // TODO this can be probably optimized somehow
 
@@ -68,7 +75,7 @@ public:
         y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
     }
 
-    RT_FORCE_INLINE static Vector2x8 One()
+    RT_FORCE_INLINE static const Vector2x8 One()
     {
         return
         {
@@ -79,32 +86,32 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE Vector2x8 operator + (const Vector2x8& rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator + (const Vector2x8& rhs) const
     {
         return { x + rhs.x, y + rhs.y };
     }
 
-    RT_FORCE_INLINE Vector2x8 operator - (const Vector2x8& rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator - (const Vector2x8& rhs) const
     {
         return { x - rhs.x, y - rhs.y };
     }
 
-    RT_FORCE_INLINE Vector2x8 operator * (const Vector2x8& rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator * (const Vector2x8& rhs) const
     {
         return { x * rhs.x, y * rhs.y };
     }
 
-    RT_FORCE_INLINE Vector2x8 operator * (const Vector8& rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator * (const Vector8& rhs) const
     {
         return { x * rhs, y * rhs };
     }
 
-    RT_FORCE_INLINE Vector2x8 operator / (const Vector2x8& rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator / (const Vector2x8& rhs) const
     {
         return { x / rhs.x, y / rhs.y };
     }
 
-    RT_FORCE_INLINE Vector2x8 operator * (const float rhs) const
+    RT_FORCE_INLINE const Vector2x8 operator * (const float rhs) const
     {
         return { x * rhs, y * rhs };
     }
@@ -146,7 +153,7 @@ public:
         return *this;
     }
 
-    RT_FORCE_INLINE static Vector2x8 FastReciprocal(const Vector2x8& v)
+    RT_FORCE_INLINE static const Vector2x8 FastReciprocal(const Vector2x8& v)
     {
         return
         {
@@ -155,7 +162,7 @@ public:
         };
     }
 
-    RT_FORCE_INLINE static Vector2x8 MulAndAdd(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
+    RT_FORCE_INLINE static const Vector2x8 MulAndAdd(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
     {
         return
         {
@@ -164,7 +171,7 @@ public:
         };
     }
 
-    RT_FORCE_INLINE static Vector2x8 MulAndSub(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
+    RT_FORCE_INLINE static const Vector2x8 MulAndSub(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
     {
         return
         {
@@ -173,7 +180,7 @@ public:
         };
     }
 
-    RT_FORCE_INLINE static Vector2x8 NegMulAndAdd(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
+    RT_FORCE_INLINE static const Vector2x8 NegMulAndAdd(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
     {
         return
         {
@@ -182,7 +189,7 @@ public:
         };
     }
 
-    RT_FORCE_INLINE static Vector2x8 NegMulAndSub(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
+    RT_FORCE_INLINE static const Vector2x8 NegMulAndSub(const Vector2x8& a, const Vector2x8& b, const Vector2x8& c)
     {
         return
         {
@@ -194,19 +201,19 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     // dot product
-    RT_FORCE_INLINE static Vector8 Dot(const Vector2x8& a, const Vector2x8& b)
+    RT_FORCE_INLINE static const Vector8 Dot(const Vector2x8& a, const Vector2x8& b)
     {
         // return a.x * b.x + a.y * b.y
         return Vector8::MulAndAdd(a.x, b.x, a.y * b.y);
     }
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector2x8 Min(const Vector2x8& a, const Vector2x8& b)
+    RT_FORCE_INLINE static const Vector2x8 Min(const Vector2x8& a, const Vector2x8& b)
     {
         return { Vector8::Min(a.x, b.x), Vector8::Min(a.y, b.y) };
     }
 
-    RT_FORCE_INLINE static Vector2x8 Max(const Vector2x8& a, const Vector2x8& b)
+    RT_FORCE_INLINE static const Vector2x8 Max(const Vector2x8& a, const Vector2x8& b)
     {
         return { Vector8::Max(a.x, b.x), Vector8::Max(a.y, b.y) };
     }

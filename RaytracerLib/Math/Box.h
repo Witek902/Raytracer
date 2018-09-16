@@ -20,7 +20,7 @@ public:
 
     Box(const Vector4& a, const Vector4& b, const Vector4& c);
 
-    RT_FORCE_INLINE static Box Empty()
+    RT_FORCE_INLINE static const Box Empty()
     {
         return Box(Vector4(VECTOR_MAX), -Vector4(VECTOR_MAX));
     }
@@ -39,42 +39,29 @@ public:
         max = Vector4::Max(a.max, b.max);
     }
 
-    RT_FORCE_INLINE Box operator + (const Vector4& offset) const
+    RT_FORCE_INLINE const Box operator + (const Vector4& offset) const
     {
         return Box{ min + offset, max + offset };
     }
 
-    RT_FORCE_INLINE Vector4 GetCenter() const;
-    RT_FORCE_INLINE Vector4 GetVertex(int id) const;
-    RT_FORCE_INLINE Vector4 SupportVertex(const Vector4& dir) const;
-    RT_FORCE_INLINE void MakeFromPoints(const Vector4* pPoints, int number);
-    RT_FORCE_INLINE float SurfaceArea() const;
-    RT_FORCE_INLINE float Volume() const;
+    RT_FORCE_INLINE const Vector4 GetCenter() const
+    {
+        return (min + max) * 0.5f;
+    }
+
+    RT_FORCE_INLINE float SurfaceArea() const
+    {
+        Vector4 size = max - min;
+        return size.f[0] * (size.f[1] + size.f[2]) + size.f[1] * size.f[2];
+    }
+
+    RT_FORCE_INLINE float Volume() const
+    {
+        Vector4 size = max - min;
+        return size.f[0] * size.f[1] * size.f[2];
+    }
 };
 
 
-Vector4 Box::GetCenter() const
-{
-    return (min + max) * 0.5f;
-}
-
-Vector4 Box::SupportVertex(const Vector4& dir) const
-{
-    return Vector4::SelectBySign(max, min, dir);
-}
-
-float Box::SurfaceArea() const
-{
-    Vector4 size = max - min;
-    return size.f[0] * (size.f[1] + size.f[2]) + size.f[1] * size.f[2];
-}
-
-float Box::Volume() const
-{
-    Vector4 size = max - min;
-    return size.f[0] * size.f[1] * size.f[2];
-}
-
-
 } // namespace math
-} // namespace rt
+} // namespace r

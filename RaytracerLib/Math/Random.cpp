@@ -61,12 +61,12 @@ float Random::GetFloat()
     return myrand.f - 1.0f;
 }
 
-Float2 Random::GetFloat2()
+const Float2 Random::GetFloat2()
 {
     return GetVector4().ToFloat2();
 }
 
-Float3 Random::GetFloat3()
+const Float3 Random::GetFloat3()
 {
     return GetVector4().ToFloat3();
 }
@@ -112,7 +112,7 @@ __m256i Random::GetIntVector8()
     return v;
 }
 
-Vector4 Random::GetVector4()
+const Vector4 Random::GetVector4()
 {
     __m128i v = GetIntVector4();
 
@@ -128,7 +128,7 @@ Vector4 Random::GetVector4()
     return result;
 }
 
-Vector4 Random::GetVector4Bipolar()
+const Vector4 Random::GetVector4Bipolar()
 {
     __m128i v = GetIntVector4();
 
@@ -144,7 +144,7 @@ Vector4 Random::GetVector4Bipolar()
     return result;
 }
 
-Vector8 Random::GetVector8()
+const Vector8 Random::GetVector8()
 {
     __m256i v = GetIntVector8();
 
@@ -160,7 +160,7 @@ Vector8 Random::GetVector8()
     return result;
 }
 
-Vector8 Random::GetVector8Bipolar()
+const Vector8 Random::GetVector8Bipolar()
 {
     __m256i v = GetIntVector8();
 
@@ -176,7 +176,7 @@ Vector8 Random::GetVector8Bipolar()
     return result;
 }
 
-Vector4 Random::GetCircle()
+const Vector4 Random::GetCircle()
 {
     const Vector4 v = GetVector4();
 
@@ -192,7 +192,7 @@ Vector4 Random::GetCircle()
     return r * sinCos;
 }
 
-Vector2x8 Random::GetCircle_Simd8()
+const Vector2x8 Random::GetCircle_Simd8()
 {
     // angle (uniform distribution)
     const Vector8 theta = (2.0f * RT_PI) * GetVector8();
@@ -207,7 +207,7 @@ Vector2x8 Random::GetCircle_Simd8()
     return { r * vSin, r * vCos };
 }
 
-Vector4 Random::GetHexagon()
+const Vector4 Random::GetHexagon()
 {
     constexpr Float2 g_hexVectors[] =
     {
@@ -225,7 +225,7 @@ Vector4 Random::GetHexagon()
     return Vector4(xy.x * a.x + xy.y * b.x, xy.x * a.y + xy.y * b.y, 0.0f, 0.0f);
 }
 
-Vector4 Random::GetHemishpereCos()
+const Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();
 
@@ -236,7 +236,7 @@ Vector4 Random::GetHemishpereCos()
     return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1], 0.0f);
 }
 
-Vector4 Random::GetFloatNormal2()
+const Vector4 Random::GetFloatNormal2()
 {
     Vector4 result;
 

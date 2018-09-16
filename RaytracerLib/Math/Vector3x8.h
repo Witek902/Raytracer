@@ -130,32 +130,32 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE Vector3x8 operator + (const Vector3x8& rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator + (const Vector3x8& rhs) const
     {
         return { x + rhs.x, y + rhs.y, z + rhs.z };
     }
 
-    RT_FORCE_INLINE Vector3x8 operator - (const Vector3x8& rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator - (const Vector3x8& rhs) const
     {
         return { x - rhs.x, y - rhs.y, z - rhs.z };
     }
 
-    RT_FORCE_INLINE Vector3x8 operator * (const Vector3x8& rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator * (const Vector3x8& rhs) const
     {
         return { x * rhs.x, y * rhs.y,z * rhs.z };
     }
 
-    RT_FORCE_INLINE Vector3x8 operator * (const Vector8& rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator * (const Vector8& rhs) const
     {
         return { x * rhs, y * rhs, z * rhs };
     }
 
-    RT_FORCE_INLINE Vector3x8 operator / (const Vector3x8& rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator / (const Vector3x8& rhs) const
     {
         return { x / rhs.x, y / rhs.y, z / rhs.z };
     }
 
-    RT_FORCE_INLINE Vector3x8 operator * (const float rhs) const
+    RT_FORCE_INLINE const Vector3x8 operator * (const float rhs) const
     {
         return { x * rhs, y * rhs, z * rhs };
     }
@@ -210,7 +210,7 @@ public:
         return *this;
     }
 
-    RT_FORCE_INLINE static Vector3x8 Reciprocal(const Vector3x8& v)
+    RT_FORCE_INLINE static const Vector3x8 Reciprocal(const Vector3x8& v)
     {
         return
         {
@@ -220,7 +220,7 @@ public:
         };
     }
 
-    RT_FORCE_INLINE static Vector3x8 FastReciprocal(const Vector3x8& v)
+    RT_FORCE_INLINE static const Vector3x8 FastReciprocal(const Vector3x8& v)
     {
         return
         {
@@ -232,88 +232,88 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3x8 MulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
     {
         return { Vector8::MulAndAdd(a.x, b.x, c.x), Vector8::MulAndAdd(a.y, b.y, c.y), Vector8::MulAndAdd(a.z, b.z, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 MulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
     {
         return { Vector8::MulAndSub(a.x, b.x, c.x), Vector8::MulAndSub(a.y, b.y, c.y), Vector8::MulAndSub(a.z, b.z, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
     {
         return { Vector8::NegMulAndAdd(a.x, b.x, c.x), Vector8::NegMulAndAdd(a.y, b.y, c.y), Vector8::NegMulAndAdd(a.z, b.z, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector3x8& c)
     {
         return { Vector8::NegMulAndSub(a.x, b.x, c.x), Vector8::NegMulAndSub(a.y, b.y, c.y), Vector8::NegMulAndSub(a.z, b.z, c.z) };
     }
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3x8 MulAndAdd(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndAdd(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
     {
         return { Vector8::MulAndAdd(a.x, b, c.x), Vector8::MulAndAdd(a.y, b, c.y), Vector8::MulAndAdd(a.z, b, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 MulAndSub(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndSub(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
     {
         return { Vector8::MulAndSub(a.x, b, c.x), Vector8::MulAndSub(a.y, b, c.y), Vector8::MulAndSub(a.z, b, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
     {
         return { Vector8::NegMulAndAdd(a.x, b, c.x), Vector8::NegMulAndAdd(a.y, b, c.y), Vector8::NegMulAndAdd(a.z, b, c.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector8& b, const Vector3x8& c)
     {
         return { Vector8::NegMulAndSub(a.x, b, c.x), Vector8::NegMulAndSub(a.y, b, c.y), Vector8::NegMulAndSub(a.z, b, c.z) };
     }
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3x8 MulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
     {
         return { Vector8::MulAndAdd(a.x, b.x, c), Vector8::MulAndAdd(a.y, b.y, c), Vector8::MulAndAdd(a.z, b.z, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 MulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
     {
         return { Vector8::MulAndSub(a.x, b.x, c), Vector8::MulAndSub(a.y, b.y, c), Vector8::MulAndSub(a.z, b.z, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
     {
         return { Vector8::NegMulAndAdd(a.x, b.x, c), Vector8::NegMulAndAdd(a.y, b.y, c), Vector8::NegMulAndAdd(a.z, b.z, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector3x8& b, const Vector8& c)
     {
         return { Vector8::NegMulAndSub(a.x, b.x, c), Vector8::NegMulAndSub(a.y, b.y, c), Vector8::NegMulAndSub(a.z, b.z, c) };
     }
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3x8 MulAndAdd(const Vector3x8& a, const Vector8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndAdd(const Vector3x8& a, const Vector8& b, const Vector8& c)
     {
         return { Vector8::MulAndAdd(a.x, b, c), Vector8::MulAndAdd(a.y, b, c), Vector8::MulAndAdd(a.z, b, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 MulAndSub(const Vector3x8& a, const Vector8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 MulAndSub(const Vector3x8& a, const Vector8& b, const Vector8& c)
     {
         return { Vector8::MulAndSub(a.x, b, c), Vector8::MulAndSub(a.y, b, c), Vector8::MulAndSub(a.z, b, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndAdd(const Vector3x8& a, const Vector8& b, const Vector8& c)
     {
         return { Vector8::NegMulAndAdd(a.x, b, c), Vector8::NegMulAndAdd(a.y, b, c), Vector8::NegMulAndAdd(a.z, b, c) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector8& b, const Vector8& c)
+    RT_FORCE_INLINE static const Vector3x8 NegMulAndSub(const Vector3x8& a, const Vector8& b, const Vector8& c)
     {
         return { Vector8::NegMulAndSub(a.x, b, c), Vector8::NegMulAndSub(a.y, b, c), Vector8::NegMulAndSub(a.z, b, c) };
     }
@@ -321,14 +321,14 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     // 3D dot product
-    RT_FORCE_INLINE static Vector8 Dot(const Vector3x8& a, const Vector3x8& b)
+    RT_FORCE_INLINE static const Vector8 Dot(const Vector3x8& a, const Vector3x8& b)
     {
         // return a.x * b.x + a.y * b.y + a.z * b.z;
         return Vector8::MulAndAdd(a.x, b.x, Vector8::MulAndAdd(a.y, b.y, a.z * b.z));
     }
 
     // 3D cross product
-    RT_FORCE_INLINE static Vector3x8 Cross(const Vector3x8& a, const Vector3x8& b)
+    RT_FORCE_INLINE static const Vector3x8 Cross(const Vector3x8& a, const Vector3x8& b)
     {
         return {
             Vector8::NegMulAndAdd(a.z, b.y, a.y * b.z),
@@ -339,12 +339,12 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3x8 Min(const Vector3x8& a, const Vector3x8& b)
+    RT_FORCE_INLINE static const Vector3x8 Min(const Vector3x8& a, const Vector3x8& b)
     {
         return { Vector8::Min(a.x, b.x), Vector8::Min(a.y, b.y), Vector8::Min(a.z, b.z) };
     }
 
-    RT_FORCE_INLINE static Vector3x8 Max(const Vector3x8& a, const Vector3x8& b)
+    RT_FORCE_INLINE static const Vector3x8 Max(const Vector3x8& a, const Vector3x8& b)
     {
         return { Vector8::Max(a.x, b.x), Vector8::Max(a.y, b.y), Vector8::Max(a.z, b.z) };
     }

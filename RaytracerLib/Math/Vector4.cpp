@@ -4,7 +4,7 @@
 namespace rt {
 namespace math {
 
-Vector4 Vector4::RefractZ(const Vector4& i, float eta)
+const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
 {
     float NdotV = i.z;
     if (NdotV < 0.0f)

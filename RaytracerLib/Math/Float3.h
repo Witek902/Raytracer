@@ -36,30 +36,30 @@ struct Float3
     RT_INLINE float& Get(Uint32 index);
 
     /// elements manipulations
-    RT_INLINE constexpr Float3 SplatX() const;
-    RT_INLINE constexpr Float3 SplatY() const;
-    RT_INLINE constexpr Float3 SplatZ() const;
-    RT_INLINE constexpr static Float3 Splat(float f);
+    RT_INLINE constexpr const Float3 SplatX() const;
+    RT_INLINE constexpr const Float3 SplatY() const;
+    RT_INLINE constexpr const Float3 SplatZ() const;
+    RT_INLINE static constexpr const Float3 Splat(float f);
 
     template<bool x, bool y, bool z>
-    RT_INLINE constexpr Float3 ChangeSign() const;
+    RT_INLINE constexpr const Float3 ChangeSign() const;
 
     template<Uint32 ix, Uint32 iy, Uint32 iz>
-    RT_INLINE Float3 Swizzle() const;
+    RT_INLINE const Float3 Swizzle() const;
 
     template<Uint32 ix, Uint32 iy, Uint32 iz>
-    RT_INLINE static constexpr Float3 Blend(const Float3& a, const Float3& b);
+    RT_INLINE static constexpr const Float3 Blend(const Float3& a, const Float3& b);
 
-    RT_INLINE static Float3 SelectBySign(const Float3& a, const Float3& b, const Float3& sel);
+    RT_INLINE static const Float3 SelectBySign(const Float3& a, const Float3& b, const Float3& sel);
 
     /// simple arithmetics
-    RT_INLINE constexpr Float3 operator- () const;
-    RT_INLINE constexpr Float3 operator+ (const Float3& b) const;
-    RT_INLINE constexpr Float3 operator- (const Float3& b) const;
-    RT_INLINE constexpr Float3 operator* (const Float3& b) const;
-    RT_INLINE Float3 operator/ (const Float3& b) const;
-    RT_INLINE constexpr Float3 operator* (float b) const;
-    RT_INLINE Float3 operator/ (float b) const;
+    RT_INLINE constexpr const Float3 operator- () const;
+    RT_INLINE constexpr const Float3 operator+ (const Float3& b) const;
+    RT_INLINE constexpr const Float3 operator- (const Float3& b) const;
+    RT_INLINE constexpr const Float3 operator* (const Float3& b) const;
+    RT_INLINE const Float3 operator/ (const Float3& b) const;
+    RT_INLINE constexpr const Float3 operator* (float b) const;
+    RT_INLINE const Float3 operator/ (float b) const;
     RT_INLINE Float3& operator+= (const Float3& b);
     RT_INLINE Float3& operator-= (const Float3& b);
     RT_INLINE Float3& operator*= (const Float3& b);
@@ -76,25 +76,25 @@ struct Float3
     RT_INLINE constexpr bool operator!= (const Float3& b) const;
 
     /// Misc math
-    RT_INLINE static Float3 Floor(const Float3& v);
-    RT_INLINE static Float3 Sqrt(const Float3& v);
-    RT_INLINE static Float3 Reciprocal(const Float3& v);
-    RT_INLINE static constexpr Float3 Lerp(const Float3& v1, const Float3& v2, const Float3& weight);
-    RT_INLINE static constexpr Float3 Lerp(const Float3& v1, const Float3& v2, float weight);
-    RT_INLINE static constexpr Float3 Min(const Float3& a, const Float3& b);
-    RT_INLINE static constexpr Float3 Max(const Float3& a, const Float3& b);
-    RT_INLINE static constexpr Float3 Abs(const Float3& v);
+    RT_INLINE static const Float3 Floor(const Float3& v);
+    RT_INLINE static const Float3 Sqrt(const Float3& v);
+    RT_INLINE static const Float3 Reciprocal(const Float3& v);
+    RT_INLINE static constexpr const Float3 Lerp(const Float3& v1, const Float3& v2, const Float3& weight);
+    RT_INLINE static constexpr const Float3 Lerp(const Float3& v1, const Float3& v2, float weight);
+    RT_INLINE static constexpr const Float3 Min(const Float3& a, const Float3& b);
+    RT_INLINE static constexpr const Float3 Max(const Float3& a, const Float3& b);
+    RT_INLINE static constexpr const Float3 Abs(const Float3& v);
     RT_INLINE static constexpr bool AlmostEqual(const Float3& v1, const Float3& v2, float epsilon = FLT_EPSILON);
 
     /// Geometry
     RT_INLINE static constexpr float Dot(const Float3& a, const Float3& b);
-    RT_INLINE static constexpr Float3 Cross(const Float3& a, const Float3& b);
+    RT_INLINE static constexpr const Float3 Cross(const Float3& a, const Float3& b);
     RT_INLINE float Length() const;
     RT_INLINE Float3& Normalize();
-    RT_INLINE Float3 Normalized() const;
+    RT_INLINE const Float3 Normalized() const;
 };
 
-RT_INLINE Float3 operator * (float a, const Float3& b);
+RT_INLINE const Float3 operator * (float a, const Float3& b);
 
 } // namespace math
 } // namespace rt

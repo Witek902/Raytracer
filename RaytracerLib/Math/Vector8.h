@@ -30,7 +30,7 @@ struct RT_ALIGN(32) Vector8
      * Rearrange vector elements (in both lanes, parallel)
      */
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
-    RT_FORCE_INLINE Vector8 Swizzle() const;
+    RT_FORCE_INLINE const Vector8 Swizzle() const;
 
     RT_FORCE_INLINE operator __m256() const { return v; }
     RT_FORCE_INLINE operator __m256i() const { return reinterpret_cast<const __m256i*>(&v)[0]; }
@@ -50,13 +50,13 @@ struct RT_ALIGN(32) Vector8
     }
 
     /// simple arithmetics
-    RT_FORCE_INLINE Vector8 operator- () const;
-    RT_FORCE_INLINE Vector8 operator+ (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator- (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator* (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator/ (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator* (Float b) const;
-    RT_FORCE_INLINE Vector8 operator/ (Float b) const;
+    RT_FORCE_INLINE const Vector8 operator- () const;
+    RT_FORCE_INLINE const Vector8 operator+ (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator- (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator* (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator/ (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator* (Float b) const;
+    RT_FORCE_INLINE const Vector8 operator/ (Float b) const;
     RT_FORCE_INLINE Vector8& operator+= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator-= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator*= (const Vector8& b);
@@ -73,23 +73,23 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE bool operator!= (const Vector8& b) const;
 
     /// bitwise logic operations
-    RT_FORCE_INLINE Vector8 operator& (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator| (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8 operator^ (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator& (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator| (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator^ (const Vector8& b) const;
     RT_FORCE_INLINE Vector8& operator&= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator|= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator^= (const Vector8& b);
 
-    RT_FORCE_INLINE static Vector8 Floor(const Vector8& v);
-    RT_FORCE_INLINE static Vector8 Sqrt(const Vector8& v);
-    RT_FORCE_INLINE static Vector8 Reciprocal(const Vector8& v);
-    RT_FORCE_INLINE static Vector8 FastReciprocal(const Vector8& v);
-    RT_FORCE_INLINE static Vector8 Lerp(const Vector8& v1, const Vector8& v2, const Vector8& weight);
-    RT_FORCE_INLINE static Vector8 Lerp(const Vector8& v1, const Vector8& v2, Float weight);
-    RT_FORCE_INLINE static Vector8 Min(const Vector8& a, const Vector8& b);
-    RT_FORCE_INLINE static Vector8 Max(const Vector8& a, const Vector8& b);
-    RT_FORCE_INLINE static Vector8 Abs(const Vector8& v);
-    RT_FORCE_INLINE Vector8 Clamped(const Vector8& min, const Vector8& max) const;
+    RT_FORCE_INLINE static const Vector8 Floor(const Vector8& v);
+    RT_FORCE_INLINE static const Vector8 Sqrt(const Vector8& v);
+    RT_FORCE_INLINE static const Vector8 Reciprocal(const Vector8& v);
+    RT_FORCE_INLINE static const Vector8 FastReciprocal(const Vector8& v);
+    RT_FORCE_INLINE static const Vector8 Lerp(const Vector8& v1, const Vector8& v2, const Vector8& weight);
+    RT_FORCE_INLINE static const Vector8 Lerp(const Vector8& v1, const Vector8& v2, Float weight);
+    RT_FORCE_INLINE static const Vector8 Min(const Vector8& a, const Vector8& b);
+    RT_FORCE_INLINE static const Vector8 Max(const Vector8& a, const Vector8& b);
+    RT_FORCE_INLINE static const Vector8 Abs(const Vector8& v);
+    RT_FORCE_INLINE const Vector8 Clamped(const Vector8& min, const Vector8& max) const;
 
     RT_FORCE_INLINE static Int32 EqualMask(const Vector8& v1, const Vector8& v2);
     RT_FORCE_INLINE static Int32 LessMask(const Vector8& v1, const Vector8& v2);
@@ -107,7 +107,7 @@ struct RT_ALIGN(32) Vector8
     /**
      * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
      */
-    RT_FORCE_INLINE static Vector8 SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel);
+    RT_FORCE_INLINE static const Vector8 SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel);
 
     /**
      * Check if two vectors are (almost) equal.
@@ -123,38 +123,38 @@ struct RT_ALIGN(32) Vector8
      * Fused multiply and add.
      * @return  a * b + c
      */
-    RT_FORCE_INLINE static Vector8 MulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 MulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
 
     /**
      * Fused multiply and subtract.
      * @return  a * b - c
      */
-    RT_FORCE_INLINE static Vector8 MulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 MulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
 
     /**
      * Fused multiply (negated) and add.
      * @return  - a * b + c
      */
-    RT_FORCE_INLINE static Vector8 NegMulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 NegMulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
 
     /**
      * Fused multiply (negated) and subtract.
      * @return  - a * b - c
      */
-    RT_FORCE_INLINE static Vector8 NegMulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 NegMulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
 
     /**
      * Calculate horizontal minimum. Result is splatted across all elements.
      */
-    RT_FORCE_INLINE Vector8 HorizontalMin() const;
+    RT_FORCE_INLINE const Vector8 HorizontalMin() const;
 
     /**
      * Calculate horizontal maximum. Result is splatted across all elements.
      */
-    RT_FORCE_INLINE Vector8 HorizontalMax() const;
+    RT_FORCE_INLINE const Vector8 HorizontalMax() const;
 
     // Compute fmodf(x, 1.0f)
-    RT_FORCE_INLINE static Vector8 Fmod1(const Vector8 x);
+    RT_FORCE_INLINE static const Vector8 Fmod1(const Vector8 x);
 
 private:
 
@@ -168,7 +168,7 @@ private:
 };
 
 // like Vector8::operator * (Float)
-RT_FORCE_INLINE Vector8 operator*(Float a, const Vector8& b);
+RT_FORCE_INLINE const Vector8 operator*(Float a, const Vector8& b);
 
 // some commonly used constants
 RT_GLOBAL_CONST Vector8 VECTOR8_Epsilon = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };

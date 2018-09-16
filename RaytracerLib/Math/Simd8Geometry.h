@@ -13,8 +13,12 @@ namespace rt {
 namespace math {
 
 template<Uint32 Octatnt>
-RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8_Octant(const Vector3x8& rayInvDir, const Vector3x8& rayOriginDivDir,
-    const Box_Simd8& box, const Vector8& maxDistance, Vector8& outDistance)
+RT_FORCE_INLINE const Vector8 Intersect_BoxRay_Simd8_Octant(
+    const Vector3x8& rayInvDir,
+    const Vector3x8& rayOriginDivDir,
+    const Box_Simd8& box,
+    const Vector8& maxDistance,
+    Vector8& outDistance)
 {
     static_assert(Octatnt < 8, "Invalid octant");
 
@@ -47,8 +51,12 @@ RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8_Octant(const Vector3x8& rayInvDir
     return _mm256_andnot_ps(maxT, cond); // trick: replace greater-than-zero compare with and-not
 }
 
-RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Vector3x8& rayInvDir, const Vector3x8& rayOriginDivDir,
-                                               const Box_Simd8& box, const Vector8& maxDistance, Vector8& outDistance)
+RT_FORCE_INLINE const Vector8 Intersect_BoxRay_Simd8(
+    const Vector3x8& rayInvDir,
+    const Vector3x8& rayOriginDivDir,
+    const Box_Simd8& box,
+    const Vector8& maxDistance,
+    Vector8& outDistance)
 {
     // same as:
     // const Vector3x8 tmp1 = box.min * ray.invDir - ray.originDivDir;
@@ -83,9 +91,14 @@ RT_FORCE_INLINE Vector8 Intersect_BoxRay_Simd8(const Vector3x8& rayInvDir, const
 }
 
 
-RT_INLINE Vector8 Intersect_TriangleRay_Simd8(const Vector3x8& rayDir, const Vector3x8& rayOrigin,
-                                              const Triangle_Simd8& tri, const Vector8& maxDistance,
-                                              Vector8& outU, Vector8& outV, Vector8& outDist)
+RT_INLINE const Vector8 Intersect_TriangleRay_Simd8(
+    const Vector3x8& rayDir,
+    const Vector3x8& rayOrigin,
+    const Triangle_Simd8& tri,
+    const Vector8& maxDistance,
+    Vector8& outU,
+    Vector8& outV,
+    Vector8& outDist)
 {
     // Möller–Trumbore algorithm
 

@@ -25,8 +25,8 @@ public:
 
     // Generate random float with uniform distribution from range [0.0f, 1.0f)
     float GetFloat();
-    Float2 GetFloat2();
-    Float3 GetFloat3();
+    const Float2 GetFloat2();
+    const Float3 GetFloat3();
 
     // Generate random float with uniform distribution from range [-1.0f, 1.0f)
     // faster than "GetFloat()*2.0f-1.0f"
@@ -34,30 +34,30 @@ public:
 
     // generate random vector of 4 elements from range [0.0f, 1.0f)
     // this is much faster that using GetFloat() 4 times
-    Vector4 GetVector4();
+    const Vector4 GetVector4();
 
     // generate random vector of 4 elements from range [-1.0f, 1.0f)
-    Vector4 GetVector4Bipolar();
+    const Vector4 GetVector4Bipolar();
 
     // generate random vector of 8 elements from range [0.0f, 1.0f)
     // this is much faster that using GetFloat() 8 times
-    Vector8 GetVector8();
+    const Vector8 GetVector8();
 
     // generate random vector of 8 elements from range [-1.0f, 1.0f)
-    Vector8 GetVector8Bipolar();
+    const Vector8 GetVector8Bipolar();
 
     // get random point on a circle (uniform distribution)
-    Vector4 GetCircle();
-    Vector2x8 GetCircle_Simd8();
+    const Vector4 GetCircle();
+    const Vector2x8 GetCircle_Simd8();
 
     // get random point on a regular hexagon (uniform distribution)
-    Vector4 GetHexagon();
+    const Vector4 GetHexagon();
 
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
     // typical usage: Lambertian BRDF sampling
-    Vector4 GetHemishpereCos();
+    const Vector4 GetHemishpereCos();
 
-    Vector4 GetFloatNormal2();
+    const Vector4 GetFloatNormal2();
 
 private:
     RT_FORCE_INLINE __m128i GetIntVector4();

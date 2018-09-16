@@ -39,7 +39,7 @@ union Bits64
  * Minimum.
  */
 template<typename T>
-RT_FORCE_INLINE T Min(const T a, const T b)
+RT_FORCE_INLINE const T Min(const T a, const T b)
 {
     return (a < b) ? a : b;
 }
@@ -48,7 +48,7 @@ RT_FORCE_INLINE T Min(const T a, const T b)
  * Maximum.
  */
 template<typename T>
-RT_FORCE_INLINE T Max(const T a, const T b)
+RT_FORCE_INLINE const T Max(const T a, const T b)
 {
     return (a < b) ? b : a;
 }
@@ -57,7 +57,7 @@ RT_FORCE_INLINE T Max(const T a, const T b)
  * Absolute value.
  */
 template<typename T>
-RT_FORCE_INLINE T Abs(const T x)
+RT_FORCE_INLINE const T Abs(const T x)
 {
     if (x < static_cast<T>(0))
     {
@@ -83,7 +83,7 @@ RT_FORCE_INLINE float CopySign(const float x, const float y)
  * Clamp to range.
  */
 template<typename T>
-RT_FORCE_INLINE T Clamp(const T x, const T min, const T max)
+RT_FORCE_INLINE const T Clamp(const T x, const T min, const T max)
 {
     if (x > max)
         return max;
@@ -97,7 +97,7 @@ RT_FORCE_INLINE T Clamp(const T x, const T min, const T max)
  * Linear interpolation.
  */
 template<typename T>
-RT_FORCE_INLINE T Lerp(const T a, const T b, const T w)
+RT_FORCE_INLINE const T Lerp(const T a, const T b, const T w)
 {
     return a + w * (b - a);
 }
@@ -142,7 +142,7 @@ RT_FORCE_INLINE constexpr bool PowerOfTwo(const T x)
 }
 
 template<typename T>
-RT_FORCE_INLINE constexpr T RoundUp(const T x, const T multiple)
+RT_FORCE_INLINE constexpr const T RoundUp(const T x, const T multiple)
 {
     T remainder = x % multiple;
     if (remainder == 0)

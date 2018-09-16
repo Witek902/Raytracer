@@ -65,7 +65,7 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE Vector3_Simd4 operator + (const Vector3_Simd4& rhs) const
+    RT_FORCE_INLINE const Vector3_Simd4 operator + (const Vector3_Simd4& rhs) const
     {
         return Vector3_Simd4(
             x + rhs.x,
@@ -74,7 +74,7 @@ public:
         );
     }
 
-    RT_FORCE_INLINE Vector3_Simd4 operator - (const Vector3_Simd4& rhs) const
+    RT_FORCE_INLINE const Vector3_Simd4 operator - (const Vector3_Simd4& rhs) const
     {
         return Vector3_Simd4(
             x - rhs.x,
@@ -83,7 +83,7 @@ public:
         );
     }
 
-    RT_FORCE_INLINE Vector3_Simd4 operator * (const Vector3_Simd4& rhs) const
+    RT_FORCE_INLINE const Vector3_Simd4 operator * (const Vector3_Simd4& rhs) const
     {
         return Vector3_Simd4(
             x * rhs.x,
@@ -92,12 +92,12 @@ public:
         );
     }
 
-    RT_FORCE_INLINE Vector3_Simd4 operator * (const float rhs) const
+    RT_FORCE_INLINE const Vector3_Simd4 operator * (const float rhs) const
     {
         return Vector3_Simd4(x * rhs, y * rhs, z * rhs);
     }
 
-    RT_FORCE_INLINE static Vector3_Simd4 FastReciprocal(const Vector3_Simd4& v)
+    RT_FORCE_INLINE static const Vector3_Simd4 FastReciprocal(const Vector3_Simd4& v)
     {
         return Vector3_Simd4(
             Vector4::FastReciprocal(v.x),
@@ -109,13 +109,13 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     // 3D dot product
-    RT_FORCE_INLINE static Vector4 Dot(const Vector3_Simd4& a, const Vector3_Simd4& b)
+    RT_FORCE_INLINE static const Vector4 Dot(const Vector3_Simd4& a, const Vector3_Simd4& b)
     {
         return Vector4::MulAndAdd(a.x, b.x, Vector4::MulAndAdd(a.y, b.y, a.z * b.z));
     }
 
     // 3D cross product
-    RT_FORCE_INLINE static Vector3_Simd4 Cross(const Vector3_Simd4& a, const Vector3_Simd4& b)
+    RT_FORCE_INLINE static const Vector3_Simd4 Cross(const Vector3_Simd4& a, const Vector3_Simd4& b)
     {
         return Vector3_Simd4(
             a.y * b.z - a.z * b.y,
@@ -134,7 +134,7 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
-    RT_FORCE_INLINE static Vector3_Simd4 Min(const Vector3_Simd4& a, const Vector3_Simd4& b)
+    RT_FORCE_INLINE static const Vector3_Simd4 Min(const Vector3_Simd4& a, const Vector3_Simd4& b)
     {
         return Vector3_Simd4(
             Vector4::Min(a.x, b.x),
@@ -143,7 +143,7 @@ public:
         );
     }
 
-    RT_FORCE_INLINE static Vector3_Simd4 Max(const Vector3_Simd4& a, const Vector3_Simd4& b)
+    RT_FORCE_INLINE static const Vector3_Simd4 Max(const Vector3_Simd4& a, const Vector3_Simd4& b)
     {
         return Vector3_Simd4(
             Vector4::Max(a.x, b.x),

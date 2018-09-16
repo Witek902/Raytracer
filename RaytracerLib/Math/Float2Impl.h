@@ -43,7 +43,7 @@ float& Float2::Get(Uint32 index)
 //////////////////////////////////////////////////////////////////////////
 
 template<Uint32 ix, Uint32 iy>
-Float2 Float2::Swizzle() const
+const Float2 Float2::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
     static_assert(iy < 4, "Invalid Y element index");
@@ -52,61 +52,60 @@ Float2 Float2::Swizzle() const
 }
 
 template<Uint32 ix, Uint32 iy>
-constexpr Float2 Float2::Blend(const Float2& a, const Float2& b)
+constexpr const Float2 Float2::Blend(const Float2& a, const Float2& b)
 {
     return Float2(ix == 0 ? a.x : b.x, iy == 0 ? a.y : b.y);
 }
 
 template<bool x, bool y>
-constexpr Float2 Float2::ChangeSign() const
+constexpr const Float2 Float2::ChangeSign() const
 {
     return Float2(x ? -f[0] : f[0], y ? -f[1] : f[1]);
 }
 
-Float2 Float2::SelectBySign(const Float2& a, const Float2& b, const Float2& sel)
+const Float2 Float2::SelectBySign(const Float2& a, const Float2& b, const Float2& sel)
 {
     return Float2(sel.x > 0.0f ? a.x : b.x, sel.y > 0.0f ? a.y : b.y);
 }
 
-constexpr Float2 Float2::SplatX() const
+constexpr const Float2 Float2::SplatX() const
 {
     return Float2(x, x);
 }
 
-constexpr Float2 Float2::SplatY() const
+constexpr const Float2 Float2::SplatY() const
 {
     return Float2(y, y);
 }
 
-constexpr Float2 Float2::Splat(float f)
+constexpr const Float2 Float2::Splat(float f)
 {
     return Float2(f, f);
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 
-constexpr Float2 Float2::operator- () const
+constexpr const Float2 Float2::operator- () const
 {
     return Float2(-x, -y);
 }
 
-constexpr Float2 Float2::operator+ (const Float2& b) const
+constexpr const Float2 Float2::operator+ (const Float2& b) const
 {
     return Float2(x + b.x, y + b.y);
 }
 
-constexpr Float2 Float2::operator- (const Float2& b) const
+constexpr const Float2 Float2::operator- (const Float2& b) const
 {
     return Float2(x - b.x, y - b.y);
 }
 
-constexpr Float2 Float2::operator* (const Float2& b) const
+constexpr const Float2 Float2::operator* (const Float2& b) const
 {
     return Float2(x * b.x, y * b.y);
 }
 
-Float2 Float2::operator/ (const Float2& b) const
+const Float2 Float2::operator/ (const Float2& b) const
 {
     // TODO make it constexpr
     assert(math::Abs(b.x) > FLT_EPSILON);
@@ -115,12 +114,12 @@ Float2 Float2::operator/ (const Float2& b) const
     return Float2(x / b.x, y / b.y);
 }
 
-constexpr Float2 Float2::operator* (float b) const
+constexpr const Float2 Float2::operator* (float b) const
 {
     return Float2(x * b, y * b);
 }
 
-Float2 Float2::operator/ (float b) const
+const Float2 Float2::operator/ (float b) const
 {
     // TODO make it constexpr
     assert(math::Abs(b) > FLT_EPSILON);
@@ -128,7 +127,7 @@ Float2 Float2::operator/ (float b) const
     return Float2(x / b, y / b);
 }
 
-Float2 operator*(float a, const Float2& b)
+const Float2 operator*(float a, const Float2& b)
 {
     return Float2(a * b.x, a * b.y);
 }
@@ -184,12 +183,12 @@ Float2& Float2::operator/= (float b)
 
 //////////////////////////////////////////////////////////////////////////
 
-Float2 Float2::Floor(const Float2& v)
+const Float2 Float2::Floor(const Float2& v)
 {
     return Float2(floorf(v.x), floorf(v.y));
 }
 
-Float2 Float2::Sqrt(const Float2& v)
+const Float2 Float2::Sqrt(const Float2& v)
 {
     assert(v.x >= 0.0f);
     assert(v.y >= 0.0f);
@@ -197,7 +196,7 @@ Float2 Float2::Sqrt(const Float2& v)
     return Float2(sqrtf(v.x), sqrtf(v.y));
 }
 
-Float2 Float2::Reciprocal(const Float2& v)
+const Float2 Float2::Reciprocal(const Float2& v)
 {
     assert(math::Abs(v.x) > FLT_EPSILON);
     assert(math::Abs(v.y) > FLT_EPSILON);
@@ -207,27 +206,27 @@ Float2 Float2::Reciprocal(const Float2& v)
                   v.y != 0.0f ? 1.0f / v.y : INFINITY);
 }
 
-constexpr Float2 Float2::Min(const Float2& a, const Float2& b)
+constexpr const Float2 Float2::Min(const Float2& a, const Float2& b)
 {
     return Float2(math::Min<float>(a.x, b.x), math::Min<float>(a.y, b.y));
 }
 
-constexpr Float2 Float2::Max(const Float2& a, const Float2& b)
+constexpr const Float2 Float2::Max(const Float2& a, const Float2& b)
 {
     return Float2(math::Max<float>(a.x, b.x), math::Max<float>(a.y, b.y));
 }
 
-constexpr Float2 Float2::Abs(const Float2& v)
+constexpr const Float2 Float2::Abs(const Float2& v)
 {
     return Float2(math::Abs(v.x), math::Abs(v.y));
 }
 
-constexpr Float2 Float2::Lerp(const Float2& v1, const Float2& v2, const Float2& weight)
+constexpr const Float2 Float2::Lerp(const Float2& v1, const Float2& v2, const Float2& weight)
 {
     return Float2(v1.x + weight.x * (v2.x - v1.x), v1.y + weight.y * (v2.y - v1.y));
 }
 
-constexpr Float2 Float2::Lerp(const Float2& v1, const Float2& v2, float weight)
+constexpr const Float2 Float2::Lerp(const Float2& v1, const Float2& v2, float weight)
 {
     return Float2(v1.x + weight * (v2.x - v1.x), v1.y + weight * (v2.y - v1.y));
 }
@@ -286,7 +285,7 @@ float Float2::Length() const
     return sqrtf(x * x + y * y);
 }
 
-Float2 Float2::Normalized() const
+const Float2 Float2::Normalized() const
 {
     const float len = Length();
     assert(len > FLT_EPSILON);

@@ -11,66 +11,6 @@
 namespace rt {
 namespace math {
 
-
-enum class IntersectionResult
-{
-    Outside   = 0, //< no intersection
-    Inside    = 1, //< shapeA is inside shapeB
-    Intersect = 2, //< shapeA and shapeB intersects
-};
-
-
-/**
- * Template function for intersection tests.
- */
-template<typename ShapeTypeA, typename ShapeTypeB>
-bool Intersect(const ShapeTypeA& shapeA, const ShapeTypeB& shapeB);
-
-
-/**
- * Template function for extended intersection tests.
- * @see IntersectionResult
- */
-template<typename ShapeTypeA, typename ShapeTypeB>
-IntersectionResult IntersectEx(const ShapeTypeA& shapeA, const ShapeTypeB& shapeB);
-
-
-/**
- * Template function for ray intersection tests.
- * @param dist Distance to the intersection.
- */
-template<typename ShapeType>
-bool Intersect(const Ray& ray, const ShapeType& shape, float& outDistance);
-
-
-RT_FORCE_INLINE bool Intersect_RaySphere(const Ray& ray, const float radius, float& outDistance)
-{
-    const Vector4 d = -ray.origin;
-    const float v = Vector4::Dot3(ray.dir, d);
-    const float det = radius * radius - Vector4::Dot3(d, d) + v * v;
-
-    if (det < 0.0f)
-    {
-        return false;
-    }
-
-    const float sqrtDet = sqrtf(det);
-
-    outDistance = v - sqrtDet;
-    if (outDistance > 0.0f)
-    {
-        return true;
-    }
-
-    outDistance = v + sqrtDet;
-    if (outDistance > 0.0f)
-    {
-        return true;
-    }
-
-    return false;
-}
-
 RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)
 {
     // The algorithm is based on "slabs" method. More info can be found here:

@@ -14,7 +14,7 @@ public:
     Vector4 farDists;
 };
 
-RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& box, Vector4& outDistance)
+RT_INLINE const Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& box, Vector4& outDistance)
 {
     // calculate all box planes distances
     const Vector3_Simd4 tmp1 = (box.min - ray.origin) * ray.invDir;
@@ -32,7 +32,7 @@ RT_INLINE Vector4 Intersect_BoxRay_Simd4(const Ray_Simd4& ray, const Box_Simd4& 
     return Vector4(_mm_cmpge_ps(maxDist, _mm_setzero_ps())) & Vector4(_mm_cmpge_ps(maxDist, minDist));
 }
 
-RT_INLINE Vector4 Intersect_TriangleRay_Simd4(const Ray_Simd4& ray, const Triangle_Simd4& tri,
+RT_INLINE const Vector4 Intersect_TriangleRay_Simd4(const Ray_Simd4& ray, const Triangle_Simd4& tri,
                                               Vector4& outU, Vector4& outV, Vector4& outDist)
 {
     // find vectors for two edges sharing v0

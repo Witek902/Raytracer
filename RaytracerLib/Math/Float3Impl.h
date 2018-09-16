@@ -48,7 +48,7 @@ Float3::operator Float2() const
 //////////////////////////////////////////////////////////////////////////
 
 template<Uint32 ix, Uint32 iy, Uint32 iz>
-Float3 Float3::Swizzle() const
+const Float3 Float3::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
     static_assert(iy < 4, "Invalid Y element index");
@@ -58,7 +58,7 @@ Float3 Float3::Swizzle() const
 }
 
 template<Uint32 ix, Uint32 iy, Uint32 iz>
-constexpr Float3 Float3::Blend(const Float3& a, const Float3& b)
+constexpr const Float3 Float3::Blend(const Float3& a, const Float3& b)
 {
     return Float3(ix == 0 ? a.x : b.x,
                   iy == 0 ? a.y : b.y,
@@ -66,7 +66,7 @@ constexpr Float3 Float3::Blend(const Float3& a, const Float3& b)
 }
 
 template<bool x, bool y, bool z>
-constexpr Float3 Float3::ChangeSign() const
+constexpr const Float3 Float3::ChangeSign() const
 {
     return Float3(
         x ? -f[0] : f[0],
@@ -75,7 +75,7 @@ constexpr Float3 Float3::ChangeSign() const
     );
 }
 
-Float3 Float3::SelectBySign(const Float3& a, const Float3& b, const Float3& sel)
+const Float3 Float3::SelectBySign(const Float3& a, const Float3& b, const Float3& sel)
 {
     Float3 ret;
     ret.x = sel.x > 0.0f ? a.x : b.x;
@@ -84,22 +84,22 @@ Float3 Float3::SelectBySign(const Float3& a, const Float3& b, const Float3& sel)
     return ret;
 }
 
-constexpr Float3 Float3::SplatX() const
+constexpr const Float3 Float3::SplatX() const
 {
     return Float3(x, x, x);
 }
 
-constexpr Float3 Float3::SplatY() const
+constexpr const Float3 Float3::SplatY() const
 {
     return Float3(y, y, y);
 }
 
-constexpr Float3 Float3::SplatZ() const
+constexpr const Float3 Float3::SplatZ() const
 {
     return Float3(z, z, z);
 }
 
-constexpr Float3 Float3::Splat(float f)
+constexpr const Float3 Float3::Splat(float f)
 {
     return Float3(f, f, f);
 }
@@ -107,27 +107,27 @@ constexpr Float3 Float3::Splat(float f)
 
 //////////////////////////////////////////////////////////////////////////
 
-constexpr Float3 Float3::operator- () const
+constexpr const Float3 Float3::operator- () const
 {
     return Float3(-x, -y, -z);
 }
 
-constexpr Float3 Float3::operator+ (const Float3& b) const
+constexpr const Float3 Float3::operator+ (const Float3& b) const
 {
     return Float3(x + b.x, y + b.y, z + b.z);
 }
 
-constexpr Float3 Float3::operator- (const Float3& b) const
+constexpr const Float3 Float3::operator- (const Float3& b) const
 {
     return Float3(x - b.x, y - b.y, z - b.z);
 }
 
-constexpr Float3 Float3::operator* (const Float3& b) const
+constexpr const Float3 Float3::operator* (const Float3& b) const
 {
     return Float3(x * b.x, y * b.y, z * b.z);
 }
 
-Float3 Float3::operator/ (const Float3& b) const
+const Float3 Float3::operator/ (const Float3& b) const
 {
     // TODO make it constexpr
     assert(math::Abs(b.x) > FLT_EPSILON);
@@ -137,12 +137,12 @@ Float3 Float3::operator/ (const Float3& b) const
     return Float3(x / b.x, y / b.y, z / b.z);
 }
 
-constexpr Float3 Float3::operator* (float b) const
+constexpr const Float3 Float3::operator* (float b) const
 {
     return Float3(x * b, y * b, z * b);
 }
 
-Float3 Float3::operator/ (float b) const
+const Float3 Float3::operator/ (float b) const
 {
     // TODO make it constexpr
     assert(math::Abs(b) > FLT_EPSILON);
@@ -150,7 +150,7 @@ Float3 Float3::operator/ (float b) const
     return Float3(x / b, y / b, z / b);
 }
 
-Float3 operator*(float a, const Float3& b)
+const Float3 operator*(float a, const Float3& b)
 {
     return Float3(a * b.x, a * b.y, a * b.z);
 }
@@ -213,12 +213,12 @@ Float3& Float3::operator/= (float b)
 
 //////////////////////////////////////////////////////////////////////////
 
-Float3 Float3::Floor(const Float3& v)
+const Float3 Float3::Floor(const Float3& v)
 {
     return Float3(floorf(v.x), floorf(v.y), floorf(v.z));
 }
 
-Float3 Float3::Sqrt(const Float3& v)
+const Float3 Float3::Sqrt(const Float3& v)
 {
     assert(v.x >= 0.0f);
     assert(v.y >= 0.0f);
@@ -227,7 +227,7 @@ Float3 Float3::Sqrt(const Float3& v)
     return Float3(sqrtf(v.x), sqrtf(v.y), sqrtf(v.z));
 }
 
-Float3 Float3::Reciprocal(const Float3& v)
+const Float3 Float3::Reciprocal(const Float3& v)
 {
     assert(math::Abs(v.x) > FLT_EPSILON);
     assert(math::Abs(v.y) > FLT_EPSILON);
@@ -239,7 +239,7 @@ Float3 Float3::Reciprocal(const Float3& v)
                   v.z != 0.0f ? 1.0f / v.z : INFINITY);
 }
 
-constexpr Float3 Float3::Min(const Float3& a, const Float3& b)
+constexpr const Float3 Float3::Min(const Float3& a, const Float3& b)
 {
     return Float3(
         math::Min<float>(a.x, b.x),
@@ -248,7 +248,7 @@ constexpr Float3 Float3::Min(const Float3& a, const Float3& b)
     );
 }
 
-constexpr Float3 Float3::Max(const Float3& a, const Float3& b)
+constexpr const Float3 Float3::Max(const Float3& a, const Float3& b)
 {
     return Float3(
         math::Max<float>(a.x, b.x),
@@ -257,12 +257,12 @@ constexpr Float3 Float3::Max(const Float3& a, const Float3& b)
     );
 }
 
-constexpr Float3 Float3::Abs(const Float3& v)
+constexpr const Float3 Float3::Abs(const Float3& v)
 {
     return Float3(math::Abs(v.x), math::Abs(v.y), math::Abs(v.z));
 }
 
-constexpr Float3 Float3::Lerp(const Float3& v1, const Float3& v2, const Float3& weight)
+constexpr const Float3 Float3::Lerp(const Float3& v1, const Float3& v2, const Float3& weight)
 {
     return Float3(
         v1.x + weight.x * (v2.x - v1.x),
@@ -271,7 +271,7 @@ constexpr Float3 Float3::Lerp(const Float3& v1, const Float3& v2, const Float3& 
     );
 }
 
-constexpr Float3 Float3::Lerp(const Float3& v1, const Float3& v2, float weight)
+constexpr const Float3 Float3::Lerp(const Float3& v1, const Float3& v2, float weight)
 {
     return Float3(
         v1.x + weight * (v2.x - v1.x),
@@ -324,7 +324,7 @@ constexpr float Float3::Dot(const Float3& a, const Float3& b)
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-constexpr Float3 Float3::Cross(const Float3& a, const Float3& b)
+constexpr const Float3 Float3::Cross(const Float3& a, const Float3& b)
 {
     return Float3(
         a.y * b.z - a.z * b.y,
@@ -338,7 +338,7 @@ float Float3::Length() const
     return sqrtf(x * x + y * y + z * z);
 }
 
-Float3 Float3::Normalized() const
+const Float3 Float3::Normalized() const
 {
     const float len = Length();
     assert(len > FLT_EPSILON);
