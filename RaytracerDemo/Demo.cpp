@@ -33,7 +33,8 @@ DemoWindow::DemoWindow()
     , mSelectedObject(nullptr)
     , mLastKeyDown(0)
 {
-    Reset();
+    ResetFrame();
+    ResetCounters();
 }
 
 DemoWindow::~DemoWindow()
@@ -44,6 +45,8 @@ DemoWindow::~DemoWindow()
 
 bool DemoWindow::Initialize(const Options& options)
 {
+    RT_LOG_INFO("Using data path: %hs", options.dataPath.c_str());
+
     if (!Init())
     {
         RT_LOG_ERROR("Failed to init window");
@@ -60,6 +63,7 @@ bool DemoWindow::Initialize(const Options& options)
     }
 
     InitializeUI();
+    RegisterTestScenes();
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(options.windowWidth, options.windowHeight);
@@ -75,98 +79,26 @@ bool DemoWindow::Initialize(const Options& options)
 
     mCamera.mDOF.aperture = 0.0f;
 
-    Random random;
+    SwitchScene(mRegisteredScenes["Simple + Background Light"]);
 
-   // initialize scene
+    /*
+    auto loadedMesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
+
+    SceneEnvironment env;
+    env.backgroundColor = Vector4(2.0f, 2.0f, 2.0f, 0.0f);
+    if (!options.envMapPath.empty())
     {
-        RT_LOG_INFO("Using data path: %hs", options.dataPath.c_str());
-
-        mScene = std::make_unique<Scene>();
-
-        auto loadedMesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
-
-        SceneEnvironment env;
-        env.backgroundColor = Vector4(2.0f, 2.0f, 2.0f, 0.0f);
-        if (!options.envMapPath.empty())
-        {
-            env.texture = helpers::LoadTexture(options.dataPath, options.envMapPath);
-        }
-        mScene->SetEnvironment(env);
-
-        {
-            auto mesh = helpers::CreatePlaneMesh(mMaterials, 500.0f, 1.0f);
-            SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
-            instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
-            mScene->AddObject(std::move(instance));
-            mMeshes.push_back(std::move(mesh));
-        }
-
-        {
-            auto material = std::make_unique<rt::Material>();
-            material->debugName = "light";
-            material->emissionColor = math::Vector4(20.0f, 20.0f, 20.0f, 0.0f);
-            material->light = true;
-            material->Compile();
-
-            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, -2.0f, 0.0f));
-            mScene->AddObject(std::move(instance));
-            mMaterials.push_back(std::move(material));
-        }
-
-        {
-            auto material = std::make_unique<rt::Material>();
-            material->debugName = "default";
-            material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f, 0.0f);
-            material->roughness = 0.2f;
-            material->transparent = false;
-            material->Compile();
-
-            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            instance->mTransform.SetTranslation(Vector4(-1.5f, 0.5f, 0.0f, 0.0f));
-            mScene->AddObject(std::move(instance));
-            mMaterials.push_back(std::move(material));
-        }
-
-        {
-            auto material = std::make_unique<rt::Material>();
-            material->debugName = "glass";
-            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-            material->roughness = 0.001f;
-            material->transparent = true;
-            material->Compile();
-
-            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
-            mScene->AddObject(std::move(instance));
-            mMaterials.push_back(std::move(material));
-        }
-
-        {
-            auto material = std::make_unique<rt::Material>();
-            material->debugName = "mirror";
-            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-            material->roughness = 0.002f;
-            material->metalness = 1.0f;
-            material->Compile();
-
-            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-            instance->mTransform.SetTranslation(Vector4(1.5f, 0.5f, 0.0f, 0.0f));
-            mScene->AddObject(std::move(instance));
-            mMaterials.push_back(std::move(material));
-        }
-
-        /*
-        if (!options.modelPath.empty())
-        {
-            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
-            mScene->AddObject(std::move(meshInstance));
-        }
-        */
-
-        mMeshes.push_back(std::move(loadedMesh));
-        mScene->BuildBVH();
+        env.texture = helpers::LoadTexture(options.dataPath, options.envMapPath);
     }
+    mScene->SetEnvironment(env);
+
+    if (!options.modelPath.empty())
+    {
+        SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
+        mScene->AddObject(std::move(meshInstance));
+    }
+    mMeshes.push_back(std::move(loadedMesh));
+    */
 
     return true;
 }
@@ -212,15 +144,29 @@ void DemoWindow::InitializeUI()
     io.ImeWindowHandle = reinterpret_cast<HWND>(GetHandle());
 }
 
-void DemoWindow::Reset()
+void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
 {
+    mScene = std::make_unique<Scene>();
+    mMaterials.clear();
+    mMeshes.clear();
+    // TODO clear textures
+
+    initFunction(*mScene, mMaterials, mMeshes, mCameraSetup);
+
+    mScene->BuildBVH();
     ResetCounters();
-    ResetCamera();
+    ResetFrame();
+
+    mSelectedMaterial = nullptr;
+    mSelectedObject = nullptr;
 }
 
 void DemoWindow::ResetFrame()
 {
-    mViewport->Reset();
+    if (mViewport)
+    {
+        mViewport->Reset();
+    }
 
     ResetCounters();
 }
@@ -251,27 +197,6 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
 
     UpdateCamera();
     ResetCounters();
-}
-
-void DemoWindow::ResetCamera()
-{
-    // cornell box
-    mCameraSetup.position = Vector4(0.02f, 0.3f, 3.2f, 0.0f);
-    mCameraSetup.pitch = -0.1f;
-    mCameraSetup.yaw = -3.11f;
-
-    ////mCameraSetup.position = Vector4(0.0f, 0.5f, 0.0f, 0.0f);
-    //mCameraSetup.pitch = -1.0f;
-    //mCameraSetup.yaw = 0.01f;
-
-    // sponza
-    //mCameraSetup.position = Vector4(700.0f, 300.0f, 10.0f, 0.0f);
-    //mCameraSetup.pitch = -0.09f;
-    //mCameraSetup.yaw = -1.73f;
-
-    //mCameraSetup.position = Vector4(0.0f, 0.75f, 0.0f, 0.0f);
-    //mCameraSetup.pitch = -1.70f;
-    //mCameraSetup.yaw = -1.73f;
 }
 
 void DemoWindow::OnMouseDown(Uint32 button, int x, int y)

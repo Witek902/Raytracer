@@ -44,6 +44,9 @@
     <ClCompile Include="Demo_UserInterface.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
+    <ClCompile Include="TestScenes.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

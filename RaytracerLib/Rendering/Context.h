@@ -48,37 +48,27 @@ enum class TraversalMode : Uint8
 
 struct RenderingParams
 {
-    // Antialiasing factor: 1.0 is most optimal
-    // Setting to values above 1 will blur the image
-    Float antiAliasingSpread;
+    // Antialiasing factor
+    // Setting to higher values will blur the image
+    Float antiAliasingSpread = 0.45f;
 
     // number of primary rays to be generated for image pixel
-    Uint32 samplesPerPixel;
+    Uint32 samplesPerPixel = 1;
 
     // maximum ray depth
-    Uint32 maxRayDepth;
+    Uint32 maxRayDepth = 20;
 
-    // ray depth after which Russian Roulette algorithm kicks in
-    Uint32 minRussianRouletteDepth;
+    // ray depth at which Russian Roulette algorithm kicks in
+    Uint32 minRussianRouletteDepth = 2;
 
     // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
-    Uint8 tileOrder;
+    Uint8 tileOrder = 4;
 
     // select mode of ray traversal
-    TraversalMode traversalMode;
+    TraversalMode traversalMode = TraversalMode::Single;
 
     // allows to enable debug rendering mode
-    RenderingMode renderingMode;
-
-    RenderingParams()
-        : maxRayDepth(10)
-        , tileOrder(4)
-        , minRussianRouletteDepth(40)
-        , samplesPerPixel(1)
-        , antiAliasingSpread(0.45f)
-        , traversalMode(TraversalMode::Single)
-        , renderingMode(RenderingMode::Regular)
-    { }
+    RenderingMode renderingMode = RenderingMode::Regular;
 };
 
 /**

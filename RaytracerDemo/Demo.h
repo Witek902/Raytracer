@@ -42,6 +42,10 @@ struct RT_ALIGN(16) CameraSetup
 class RT_ALIGN(16) DemoWindow : public Window
 {
 public:
+    using Materials = std::vector<std::unique_ptr<rt::Material>>;
+    using Meshes = std::vector<std::unique_ptr<rt::Mesh>>;
+    using SceneInitCallback = std::function<void(rt::Scene& scene, Materials& materials, Meshes& meshes, CameraSetup& camera)>;
+
     DemoWindow();
     ~DemoWindow();
 
@@ -51,11 +55,6 @@ public:
      * Main loop.
      */
     bool Loop();
-
-    /**
-     * Reset counters and camera.
-     */
-    void Reset();
 
     void ResetFrame();
 
@@ -70,9 +69,10 @@ private:
     rt::PostprocessParams mPostprocessParams;
     CameraSetup mCameraSetup;
 
-    // TODO move to Main
-    std::vector<std::unique_ptr<rt::Material>> mMaterials;
-    std::vector<std::unique_ptr<rt::Mesh>> mMeshes;
+    std::map<std::string, SceneInitCallback> mRegisteredScenes;
+
+    Materials mMaterials;
+    Meshes mMeshes;
     std::unique_ptr<rt::Scene> mScene;
 
     Float mCameraSpeed;
@@ -101,6 +101,9 @@ private:
 
     void InitializeUI();
 
+    void SwitchScene(const SceneInitCallback& initFunction);
+    void RegisterTestScenes();
+
     void RenderUI();
     void RenderUI_Stats();
     void RenderUI_Debugging();
@@ -121,6 +124,5 @@ private:
     virtual void OnCharTyped(const char* charUTF8) override;
 
     void ResetCounters();
-    void ResetCamera();
     void UpdateCamera();
 };

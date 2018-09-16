@@ -229,6 +229,7 @@
     </ClCompile>
     <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="TestScenes.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

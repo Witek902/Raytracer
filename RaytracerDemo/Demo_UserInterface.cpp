@@ -309,9 +309,18 @@ void DemoWindow::RenderUI()
 
         if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
+            if (ImGui::BeginMenu("Scene"))
             {
                 // TODO opening/saving scene
+
+                for (const auto& iter : mRegisteredScenes)
+                {
+                    if (ImGui::MenuItem(iter.first.c_str()))
+                    {
+                        SwitchScene(iter.second);
+                    }
+                }
+
                 ImGui::EndMenu();
             }
 
