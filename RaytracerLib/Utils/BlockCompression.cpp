@@ -2,8 +2,6 @@
 #include "BlockCompression.h"
 #include "iacaMarks.h"
 
-#include <cassert>
-
 namespace rt {
 
 using namespace math;

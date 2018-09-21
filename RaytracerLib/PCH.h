@@ -10,7 +10,13 @@
 #include <xmmintrin.h>
 #include <smmintrin.h>
 #include <immintrin.h>
+#include <emmintrin.h>
+#include <intrin.h>
 
+#include <inttypes.h>
+#include <stddef.h>
+#include <assert.h>
+#include <math.h>
 #include <vector>
 #include <memory>
 #include <initializer_list>
@@ -18,6 +24,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
+#include <sstream>
 #include <algorithm>
 
 #define WIN32_LEAN_AND_MEAN

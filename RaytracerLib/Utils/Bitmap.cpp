@@ -4,8 +4,6 @@
 #include "BlockCompression.h"
 #include "Timer.h"
 
-#include <cassert>
-
 ///////////////////////////////////////////////////////////////////////////
 
 #define DDS_MAGIC_NUMBER    0x20534444
@@ -659,7 +657,7 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     //_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
 
     // perform wrapping
-    
+
     __m128i intCoords = _mm_cvtps_epi32(_mm_floor_ps(coords));
     coords -= _mm_cvtepi32_ps(intCoords);
 
@@ -700,7 +698,7 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, Uint32 y, const math::Vector4 value)
 {
     assert(mFormat == Format::R32G32B32A32_Float);
-    
+
     Vector4* typedData = reinterpret_cast<Vector4*>(mData);
     typedData[mWidth * y + x] += value;
 }

@@ -325,6 +325,7 @@
     <ClCompile Include="Math\Utils.cpp">
       <Filter>Math</Filter>
     </ClCompile>
+    <ClCompile Include="PCH.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
