@@ -11,12 +11,14 @@
 template<typename T>
 using D3DPtr = Microsoft::WRL::ComPtr<T>;
 
+class Window;
+
 class RT_ALIGN(32) Renderer : public Aligned<32>
 {
 public:
     Renderer();
     ~Renderer();
-    bool Init(HWND window);
+    bool Init(Window& window);
     bool OnWindowResized(Uint32 width, Uint32 height);
     bool Render(const float* pixels, const rt::PostprocessParams& postProcessParams, Uint32 frameNumber);
 
@@ -24,6 +26,7 @@ public:
 
 private:
     bool CreateComputeShader();
+    bool CreateBuffers();
     bool CreateSourceTexture();
 
     Uint32 mWidth;

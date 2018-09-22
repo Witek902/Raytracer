@@ -71,7 +71,7 @@ bool DemoWindow::Initialize(const Options& options)
     mDC = GetDC(reinterpret_cast<HWND>(GetHandle()));
 
     mRenderer = std::make_unique<Renderer>();
-    if (!mRenderer->Init(reinterpret_cast<HWND>(GetHandle())))
+    if (!mRenderer->Init(*this))
     {
         RT_LOG_ERROR("Failed to initialize renderer");
         return false;
@@ -339,7 +339,7 @@ bool DemoWindow::Loop()
 
         ProcessMessages();
         UpdateCamera();
-        
+
         const bool isPreview = IsMouseButtonDown(1);
         if (isPreview && mViewport)
         {

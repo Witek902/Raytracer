@@ -1,8 +1,7 @@
 #include "PCH.h"
 #include "Renderer.h"
+#include "Window.h"
 #include "../RaytracerLib/Utils/Logger.h"
-
-
 #include "../External/imgui/imgui_impl_dx11.h"
 
 namespace {
@@ -15,9 +14,9 @@ struct RT_ALIGN(16) PostProcessCBuffer
 } // namespace
 
 Renderer::Renderer()
+    : mWidth(0)
+    , mHeight(0)
 {
-    mWidth = 1280;
-    mHeight = 720;
 }
 
 Renderer::~Renderer()
@@ -25,8 +24,10 @@ Renderer::~Renderer()
 
 }
 
-bool Renderer::Init(HWND window)
+bool Renderer::Init(Window& window)
 {
+    window.GetSize(mWidth, mHeight);
+
     mTempData = (float*)_aligned_malloc(mWidth * mHeight * 4 * sizeof(float), 4096);
 
     DXGI_SWAP_CHAIN_DESC scd;
@@ -34,7 +35,7 @@ bool Renderer::Init(HWND window)
     scd.BufferCount = 1;
     scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS;
-    scd.OutputWindow = window;
+    scd.OutputWindow = reinterpret_cast<HWND>(window.GetHandle());
     scd.SampleDesc.Count = 1;
     scd.Windowed = TRUE;
 
@@ -85,6 +86,9 @@ bool Renderer::Init(HWND window)
     if (!CreateSourceTexture())
         return false;
 
+    if (!CreateBuffers())
+        return false;
+
     if (!CreateComputeShader())
         return false;
 
@@ -115,6 +119,8 @@ bool Renderer::OnWindowResized(Uint32 width, Uint32 height)
         pBackBuffer->Release();
     }
 
+    CreateSourceTexture();
+
     ImGui_ImplDX11_CreateDeviceObjects();
 
     return true;
@@ -127,7 +133,12 @@ bool Renderer::Render(const float* pixels, const rt::PostprocessParams& postProc
         D3D11_MAPPED_SUBRESOURCE mapped;
 
         mDeviceContext->Map(mSourceTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-        memcpy(mapped.pData, pixels, mWidth * mHeight * 4 * sizeof(float));
+        for (Uint32 i = 0; i < mHeight; ++i)
+        {
+            char* target = (char*)mapped.pData + mapped.RowPitch * i;
+            const float* source = pixels + mWidth * i * 4;
+            memcpy(target, source, mWidth * 4 * sizeof(float));
+        }
         mDeviceContext->Unmap(mSourceTexture.Get(), 0);
     }
 
@@ -160,6 +171,9 @@ bool Renderer::Render(const float* pixels, const rt::PostprocessParams& postProc
 
 bool Renderer::CreateSourceTexture()
 {
+    mSourceTextureView.Reset();
+    mSourceTexture.Reset();
+
     D3D11_TEXTURE2D_DESC texDesc;
     ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
     texDesc.Width = mWidth;
@@ -191,6 +205,11 @@ bool Renderer::CreateSourceTexture()
         return false;
     }
 
+    return true;
+}
+
+bool Renderer::CreateBuffers()
+{
     D3D11_BUFFER_DESC bufferDesc;
     ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
     bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -265,7 +284,7 @@ void main(uint3 id : SV_DispatchThreadID)
 
     rng_state = Hash((id.x << 16) + id.y);
     float3 dither = float3(Rand3()) * (1.0 / 4294967296.0);
-    
+
     outputBuffer[id.xy] = ToneMap(input * g_exposure.xyz) + 0.025 * (dither - 0.5);
 }
 )";
