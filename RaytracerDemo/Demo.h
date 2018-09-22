@@ -10,11 +10,12 @@
 #include "../RaytracerLib/Utils/Bitmap.h"
 #include "../RaytracerLib/Rendering/Context.h"
 #include "../RaytracerLib/Rendering/PathDebugging.h"
+#include "../RaytracerLib/Rendering/DebugRenderer.h"
 
 struct Options
 {
-    Uint32 windowWidth = 1280;
-    Uint32 windowHeight = 720;
+    Uint32 windowWidth = 960;
+    Uint32 windowHeight = 540;
     std::string dataPath;
 
     // TODO JSON scene description
@@ -87,6 +88,11 @@ private:
     Double mTotalRenderTime;
 
     Float mCameraSpeed;
+
+    std::unique_ptr<rt::IRenderer> mRenderer;
+    std::unique_ptr<rt::DebugRenderer> mDebugRenderer;
+    bool mUseDebugRenderer = false;
+
 
     // debugging
     rt::PathDebugData mPathDebugData;

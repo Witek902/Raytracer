@@ -67,9 +67,6 @@ public:
 
     bool transparent = false;
 
-    // if set to true, there won't be reflected ray generated
-    bool light = false;
-
     // textures
     Bitmap* maskMap = nullptr;
     Bitmap* emissionColorMap = nullptr;
@@ -82,16 +79,27 @@ public:
 
     void Compile();
 
-    math::Vector4 GetNormalVector(const math::Vector4 uv) const;
-    math::Vector4 GetBaseColor(const math::Vector4 uv) const;
+    const math::Vector4 GetNormalVector(const math::Vector4 uv) const;
+    const math::Vector4 GetEmissionColor(const math::Vector4 uv) const;
+    const math::Vector4 GetBaseColor(const math::Vector4 uv) const;
     Float GetRoughness(const math::Vector4 uv) const;
     Float GetMetalness(const math::Vector4 uv) const;
     Bool GetMaskValue(const math::Vector4 uv) const;
 
-    // Shade a ray and generate secondary ray
-    Color Shade(Wavelength& wavelength,
-                const math::Vector4& outgoingDirWorldSpace, math::Vector4& outIncomingDirWorldSpace,
-                const ShadingData& shadingData, math::Random& randomGenerator) const;
+    // calculate amount of light reflected from incoming direction to outgoing direction
+    const Color Evaluate(
+        const Wavelength& wavelength,
+        const ShadingData& shadingData,
+        const math::Vector4& outgoingDirWorldSpace,
+        const math::Vector4& incomingDirWorldSpace) const;
+
+    // sample material's BSDFs
+    const Color Sample(
+        Wavelength& wavelength,
+        const math::Vector4& outgoingDirWorldSpace,
+        math::Vector4& outIncomingDirWorldSpace,
+        const ShadingData& shadingData,
+        math::Random& randomGenerator) const;
 
 private:
     Material(const Material&) = delete;

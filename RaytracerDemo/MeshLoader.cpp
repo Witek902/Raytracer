@@ -292,7 +292,7 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     material->debugName = "floor";
     material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
     material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    material->roughness = 0.3f;
+    material->roughness = 0.8f;
 
     //material->baseColorMap = LoadTexture("TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
     //material->normalMap = LoadTexture(".TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");

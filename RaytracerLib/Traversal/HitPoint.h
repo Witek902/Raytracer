@@ -6,6 +6,8 @@
 #include <float.h>
 #include <assert.h>
 
+constexpr Uint32 RT_INVALID_OBJECT = UINT32_MAX;
+constexpr Uint32 RT_LIGHT_OBJECT = 0xFFFFFFFE;
 
 namespace rt {
 
@@ -22,8 +24,8 @@ struct HitPoint
         : distance(FLT_MAX)
         , u(0.0f)
         , v(0.0f)
-        , triangleId(UINT32_MAX)
-        , objectId(UINT32_MAX)
+        , triangleId(RT_INVALID_OBJECT)
+        , objectId(RT_INVALID_OBJECT)
     {}
 };
 
@@ -38,8 +40,8 @@ struct RT_ALIGN(32) HitPoint_Simd8
 
     RT_FORCE_INLINE HitPoint_Simd8()
         : distance(math::VECTOR8_MAX)
-        , triangleId(UINT32_MAX)
-        , objectId(UINT32_MAX)
+        , triangleId(RT_INVALID_OBJECT)
+        , objectId(RT_INVALID_OBJECT)
     {}
 
     // extract single hit point

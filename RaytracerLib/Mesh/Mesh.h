@@ -47,6 +47,10 @@ public:
     void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const;
 
+    // Intersect shadow ray(s) with BVH leaf
+    // Returns true if any hit was found
+    bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;
+
     // Calculate input data for shading routine
     void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const;
 

@@ -76,30 +76,29 @@ RT_FORCE_INLINE bool Intersect_BoxRay_TwoSided(const Ray& ray, const Box& box, f
     return outNearDist < outFarDist;
 }
 
-RT_FORCE_INLINE bool Intersect_TriangleRay(const Ray& ray, const ProcessedTriangle& tri, float& outU, float& outV, float& outDistance)
+RT_FORCE_INLINE bool Intersect_TriangleRay(
+    const Ray& ray,
+    const Vector4& vertex0, const Vector4& edge01, const Vector4& edge02,
+    float& outU, float& outV, float& outDistance)
 {
     // Based on "Fast, Minimum Storage Ray/Triangle Intersection" by Tomas Möller and Ben Trumbore.
 
-    // find vectors for two edges sharing v0
-    const Vector4 edge0(tri.edge1);
-    const Vector4 edge1(tri.edge2);
-
     // calculate distance from vert0 to ray origin
-    Vector4 tvec = ray.origin - Vector4(tri.v0);
+    Vector4 tvec = ray.origin - vertex0;
 
     // begin calculating determinant - also used to calculate U parameter
-    Vector4 pvec = Vector4::Cross3(ray.dir, edge1);
+    Vector4 pvec = Vector4::Cross3(ray.dir, edge02);
     // if determinant is near zero, ray lies in plane of triangle
-    Vector4 det = Vector4::Dot3V(edge0, pvec);
+    Vector4 det = Vector4::Dot3V(edge01, pvec);
     // calculate U parameter
     Vector4 u = Vector4::Dot3V(tvec, pvec);
 
     // prepare to test V parameter
-    Vector4 qvec = Vector4::Cross3(tvec, edge0);
+    Vector4 qvec = Vector4::Cross3(tvec, edge01);
     // calculate V parameter
     Vector4 v = Vector4::Dot3V(ray.dir, qvec);
     // calculate t (distance)
-    Vector4 t = Vector4::Dot3V(edge1, qvec);
+    Vector4 t = Vector4::Dot3V(edge02, qvec);
 
     // prepare data to the final comparison
     Vector4 tmp1 = _mm_shuffle_ps(v, u, _MM_SHUFFLE(0, 0, 0, 0));

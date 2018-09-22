@@ -150,27 +150,23 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
             }
         }
     }
+}
 
-    /*
-    // one sided
+bool BoxSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
+{
+    const Box box(-mSize, mSize);
+
+    float dist;
+    if (Intersect_BoxRay(context.ray, box, dist))
     {
-        if (objectID == hitPoint.filterObjectId)
+        if (dist > 0.0f && dist < context.hitPoint.distance)
         {
-            return;
-        }
-
-        float dist;
-        if (Intersect_BoxRay(ray, box, dist))
-        {
-            if (dist > 0.0f && dist < hitPoint.distance)
-            {
-                hitPoint.distance = dist;
-                hitPoint.objectId = objectID;
-                hitPoint.triangleId = 0;
-            }
+            context.hitPoint.distance = dist;
+            return true;
         }
     }
-    */
+
+    return false;
 }
 
 void BoxSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const

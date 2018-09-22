@@ -15,15 +15,14 @@ OrenNayarBSDF::OrenNayarBSDF()
     , mRoughness(0.1f)
 {}
 
-OrenNayarBSDF::OrenNayarBSDF(const math::Vector4& baseColor, const float roughness)
+OrenNayarBSDF::OrenNayarBSDF(const Vector4& baseColor, const float roughness)
     : mBaseColor(baseColor)
     , mRoughness(roughness)
 {}
 
-void OrenNayarBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
+void OrenNayarBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
 {
     RT_UNUSED(wavelength);
-    RT_UNUSED(outgoingDir);
 
     // generate random sine-weighted hemisphere vector
     {
@@ -34,31 +33,52 @@ void OrenNayarBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoing
         outIncomingDir = Vector4(t.x * Sin(theta), t.x * Cos(theta), t.y, 0.0f);
     }
 
-    // TODO this is broken
-    /*
-    const float roughness2 = mRoughness * mRoughness;
-    const float A = 1.0f - 0.5f * roughness2 / (0.33f + roughness2);
-    const float B = 0.45f * roughness2 / (0.09f + roughness2);
+    const float NdotV = outgoingDir.z;
+    const float NdotL = outIncomingDir.z;
 
-    const float NdotI = incomingDir[2];
-    const float NdotO = outgoingDir[2];
-    const float IdotO = Max(0.0f, Vector4::Dot3(outgoingDir, incomingDir));
+    if (NdotV > 0.0f || NdotL > 0.0f)
+    {
+        const float LdotV = Max(0.0f, Vector4::Dot3(outgoingDir, -outIncomingDir));
 
-    const float s = IdotO + NdotI * NdotO;
-    const float t = s < 0.0f ? Max(NdotI, NdotO) : 1.0f;
+        const float s2 = mRoughness * mRoughness;
+        const float A = 1.0f - 0.50f * s2 / (0.33f + s2);
+        const float B = 0.45f * s2 / (0.09f + s2);
 
-    return mBaseColor * ((A + B * s / t) / RT_PI);
-    */
+        // based on http://mimosa-pudica.net/improved-oren-nayar.html
+        const float s = LdotV - NdotL * NdotV;
+        const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
 
-    outWeight = Color::One();
+        outWeight = Color::One() * Max(A + B * stinv, 0.0f);
+    }
+    else
+    {
+        outWeight = Color();
+    }
 }
 
-math::Vector4 OrenNayarBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
+Vector4 OrenNayarBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
 {
     RT_UNUSED(outgoingDir);
 
-    const float NdotL = incomingDir[2];
-    return Vector4(NdotL);
+    const float NdotV = outgoingDir.z;
+    const float NdotL = -incomingDir.z;
+
+    if (NdotV > 0.0f || NdotL > 0.0f)
+    {
+        const float LdotV = Max(0.0f, Vector4::Dot3(outgoingDir, -incomingDir));
+
+        const float s2 = mRoughness * mRoughness;
+        const float A = 1.0f - 0.50f * s2 / (0.33f + s2);
+        const float B =        0.45f * s2 / (0.09f + s2);
+
+        // based on http://mimosa-pudica.net/improved-oren-nayar.html
+        const float s = LdotV - NdotL * NdotV;
+        const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
+
+        return Vector4(Max(NdotL * (A + B * stinv), 0.0f));
+    }
+
+    return Vector4();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,22 +87,25 @@ CookTorranceBSDF::CookTorranceBSDF(const float roughness)
     : mRougness(roughness)
 {}
 
-float CookTorranceBSDF::NormalDistribution(const float NdotH) const
+static float NormalDistribution_GGX(const float NdotH, const float roughness)
 {
     // GGX distribution
-    const float a = mRougness * mRougness;
-    const float denomTerm = (a * a - 1.0f) * (NdotH * NdotH) + 1.0f;
-    return (a * a) / (RT_PI * denomTerm * denomTerm);
+    const float a = roughness * roughness;
+    const float a2 = a * a;
+    const float denomTerm = (a2 - 1.0f) * (NdotH * NdotH) + 1.0f;
+    return a2 / (RT_PI * denomTerm * denomTerm);
 }
 
-void CookTorranceBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
+void CookTorranceBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
 {
     RT_UNUSED(wavelength);
 
-    // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
     const float a = mRougness * mRougness;
+    const float a2 = a * a;
+
+    // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
     const Float2 u = randomGenerator.GetFloat2();
-    const float cosThetaSqr = (1.0f - u.x) / (1.0f + (a * a - 1.0f) * u.x);
+    const float cosThetaSqr = (1.0f - u.x) / (1.0f + (a2 - 1.0f) * u.x);
     const float cosTheta = sqrtf(cosThetaSqr);
     const float sinTheta = sqrtf(1.0f - cosThetaSqr);
     const float phi = 2.0f * RT_PI * u.y;
@@ -92,54 +115,52 @@ void CookTorranceBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgo
 
     outIncomingDir = -Vector4::Reflect3(outgoingDir, m);
 
-    //const float NdotH = m[2];
-    const float NdotV = outgoingDir[2];
-    const float NdotL = outIncomingDir[2];
+    const float NdotV = outgoingDir.z;
+    const float NdotL = outIncomingDir.z;
 
     // clip the function to avoid division by zero
-    if (Abs(NdotV) <= FLT_EPSILON || Abs(NdotL) <= FLT_EPSILON || NdotV * NdotL < 0.0f)
+    if (NdotV < FLT_EPSILON || NdotL < FLT_EPSILON)
     {
-        outWeight = Color::One();
+        outWeight = Color();
         return;
     }
 
-    // TODO this is wrong
-    // Geometry term
-    //const float G1 = 2.0f * NdotH * NdotV / VdotH;
-    //const float G2 = 2.0f * NdotH * NdotL / VdotH;
-    //const float G = Max(0.0f, Min(1.0f, Min(G1, G2)));
+    // GGX masking-shadowing term
+    /*
+    const float G1 = 2.0f * NdotV / (NdotV + sqrtf(a2 + (1.0f - a2) * NdotV * NdotV));
+    const float G2 = 2.0f * NdotL / (NdotL + sqrtf(a2 + (1.0f - a2) * NdotL * NdotL));
+    const float G = G1 * G2;
+    */
     const float G = 1.0f;
 
     outWeight = Color::One() * G;
 }
 
-math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
+Vector4 CookTorranceBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
 {
-    const Vector4 half = (outgoingDir + incomingDir).FastNormalized3();
-    const float NdotH = half[2];
+    const Vector4 half = (outgoingDir - incomingDir).FastNormalized3();
+    const float NdotH = half.z;
     // const float VdotH = Vector4::Dot3(half, outgoingDir);
-    const float NdotV = outgoingDir[2];
-    const float NdotL = incomingDir[2];
+    const float NdotV = outgoingDir.z;
+    const float NdotL = -incomingDir.z;
 
-    // clip the function to avoid division by zero
+    // clip the function
     if (NdotV <= 0.0f || NdotL <= 0.0f)
     {
         return Vector4();
     }
 
-    const float a2 = mRougness * mRougness;
+    const float a = mRougness * mRougness;
+    const float a2 = a * a;
 
-    // Smith masking-shadowing term
-    //const float G1 = NdotH * NdotV / VdotH;
-    //const float G2 = NdotH * NdotL / VdotH;
-    //const float G = Min(1.0f, Max(0.0f, 2.0f * Min(G1, G2)));
-    const float denomA = NdotV * sqrtf(a2 + (1.0f - a2) * NdotL * NdotL);
-    const float denomB = NdotL * sqrtf(a2 + (1.0f - a2) * NdotV * NdotV);
-    const float G2 = 2.0f * NdotL * NdotV / (0.0001f + denomA + denomB);
+    // GGX masking-shadowing term
+    const float G1 = NdotV / (NdotV + sqrtf(a2 + (1.0f - a2) * NdotV * NdotV));
+    const float G2 = NdotL / (NdotL + sqrtf(a2 + (1.0f - a2) * NdotL * NdotL));
+    const float G = G1 * G2;
 
-    const float D = NormalDistribution(NdotH);
+    const float D = NormalDistribution_GGX(NdotH, mRougness);
 
-    return Vector4(D * G2 / (4.0f * NdotV * NdotL));
+    return Vector4(D * G / (NdotV));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +170,7 @@ TransparencyBSDF::TransparencyBSDF(const Material& material)
 {
 }
 
-void TransparencyBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const
+void TransparencyBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
 {
     RT_UNUSED(randomGenerator);
 
@@ -182,7 +203,7 @@ void TransparencyBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgo
     outIncomingDir = Vector4::RefractZ(-outgoingDir, ior);
 }
 
-Vector4 TransparencyBSDF::Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const
+Vector4 TransparencyBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
 {
     RT_UNUSED(outgoingDir);
     RT_UNUSED(incomingDir);

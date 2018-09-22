@@ -197,7 +197,7 @@ Color SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength
 
 /////////////////////////////////////////////////////////////////////////////////
 
-Color Color::BlackBody(const Wavelength& wavelength, const float temperature)
+const Color Color::BlackBody(const Wavelength& wavelength, const float temperature)
 {
     Color result;
 
@@ -219,7 +219,7 @@ Color Color::BlackBody(const Wavelength& wavelength, const float temperature)
     return result;
 }
 
-Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbValues)
+const Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbValues)
 {
     const float r = rgbValues.x;
     const float g = rgbValues.y;

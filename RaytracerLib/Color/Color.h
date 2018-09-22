@@ -51,7 +51,7 @@ struct Color
 
     //RT_FORCE_INLINE explicit Color(const float val) : value(val) { }
 
-    RT_FORCE_INLINE static Color One()
+    RT_FORCE_INLINE static const Color One()
     {
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
         return Color{ math::VECTOR8_ONE };
@@ -60,7 +60,7 @@ struct Color
 #endif
     }
 
-    RT_FORCE_INLINE static Color SingleWavelengthFallback()
+    RT_FORCE_INLINE static const Color SingleWavelengthFallback()
     {
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
         return Color{ math::Vector8(8.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
@@ -69,19 +69,24 @@ struct Color
 #endif
     }
 
-    RT_FORCE_INLINE Color operator + (const Color& other) const
+    RT_FORCE_INLINE const Color operator + (const Color& other) const
     {
         return Color{ value + other.value };
     }
 
-    RT_FORCE_INLINE Color operator * (const Color& other) const
+    RT_FORCE_INLINE const Color operator * (const Color& other) const
     {
         return Color{ value * other.value };
     }
 
-    RT_FORCE_INLINE Color operator * (const float factor) const
+    RT_FORCE_INLINE const Color operator * (const float factor) const
     {
         return Color{ value * factor };
+    }
+
+    RT_FORCE_INLINE const Color operator / (const float factor) const
+    {
+        return Color{ value / factor };
     }
 
     RT_FORCE_INLINE Color& operator += (const Color& other)

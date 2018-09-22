@@ -13,7 +13,7 @@
 
 namespace rt {
 
-class Scene;
+class IRenderer;
 class Camera;
 
 struct PostprocessParams
@@ -34,7 +34,7 @@ public:
     Viewport();
 
     bool Resize(Uint32 width, Uint32 height);
-    bool Render(const Scene* scene, const Camera& camera, const RenderingParams& params);
+    bool Render(const IRenderer& renderer, const Camera& camera, const RenderingParams& params);
     bool PostProcess(const PostprocessParams& params);
     void Reset();
 
@@ -51,7 +51,7 @@ private:
     void InitThreadData();
 
     // raytrace single image tile (will be called from multiple threads)
-    void RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0);
+    void RenderTile(const IRenderer& renderer, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0);
 
     // generate "front buffer" image from "average" image
     void PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID);

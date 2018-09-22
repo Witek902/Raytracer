@@ -106,6 +106,8 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,6 +128,8 @@
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <OmitFramePointers>false</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,6 +160,8 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,6 +195,8 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -249,7 +257,10 @@
     <ClInclude Include="RayLib.h" />
     <ClInclude Include="Rendering\Counters.h" />
     <ClInclude Include="Rendering\Context.h" />
+    <ClInclude Include="Rendering\DebugRenderer.h" />
     <ClInclude Include="Rendering\PathDebugging.h" />
+    <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ShadingData.h" />
     <ClInclude Include="Rendering\Viewport.h" />
     <ClInclude Include="Scene\Camera.h" />
@@ -257,6 +268,7 @@
     <ClInclude Include="Scene\SceneObject.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Scene\SceneObject_Box.h" />
+    <ClInclude Include="Scene\SceneObject_Light.h" />
     <ClInclude Include="Scene\SceneObject_Mesh.h" />
     <ClInclude Include="Scene\SceneObject_Sphere.h" />
     <ClInclude Include="Traversal\HitPoint.h" />
@@ -302,11 +314,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Rendering\DebugRenderer.cpp" />
+    <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Light.cpp" />
     <ClCompile Include="Scene\SceneObject.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\SceneObject_Box.cpp" />
+    <ClCompile Include="Scene\SceneObject_Light.cpp" />
     <ClCompile Include="Scene\SceneObject_Mesh.cpp" />
     <ClCompile Include="Scene\SceneObject_Sphere.cpp" />
     <ClCompile Include="Traversal\RayPacket.cpp" />

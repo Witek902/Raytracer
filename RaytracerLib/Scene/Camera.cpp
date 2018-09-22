@@ -52,7 +52,7 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     {
         Vector4 radius = Vector4::Dot2V(offsetedCoords, offsetedCoords);
         radius *= (barrelDistortionConstFactor + barrelDistortionVariableFactor * context.randomGenerator.GetFloat());
-        offsetedCoords += offsetedCoords * radius;
+        offsetedCoords = Vector4::MulAndAdd(offsetedCoords, radius, offsetedCoords);
     }
 
     const Vector4 screenSpaceRayDir
@@ -70,7 +70,7 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     // depth of field
     if (mDOF.aperture > 0.001f)
     {
-        const Vector4 focusPoint = origin + mDOF.focalPlaneDistance * direction;
+        const Vector4 focusPoint = Vector4::MulAndAdd(direction, mDOF.focalPlaneDistance, origin);
 
         const Vector4 right = transform.GetRotation().GetAxisX();
         const Vector4 up = transform.GetRotation().GetAxisY();

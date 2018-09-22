@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Viewport.h"
+#include "Renderer.h"
 #include "Utils/Logger.h"
-#include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Color/Color.h"
 #include "Color/ColorHelpers.h"
@@ -52,14 +52,8 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     return true;
 }
 
-bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingParams& params)
+bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const RenderingParams& params)
 {
-    if (!scene)
-    {
-        RT_LOG_ERROR("Invalid scene");
-        return false;
-    }
-
     const Uint32 width = GetWidth();
     const Uint32 height = GetHeight();
     if (width == 0 || height == 0)
@@ -81,7 +75,7 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
 
         const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
         {
-            RenderTile(*scene, camera, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
+            RenderTile(renderer, camera, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
         };
 
         mThreadPool.RunParallelTask(taskCallback, rows, columns);
@@ -118,7 +112,7 @@ bool Viewport::PostProcess(const PostprocessParams& params)
     return true;
 }
 
-void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0)
+void Viewport::RenderTile(const IRenderer& renderer, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0)
 {
     const Vector4 invSize = Vector4(VECTOR_ONE2) / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
     const Uint32 tileSize = 1u << context.params->tileOrder;
@@ -152,18 +146,21 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
                 context.wavelength.Randomize(context.randomGenerator);
 
                 // randomize pixel offset
-                const Vector4 u = context.randomGenerator.GetFloatNormal2();
-                const Vector4 coords = baseCoords + u * context.params->antiAliasingSpread;
+                const Vector4 u = context.randomGenerator.GetVector4();
+                const Vector4 coords = Vector4::MulAndAdd(u, context.params->antiAliasingSpread, baseCoords);
 
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
-                const Color color = scene.TraceRay_Single(ray, context);
+                const Color color = renderer.TraceRay_Single(ray, context);
                 sampleColor += color.Resolve(context.wavelength);
             }
 
             sumPixels[renderTargetWidth * y + x] += sampleColor;
         }
     }
+
+    // TODO
+    /*
     else if (context.params->traversalMode == TraversalMode::Simd)
     {
         for (Uint32 y = y0; y < maxY; ++y)
@@ -233,18 +230,8 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
         scene.Traverse_Packet({ primaryPacket, hitPoints, context });
         context.counters.Append(context.localCounters);
         scene.Shade_Packet(primaryPacket, hitPoints, context, mAccumulated);
-
-        /*
-        for (Uint32 y = y0; y < maxY; ++y)
-        {
-            for (Uint32 x = x0; x < maxX; ++x)
-            {
-                const Vector4 color = context.randomGenerator.GetVector4();
-                mRenderTarget.SetPixel(x, y, color);
-            }
-        }
-        */
     }
+    */
 
     context.counters.numPrimaryRays += tileSize * tileSize * context.params->samplesPerPixel;
 }

@@ -182,32 +182,40 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 {
     bool resetFrame = false;
 
-    int renderingModeIndex = static_cast<int>(mRenderingParams.renderingMode);
+    resetFrame |= ImGui::Checkbox("Use debug renderer", &mUseDebugRenderer);
+    if (mUseDebugRenderer)
+    {
+        int debugRenderingModeIndex = static_cast<int>(mDebugRenderer->mRenderingMode);
+
+        const char* renderingModeItems[] =
+        {
+            "Material Base Color",
+            "Material Emission Color",
+            "Material Roughness",
+            "Material Metalness",
+            "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords", "TriangleID",
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+            "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+        };
+        resetFrame |= ImGui::Combo("Rendering mode", &debugRenderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
+        mDebugRenderer->mRenderingMode = static_cast<DebugRenderingMode>(debugRenderingModeIndex);
+    }
+  
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
     int tileOrder = static_cast<int>(mRenderingParams.tileOrder);
-
-    const char* renderingModeItems[] =
-    {
-        "Regular", "BaseColor",
-        "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords", "TriangleID",
-#ifdef RT_ENABLE_INTERSECTION_COUNTERS
-        "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
-#endif // RT_ENABLE_INTERSECTION_COUNTERS
-    };
-    resetFrame |= ImGui::Combo("Rendering mode", &renderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
 
     const char* traversalModeItems[] = { "Single", "SIMD", "Packet" };
     resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
 
     ImGui::SliderInt("Tile order", (int*)&tileOrder, 0, 8); // max 256x256 tile
 
-    resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 1, 50);
+    resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 50);
     ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
     resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);
-
-    mRenderingParams.renderingMode = static_cast<RenderingMode>(renderingModeIndex);
+    
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
     mRenderingParams.tileOrder = static_cast<Uint8>(tileOrder);
 
@@ -366,7 +374,7 @@ void DemoWindow::RenderUI()
     {
         static bool showStats = true;
         static bool showDebugging = false;
-        static bool showRenderSettings = false;
+        static bool showRenderSettings = true;
 
         if (ImGui::BeginMainMenuBar())
         {

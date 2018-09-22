@@ -58,9 +58,6 @@ public:
     virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
     virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir) const override;
 
-    // get normal distribution factor (D coefficient)
-    float NormalDistribution(const float NdotH) const;
-
     float mRougness;
 };
 

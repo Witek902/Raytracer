@@ -8,6 +8,7 @@
 #include "../RaytracerLib/Utils/Logger.h"
 #include "../RaytracerLib/Rendering/Context.h"
 #include "../RaytracerLib/Rendering/ShadingData.h"
+#include "../RaytracerLib/Rendering/PathTracer.h"
 #include "../RaytracerLib/Traversal/TraversalContext.h"
 #include "../RaytracerLib/Scene/SceneObject_Mesh.h"
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
@@ -69,7 +70,7 @@ bool DemoWindow::Initialize()
 
     mCamera.mDOF.aperture = 0.0f;
 
-    SwitchScene(mRegisteredScenes["Simple + Background Light"]);
+    SwitchScene(mRegisteredScenes["MIS Test"]);
 
     /*
     auto loadedMesh = helpers::LoadMesh(gOptions.dataPath + gOptions.modelPath, mMaterials, 1.0f);
@@ -151,6 +152,9 @@ void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
 
     mSelectedMaterial = nullptr;
     mSelectedObject = nullptr;
+
+    mRenderer = std::make_unique<PathTracer>(*mScene);
+    mDebugRenderer = std::make_unique<DebugRenderer>(*mScene);
 }
 
 void DemoWindow::ResetFrame()
@@ -207,7 +211,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, context);
 
-        mScene->TraceRay_Single(ray, context);
+        mRenderer->TraceRay_Single(ray, context);
         assert(!mPathDebugData.data.empty());
 
         HitPoint hitPoint;
@@ -239,7 +243,8 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, context);
 
-        mScene->TraceRay_Single(ray, context);
+        // TODO DebugPathTracer?
+        mRenderer->TraceRay_Single(ray, context);
         assert(!mPathDebugData.data.empty());
 
         HitPoint hitPoint;
@@ -248,7 +253,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         if (mPathDebugData.data[0].hitPoint.objectId != UINT32_MAX)
         {
             mSelectedMaterial = const_cast<Material*>(mPathDebugData.data[0].shadingData.material);
-            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObject(mPathDebugData.data[0].hitPoint.objectId));
+            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[mPathDebugData.data[0].hitPoint.objectId].get());
         }
     }
 }
@@ -352,7 +357,8 @@ bool DemoWindow::Loop()
 
         //// render
         localTimer.Start();
-        mViewport->Render(mScene.get(), mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
+        const IRenderer& renderer = mUseDebugRenderer ? (*mDebugRenderer) : (*mRenderer);
+        mViewport->Render(renderer, mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
         mRenderDeltaTime = localTimer.Stop();
 
         //// post process

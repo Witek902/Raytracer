@@ -631,15 +631,14 @@ Float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
     return result;
 }
 
-const Vector4 Vector4::Cross3(const Vector4& V1, const Vector4& V2)
+const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
 {
-    __m128 vTemp1 = _mm_shuffle_ps(V1, V1, _MM_SHUFFLE(3, 0, 2, 1));
-    __m128 vTemp2 = _mm_shuffle_ps(V2, V2, _MM_SHUFFLE(3, 1, 0, 2));
+    __m128 vTemp1 = _mm_shuffle_ps(v1, v1, _MM_SHUFFLE(3, 0, 2, 1));
+    __m128 vTemp2 = _mm_shuffle_ps(v2, v2, _MM_SHUFFLE(3, 1, 0, 2));
     __m128 vResult = _mm_mul_ps(vTemp1, vTemp2);
     vTemp1 = _mm_shuffle_ps(vTemp1, vTemp1, _MM_SHUFFLE(3, 0, 2, 1));
     vTemp2 = _mm_shuffle_ps(vTemp2, vTemp2, _MM_SHUFFLE(3, 1, 0, 2));
-    vResult = NegMulAndAdd(vTemp1, vTemp2, vResult);
-    return _mm_and_ps(vResult, VECTOR_MASK_XYZ);
+    return NegMulAndAdd(vTemp1, vTemp2, vResult);
 }
 
 Float Vector4::Length2() const

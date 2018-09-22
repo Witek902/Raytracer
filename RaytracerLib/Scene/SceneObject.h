@@ -27,6 +27,9 @@ public:
     virtual void Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const = 0;
     virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const = 0;
 
+    // check shadow ray occlusion
+    virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const = 0;
+
     // Calculate input data for shading routine
     // NOTE: all calculations are performed in local space
     virtual void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const = 0;

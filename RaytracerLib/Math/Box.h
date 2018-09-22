@@ -15,14 +15,28 @@ public:
     Vector4 min;
     Vector4 max;
 
-    RT_FORCE_INLINE Box() : min(), max() {}
-    RT_FORCE_INLINE Box(const Vector4& min, const Vector4& max) : min(min), max(max) {}
+    RT_FORCE_INLINE Box() = default;
+
+    RT_FORCE_INLINE explicit Box(const Vector4& point)
+        : min(point)
+        , max(point)
+    {}
+
+    RT_FORCE_INLINE Box(const Vector4& min, const Vector4& max)
+        : min(min)
+        , max(max)
+    {}
 
     Box(const Vector4& a, const Vector4& b, const Vector4& c);
 
     RT_FORCE_INLINE static const Box Empty()
     {
-        return Box(Vector4(VECTOR_MAX), -Vector4(VECTOR_MAX));
+        return { VECTOR_MAX, -VECTOR_MAX };
+    }
+
+    RT_FORCE_INLINE static const Box Full()
+    {
+        return { -VECTOR_MAX, VECTOR_MAX };
     }
 
     // create box from center point and radius (e.g. bounding box of a sphere)
@@ -52,13 +66,20 @@ public:
     RT_FORCE_INLINE float SurfaceArea() const
     {
         Vector4 size = max - min;
-        return size.f[0] * (size.f[1] + size.f[2]) + size.f[1] * size.f[2];
+        return size.x * (size.y + size.z) + size.y * size.z;
     }
 
     RT_FORCE_INLINE float Volume() const
     {
         Vector4 size = max - min;
-        return size.f[0] * size.f[1] * size.f[2];
+        return size.x * size.y * size.z;
+    }
+
+    RT_FORCE_INLINE Box& AddPoint(const Vector4& point)
+    {
+        min = Vector4::Min(min, point);
+        max = Vector4::Max(max, point);
+        return *this;
     }
 };
 

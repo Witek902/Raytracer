@@ -53,6 +53,34 @@ void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, c
     }
 }
 
+bool SphereSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
+{
+    const Vector4 d = -context.ray.origin;
+    const double v = Vector4::Dot3(context.ray.dir, d);
+    const double det = (double)(mRadius * mRadius) - (double)Vector4::Dot3(d, d) + v * v;
+
+    if (det > 0.0)
+    {
+        const double sqrtDet = sqrt(det);
+
+        const float nearDist = (float)(v - sqrtDet);
+        if (nearDist > 0.0f && nearDist < context.hitPoint.distance)
+        {
+            context.hitPoint.distance = nearDist;
+            return true;
+        }
+
+        const float farDist = (float)(v + sqrtDet);
+        if (farDist > 0.0f && farDist < context.hitPoint.distance)
+        {
+            context.hitPoint.distance = farDist;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SphereSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
     RT_UNUSED(objectID);

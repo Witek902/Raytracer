@@ -63,6 +63,8 @@
 #define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);
 #define RT_PREFETCH_L3(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T2);
 
+#define RT_FATAL(x) __debugbreak()
+
 #if defined(__LINUX__) | defined(__linux__)
 using Uint64 = uint64_t;
 using Int64 = int64_t;

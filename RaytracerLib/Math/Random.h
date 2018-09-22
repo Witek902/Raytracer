@@ -46,6 +46,9 @@ public:
     // generate random vector of 8 elements from range [-1.0f, 1.0f)
     const Vector8 GetVector8Bipolar();
 
+    // generate random triangle coordinates (barycentric)
+    const Float2 GetTriangle();
+
     // get random point on a circle (uniform distribution)
     const Vector4 GetCircle();
     const Vector2x8 GetCircle_Simd8();

@@ -4,15 +4,15 @@
 
 namespace rt {
 
-class Material;
+class ILight;
 
-// Primite scene object - sphere
-class RAYLIB_API SphereSceneObject : public ISceneObject
+// scene object representing a finite scene object (e.g. area light)
+class RAYLIB_API LightSceneObject : public ISceneObject
 {
 public:
-    SphereSceneObject(const float radius, const Material* material);
+    explicit LightSceneObject(const ILight& light);
 
-    const Material* mMaterial;
+    RT_FORCE_INLINE const ILight& GetLight() const { return mLight; }
 
 private:
     virtual math::Box GetBoundingBox() const override;
@@ -23,10 +23,9 @@ private:
 
     virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const override;
 
-    virtual void EvaluateShadingData_Single(const HitPoint& intersechitPointtionData, ShadingData& outShadingData) const override;
+    virtual void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const override;
 
-    float mRadius;
-    float mInvRadius;
+    const ILight& mLight;
 };
 
 } // namespace rt

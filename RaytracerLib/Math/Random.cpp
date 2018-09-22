@@ -172,6 +172,13 @@ const Vector8 Random::GetVector8Bipolar()
     return result;
 }
 
+const Float2 Random::GetTriangle()
+{
+    const Float2 uv = GetVector4().ToFloat2();
+    const Float u = sqrtf(uv.x);
+    return { 1.0f - u, uv.y * u };
+}
+
 const Vector4 Random::GetCircle()
 {
     const Vector4 v = GetVector4();

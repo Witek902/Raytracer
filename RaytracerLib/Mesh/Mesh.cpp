@@ -130,9 +130,9 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
     {
         const Uint32 triangleIndex = node.childIndex + i;
 
-        const math::ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
+        const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
 
-        if (Intersect_TriangleRay(context.ray, tri, u, v, distance))
+        if (Intersect_TriangleRay(context.ray, Vector4(tri.v0), Vector4(tri.edge1), Vector4(tri.edge2), u, v, distance))
         {
             HitPoint& hitPoint = context.hitPoint;
             const bool sameSurface = hitPoint.triangleId == triangleIndex && hitPoint.objectId == objectID;
@@ -150,6 +150,37 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
             }
         }
     }
+}
+
+bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const
+{
+    float distance, u, v;
+
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    context.context.localCounters.numRayTriangleTests += node.numLeaves;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    {
+        const Uint32 triangleIndex = node.childIndex + i;
+        const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
+        if (Intersect_TriangleRay(context.ray, Vector4(tri.v0), Vector4(tri.edge1), Vector4(tri.edge2), u, v, distance))
+        {
+            HitPoint& hitPoint = context.hitPoint;
+            if (distance < hitPoint.distance)
+            {
+                hitPoint.distance = distance;
+
+#ifdef RT_ENABLE_INTERSECTION_COUNTERS
+                context.context.localCounters.numPassedRayTriangleTests++;
+#endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
@@ -312,12 +343,12 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     }
 }
 
-rt::math::Vector4 ShadingData::LocalToWorld(const math::Vector4 localCoords) const
+rt::Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
 {
     return tangent * localCoords[0] + bitangent * localCoords[1] + normal * localCoords[2];
 }
 
-math::Vector4 ShadingData::WorldToLocal(const math::Vector4 worldCoords) const
+Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
 {
     // TODO optimize transposition
     const Vector4 worldToLocalX = Vector4(tangent[0], bitangent[0], normal[0], 0.0f);

@@ -7,7 +7,7 @@
 namespace rt {
 
 
-enum class PathTerminationReason : Uint8
+enum class PathTerminationReason
 {
     None = 0,
     HitBackground,

@@ -30,6 +30,11 @@ void MeshSceneObject::Traverse_Single(const SingleTraversalContext& context, con
     GenericTraverse_Single<Mesh>(context, objectID, mMesh);
 }
 
+bool MeshSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
+{
+    return GenericTraverse_Shadow_Single<Mesh>(context, mMesh);
+}
+
 void MeshSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
     GenericTraverse_Simd8<Mesh>(context, objectID, mMesh);
