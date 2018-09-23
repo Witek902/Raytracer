@@ -26,7 +26,7 @@ const VectorInt8 VectorInt8::Cast(const Vector8& v)
 
 const VectorInt8 VectorInt8::Convert(const Vector8& v)
 {
-    return _mm256_cvtps_epi32(v);
+    return _mm256_cvtps_epi32(_mm256_round_ps(v, _MM_FROUND_TO_ZERO));
 }
 
 const Vector8 VectorInt8::ConvertToFloat() const

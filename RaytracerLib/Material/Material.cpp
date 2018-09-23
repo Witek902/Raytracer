@@ -131,8 +131,11 @@ Color Material::Shade(Wavelength& wavelength,
 
     if (randomGenerator.GetFloat() < metalnessValue)
     {
-        value = GetBaseColor(shadingData.texCoord);
-        value *= FresnelMetal(NdotV, IoR, K);
+        if (NdotV > 0.0f)
+        {
+            value = GetBaseColor(shadingData.texCoord);
+            value *= FresnelMetal(NdotV, IoR, K);
+        }
         bsdf = mSpecularBSDF.get();
     }
     else

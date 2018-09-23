@@ -98,6 +98,11 @@ struct Color
         return value.HorizontalMax()[0];
     }
 
+    RT_FORCE_INLINE bool Validate() const
+    {
+        return math::Vector8::GreaterEqMask(value, math::Vector8()) == 0xFF;
+    }
+
     // calculate ray color values for given wavelength and linear RGB values
     RAYLIB_API static Color BlackBody(const Wavelength& wavelength, const float temperature);
 

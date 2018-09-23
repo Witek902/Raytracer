@@ -54,15 +54,18 @@ void DemoWindow::RenderUI_Debugging()
 
             if (data.hitPoint.distance != FLT_MAX)
             {
-                ImGui::Text("  Distance:  %f", data.hitPoint.distance);
-                ImGui::Text("  Object ID: %u", data.hitPoint.objectId);
-                ImGui::Text("  Tri ID:    %u", data.hitPoint.triangleId);
-                ImGui::Text("  Tri UV:    [%f, %f]", data.hitPoint.u, data.hitPoint.v);
-                ImGui::Text("  Position:  [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
-                ImGui::Text("  Normal:    [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
+                ImGui::Text("  Distance:    %f", data.hitPoint.distance);
+                ImGui::Text("  Object ID:   %u", data.hitPoint.objectId);
+                ImGui::Text("  Tri ID:      %u", data.hitPoint.triangleId);
+                ImGui::Text("  Tri UV:      [%f, %f]", data.hitPoint.u, data.hitPoint.v);
+                ImGui::Text("  Position:    [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
+                ImGui::Text("  Normal:      [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
                 //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
                 //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
-                ImGui::Text("  Material:  %s", data.shadingData.material->debugName);
+                ImGui::Text("  Material:    %s", data.shadingData.material->debugName);
+                ImGui::Text("  Throughput:  [%f, %f, %f, %f, %f, %f, %f, %f]",
+                    data.throughput.value[0], data.throughput.value[1], data.throughput.value[2], data.throughput.value[3],
+                    data.throughput.value[4], data.throughput.value[5], data.throughput.value[6], data.throughput.value[7]);
             }
         }
 
