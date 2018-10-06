@@ -11,7 +11,7 @@ namespace rt {
 
 using namespace math;
 
-static const Uint32 MAX_IMAGE_SZIE = 8192;
+static const Uint32 MAX_IMAGE_SZIE = 1 << 16;
 
 Viewport::Viewport()
     : mNumSamplesRendered(0)
@@ -42,6 +42,9 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
         return true;
 
     if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+        return false;
+
+    if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
         return false;
 
     Reset();
@@ -92,6 +95,22 @@ bool Viewport::Render(const Scene* scene, const Camera& camera, const RenderingP
     {
         mCounters.Append(ctx.counters);
     }
+
+    return true;
+}
+
+bool Viewport::PostProcess(const PostprocessParams& params)
+{
+    const Uint32 numTiles = mThreadPool.GetNumThreads();
+
+    const auto taskCallback = [&](Uint32, Uint32 tileY, Uint32 threadID)
+    {
+        const Uint32 ymin = GetHeight() * tileY / numTiles;
+        const Uint32 ymax = GetHeight() * (tileY + 1) / numTiles;
+        PostProcessTile(params, ymin, ymax, threadID);
+    };
+
+    mThreadPool.RunParallelTask(taskCallback, numTiles, 1);
 
     return true;
 }
@@ -225,9 +244,51 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
     }
 
     context.counters.numPrimaryRays += tileSize * tileSize * context.params->samplesPerPixel;
+}
+
+template<typename T>
+RT_FORCE_INLINE static T ToneMap(T color)
+{
+    const T a = T(0.004f);
+    const T b = T(6.2f);
+    const T c = T(1.7f);
+    const T d = T(0.06f);
+
+    // Jim Hejl and Richard Burgess-Dawson formula
+    const T t0 = color * T::MulAndAdd(color, b, T(0.5f));
+    const T t1 = T::MulAndAdd(color, b, c);
+    const T t2 = T::MulAndAdd(color, t1, d);
+    return t0 * T::FastReciprocal(t2);
+}
+
+
+void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID)
+{
+    const size_t width = GetWidth();
+    const size_t minIndex = (size_t)ymin * width;
+    const size_t maxIndex = (size_t)ymax * width;
+
+    Random& randomGenerator = mThreadData[threadID].randomGenerator;
+
+    const Float scalingFactor = exp2f(params.exposure) / (Float)mNumSamplesRendered;
+
+    const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+    Uint8* frontBufferPixels = reinterpret_cast<Uint8*>(mFrontBuffer.GetData());
+
+    for (size_t i = minIndex; i < maxIndex; ++i)
+    {
+        const Vector4 xyzColor = sumPixels[i];
+        const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
+
+        const Vector4 toneMapped = ToneMap(rgbColor * scalingFactor);
+        const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), params.ditheringStrength, toneMapped);
+
+        const Vector4 clampedValue = toneMapped.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
+        clampedValue.Store4_NonTemporal(frontBufferPixels + 4 * i);
+    }
 
     // flush non-temporal stores
-    _mm_sfence();
+    _mm_mfence();
 }
 
 void Viewport::Reset()

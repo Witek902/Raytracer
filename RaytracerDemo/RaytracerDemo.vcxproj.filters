@@ -35,17 +35,14 @@
     <ClCompile Include="MeshLoader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
-      <Filter>External\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="Demo_UserInterface.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
     <ClCompile Include="TestScenes.cpp">
       <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_sw.cpp">
+      <Filter>External\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,10 +71,7 @@
     <ClInclude Include="..\External\cxxopts.hpp">
       <Filter>External</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+    <ClInclude Include="..\External\imgui\imgui_sw.hpp">
       <Filter>External\imgui</Filter>
     </ClInclude>
   </ItemGroup>

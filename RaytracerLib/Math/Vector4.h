@@ -304,24 +304,28 @@ struct RT_ALIGN(16) Vector4
      * @return  a * b + c
      */
     RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Float b, const Vector4& c);
 
     /**
      * Fused multiply and subtract.
      * @return  a * b - c
      */
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
     /**
      * Fused multiply (negated) and add.
      * @return  - a * b + c
      */
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c);
 
     /**
      * Fused multiply (negated) and subtract.
      * @return  - a * b - c
      */
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
     /**
      * Calculate horizontal minimum. Result is splatted across all elements.

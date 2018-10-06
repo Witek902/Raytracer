@@ -1,7 +1,6 @@
 #include "PCH.h"
 #include "Demo.h"
 #include "MeshLoader.h"
-#include "Renderer.h"
 
 #include "../RaytracerLib/Mesh/Mesh.h"
 #include "../RaytracerLib/Material/Material.h"
@@ -15,7 +14,7 @@
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_impl_dx11.h>
+#include <imgui/imgui_sw.hpp>
 
 using namespace rt;
 using namespace math;
@@ -39,7 +38,7 @@ DemoWindow::DemoWindow()
 
 DemoWindow::~DemoWindow()
 {
-    ImGui_ImplDX11_Shutdown();
+    imgui_sw::unbind_imgui_painting();
     ImGui::DestroyContext();
 }
 
@@ -67,15 +66,6 @@ bool DemoWindow::Initialize(const Options& options)
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(options.windowWidth, options.windowHeight);
-
-    mDC = GetDC(reinterpret_cast<HWND>(GetHandle()));
-
-    mRenderer = std::make_unique<Renderer>();
-    if (!mRenderer->Init(*this))
-    {
-        RT_LOG_ERROR("Failed to initialize renderer");
-        return false;
-    }
 
     mCamera.mDOF.aperture = 0.0f;
 
@@ -109,6 +99,8 @@ void DemoWindow::InitializeUI()
     ImGui::StyleColorsDark();
 
     ImGui::GetIO().Fonts->AddFontDefault();
+
+    imgui_sw::bind_imgui_painting();
 
     //ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/DroidSans.ttf", 10);
     //ImGui::GetIO().Fonts->GetTexDataAsRGBA32()
@@ -179,21 +171,15 @@ void DemoWindow::ResetCounters()
     mAccumulatedRenderTime = 0.0;
     mAverageRenderDeltaTime = 0.0;
     mTotalRenderTime = 0.0;
+    mPostProcessDeltaTime = 0.0;
 }
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
 {
-    if (mRenderer)
-    {
-        mRenderer->OnWindowResized(width, height);
-    }
-
     if (mViewport)
     {
         mViewport->Resize(width, height);
     }
-
-    mDC = GetDC(reinterpret_cast<HWND>(GetHandle()));
 
     UpdateCamera();
     ResetCounters();
@@ -324,7 +310,7 @@ void DemoWindow::OnCharTyped(const char* charUTF8)
 
 bool DemoWindow::Loop()
 {
-    Timer renderTimer;
+    Timer localTimer;
     Timer displayTimer;
     displayTimer.Start();
 
@@ -351,14 +337,26 @@ bool DemoWindow::Loop()
         }
 
         // render
-        renderTimer.Start();
+        localTimer.Start();
         mViewport->Render(mScene.get(), mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
-        mRenderDeltaTime = renderTimer.Stop();
+        mRenderDeltaTime = localTimer.Stop();
+
+        // post process
+        localTimer.Start();
+        mViewport->PostProcess(mPostprocessParams);
+        mPostProcessDeltaTime = localTimer.Stop();
 
         RenderUI();
-        mLastKeyDown = 0;
 
-        mRenderer->Render((const float*)mViewport->GetAccumulatedBuffer().GetData(), mPostprocessParams, mViewport->GetNumSamplesRendered());
+        const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
+
+        imgui_sw::SwOptions sw_options;
+        sw_options.optimize_rectangles = true;
+        paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight(), sw_options);
+
+        DrawPixels(frontBuffer.GetData());
+
+        mLastKeyDown = 0;
 
         mTotalRenderTime += mRenderDeltaTime;
         mRefreshTime += mRenderDeltaTime;

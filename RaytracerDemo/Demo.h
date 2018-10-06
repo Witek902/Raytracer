@@ -11,8 +11,6 @@
 #include "../RaytracerLib/Rendering/Context.h"
 #include "../RaytracerLib/Rendering/PathDebugging.h"
 
-class Renderer;
-
 struct Options
 {
     Uint32 windowWidth = 1280;
@@ -86,13 +84,9 @@ private:
     Double mAverageRenderDeltaTime;
     Double mAccumulatedRenderTime;
     Double mRenderDeltaTime;
+    Double mPostProcessDeltaTime;
     Double mMinRenderDeltaTime;
     Double mTotalRenderTime;
-
-    std::unique_ptr<Renderer> mRenderer;
-
-    // device context
-    HDC mDC;
 
     // debugging
     rt::PathDebugData mPathDebugData;

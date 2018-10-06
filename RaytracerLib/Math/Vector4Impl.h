@@ -343,6 +343,25 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Vector4& b, const Ve
 #endif
 }
 
+const Vector4 Vector4::MulAndAdd(const Vector4& a, const Float b, const Vector4& c)
+{
+    return MulAndAdd(a, Vector4(b), c);
+}
+
+const Vector4 Vector4::MulAndSub(const Vector4& a, const Float b, const Vector4& c)
+{
+    return MulAndSub(a, Vector4(b), c);
+}
+
+const Vector4 Vector4::NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c)
+{
+    return NegMulAndAdd(a, Vector4(b), c);
+}
+
+const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Float b, const Vector4& c)
+{
+    return NegMulAndSub(a, Vector4(b), c);
+}
 
 const Vector4 Vector4::Floor(const Vector4& V)
 {

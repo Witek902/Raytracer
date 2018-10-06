@@ -1,3 +1,4 @@
+
 //-----------------------------------------------------------------------------
 // COMPILE-TIME OPTIONS FOR DEAR IMGUI
 // Runtime options (clipboard callbacks, enabling various features, etc.) can generally be set via the ImGuiIO structure.
@@ -39,7 +40,7 @@
 //#define IMGUI_INCLUDE_IMGUI_USER_H
 
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to another)
-//#define IMGUI_USE_BGRA_PACKED_COLOR
+#define IMGUI_USE_BGRA_PACKED_COLOR
 
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames to prioritize another version
 // By default the embedded implementations are declared static and not available outside of imgui cpp files.

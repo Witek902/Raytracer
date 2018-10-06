@@ -1,6 +1,5 @@
 #include "PCH.h"
 #include "Demo.h"
-#include "Renderer.h"
 
 #include "../RaytracerLib/Mesh/Mesh.h"
 #include "../RaytracerLib/Material/Material.h"
@@ -12,7 +11,6 @@
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_impl_dx11.h>
 
 using namespace rt;
 using namespace math;
@@ -22,6 +20,7 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
     ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
     ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
+    ImGui::Text("Post-process time:   %.3f ms", 1000.0 * mPostProcessDeltaTime);
     ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
     ImGui::Text("Frame number:        %u", mFrameNumber);
 
@@ -29,10 +28,9 @@ void DemoWindow::RenderUI_Stats()
 
     ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
 
-    ImGui::Separator();
-
     const RayTracingCounters& counters = mViewport->GetCounters();
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    ImGui::Separator();
     ImGui::Text("Ray-box tests (total):  %.2fM", (float)counters.numRayBoxTests / 1000000.0f);
     ImGui::Text("Ray-box tests (passed): %.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f);
     ImGui::Text("Ray-tri tests (total):  %.2fM", (float)counters.numRayTriangleTests / 1000000.0f);
@@ -288,8 +286,6 @@ bool DemoWindow::RenderUI_Settings_Material()
 
 void DemoWindow::RenderUI()
 {
-    ImGui_ImplDX11_NewFrame();
-
     Uint32 width, height;
     GetSize(width, height);
 
@@ -307,7 +303,7 @@ void DemoWindow::RenderUI()
 
     ImGui::NewFrame();
     {
-        static bool showStats = false;
+        static bool showStats = true;
         static bool showDebugging = false;
         static bool showRenderSettings = false;
 

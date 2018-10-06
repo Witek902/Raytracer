@@ -6,24 +6,25 @@
 
 namespace rt {
 
+RT_GLOBAL_CONST math::Vector4 XYZtoRGB_r = {  3.240479f, -1.537150f, -0.498535f, 0.0f };
+RT_GLOBAL_CONST math::Vector4 XYZtoRGB_g = { -0.969256f,  1.875991f,  0.041556f, 0.0f };
+RT_GLOBAL_CONST math::Vector4 XYZtoRGB_b = {  0.055648f, -0.204043f,  1.057311f, 0.0f };
+
 // Convert CIE XYZ to linear RGB (Rec. BT.709)
 RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4 xyzColor)
 {
-    const float mapping[3][3] =
-    {
-        {  3.240479f, -1.537150f, -0.498535f },
-        { -0.969256f,  1.875991f,  0.041556f },
-        {  0.055648f, -0.204043f,  1.057311f }
-    };
+    const math::Vector4 r = XYZtoRGB_r * xyzColor;
+    const math::Vector4 g = XYZtoRGB_g * xyzColor;
+    const math::Vector4 b = XYZtoRGB_b * xyzColor;
 
     const math::Vector4 rgb(
-        mapping[0][0] * xyzColor[0] + mapping[0][1] * xyzColor[1] + mapping[0][2] * xyzColor[2],
-        mapping[1][0] * xyzColor[0] + mapping[1][1] * xyzColor[1] + mapping[1][2] * xyzColor[2],
-        mapping[2][0] * xyzColor[0] + mapping[2][1] * xyzColor[1] + mapping[2][2] * xyzColor[2],
+        r[0] + r[1] + r[2],
+        g[0] + g[1] + g[2],
+        b[0] + b[1] + b[2],
         0.0f
     );
 
-    return math::Vector4::Max(math::Vector4(), rgb);
+    return rgb;
 }
 
 // Convert linear RGB (Rec. BT.709) to CIE XYZ

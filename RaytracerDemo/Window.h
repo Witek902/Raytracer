@@ -151,4 +151,6 @@ public:
     virtual void OnMouseDown(Uint32 button, int x, int y);
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
     virtual void OnMouseUp(Uint32 button);
+
+    bool DrawPixels(const void* sourceData);
 };

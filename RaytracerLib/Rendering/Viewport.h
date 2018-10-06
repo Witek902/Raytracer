@@ -38,10 +38,12 @@ public:
 
     bool Resize(Uint32 width, Uint32 height);
     bool Render(const Scene* scene, const Camera& camera, const RenderingParams& params);
+    bool PostProcess(const PostprocessParams& params);
     void Reset();
 
+    RT_FORCE_INLINE const rt::Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
+
     RT_FORCE_INLINE Uint32 GetNumSamplesRendered() const { return mNumSamplesRendered; }
-    RT_FORCE_INLINE rt::Bitmap& GetAccumulatedBuffer() { return mSum; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return mSum.GetWidth(); }
     RT_FORCE_INLINE Uint32 GetHeight() const { return mSum.GetHeight(); }
 
@@ -53,11 +55,15 @@ private:
     // raytrace single image tile (will be called from multiple threads)
     void RenderTile(const Scene& scene, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0);
 
+    // generate "front buffer" image from "average" image
+    void PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID);
+
     ThreadPool mThreadPool;
 
     std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 
-    Bitmap mSum;            // image with accumulated samples (floating point)
+    Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
+    Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
 
     RayTracingCounters mCounters;
     Uint32 mNumSamplesRendered; // number of samples averaged

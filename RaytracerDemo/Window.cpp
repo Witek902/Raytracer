@@ -254,6 +254,33 @@ bool Window::Open()
     return true;
 }
 
+bool Window::DrawPixels(const void* sourceData)
+{
+    BITMAPINFO bmi;
+    ZeroMemory(&bmi, sizeof(bmi));
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = mWidth;
+    bmi.bmiHeader.biHeight = mHeight;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    bmi.bmiHeader.biSizeImage = 4 * mWidth * mHeight;
+    bmi.bmiHeader.biXPelsPerMeter = 1;
+    bmi.bmiHeader.biYPelsPerMeter = 1;
+
+    if (0 == StretchDIBits(mDC,
+        0, mHeight - 1, mWidth, (Uint32)(-(Int32)mHeight), // HACK: flip image
+        0, 0, mWidth, mHeight,
+        sourceData,
+        &bmi, DIB_RGB_COLORS, SRCCOPY))
+    {
+        RT_LOG_ERROR("Paint failed");
+        return false;
+    }
+
+    return true;
+}
+
 bool Window::Close()
 {
     if (mClosed)
