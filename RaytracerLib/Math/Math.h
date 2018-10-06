@@ -1,14 +1,15 @@
 #pragma once
 
 #include "../Common.h"
-#include <math.h>
 
+#include <math.h>
 #include <xmmintrin.h>
 #include <smmintrin.h>
 #include <immintrin.h>
 #include <emmintrin.h>
+#ifdef _MSC_VER
 #include <intrin.h>
-
+#endif // _MSC_VER
 
 #define RT_EPSILON (0.000001f)
 #define RT_PI (3.14159265359f)
@@ -39,7 +40,7 @@ union Bits64
  * Minimum.
  */
 template<typename T>
-RT_FORCE_INLINE const T Min(const T a, const T b)
+RT_FORCE_INLINE constexpr T Min(const T a, const T b)
 {
     return (a < b) ? a : b;
 }
@@ -48,7 +49,7 @@ RT_FORCE_INLINE const T Min(const T a, const T b)
  * Maximum.
  */
 template<typename T>
-RT_FORCE_INLINE const T Max(const T a, const T b)
+RT_FORCE_INLINE constexpr T Max(const T a, const T b)
 {
     return (a < b) ? b : a;
 }
@@ -57,7 +58,7 @@ RT_FORCE_INLINE const T Max(const T a, const T b)
  * Absolute value.
  */
 template<typename T>
-RT_FORCE_INLINE const T Abs(const T x)
+RT_FORCE_INLINE constexpr T Abs(const T x)
 {
     if (x < static_cast<T>(0))
     {
@@ -83,7 +84,7 @@ RT_FORCE_INLINE float CopySign(const float x, const float y)
  * Clamp to range.
  */
 template<typename T>
-RT_FORCE_INLINE const T Clamp(const T x, const T min, const T max)
+RT_FORCE_INLINE constexpr T Clamp(const T x, const T min, const T max)
 {
     if (x > max)
         return max;
@@ -97,7 +98,7 @@ RT_FORCE_INLINE const T Clamp(const T x, const T min, const T max)
  * Linear interpolation.
  */
 template<typename T>
-RT_FORCE_INLINE const T Lerp(const T a, const T b, const T w)
+RT_FORCE_INLINE constexpr T Lerp(const T a, const T b, const T w)
 {
     return a + w * (b - a);
 }
@@ -168,6 +169,17 @@ RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
     a *= 0x27d4eb2d;
     a ^= (a >> 15);
     return a;
+}
+
+// bit population count
+RT_FORCE_INLINE Uint32 PopCount(Uint32 x)
+{
+#if defined(WIN32)
+    return __popcnt(x);
+#elif defined(__LINUX__) | defined(__linux__)
+    return __builtin_popcount(x);
+#endif // defined(WIN32)
+
 }
 
 } // namespace math

@@ -92,7 +92,7 @@ void CookTorranceBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgo
 
     outIncomingDir = -Vector4::Reflect3(outgoingDir, m);
 
-    const float NdotH = m[2];
+    //const float NdotH = m[2];
     const float NdotV = outgoingDir[2];
     const float NdotL = outIncomingDir[2];
 
@@ -117,7 +117,7 @@ math::Vector4 CookTorranceBSDF::Evaluate(const math::Vector4& outgoingDir, const
 {
     const Vector4 half = (outgoingDir + incomingDir).FastNormalized3();
     const float NdotH = half[2];
-    const float VdotH = Vector4::Dot3(half, outgoingDir);
+    // const float VdotH = Vector4::Dot3(half, outgoingDir);
     const float NdotV = outgoingDir[2];
     const float NdotL = incomingDir[2];
 
@@ -161,7 +161,7 @@ void TransparencyBSDF::Sample(Wavelength& wavelength, const math::Vector4& outgo
         const float* C = material.dispersionParams.C;
         const float lambda = 1.0e+6f * Wavelength::Lower + wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower);
         const float lambda2 = lambda * lambda;
-        ior = sqrtf(1.0f + B[0] * lambda / (lambda - C[0]) + B[1] * lambda / (lambda - C[1]) + B[2] * lambda / (lambda - C[2]));
+        ior = sqrtf(1.0f + B[0] * lambda2 / (lambda2 - C[0]) + B[1] * lambda2 / (lambda2 - C[1]) + B[2] * lambda2 / (lambda2 - C[2]));
 
         if (!wavelength.isSingle)
         {

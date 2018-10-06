@@ -10,9 +10,9 @@ using namespace math;
 
 
 SphereSceneObject::SphereSceneObject(const float radius, const Material* material)
-    : mRadius(radius)
+    : mMaterial(material)
+    , mRadius(radius)
     , mInvRadius(1.0f / radius)
-    , mMaterial(material)
 { }
 
 Box SphereSceneObject::GetBoundingBox() const

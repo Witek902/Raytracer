@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(WIN32)
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -11,12 +11,14 @@
 #include <smmintrin.h>
 #include <immintrin.h>
 #include <emmintrin.h>
-#include <intrin.h>
 
+#include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <assert.h>
 #include <math.h>
+#include <float.h>
+#include <stdarg.h>
 #include <vector>
 #include <memory>
 #include <initializer_list>
@@ -27,8 +29,13 @@
 #include <sstream>
 #include <algorithm>
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
+#ifdef WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <Windows.h>
+#elif defined(__linux__) | defined(__LINUX__)
+#else
+    #error "Target platform not supported."
+#endif // WIN32
 
 #include "Utils/iacaMarks.h"

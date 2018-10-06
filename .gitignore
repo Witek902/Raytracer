@@ -14,14 +14,11 @@ imgui.ini
 
 /Cache
 
-# Visual Studio Performance Analysis Results
+.vscode
 *.vsp
 *.vspx
 *.psess
 *.etl
-
-# Other useless folders and file patterns
-/Logs
 *.opensdf
 *.opendb
 *.sdf
@@ -30,3 +27,9 @@ imgui.ini
 *.pyc
 *.VC.db
 .vs/
+
+# Linux intermediate files
+Makefile
+*.cmake
+CMakeCache.txt
+CMakeFiles/

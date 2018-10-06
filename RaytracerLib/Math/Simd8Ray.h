@@ -13,9 +13,9 @@ namespace math {
 class RT_ALIGN(32) Ray_Simd8
 {
 public:
-    Vector3x8 invDir;
-    Vector3x8 origin;
     Vector3x8 dir;
+    Vector3x8 origin;
+    Vector3x8 invDir; 
 
     Ray_Simd8() = default;
     Ray_Simd8(const Ray_Simd8&) = default;
@@ -31,8 +31,8 @@ public:
 
     // from two SIMD-4 rays
     RT_FORCE_INLINE explicit Ray_Simd8(const Ray_Simd4& rayLo, const Ray_Simd4& rayHi)
-        : origin(rayLo.origin, rayHi.origin)
-        , dir(rayLo.dir, rayHi.dir)
+        : dir(rayLo.dir, rayHi.dir)
+        , origin(rayLo.origin, rayHi.origin)
         , invDir(rayLo.invDir, rayHi.invDir)
     {
     }
@@ -47,8 +47,8 @@ public:
     }
 
     RT_FORCE_INLINE Ray_Simd8(const Vector3x8& origin, const Vector3x8& dir)
-        : origin(origin)
-        , dir(dir)
+        : dir(dir)
+        , origin(origin)
     {
         invDir = Vector3x8::FastReciprocal(dir);
     }
@@ -57,9 +57,9 @@ public:
     // otherwise, returns 0xFFFFFFFF
     RT_FORCE_INLINE Uint32 GetOctant() const
     {
-        const Int32 countX = __popcnt(dir.x.GetSignMask());
-        const Int32 countY = __popcnt(dir.y.GetSignMask());
-        const Int32 countZ = __popcnt(dir.z.GetSignMask());
+        const Int32 countX = PopCount(dir.x.GetSignMask());
+        const Int32 countY = PopCount(dir.y.GetSignMask());
+        const Int32 countZ = PopCount(dir.z.GetSignMask());
 
         const Uint32 xPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 0u };
         const Uint32 yPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 1u };

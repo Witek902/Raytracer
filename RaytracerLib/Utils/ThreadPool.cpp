@@ -5,11 +5,11 @@
 namespace rt {
 
 ThreadPool::ThreadPool()
-    : mFinishThreads(false)
-    , mRows(0)
+    : mRows(0)
     , mColumns(0)
     , mCurrentX(0)
     , mCurrentY(0)
+    , mFinishThreads(false)
 {
     const Uint32 numThreads = std::thread::hardware_concurrency();
 

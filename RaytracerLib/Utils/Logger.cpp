@@ -55,10 +55,11 @@ void LogGeneric(LogType type, const char* str, ...)
         std::lock_guard<std::mutex> lock(gLogMutex);
 
         std::cout << logTypeStr << buffer << std::endl;
-
+#ifdef WIN32
         OutputDebugStringA(logTypeStr);
         OutputDebugStringA(buffer);
         OutputDebugStringA("\n");
+#endif // WIN32
     }
 }
 

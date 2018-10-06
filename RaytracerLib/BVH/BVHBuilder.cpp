@@ -24,10 +24,10 @@ BVHBuilder::Context::Context(Uint32 numLeaves)
 //////////////////////////////////////////////////////////////////////////
 
 BVHBuilder::BVHBuilder(BVH& targetBVH)
-    : mTarget(targetBVH)
-    , mLeafBoxes(nullptr)
+    : mLeafBoxes(nullptr)
     , mNumLeaves(0)
     , mNumGeneratedNodes(0)
+    , mTarget(targetBVH)
 {
 }
 

@@ -13,24 +13,24 @@
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_sw.hpp>
+#include "../External/imgui/imgui.h"
+#include "../External/imgui/imgui_sw.hpp"
 
 using namespace rt;
 using namespace math;
 
 DemoWindow::DemoWindow()
-    : mFrameNumber(0)
+    : mLastKeyDown(KeyCode::Invalid)
+    , mFrameNumber(0)
     , mDeltaTime(0.0)
+    , mRefreshTime(0.0)
+    , mAverageRenderDeltaTime(0.0)
+    , mAccumulatedRenderTime(0.0)
     , mRenderDeltaTime(0.0)
     , mTotalRenderTime(0.0)
-    , mRefreshTime(0.0)
-    , mAccumulatedRenderTime(0.0)
-    , mAverageRenderDeltaTime(0.0)
     , mCameraSpeed(1.0f)
     , mSelectedMaterial(nullptr)
     , mSelectedObject(nullptr)
-    , mLastKeyDown(0)
 {
     ResetFrame();
     ResetCounters();
@@ -42,9 +42,9 @@ DemoWindow::~DemoWindow()
     ImGui::DestroyContext();
 }
 
-bool DemoWindow::Initialize(const Options& options)
+bool DemoWindow::Initialize()
 {
-    RT_LOG_INFO("Using data path: %hs", options.dataPath.c_str());
+    RT_LOG_INFO("Using data path: %hs", gOptions.dataPath.c_str());
 
     if (!Init())
     {
@@ -52,7 +52,7 @@ bool DemoWindow::Initialize(const Options& options)
         return false;
     }
 
-    SetSize(options.windowWidth, options.windowHeight);
+    SetSize(gOptions.windowWidth, gOptions.windowHeight);
     SetTitle("Raytracer Demo [Initializing...]");
 
     if (!Open())
@@ -65,24 +65,24 @@ bool DemoWindow::Initialize(const Options& options)
     RegisterTestScenes();
 
     mViewport = std::make_unique<Viewport>();
-    mViewport->Resize(options.windowWidth, options.windowHeight);
+    mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
 
     mCamera.mDOF.aperture = 0.0f;
 
     SwitchScene(mRegisteredScenes["Simple + Background Light"]);
 
     /*
-    auto loadedMesh = helpers::LoadMesh(options.dataPath + options.modelPath, mMaterials, 1.0f);
+    auto loadedMesh = helpers::LoadMesh(gOptions.dataPath + gOptions.modelPath, mMaterials, 1.0f);
 
     SceneEnvironment env;
     env.backgroundColor = Vector4(2.0f, 2.0f, 2.0f, 0.0f);
-    if (!options.envMapPath.empty())
+    if (!gOptions.envMapPath.empty())
     {
-        env.texture = helpers::LoadTexture(options.dataPath, options.envMapPath);
+        env.texture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
     }
     mScene->SetEnvironment(env);
 
-    if (!options.modelPath.empty())
+    if (!gOptions.modelPath.empty())
     {
         SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
         mScene->AddObject(std::move(meshInstance));
@@ -111,29 +111,29 @@ void DemoWindow::InitializeUI()
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
 
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array that we will update during the application lifetime.
-    io.KeyMap[ImGuiKey_Tab] = VK_TAB;
-    io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-    io.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
-    io.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
-    io.KeyMap[ImGuiKey_Home] = VK_HOME;
-    io.KeyMap[ImGuiKey_End] = VK_END;
-    io.KeyMap[ImGuiKey_Insert] = VK_INSERT;
-    io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-    io.KeyMap[ImGuiKey_Space] = VK_SPACE;
-    io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-    io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
-    io.KeyMap[ImGuiKey_A] = 'A';
-    io.KeyMap[ImGuiKey_C] = 'C';
-    io.KeyMap[ImGuiKey_V] = 'V';
-    io.KeyMap[ImGuiKey_X] = 'X';
-    io.KeyMap[ImGuiKey_Y] = 'Y';
-    io.KeyMap[ImGuiKey_Z] = 'Z';
+    io.KeyMap[ImGuiKey_Tab] = (int)KeyCode::Tab;
+    io.KeyMap[ImGuiKey_LeftArrow] = (int)KeyCode::Left;
+    io.KeyMap[ImGuiKey_RightArrow] = (int)KeyCode::Right;
+    io.KeyMap[ImGuiKey_UpArrow] = (int)KeyCode::Up;
+    io.KeyMap[ImGuiKey_DownArrow] = (int)KeyCode::Down;
+    io.KeyMap[ImGuiKey_PageUp] = (int)KeyCode::PageUp;
+    io.KeyMap[ImGuiKey_PageDown] = (int)KeyCode::PageDown;
+    io.KeyMap[ImGuiKey_Home] = (int)KeyCode::Home;
+    io.KeyMap[ImGuiKey_End] = (int)KeyCode::End;
+    io.KeyMap[ImGuiKey_Insert] = (int)KeyCode::Insert;
+    io.KeyMap[ImGuiKey_Delete] = (int)KeyCode::Delete;
+    io.KeyMap[ImGuiKey_Backspace] = (int)KeyCode::Backspace;
+    io.KeyMap[ImGuiKey_Space] = (int)KeyCode::Space;
+    io.KeyMap[ImGuiKey_Enter] = (int)KeyCode::Enter;
+    io.KeyMap[ImGuiKey_Escape] = (int)KeyCode::Escape;
+    io.KeyMap[ImGuiKey_A] = (int)KeyCode::A;
+    io.KeyMap[ImGuiKey_C] = (int)KeyCode::C;
+    io.KeyMap[ImGuiKey_V] = (int)KeyCode::V;
+    io.KeyMap[ImGuiKey_X] = (int)KeyCode::X;
+    io.KeyMap[ImGuiKey_Y] = (int)KeyCode::Y;
+    io.KeyMap[ImGuiKey_Z] = (int)KeyCode::Z;
 
-    io.ImeWindowHandle = reinterpret_cast<HWND>(GetHandle());
+    //io.ImeWindowHandle = reinterpret_cast<HWND>(GetHandle());
 }
 
 void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
@@ -185,15 +185,15 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
     ResetCounters();
 }
 
-void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
+void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseDown[button] = true;
+    io.MouseDown[(int)button] = true;
 
     if (io.WantCaptureMouse)
         return;
 
-    if (button == 0)
+    if (button == MouseButton::Left)
     {
         mPathDebugData.data.clear();
 
@@ -210,7 +210,7 @@ void DemoWindow::OnMouseDown(Uint32 button, int x, int y)
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, context);
 
-        const rt::Color color = mScene->TraceRay_Single(ray, context);
+        mScene->TraceRay_Single(ray, context);
         assert(!mPathDebugData.data.empty());
 
         HitPoint hitPoint;
@@ -245,7 +245,7 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
     io.MousePos.x = (float)x;
     io.MousePos.y = (float)y;
 
-    if (IsMouseButtonDown(1))
+    if (IsMouseButtonDown(MouseButton::Right))
     {
         const Float sensitivity = 0.0001f * mCameraSetup.fov;
         mCameraSetup.yaw += sensitivity * (Float)deltaX;
@@ -261,10 +261,10 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
     }
 }
 
-void DemoWindow::OnMouseUp(Uint32 button)
+void DemoWindow::OnMouseUp(MouseButton button)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseDown[button] = false;
+    io.MouseDown[(int)button] = false;
 }
 
 void DemoWindow::OnScroll(int delta)
@@ -284,16 +284,16 @@ void DemoWindow::OnScroll(int delta)
     }
 }
 
-void DemoWindow::OnKeyPress(Uint32 key)
+void DemoWindow::OnKeyPress(KeyCode key)
 {
-    if (key == VK_F1)
+    if (key == KeyCode::F1)
     {
         SetFullscreenMode(!GetFullscreenMode());
     }
 
     if (mViewport)
     {
-        if (key == 'R')
+        if (key == KeyCode::R)
         {
             mViewport->Reset();
         }
@@ -326,7 +326,7 @@ bool DemoWindow::Loop()
         ProcessMessages();
         UpdateCamera();
 
-        const bool isPreview = IsMouseButtonDown(1);
+        const bool isPreview = IsMouseButtonDown(MouseButton::Right);
         if (isPreview && mViewport)
         {
             mPreviewRenderingParams = mRenderingParams;
@@ -341,7 +341,7 @@ bool DemoWindow::Loop()
         mViewport->Render(mScene.get(), mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
         mRenderDeltaTime = localTimer.Stop();
 
-        // post process
+        //// post process
         localTimer.Start();
         mViewport->PostProcess(mPostprocessParams);
         mPostProcessDeltaTime = localTimer.Stop();
@@ -350,13 +350,11 @@ bool DemoWindow::Loop()
 
         const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
 
-        imgui_sw::SwOptions sw_options;
-        sw_options.optimize_rectangles = true;
-        paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight(), sw_options);
+        imgui_sw::paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight());
 
         DrawPixels(frontBuffer.GetData());
 
-        mLastKeyDown = 0;
+        mLastKeyDown = KeyCode::Invalid;
 
         mTotalRenderTime += mRenderDeltaTime;
         mRefreshTime += mRenderDeltaTime;
@@ -382,13 +380,13 @@ void DemoWindow::UpdateCamera()
     const Vector4 direction = cameraOrientation.GetAxisZ();
 
     Vector4 movement;
-    if (IsKeyPressed('W'))
+    if (IsKeyPressed(KeyCode::W))
         movement += direction;
-    if (IsKeyPressed('S'))
+    if (IsKeyPressed(KeyCode::S))
         movement -= direction;
-    if (IsKeyPressed('A'))
+    if (IsKeyPressed(KeyCode::A))
         movement += Vector4(-direction.z, 0.0f, direction.x, 0.0f);
-    if (IsKeyPressed('D'))
+    if (IsKeyPressed(KeyCode::D))
         movement -= Vector4(-direction.z, 0.0f, direction.x, 0.0f);
 
     if (movement.Length3() > RT_EPSILON)
@@ -398,9 +396,9 @@ void DemoWindow::UpdateCamera()
         movement.Normalize3();
         movement *= mCameraSpeed;
 
-        if (IsKeyPressed(VK_LSHIFT))
+        if (IsKeyPressed(KeyCode::ShiftLeft))
             movement *= 5.0f;
-        else if (IsKeyPressed(VK_LCONTROL))
+        else if (IsKeyPressed(KeyCode::ControlLeft))
             movement /= 5.0f;
 
         const Vector4 delta = movement * (float)mDeltaTime;
@@ -419,7 +417,10 @@ void DemoWindow::UpdateCamera()
     // rotation motion blur
     if (mFrameNumber > 0)
     {
-        mCamera.mAngularVelocity = (cameraOrientation.Inverted() * oldCameraSetup.mTransform.GetRotation()).Normalized();
+        const Quaternion q1 = cameraOrientation.Conjugate();
+        const Quaternion q2 = oldCameraSetup.mTransform.GetRotation();
+
+        mCamera.mAngularVelocity = (q1 * q2).Normalized();
     }
     else
     {

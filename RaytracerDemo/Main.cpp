@@ -43,11 +43,11 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
     return true;
 }
 
+Options gOptions;
 
-int __cdecl main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-    Options options;
-    if (!ParseOptions(argc, argv, options))
+    if (!ParseOptions(argc, argv, gOptions))
     {
         return 1;
     }
@@ -55,7 +55,7 @@ int __cdecl main(int argc, char* argv[])
     {
         DemoWindow demo;
 
-        if (!demo.Initialize(options))
+        if (!demo.Initialize())
         {
             return 2;
         }
@@ -70,9 +70,9 @@ int __cdecl main(int argc, char* argv[])
 
     RT_LOG_INFO("Closing.");
 
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(WIN32)
     _CrtDumpMemoryLeaks();
-#endif
+#endif // _DEBUG
 
     return 0;
 }

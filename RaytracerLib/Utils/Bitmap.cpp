@@ -4,6 +4,8 @@
 #include "BlockCompression.h"
 #include "Timer.h"
 
+#include <string.h>
+
 ///////////////////////////////////////////////////////////////////////////
 
 #define DDS_MAGIC_NUMBER    0x20534444
@@ -32,6 +34,39 @@
 #define MAKEFOURCC(ch0, ch1, ch2, ch3) (((Uint32)(Uint8)(ch0) | ((Uint32)(Uint8)(ch1) << 8) | ((Uint32)(Uint8)(ch2) << 16) | ((Uint32)(Uint8)(ch3) << 24)))
 #endif /* defined(MAKEFOURCC) */
 
+#pragma pack(push, 2)
+
+struct BitmapFileHeader
+{
+    Uint16 bfType;
+    Uint32 bfSize;
+    Uint16 bfReserved1;
+    Uint16 bfReserved2;
+    Uint32 bfOffBits;
+};
+
+struct BitmapInfoHeader
+{
+    Uint32 biSize;
+    Uint32 biWidth;
+    Uint32 biHeight;
+    Uint16 biPlanes;
+    Uint16 biBitCount;
+    Uint32 biCompression;
+    Uint32 biSizeImage;
+    Uint32 biXPelsPerMeter;
+    Uint32 biYPelsPerMeter;
+    Uint32 biClrUsed;
+    Uint32 biClrImportant;
+};
+
+struct BMPHeader
+{
+    BitmapFileHeader fileHeader;
+    BitmapInfoHeader infoHeader;
+};
+
+#pragma pack(pop)
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -50,9 +85,9 @@ Uint32 Bitmap::BitsPerPixel(Format format)
     case Format::B8G8R8A8_Uint:         return 8 * 4;
     case Format::R32G32B32_Float:       return 8 * 4 * 3;
     case Format::R32G32B32A32_Float:    return 8 * 4 * 4;
-    case Format::BC1:                    return 4;
-    case Format::BC4:                    return 4;
-    case Format::BC5:                    return 8;
+    case Format::BC1:                   return 4;
+    case Format::BC4:                   return 4;
+    case Format::BC5:                   return 8;
     }
 
     return 0;
@@ -66,9 +101,9 @@ const char* Bitmap::FormatToString(Format format)
     case Format::B8G8R8A8_Uint:         return "B8G8R8A8_Uint";
     case Format::R32G32B32_Float:       return "R32G32B32_Float";
     case Format::R32G32B32A32_Float:    return "R32G32B32A32_Float";
-    case Format::BC1:                    return "BC1";
-    case Format::BC4:                    return "BC4";
-    case Format::BC5:                    return "BC5";
+    case Format::BC1:                   return "BC1";
+    case Format::BC4:                   return "BC4";
+    case Format::BC5:                   return "BC5";
     }
 
     return "<unknown>";
@@ -103,7 +138,7 @@ void Bitmap::Release()
 {
     if (mData)
     {
-        _aligned_free(mData);
+        AlignedFree(mData);
         mData = nullptr;
     }
 
@@ -131,7 +166,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
     // align to cache line
     const Uint32 marigin = RT_CACHE_LINE_SIZE;
-    mData = (Uint8*)_aligned_malloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
+    mData = (Uint8*)AlignedMalloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
     if (!mData)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -168,7 +203,7 @@ bool Bitmap::MakeTiled(Uint8 order)
     }
 
     // align to cache line
-    Uint8* newData = (Uint8*)_aligned_malloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
+    Uint8* newData = (Uint8*)AlignedMalloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
     if (!newData)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -198,7 +233,7 @@ bool Bitmap::MakeTiled(Uint8 order)
     }
 
     // swap texture data
-    _aligned_free(mData);
+    AlignedFree(mData);
     mData = newData;
     mTileOrder = order;
 
@@ -218,7 +253,7 @@ Bool Bitmap::Load(const char* path)
 
     if (!LoadBMP(file, path))
     {
-        _fseeki64(file, SEEK_SET, 0);
+        fseek(file, SEEK_SET, 0);
 
         if (!LoadDDS(file, path))
         {
@@ -237,8 +272,8 @@ Bool Bitmap::Load(const char* path)
 
 bool Bitmap::LoadBMP(FILE* file, const char* path)
 {
-    BITMAPFILEHEADER fileHeader;
-    if (fread(&fileHeader, sizeof(BITMAPFILEHEADER), 1, file) != 1)
+    BitmapFileHeader fileHeader;
+    if (fread(&fileHeader, sizeof(BitmapFileHeader), 1, file) != 1)
     {
         return false;
     }
@@ -248,14 +283,14 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    BITMAPINFOHEADER infoHeader;
-    if (fread(&infoHeader, sizeof(BITMAPINFOHEADER), 1, file) != 1)
+    BitmapInfoHeader infoHeader;
+    if (fread(&infoHeader, sizeof(BitmapInfoHeader), 1, file) != 1)
     {
         RT_LOG_ERROR("Failed to read BMP info header from file '%hs'", path);
         return false;
     }
 
-    if (infoHeader.biPlanes != 1 || infoHeader.biCompression != BI_RGB || infoHeader.biBitCount != 24)
+    if (infoHeader.biPlanes != 1 || infoHeader.biCompression != 0 || infoHeader.biBitCount != 24)
     {
         RT_LOG_ERROR("Unsupported BMP format: '%hs'", path);
         return false;
@@ -280,15 +315,6 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
 
     return true;
 }
-
-#pragma pack(push, 2)
-struct BitmapFileHeader
-{
-    BITMAPFILEHEADER fileHeader;
-    BITMAPINFOHEADER infoHeader;
-};
-#pragma pack(pop)
-
 
 bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
 {
@@ -318,25 +344,25 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
         return false;
     }
 
-    const BitmapFileHeader header =
+    const BMPHeader header =
     {
-        // BITMAPFILEHEADER
+        // BitmapFileHeader
         {
             /* bfType */        0x4D42,
-            /* bfSize */        sizeof(BitmapFileHeader) + dataSize,
+            /* bfSize */        static_cast<Uint32>(sizeof(BMPHeader) + dataSize),
             /* bfReserved1 */   0,
             /* bfReserved2 */   0,
-            /* bfOffBits */     sizeof(BitmapFileHeader),
+            /* bfOffBits */     sizeof(BMPHeader),
         },
 
-        // BITMAPINFOHEADER
+        // BitmapInfoHeader
         {
-            sizeof(BITMAPINFOHEADER),
-            (LONG)mWidth,
-            (LONG)mHeight,
+            sizeof(BitmapInfoHeader),
+            mWidth,
+            mHeight,
             1,
             24,
-            BI_RGB,
+            0, // BI_RGB
             dataSize,
             96, 96, 0, 0
         },
@@ -349,7 +375,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
         return false;
     }
 
-    if (fwrite(&header, sizeof(BitmapFileHeader), 1, file) != 1)
+    if (fwrite(&header, sizeof(BMPHeader), 1, file) != 1)
     {
         RT_LOG_ERROR("Failed to write bitmap header to file '%s', code = %u", path, stderr);
         fclose(file);
@@ -695,7 +721,7 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     */
 }
 
-void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, Uint32 y, const math::Vector4 value)
+void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, const Uint32 y, const math::Vector4 value)
 {
     assert(mFormat == Format::R32G32B32A32_Float);
 
@@ -842,7 +868,7 @@ void Bitmap::Zero()
 {
     if (mData)
     {
-        ZeroMemory(mData, GetDataSize(mWidth, mHeight, mFormat));
+        memset(mData, 0, GetDataSize(mWidth, mHeight, mFormat));
     }
 }
 

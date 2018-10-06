@@ -17,14 +17,8 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Window.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Demo.cpp">
       <Filter>Demo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\tiny_obj_loader.cc">
-      <Filter>External</Filter>
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui.cpp">
       <Filter>External\imgui</Filter>
@@ -43,6 +37,12 @@
     </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_sw.cpp">
       <Filter>External\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\tiny_obj_loader.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\Window.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

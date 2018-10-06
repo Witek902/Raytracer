@@ -2,7 +2,13 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <float.h>
 
+// disable some Visual Studio specific warnings
+#ifdef _MSC_VER
+
+// "needs to have dll-interface to be used by clients of class ..."
+#pragma warning (disable : 4251)
 
 // "C++ nonstandard extension: nameless struct"
 #pragma warning(disable : 4201)
@@ -13,17 +19,45 @@
 // "conditional expression is constant"
 #pragma warning(disable : 4127)
 
+#endif // _MSC_VER
+
 
 #define RT_UNUSED(x) (void)(x)
 #define RT_INLINE inline
+
+// macro forcing a function to be inlined
+#if defined(__LINUX__) | defined(__linux__)
+#define RT_FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(WIN32)
 #define RT_FORCE_INLINE __forceinline
+#endif // defined(__LINUX__) | defined(__linux__)
+
+// macro forcing a function not to be inlined
+#ifdef WIN32
 #define RT_FORCE_NOINLINE __declspec(noinline)
-#define RT_ALIGN(x) __declspec(align(x))
+#elif defined(__LINUX__) || defined(__linux__)
+#define RT_FORCE_NOINLINE __attribute__((noinline))
+#endif // WIN32
+
+// aligning macro for objects using SIMD registers
+#if defined(WIN32)
+#define RT_ALIGN(bytes) __declspec(align(bytes))
+#elif defined(__LINUX__) | defined(__linux__)
+#define RT_ALIGN(bytes) __attribute__((aligned(bytes)))
+#else
+#error "Target system not supported!"
+#endif // defined(WIN32)
 
 #define RT_CACHE_LINE_SIZE 64u
 
 // force global variable definition to be shared across all compilation units
+#if defined(WIN32)
 #define RT_GLOBAL_CONST extern const __declspec(selectany)
+#elif defined(__LINUX__) | defined(__linux__)
+#define RT_GLOBAL_CONST const
+#else
+#error "Target system not supported!"
+#endif // defined(WIN32)
 
 #define RT_PREFETCH_L1(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0);
 #define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);

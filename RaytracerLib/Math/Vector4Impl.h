@@ -139,17 +139,17 @@ Float3 Vector4::ToFloat3() const
     return Float3{ x, y, z };
 }
 
-template<bool x, bool y, bool z, bool w>
+template<bool flipX, bool flipY, bool flipZ, bool flipW>
 const Vector4 Vector4::ChangeSign() const
 {
-    if (!(x || y || z || w))
+    if (!(flipX || flipY || flipZ || flipW))
     {
         // no negation
         return *this;
     }
 
     // generate bit negation mask
-    const Vector4 mask = {x ? 0x80000000 : 0, y ? 0x80000000 : 0, z ? 0x80000000 : 0, w ? 0x80000000 : 0};
+    const Vector4 mask = {flipX ? 0x80000000 : 0, flipY ? 0x80000000 : 0, flipZ ? 0x80000000 : 0, flipW ? 0x80000000 : 0};
 
     // flip sign bits
     return _mm_xor_ps(v, mask);

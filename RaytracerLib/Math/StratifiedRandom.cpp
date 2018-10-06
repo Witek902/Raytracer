@@ -7,8 +7,8 @@ namespace rt {
 namespace math {
 
 StratifiedRandom::StratifiedRandom(Uint32 numStrata)
-    : numStrata(numStrata)
-    , stratumIndex(0)
+    : stratumIndex(0)
+    , numStrata(numStrata)
 {
     scale = Float2(1.0f / (float)numStrata, 1.0f / (float)numStrata);
 }

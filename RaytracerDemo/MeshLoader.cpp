@@ -1,13 +1,12 @@
 #include "PCH.h"
 #include "MeshLoader.h"
+#include "Demo.h"
 
 #include "../RaytracerLib/Utils/Bitmap.h"
 #include "../RaytracerLib/Utils/Logger.h"
-
 #include "../RaytracerLib/Math/Vector4.h"
 
 #include "../External/tiny_obj_loader.h"
-
 
 namespace helpers {
 
@@ -126,7 +125,6 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     std::vector<Uint32> vertexIndices;
     std::vector<Uint32> materialIndices;
 
-    int numMappedIndices = 0;
     std::vector<float> vertexPositions;
     std::vector<float> vertexNormals;
     std::vector<float> vertexTangents;
@@ -296,11 +294,11 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.3f;
 
-    //material->baseColorMap = LoadTexture("../../../../TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
-    //material->normalMap = LoadTexture("../../../../TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");
-    //material->roughnessMap = LoadTexture("../../TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
-    material->baseColorMap = LoadTexture("../../../../TEXTURES/", "default.bmp");
-    //material->normalMap = LoadTexture("../../../../TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
+    //material->baseColorMap = LoadTexture("TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
+    //material->normalMap = LoadTexture(".TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");
+    //material->roughnessMap = LoadTexture("TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
+    material->baseColorMap = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+    //material->normalMap = LoadTexture("TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
     //material->baseColorMap->MakeTiled(4);
     //material->normalMap->MakeTiled(4);
 

@@ -47,7 +47,7 @@ public:
     DemoWindow();
     ~DemoWindow();
 
-    bool Initialize(const Options& options);
+    bool Initialize();
 
     /**
      * Main loop.
@@ -59,7 +59,7 @@ public:
 private:
     std::unique_ptr<rt::Viewport> mViewport;
 
-    Uint32 mLastKeyDown;
+    KeyCode mLastKeyDown;
 
     rt::Camera mCamera;
     rt::RenderingParams mRenderingParams;
@@ -73,8 +73,6 @@ private:
     Meshes mMeshes;
     std::unique_ptr<rt::Scene> mScene;
 
-    Float mCameraSpeed;
-
     Uint32 mFrameNumber;
     Uint32 mFrameCounterForAverage;
 
@@ -87,6 +85,8 @@ private:
     Double mPostProcessDeltaTime;
     Double mMinRenderDeltaTime;
     Double mTotalRenderTime;
+
+    Float mCameraSpeed;
 
     // debugging
     rt::PathDebugData mPathDebugData;
@@ -109,14 +109,16 @@ private:
     bool RenderUI_Settings_Material();
 
 
-    virtual void OnMouseDown(Uint32 key, int x, int y) override;
+    virtual void OnMouseDown(MouseButton button, int x, int y) override;
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
-    virtual void OnMouseUp(Uint32 button) override;
+    virtual void OnMouseUp(MouseButton button) override;
     virtual void OnScroll(int delta) override;
     virtual void OnResize(Uint32 width, Uint32 height) override;
-    virtual void OnKeyPress(Uint32 key) override;
+    virtual void OnKeyPress(KeyCode key) override;
     virtual void OnCharTyped(const char* charUTF8) override;
 
     void ResetCounters();
     void UpdateCamera();
 };
+
+extern Options gOptions;

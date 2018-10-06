@@ -15,8 +15,8 @@ namespace math {
 class RT_ALIGN(16) Ray_Simd4
 {
 public:
-    Vector3_Simd4 origin;
     Vector3_Simd4 dir;
+    Vector3_Simd4 origin;
     Vector3_Simd4 invDir;
 
     Ray_Simd4() = default;

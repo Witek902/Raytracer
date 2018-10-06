@@ -102,8 +102,8 @@ RT_FORCE_NOINLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
 
 
 BoxSceneObject::BoxSceneObject(const Vector4& size, const Material* material)
-    : mSize(size)
-    , mMaterial(material)
+    : mMaterial(material)
+    , mSize(size)
 { }
 
 Box BoxSceneObject::GetBoundingBox() const

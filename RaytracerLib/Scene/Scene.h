@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "../RayLib.h"
@@ -34,15 +35,10 @@ using MeshInstanceID = Uint32;
  */
 struct SceneEnvironment
 {
-    math::Vector4 backgroundColor;
+    math::Vector4 backgroundColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
 
     // optional spherical texture
-    Bitmap* texture;
-
-    SceneEnvironment()
-        : texture(nullptr)
-        , backgroundColor(1.0f, 1.0f, 1.0f, 0.0f)
-    { }
+    Bitmap* texture = nullptr;
 };
 
 /**
@@ -60,8 +56,8 @@ public:
 
     bool BuildBVH();
 
-    RT_FORCE_NOINLINE const BVH& GetBVH() const { return mBVH; }
-    RT_FORCE_NOINLINE const ISceneObject* GetObject(Uint32 index) const { return mObjects[index].get(); }
+    RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
+    RT_FORCE_INLINE const ISceneObject* GetObject(Uint32 index) const { return mObjects[index].get(); }
 
     // traverse the scene, returns hit points
     RT_FORCE_NOINLINE void Traverse_Single(const SingleTraversalContext& context) const;

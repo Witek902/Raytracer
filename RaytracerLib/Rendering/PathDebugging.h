@@ -26,7 +26,7 @@ enum class RaySource : Uint8
 
 struct PathDebugData
 {
-    struct HitPointData
+    struct RT_ALIGN(32) HitPointData
     {
         // ray traced
         math::Vector4 rayOrigin;
@@ -47,7 +47,7 @@ struct PathDebugData
     };
 
     PathTerminationReason terminationReason = PathTerminationReason::None;
-    std::vector<HitPointData> data;
+    std::vector<HitPointData, AlignmentAllocator<HitPointData>> data;
 };
 
 

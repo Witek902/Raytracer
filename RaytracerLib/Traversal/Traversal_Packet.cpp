@@ -48,7 +48,7 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
 
         const Uint32 intMaskAB = intMaskA | (intMaskB << 8u);
         *reinterpret_cast<Uint16*>(context.activeRaysMask + i) = (Uint16)intMaskAB;
-        raysHit += __popcnt(intMaskAB);
+        raysHit += PopCount(intMaskAB);
 
         i += 2;
     }
@@ -62,7 +62,7 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const Vector8 mask = Intersect_BoxRay_Simd8(rayGroup.rays.invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
         const Uint32 intMask = mask.GetSignMask();
         context.activeRaysMask[i] = (Uint8)intMask;
-        raysHit += __popcnt(intMask);
+        raysHit += PopCount(intMask);
     }
 
     return raysHit;

@@ -209,7 +209,7 @@ void Scene::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint3
             context.context
         };
 
-        object->Traverse_Simd8(context, objectIndex);
+        object->Traverse_Simd8(objectContext, objectIndex);
 
         // TODO remove
         //const __m256 compareMask = _mm256_cmp_ps(outHitPoint.distance, previousDistance, _CMP_NEQ_OQ);
@@ -483,8 +483,6 @@ void Scene::Shade_Simd8(const Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, R
 
 void Scene::Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const
 {
-    const bool regularRenderingMode = context.params->renderingMode == RenderingMode::Regular;
-
     ShadingData shadingData;
 
     const Uint32 numGroups = packet.GetNumGroups();

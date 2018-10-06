@@ -185,7 +185,7 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
             hitPoint.objectId = VectorInt8::SelectBySign(hitPoint.objectId, objectIndexVec, VectorInt8::Cast(mask));
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
-            context.context.localCounters.numPassedRayTriangleTests += __popcnt(intMask);
+            context.context.localCounters.numPassedRayTriangleTests += PopCount(intMask);
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
         }
     }
@@ -195,7 +195,6 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 {
     RT_UNUSED(context);
 
-    const Uint32 numGroups = context.ray.GetNumGroups();
     const VectorInt8 objectIndexVec(objectID);
 
     Vector8 distance, u, v;
@@ -246,7 +245,7 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
                 }
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
-                context.context.localCounters.numPassedRayTriangleTests += __popcnt(intMask);
+                context.context.localCounters.numPassedRayTriangleTests += PopCount(intMask);
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
             }
         }

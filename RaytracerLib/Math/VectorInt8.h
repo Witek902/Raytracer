@@ -69,7 +69,7 @@ struct RT_ALIGN(32) VectorInt8
     /**
      * Build mask of sign bits.
      */
-    RT_FORCE_INLINE const Int32 GetSignMask() const;
+    RT_FORCE_INLINE Int32 GetSignMask() const;
 
     /**
      * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.

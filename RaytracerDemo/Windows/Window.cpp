@@ -1,5 +1,5 @@
 #include "PCH.h"
-#include "Window.h"
+#include "../Window.h"
 
 #include "../RaytracerLib/Utils/Logger.h"
 
@@ -260,7 +260,7 @@ bool Window::DrawPixels(const void* sourceData)
     ZeroMemory(&bmi, sizeof(bmi));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = mWidth;
-    bmi.bmiHeader.biHeight = mHeight;
+    bmi.bmiHeader.biHeight = -static_cast<Int32>(mHeight); // flip the image
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
@@ -268,11 +268,7 @@ bool Window::DrawPixels(const void* sourceData)
     bmi.bmiHeader.biXPelsPerMeter = 1;
     bmi.bmiHeader.biYPelsPerMeter = 1;
 
-    if (0 == StretchDIBits(mDC,
-        0, mHeight - 1, mWidth, (Uint32)(-(Int32)mHeight), // HACK: flip image
-        0, 0, mWidth, mHeight,
-        sourceData,
-        &bmi, DIB_RGB_COLORS, SRCCOPY))
+    if (0 == SetDIBitsToDevice(mDC, 0, 0, mWidth, mHeight, 0, 0, 0, mHeight, sourceData, &bmi, DIB_RGB_COLORS))
     {
         RT_LOG_ERROR("Paint failed");
         return false;
@@ -295,19 +291,19 @@ bool Window::Close()
 }
 
 
-void Window::MouseDown(Uint32 button, int x, int y)
+void Window::MouseDown(MouseButton button, int x, int y)
 {
     SetCapture(mHandle);
-    mMouseButtons[button] = true;
+    mMouseButtons[(int)button] = true;
     mMousePos[0] = x;
     mMousePos[1] = y;
 
     OnMouseDown(button, x, y);
 }
 
-void Window::MouseUp(Uint32 button)
+void Window::MouseUp(MouseButton button)
 {
-    mMouseButtons[button] = false;
+    mMouseButtons[(int)button] = false;
 
     bool ButtonsReleased = true;
     for (int i = 0; i < 3; i++)
@@ -370,7 +366,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         {
             wParam = MapLeftRightSpecialKey(wParam, lParam);
             window->mKeys[wParam] = true;
-            window->OnKeyPress(static_cast<Uint32>(wParam));
+            window->OnKeyPress(static_cast<KeyCode>(wParam));
             return 0;
         }
 
@@ -391,39 +387,39 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         // MOUSE
         case WM_LBUTTONDOWN:
         {
-            window->MouseDown(0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            window->MouseDown(MouseButton::Left, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
             return 0;
         }
 
         case WM_LBUTTONUP:
         {
-            window->MouseUp(0);
+            window->MouseUp(MouseButton::Left);
             return 0;
         }
 
 
         case WM_MBUTTONDOWN:
         {
-            window->MouseDown(2, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            window->MouseDown(MouseButton::Middle, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
             return 0;
         }
 
         case WM_MBUTTONUP:
         {
-            window->MouseUp(2);
+            window->MouseUp(MouseButton::Middle);
             return 0;
         }
 
 
         case WM_RBUTTONDOWN:
         {
-            window->MouseDown(1, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            window->MouseDown(MouseButton::Right, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
             return 0;
         }
 
         case WM_RBUTTONUP:
         {
-            window->MouseUp(1);
+            window->MouseUp(MouseButton::Right);
             return 0;
         }
 
@@ -463,9 +459,9 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 void Window::LostFocus()
 {
-    MouseUp(0);
-    MouseUp(1);
-    MouseUp(2);
+    MouseUp(MouseButton::Left);
+    MouseUp(MouseButton::Middle);
+    MouseUp(MouseButton::Right);
 
     for (int i = 0; i < 256; i++)
         mKeys[i] = false;
@@ -523,45 +519,32 @@ void Window::OnClose()
 {
 }
 
-void Window::OnResize(Uint32 width, Uint32 height)
+void Window::OnResize(Uint32, Uint32)
 {
-    RT_UNUSED(width);
-    RT_UNUSED(height);
 }
 
-void Window::OnKeyPress(Uint32 key)
+void Window::OnKeyPress(KeyCode)
 {
-    RT_UNUSED(key);
 }
 
-void Window::OnCharTyped(const char* charUTF8)
+void Window::OnCharTyped(const char*)
 {
-    RT_UNUSED(charUTF8);
 }
 
-void Window::OnScroll(int delta)
+void Window::OnScroll(int)
 {
-    RT_UNUSED(delta);
 }
 
-void Window::OnMouseDown(Uint32 button, int x, int y)
+void Window::OnMouseDown(MouseButton, int, int)
 {
-    RT_UNUSED(button);
-    RT_UNUSED(x);
-    RT_UNUSED(y);
 }
 
-void Window::OnMouseMove(int x, int y, int deltaX, int deltaY)
+void Window::OnMouseMove(int, int, int, int)
 {
-    RT_UNUSED(x);
-    RT_UNUSED(y);
-    RT_UNUSED(deltaX);
-    RT_UNUSED(deltaY);
 }
 
-void Window::OnMouseUp(Uint32 button)
+void Window::OnMouseUp(MouseButton)
 {
-    RT_UNUSED(button);
 }
 
 int Window::GetMouseWheelDelta() const
@@ -575,12 +558,12 @@ void Window::GetMousePosition(int& x, int& y) const
     y = mMousePos[1];
 }
 
-bool Window::IsMouseButtonDown(Uint32 button) const
+bool Window::IsMouseButtonDown(MouseButton button) const
 {
-    return mMouseButtons[button];
+    return mMouseButtons[(int)button];
 }
 
-bool Window::IsKeyPressed(Uint32 key) const
+bool Window::IsKeyPressed(KeyCode key) const
 {
     unsigned int k = static_cast<unsigned int>(key);
     if (k <= 256)

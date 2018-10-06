@@ -10,7 +10,7 @@
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 
-#include <imgui/imgui.h>
+#include "../External/imgui/imgui.h"
 
 using namespace rt;
 using namespace math;
@@ -27,9 +27,9 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Separator();
 
     ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
-
-    const RayTracingCounters& counters = mViewport->GetCounters();
+  
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
+    const RayTracingCounters& counters = mViewport->GetCounters();
     ImGui::Separator();
     ImGui::Text("Ray-box tests (total):  %.2fM", (float)counters.numRayBoxTests / 1000000.0f);
     ImGui::Text("Ray-box tests (passed): %.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f);
@@ -60,7 +60,7 @@ void DemoWindow::RenderUI_Debugging()
                 ImGui::Text("  Normal:      [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
                 //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
                 //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
-                ImGui::Text("  Material:    %s", data.shadingData.material->debugName);
+                ImGui::Text("  Material:    %s", data.shadingData.material->debugName.c_str());
                 ImGui::Text("  Throughput:  [%f, %f, %f, %f, %f, %f, %f, %f]",
                     data.throughput.value[0], data.throughput.value[1], data.throughput.value[2], data.throughput.value[3],
                     data.throughput.value[4], data.throughput.value[5], data.throughput.value[6], data.throughput.value[7]);
@@ -292,14 +292,15 @@ void DemoWindow::RenderUI()
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.DeltaTime = (float)mDeltaTime;
-    io.KeyCtrl = IsKeyPressed(VK_CONTROL);
-    io.KeyShift = IsKeyPressed(VK_SHIFT);
-    io.KeyAlt = IsKeyPressed(VK_MENU);
+    io.KeyCtrl = IsKeyPressed(KeyCode::Control);
+    io.KeyShift = IsKeyPressed(KeyCode::Shift);
+    io.KeyAlt = IsKeyPressed(KeyCode::Alt);
 
-    for (Uint32 i = 0; i < 256; ++i)
-    {
-        io.KeysDown[i] = IsKeyPressed(i);
-    }
+    // TODO
+    //for (Uint32 i = 0; i < 256; ++i)
+    //{
+    //    io.KeysDown[i] = IsKeyPressed(i);
+    //}
 
     ImGui::NewFrame();
     {

@@ -93,7 +93,7 @@ struct RT_ALIGN(16) Vector4
     /**
      * Rearrange vector elements.
      */
-    template<bool x = false, bool y = false, bool z = false, bool w = false>
+    template<bool flipX = false, bool flipY = false, bool flipZ = false, bool flipW = false>
     RT_FORCE_INLINE const Vector4 ChangeSign() const;
 
     /**

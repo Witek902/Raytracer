@@ -41,8 +41,8 @@ private:
     std::mutex mMutex;
 
     ParallelTask mTask;
-    Uint32 mCurrentX, mCurrentY;
     Uint32 mRows, mColumns;
+    Uint32 mCurrentX, mCurrentY;
 
     std::atomic<Uint32> mTilesLeftToComplete;
 

@@ -1,43 +1,16 @@
 #pragma once
 
 #include "../RaytracerLib/Common.h"
-
+#include "KeyCodes.h"
 #include <string>
 
-
+#if defined(__LINUX__) | defined(__linux__)
+#include <xcb/xcb.h>
+#include <xcb/xcb_image.h>
+#endif // defined(__LINUX__) | defined(__linux__)
 
 class Window
 {
-private:
-    static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-    HWND mHandle;
-    HDC mDC;
-    HINSTANCE mInstance;
-    wchar_t mWndClass[48];
-
-    bool mClosed;
-    bool mFullscreen;
-    bool mInvisible;
-    Uint32 mWidth;
-    Uint32 mHeight;
-    int mLeft;
-    int mTop;
-    std::string mTitle;
-
-    /// input recorded since last @p ProcessMessages() method call
-    bool mMouseButtons[3];
-    int mMousePos[2];
-    int mMouseWheelDelta;
-    bool mKeys[256];
-
-    void LostFocus();
-    void MouseDown(Uint32 button, int x, int y);
-    void MouseUp(Uint32 button);
-    void MouseMove(int x, int y);
-
-    Window(const Window&);
-    Window& operator= (const Window&);
-
 public:
     Window();
     ~Window();
@@ -100,12 +73,12 @@ public:
     /**
      * Check if a mouse button is pressed
      */
-    bool IsMouseButtonDown(Uint32 button) const;
+    bool IsMouseButtonDown(MouseButton button) const;
 
     /**
      * Check if a key is pressed.
      */
-    bool IsKeyPressed(Uint32 key) const;
+    bool IsKeyPressed(KeyCode key) const;
 
     /**
      * Set window's new size
@@ -145,12 +118,54 @@ public:
     // callbacks, overridden by inheritance
     virtual void OnClose();
     virtual void OnResize(Uint32 width, Uint32 height);
-    virtual void OnKeyPress(Uint32 key);
+    virtual void OnKeyPress(KeyCode key);
     virtual void OnCharTyped(const char* charUTF8);
     virtual void OnScroll(int delta);
-    virtual void OnMouseDown(Uint32 button, int x, int y);
+    virtual void OnMouseDown(MouseButton button, int x, int y);
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
-    virtual void OnMouseUp(Uint32 button);
+    virtual void OnMouseUp(MouseButton button);
 
     bool DrawPixels(const void* sourceData);
+
+private:
+
+    void LostFocus();
+    void MouseDown(MouseButton button, int x, int y);
+    void MouseUp(MouseButton button);
+    void MouseMove(int x, int y);
+
+    Window(const Window&);
+    Window& operator= (const Window&);
+
+#if defined(WIN32)
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+    HWND mHandle;
+    HDC mDC;
+    HINSTANCE mInstance;
+    wchar_t mWndClass[48];
+#elif defined(__LINUX__) | defined(__linux__)
+    xcb_connection_t* mConnection;
+    xcb_window_t mWindow;
+    xcb_screen_t* mScreen;
+    xcb_intern_atom_reply_t* mDeleteReply;
+    int mConnScreen;
+    uint32_t mGraphicsContext;
+#else
+#error "Target not supported!" // TODO Consider supporting Wayland as well
+#endif // defined(WIN32)
+
+    bool mClosed;
+    bool mFullscreen;
+    bool mInvisible;
+    Uint32 mWidth;
+    Uint32 mHeight;
+    int mLeft;
+    int mTop;
+    std::string mTitle;
+
+    /// input recorded since last @p ProcessMessages() method call
+    bool mMouseButtons[3];
+    int mMousePos[2];
+    int mMouseWheelDelta;
+    bool mKeys[256];
 };

@@ -17,7 +17,6 @@ static_assert(sizeof(Color) == sizeof(Float) * Wavelength::NumComponents, "Inval
 
 
 static constexpr Uint32 NumBins = 69;
-static constexpr float WavelengthStep = (Wavelength::Higher - Wavelength::Lower) / (NumBins - 1);
 
 static const float colorMatchingX[NumBins] =
 {

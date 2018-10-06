@@ -23,7 +23,7 @@ struct VertexBufferDesc
     const Uint32* materialIndexBuffer;
     const Material** materials;
 
-    VertexBufferDesc::VertexBufferDesc()
+    VertexBufferDesc()
         : numVertices(0)
         , numTriangles(0)
         , numMaterials(0)
@@ -32,8 +32,8 @@ struct VertexBufferDesc
         , normals(nullptr)
         , tangents(nullptr)
         , texCoords(nullptr)
-        , materials(nullptr)
         , materialIndexBuffer(nullptr)
+        , materials(nullptr)
     { }
 };
 

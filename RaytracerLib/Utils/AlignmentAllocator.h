@@ -5,6 +5,26 @@
 #include <stdlib.h>
 #include <malloc.h>
 
+RT_INLINE void* AlignedMalloc(size_t size, size_t alignment)
+{
+#if defined(WIN32)
+    return _aligned_malloc(size, alignment);
+#elif defined(__LINUX__) | defined(__linux__)
+    void* ptr = nullptr;
+    posix_memalign(&ptr, alignment, size);
+    return ptr;
+#endif // defined(WIN32)
+}
+
+RT_INLINE void AlignedFree(void* ptr)
+{
+#if defined(WIN32)
+    _aligned_free(ptr);
+#elif defined(__LINUX__) | defined(__linux__)
+    free(ptr);
+#endif // defined(WIN32)
+}
+
 /**
 * Override this class to align children objects.
 */
@@ -14,22 +34,22 @@ class Aligned
 public:
     RT_FORCE_INLINE void* operator new(size_t size)
     {
-        return _aligned_malloc(size, Alignment);
+        return AlignedMalloc(size, Alignment);
     }
 
     RT_FORCE_INLINE void operator delete(void* ptr)
     {
-        _aligned_free(ptr);
+        AlignedFree(ptr);
     }
 
     RT_FORCE_INLINE void* operator new[](size_t size)
     {
-        return _aligned_malloc(size, Alignment);
+        return AlignedMalloc(size, Alignment);
     }
 
     RT_FORCE_INLINE void operator delete[](void* ptr)
     {
-        _aligned_free(ptr);
+        AlignedFree(ptr);
     }
 
     RT_FORCE_INLINE void* operator new(size_t size, void* ptr)
@@ -79,12 +99,12 @@ public:
 
     pointer allocate(size_type n)
     {
-        return (pointer)_aligned_malloc(n * sizeof(value_type), N);
+        return (pointer)AlignedMalloc(n * sizeof(value_type), N);
     }
 
     void deallocate(pointer p, size_type)
     {
-        _aligned_free(p);
+        AlignedFree(p);
     }
 
     void construct(pointer p, const value_type & wert)
@@ -113,7 +133,7 @@ public:
         return !(*this == other);
     }
 
-    bool operator==(const AlignmentAllocator<T, N>& other) const
+    bool operator==(const AlignmentAllocator<T, N>&) const
     {
         return true;
     }

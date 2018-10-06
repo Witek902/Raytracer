@@ -1,0 +1,12 @@
+MESSAGE("Generating Makefile for RaytracerLib")
+
+FILE(GLOB_RECURSE RT_LIB_SOURCES *.cpp)
+FILE(GLOB_RECURSE RT_LIB_HEADERS *.hpp)
+
+# setup directories
+INCLUDE_DIRECTORIES(${RT_LIB_DIRECTORY})
+
+ADD_LIBRARY(RaytracerLib SHARED ${RT_LIB_SOURCES} ${RT_LIB_HEADERS})
+
+ADD_CUSTOM_COMMAND(TARGET RaytracerLib POST_BUILD COMMAND
+                   ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RaytracerLib> ${RT_OUTPUT_DIRECTORY}/${targetfile})

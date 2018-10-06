@@ -249,7 +249,6 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
 template<typename T>
 RT_FORCE_INLINE static T ToneMap(T color)
 {
-    const T a = T(0.004f);
     const T b = T(6.2f);
     const T c = T(1.7f);
     const T d = T(0.06f);
@@ -283,7 +282,7 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
         const Vector4 toneMapped = ToneMap(rgbColor * scalingFactor);
         const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), params.ditheringStrength, toneMapped);
 
-        const Vector4 clampedValue = toneMapped.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
+        const Vector4 clampedValue = dithered.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
         clampedValue.Store4_NonTemporal(frontBufferPixels + 4 * i);
     }
 

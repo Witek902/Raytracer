@@ -131,6 +131,8 @@ void InitScene_Simple_AreaLight(rt::Scene& scene, DemoWindow::Materials& materia
 
 void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
+    RT_UNUSED(meshes);
+
     auto material = std::make_unique<rt::Material>();
     material->debugName = "default";
     material->baseColor = math::Vector4(0.2f, 0.5f, 0.8f, 0.0f);

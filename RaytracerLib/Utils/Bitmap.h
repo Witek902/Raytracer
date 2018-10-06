@@ -95,7 +95,7 @@ public:
     math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
 
     // Note: format must be R32G32B32A32_Float
-    RT_FORCE_INLINE void AccumulateFloat_Unsafe(const Uint32 x, Uint32 y, const math::Vector4 value);
+    void AccumulateFloat_Unsafe(const Uint32 x, const Uint32 y, const math::Vector4 value);
 
     // write whole pixels row
     void WriteHorizontalLine(Uint32 y, const math::Vector4* values);

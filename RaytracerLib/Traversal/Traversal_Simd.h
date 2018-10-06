@@ -16,8 +16,8 @@ namespace rt {
 template <typename ObjectType>
 static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const ObjectType* object)
 {
-    const Vector3x8 rayInvDir = context.ray.invDir;
-    const Vector3x8 rayOriginDivDir = context.ray.origin * context.ray.invDir;
+    const math::Vector3x8 rayInvDir = context.ray.invDir;
+    const math::Vector3x8 rayOriginDivDir = context.ray.origin * context.ray.invDir;
 
     // all nodes
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
@@ -40,31 +40,31 @@ static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uin
 
             RT_PREFETCH_L1(nodes + childA->childIndex);
 
-            Vector8 distanceA;
-            const Vector8 maskA = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childA->GetBox_Simd8(), context.hitPoint.distance, distanceA);
+            math::Vector8 distanceA;
+            const math::Vector8 maskA = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childA->GetBox_Simd8(), context.hitPoint.distance, distanceA);
             const Int32 intMaskA = maskA.GetSignMask();
 
             // Note: according to Intel manuals, prefetch instructions should not be grouped together
             RT_PREFETCH_L1(nodes + childB->childIndex);
 
-            Vector8 distanceB;
-            const Vector8 maskB = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childB->GetBox_Simd8(), context.hitPoint.distance, distanceB);
+            math::Vector8 distanceB;
+            const math::Vector8 maskB = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childB->GetBox_Simd8(), context.hitPoint.distance, distanceB);
             const Int32 intMaskB = maskB.GetSignMask();
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
             context.context.localCounters.numRayBoxTests += 2 * 8;
-            context.context.localCounters.numPassedRayBoxTests += __popcnt(intMaskA);
-            context.context.localCounters.numPassedRayBoxTests += __popcnt(intMaskB);
+            context.context.localCounters.numPassedRayBoxTests += math::PopCount(intMaskA);
+            context.context.localCounters.numPassedRayBoxTests += math::PopCount(intMaskB);
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
             if (const Int32 intMaskAB = intMaskA & intMaskB)
             {
-                const Int32 intOrderMask = Vector8::LessMask(distanceA, distanceB);
+                const Int32 intOrderMask = math::Vector8::LessMask(distanceA, distanceB);
                 const Int32 orderMaskA = intOrderMask & intMaskAB;
                 const Int32 orderMaskB = (~intOrderMask) & intMaskAB;
 
                 // traverse to child node A if majority rays hit it before the child B
-                if (__popcnt(orderMaskB) > __popcnt(orderMaskA))
+                if (math::PopCount(orderMaskB) > math::PopCount(orderMaskA))
                 {
                     std::swap(childB, childA);
                 }
