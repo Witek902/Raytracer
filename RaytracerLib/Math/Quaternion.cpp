@@ -76,7 +76,7 @@ Vector4 Quaternion::TransformVector(const Vector4& v) const
 
     Vector4 t = Vector4::Cross3(q, v);
     t = t + t;
-    return v + t * q[3] + Vector4::Cross3(q, t);
+    return Vector4::MulAndAdd(t, q.w, v) + Vector4::Cross3(q, t);
 }
 
 Vector3x8 Quaternion::TransformVector(const Vector3x8& v) const

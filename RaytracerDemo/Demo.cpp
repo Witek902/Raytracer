@@ -336,7 +336,7 @@ bool DemoWindow::Loop()
             ResetFrame();
         }
 
-        // render
+        //// render
         localTimer.Start();
         mViewport->Render(mScene.get(), mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
         mRenderDeltaTime = localTimer.Stop();

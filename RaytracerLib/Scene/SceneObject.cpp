@@ -9,7 +9,7 @@ ISceneObject::~ISceneObject() = default;
 
 Transform ISceneObject::ComputeTransform(const float t) const
 {
-    const Vector4 position = mTransform.GetTranslation() + mLinearVelocity * t;
+    const Vector4 position = Vector4::MulAndAdd(mLinearVelocity, t, mTransform.GetTranslation());
     const Quaternion rotation0 = mTransform.GetRotation();
     Quaternion rotation;
 

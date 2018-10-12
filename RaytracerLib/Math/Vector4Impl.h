@@ -713,10 +713,9 @@ const Vector4 Vector4::Normalized4() const
 
 const Vector4 Vector4::Reflect3(const Vector4& i, const Vector4& n)
 {
-    const __m128 vDot = Dot3V(i, n);
-    __m128 vTemp = _mm_add_ps(vDot, vDot); // vTemp = 2 * vDot
-    vTemp = _mm_mul_ps(vTemp, n);
-    return _mm_sub_ps(i, vTemp);
+    // return (i - 2.0f * Dot(i, n) * n);
+    const Vector4 vDot = Dot3V(i, n);
+    return NegMulAndAdd(vDot + vDot, n, i);
 }
 
 bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon)
