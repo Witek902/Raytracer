@@ -15,18 +15,10 @@ public:
     Window();
     ~Window();
 
-    /**
-     * Initializes Window connection to the system.
-     *
-     * @return True on success, false on failure
-     */
+    // Initializes Window connection to the system.
     bool Init();
 
-    /**
-     * Creates and opens a Window, if it isn't opened already.
-     *
-     * @return True on success, false on failure
-     */
+    // Creates and opens a Window, if it isn't opened already.
     bool Open();
 
     /**
@@ -40,79 +32,46 @@ public:
      */
     bool Close();
 
-    /**
-     * Acquire system-specific Window handle
-     */
+    // Acquire system-specific Window handle
     void* GetHandle() const;
 
-    /**
-     * Get Window's size
-     */
+    // Get Window's size
     void GetSize(Uint32& width, Uint32& height) const;
 
-    /**
-     * Get Window's current aspect ratio.
-     */
-    float GetAspectRatio() const;
-
-    /**
-     * Check if window is currently in Fullscreen mode.
-     */
+    // Check if window is currently in Fullscreen mode.
     bool GetFullscreenMode() const;
 
-    /**
-     * Acquire how much did the mouse wheel scroll.
-     */
+    // Acquire how much did the mouse wheel scroll.
     int GetMouseWheelDelta() const;
 
-    /**
-     * Acquire current mouse position relative to window.
-     */
+    // Acquire current mouse position relative to window.
     void GetMousePosition(int& x, int& y) const;
 
-    /**
-     * Check if a mouse button is pressed
-     */
+    // Check if a mouse button is pressed
     bool IsMouseButtonDown(MouseButton button) const;
 
-    /**
-     * Check if a key is pressed.
-     */
+    // Check if a key is pressed.
     bool IsKeyPressed(KeyCode key) const;
 
-    /**
-     * Set window's new size
-     */
+    // Set window's new size
     void SetSize(Uint32 width, Uint32 height);
 
-    /**
-     * Enable or disable fullscreen
-     */
+    // Enable or disable fullscreen
     void SetFullscreenMode(bool enabled);
 
-    /**
-     * Make window invisible or visible
-     */
+    // Make window invisible or visible
     void SetInvisible(bool invisible);
 
-    /**
-     * Set window's title
-     */
+    // Set window's title
     void SetTitle(const char* title);
 
-    /**
-     * Process messages from Window system.
-     */
+    // Process messages from Window system.
     void ProcessMessages();
 
-    /**
-     * Is the window closed?
-     */
+    // Is the window closed?
     bool IsClosed() const;
 
-    /**
-     * Is the window focused on the system?
-     */
+    // Is the window focused on the system?
     bool HasFocus() const;
 
     // callbacks, overridden by inheritance

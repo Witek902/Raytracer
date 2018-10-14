@@ -5,3 +5,6 @@
 
 // enables code for collecting path tracing debug data
 #define RT_ENABLE_PATH_DEBUGGING
+
+// enables spectral rendering via Monte Carlo wavelength sampling
+#define RT_ENABLE_SPECTRAL_RENDERING

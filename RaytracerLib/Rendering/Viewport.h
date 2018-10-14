@@ -18,19 +18,16 @@ class Camera;
 
 struct PostprocessParams
 {
-    float exposure;
-    float ditheringStrength; // applied after tonemapping
+    math::Vector4 colorFilter = math::VECTOR_ONE;
 
-    // TODO color correction parameters
+    // exposure in log scale
+    float exposure = 0.0f;
 
-    PostprocessParams()
-        : exposure(0.0f)
-        , ditheringStrength(0.005f)
-    { }
+    // applied after tonemapping
+    float ditheringStrength = 0.005f;
 };
 
-// Allows for rendering to a window
-// TODO make it more generic (e.g. rendering to a texture, etc.)
+
 class RT_ALIGN(64) RAYLIB_API Viewport : public Aligned<64>
 {
 public:
@@ -42,10 +39,11 @@ public:
     void Reset();
 
     RT_FORCE_INLINE const rt::Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
+    RT_FORCE_INLINE const rt::Bitmap& GetAccumulatedBuffer() const { return mAccumulated; }
 
     RT_FORCE_INLINE Uint32 GetNumSamplesRendered() const { return mNumSamplesRendered; }
-    RT_FORCE_INLINE Uint32 GetWidth() const { return mSum.GetWidth(); }
-    RT_FORCE_INLINE Uint32 GetHeight() const { return mSum.GetHeight(); }
+    RT_FORCE_INLINE Uint32 GetWidth() const { return mAccumulated.GetWidth(); }
+    RT_FORCE_INLINE Uint32 GetHeight() const { return mAccumulated.GetHeight(); }
 
     RT_FORCE_INLINE const RayTracingCounters& GetCounters() const { return mCounters; }
 
@@ -62,7 +60,7 @@ private:
 
     std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 
-    Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
+    Bitmap mAccumulated;    // image with accumulated samples (floating point, high dynamic range)
     Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
 
     RayTracingCounters mCounters;

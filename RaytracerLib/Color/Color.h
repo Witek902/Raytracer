@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../RayLib.h"
+#include "../Config.h"
 #include "../Math/Vector8.h"
-
 
 namespace rt {
 

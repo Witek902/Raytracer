@@ -41,7 +41,7 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (width == GetWidth() && height == GetHeight())
         return true;
 
-    if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+    if (!mAccumulated.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
         return false;
 
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
@@ -126,7 +126,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
     const bool verticalFlip = true;
 
     const size_t renderTargetWidth = GetWidth();
-    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mAccumulated.GetData());
 
     if (context.params->traversalMode == TraversalMode::Single)
     {
@@ -142,7 +142,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
             const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
             const Vector4 baseCoords = Vector4::FromIntegers(x, realY);
 
-            Vector4 cieXYZ;
+            Vector4 sampleColor;
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
                 context.time = context.randomGenerator.GetFloat() * context.params->motionBlurStrength;
@@ -155,10 +155,10 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
                 const Color color = scene.TraceRay_Single(ray, context);
-                cieXYZ += color.ToXYZ(context.wavelength);
+                sampleColor += color.ToXYZ(context.wavelength);
             }
 
-            sumPixels[renderTargetWidth * y + x] += cieXYZ;
+            sumPixels[renderTargetWidth * y + x] += sampleColor;
         }
     }
     else if (context.params->traversalMode == TraversalMode::Simd)
@@ -229,7 +229,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
         context.localCounters.Reset();
         scene.Traverse_Packet({ primaryPacket, hitPoints, context });
         context.counters.Append(context.localCounters);
-        scene.Shade_Packet(primaryPacket, hitPoints, context, mSum);
+        scene.Shade_Packet(primaryPacket, hitPoints, context, mAccumulated);
 
         /*
         for (Uint32 y = y0; y < maxY; ++y)
@@ -270,16 +270,21 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
     Random& randomGenerator = mThreadData[threadID].randomGenerator;
 
     const Float scalingFactor = exp2f(params.exposure) / (Float)mNumSamplesRendered;
+    const Vector4 colorMultiplier = params.colorFilter * scalingFactor;
 
-    const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+    const Vector4* __restrict accumulatedPixels = reinterpret_cast<Vector4*>(mAccumulated.GetData());
     Uint8* frontBufferPixels = reinterpret_cast<Uint8*>(mFrontBuffer.GetData());
 
     for (size_t i = minIndex; i < maxIndex; ++i)
     {
-        const Vector4 xyzColor = sumPixels[i];
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+        const Vector4 xyzColor = accumulatedPixels[i];
         const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
+#else
+        const Vector4 rgbColor = accumulatedPixels[i];
+#endif
 
-        const Vector4 toneMapped = ToneMap(rgbColor * scalingFactor);
+        const Vector4 toneMapped = ToneMap(rgbColor * colorMultiplier);
         const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), params.ditheringStrength, toneMapped);
 
         const Vector4 clampedValue = dithered.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
@@ -293,7 +298,7 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
 void Viewport::Reset()
 {
     mNumSamplesRendered = 0;
-    mSum.Zero();
+    mAccumulated.Zero();
 }
 
 } // namespace rt

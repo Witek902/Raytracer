@@ -100,7 +100,11 @@ private:
 
     void RenderUI();
     void RenderUI_Stats();
+
     void RenderUI_Debugging();
+    void RenderUI_Debugging_Path();
+    void RenderUI_Debugging_Color();
+
     void RenderUI_Settings();
     bool RenderUI_Settings_Rendering();
     bool RenderUI_Settings_Camera();

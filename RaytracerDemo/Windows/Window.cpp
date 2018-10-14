@@ -488,11 +488,6 @@ void Window::GetSize(Uint32& Width, Uint32& Height) const
     Height = mHeight;
 }
 
-float Window::GetAspectRatio() const
-{
-    return (float)mWidth / (float)mHeight;
-}
-
 bool Window::GetFullscreenMode() const
 {
     return mFullscreen;

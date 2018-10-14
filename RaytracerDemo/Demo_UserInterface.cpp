@@ -9,6 +9,7 @@
 #include "../RaytracerLib/Scene/SceneObject_Mesh.h"
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
+#include "../RaytracerLib/Color/ColorHelpers.h"
 
 #include "../External/imgui/imgui.h"
 
@@ -27,7 +28,7 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Separator();
 
     ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
-  
+
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     const RayTracingCounters& counters = mViewport->GetCounters();
     ImGui::Separator();
@@ -42,45 +43,93 @@ void DemoWindow::RenderUI_Debugging()
 {
     if (ImGui::TreeNode("Path"))
     {
-        for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
-        {
-            ImGui::Text("Ray #%zu", i);
-
-            const rt::PathDebugData::HitPointData data = mPathDebugData.data[i];
-            ImGui::Text("  RayOrigin: [%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z);
-            ImGui::Text("  RayDir:    [%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z);
-
-            if (data.hitPoint.distance != FLT_MAX)
-            {
-                ImGui::Text("  Distance:    %f", data.hitPoint.distance);
-                ImGui::Text("  Object ID:   %u", data.hitPoint.objectId);
-                ImGui::Text("  Tri ID:      %u", data.hitPoint.triangleId);
-                ImGui::Text("  Tri UV:      [%f, %f]", data.hitPoint.u, data.hitPoint.v);
-                ImGui::Text("  Position:    [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
-                ImGui::Text("  Normal:      [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
-                //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
-                //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
-                ImGui::Text("  Material:    %s", data.shadingData.material->debugName.c_str());
-                ImGui::Text("  Throughput:  [%f, %f, %f, %f, %f, %f, %f, %f]",
-                    data.throughput.value[0], data.throughput.value[1], data.throughput.value[2], data.throughput.value[3],
-                    data.throughput.value[4], data.throughput.value[5], data.throughput.value[6], data.throughput.value[7]);
-            }
-        }
-
-        const char* terminationReasonStr = "None";
-        switch (mPathDebugData.terminationReason)
-        {
-        case PathTerminationReason::HitBackground: terminationReasonStr = "Hit background"; break;
-        case PathTerminationReason::HitLight: terminationReasonStr = "Hit light"; break;
-        case PathTerminationReason::Depth: terminationReasonStr = "Depth exeeded"; break;
-        case PathTerminationReason::Throughput: terminationReasonStr = "Throughput too low"; break;
-        case PathTerminationReason::RussianRoulette: terminationReasonStr = "Russian roulette"; break;
-        }
-
-        ImGui::Text("Path termination reason: %s", terminationReasonStr);
-
+        RenderUI_Debugging_Path();
         ImGui::TreePop();
     }
+
+    if (ImGui::TreeNode("Color"))
+    {
+        RenderUI_Debugging_Color();
+        ImGui::TreePop();
+    }
+}
+
+void DemoWindow::RenderUI_Debugging_Path()
+{
+    for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
+    {
+        ImGui::Text("Ray #%zu", i);
+
+        const rt::PathDebugData::HitPointData data = mPathDebugData.data[i];
+        ImGui::Text("  RayOrigin: [%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z);
+        ImGui::Text("  RayDir:    [%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z);
+
+        if (data.hitPoint.distance != FLT_MAX)
+        {
+            ImGui::Text("  Distance:    %f", data.hitPoint.distance);
+            ImGui::Text("  Object ID:   %u", data.hitPoint.objectId);
+            ImGui::Text("  Tri ID:      %u", data.hitPoint.triangleId);
+            ImGui::Text("  Tri UV:      [%f, %f]", data.hitPoint.u, data.hitPoint.v);
+            ImGui::Text("  Position:    [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
+            ImGui::Text("  Normal:      [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
+            //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
+            //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
+            ImGui::Text("  Material:    %s", data.shadingData.material->debugName.c_str());
+            ImGui::Text("  Throughput:  [%f, %f, %f, %f, %f, %f, %f, %f]",
+                data.throughput.value[0], data.throughput.value[1], data.throughput.value[2], data.throughput.value[3],
+                data.throughput.value[4], data.throughput.value[5], data.throughput.value[6], data.throughput.value[7]);
+        }
+    }
+
+    const char* terminationReasonStr = "None";
+    switch (mPathDebugData.terminationReason)
+    {
+    case PathTerminationReason::HitBackground: terminationReasonStr = "Hit background"; break;
+    case PathTerminationReason::HitLight: terminationReasonStr = "Hit light"; break;
+    case PathTerminationReason::Depth: terminationReasonStr = "Depth exeeded"; break;
+    case PathTerminationReason::Throughput: terminationReasonStr = "Throughput too low"; break;
+    case PathTerminationReason::RussianRoulette: terminationReasonStr = "Russian roulette"; break;
+    }
+
+    ImGui::Text("Path termination reason: %s", terminationReasonStr);
+}
+
+void DemoWindow::RenderUI_Debugging_Color()
+{
+    Int32 x, y;
+    GetMousePosition(x, y);
+
+    Uint32 width, height;
+    GetSize(width, height);
+
+    Vector4 hdrColor, ldrColor;
+    if (x >= 0 && y >= 0 && (Uint32)x < width && (Uint32)y < height)
+    {
+        const Uint32 numSamples = mViewport->GetNumSamplesRendered();
+
+        hdrColor = mViewport->GetAccumulatedBuffer().GetPixel(x, y, true) / static_cast<Float>(numSamples);
+        ldrColor = mViewport->GetFrontBuffer().GetPixel(x, y, true);
+    }
+
+    ImGui::Text("HDR color:");
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+    const Vector4 rgbHdrColor = rt::ConvertXYZtoRGB(hdrColor);
+    ImGui::Text("  R: %f", rgbHdrColor.x);
+    ImGui::Text("  G: %f", rgbHdrColor.y);
+    ImGui::Text("  B: %f", rgbHdrColor.z);
+    ImGui::Text("  X: %f", hdrColor.x);
+    ImGui::Text("  Y: %f", hdrColor.y);
+    ImGui::Text("  Z: %f", hdrColor.z);
+#else
+    ImGui::Text("  R: %f", hdrColor.x);
+    ImGui::Text("  G: %f", hdrColor.y);
+    ImGui::Text("  B: %f", hdrColor.z);
+#endif // RT_ENABLE_SPECTRAL_RENDERING
+
+    ImGui::Text("LDR color:");
+    ImGui::Text("  R: %u", (Uint32)(255.0f * ldrColor.x + 0.5f));
+    ImGui::Text("  G: %u", (Uint32)(255.0f * ldrColor.y + 0.5f));
+    ImGui::Text("  B: %u", (Uint32)(255.0f * ldrColor.z + 0.5f));
 }
 
 void DemoWindow::RenderUI_Settings()
@@ -191,6 +240,7 @@ bool DemoWindow::RenderUI_Settings_PostProcess()
 {
     ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
     ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
+    ImGui::ColorEdit3("Color filter", &mPostprocessParams.colorFilter.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
 
     return false;
 }
