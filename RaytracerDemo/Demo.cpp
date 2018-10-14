@@ -193,12 +193,41 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
     if (io.WantCaptureMouse)
         return;
 
-    if (button == MouseButton::Left)
+    Uint32 width, height;
+    GetSize(width, height);
+
+    if (mFocalDistancePicking && button == MouseButton::Left)
+    {
+        rt::RenderingParams params = mRenderingParams;
+        params.antiAliasingSpread = 0.0f;
+
+        rt::RenderingContext context;
+        context.params = &params;
+
+        const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
+        const Ray ray = mCamera.GenerateRay(coords, context);
+
+        mScene->TraceRay_Single(ray, context);
+        assert(!mPathDebugData.data.empty());
+
+        HitPoint hitPoint;
+        mScene->Traverse_Single({ ray, hitPoint, context });
+
+        if (hitPoint.distance == FLT_MAX)
+        {
+            mCamera.mDOF.focalPlaneDistance = 10000000.0f;
+        }
+        else
+        {
+            mCamera.mDOF.focalPlaneDistance = Vector4::Dot3(mCamera.mTransform.GetRotation().GetAxisZ(), ray.dir) * hitPoint.distance;
+        }
+        ResetFrame();
+
+        mFocalDistancePicking = false;
+    }
+    else if (button == MouseButton::Left)
     {
         mPathDebugData.data.clear();
-
-        Uint32 width, height;
-        GetSize(width, height);
 
         rt::RenderingParams params = mRenderingParams;
         params.antiAliasingSpread = 0.0f;
@@ -222,21 +251,6 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
             mSelectedObject = const_cast<ISceneObject*>(mScene->GetObject(mPathDebugData.data[0].hitPoint.objectId));
         }
     }
-
-    /*
-    if (button == 0)
-    {
-        //if (hitPoint.distance == FLT_MAX)
-        //{
-        //    mCamera.mDOF.focalPlaneDistance = 10000000.0f;
-        //}
-        //else
-        //{
-        //    mCamera.mDOF.focalPlaneDistance = Vector4::Dot3(mCamera.mForward, ray.dir) * hitPoint.distance;
-        //}
-        //ResetFrame();
-    }
-    */
 }
 
 void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)

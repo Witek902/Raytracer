@@ -225,7 +225,17 @@ bool DemoWindow::RenderUI_Settings_Camera()
 
     resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
     resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
-    resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
+    {
+        ImGui::Columns(2, nullptr, false);
+        resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
+        ImGui::NextColumn();
+        if (ImGui::Button("Pick..."))
+        {
+            mFocalDistancePicking = true;
+        }
+        ImGui::Columns(1);
+    }
+
     resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
     resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
     resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
