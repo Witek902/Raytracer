@@ -3,6 +3,7 @@
 #include "Light.h"
 #include "Traversal/TraversalContext.h"
 #include "Math/Geometry.h"
+#include "Rendering/ShadingData.h"
 
 namespace rt {
 
@@ -56,9 +57,11 @@ void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, co
 void LightSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
     RT_UNUSED(hitPoint);
-    RT_UNUSED(outShadingData);
 
-    // should never enter here
+    outShadingData.material = nullptr;
+    outShadingData.normal = Vector4(0.0f, 0.0f, 1.0f, 0.0f); // HACK
+    outShadingData.tangent = Vector4();
+    outShadingData.bitangent = Vector4();
 }
 
 

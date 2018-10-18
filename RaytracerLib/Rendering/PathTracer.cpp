@@ -22,10 +22,54 @@ RT_FORCE_INLINE static Float CombineMis(const Float samplePdf, const Float other
     return Mis(samplePdf) / (Mis(samplePdf) + Mis(otherPdf));
 }
 
+RT_FORCE_INLINE static Float PdfWtoA(const Float aPdfW, const Float aDist, const Float aCosThere)
+{
+    return aPdfW * Abs(aCosThere) / Sqr(aDist);
+}
+
+RT_FORCE_INLINE static Float PdfAtoW(const Float aPdfA, const Float aDist, const Float aCosThere)
+{
+    return aPdfA * Sqr(aDist) / Abs(aCosThere);
+}
+
 PathTracer::PathTracer(const Scene& scene)
     : IRenderer(scene)
 {
 }
+
+/*
+// temporary state describing light-surface interaction
+class SurfaceInteraction
+{
+public:
+    struct Probabilities
+    {
+        float diffuseProb;
+        float specularProb;
+        float reflectionProb;
+        float refractionProb;
+    };
+
+    const Color Evaluate(
+        const Wavelength& wavelength,
+        const ShadingData& shadingData,
+        const math::Vector4& outgoingDirWorldSpace,
+        const math::Vector4& incomingDirWorldSpace) const;
+
+    // sample material's BSDFs
+    const Color Sample(
+        Wavelength& wavelength,
+        const math::Vector4& outgoingDirWorldSpace,
+        math::Vector4& outIncomingDirWorldSpace,
+        const ShadingData& shadingData,
+        math::Random& randomGenerator) const;
+
+private:
+    Vector4 incomingDir;
+    const ShadingData& shadingData;
+    bool isDelta;
+};
+*/
 
 const Color PathTracer::SampleLights(const Ray& ray, const ShadingData& shadingData, RenderingContext& context) const
 {
@@ -36,20 +80,19 @@ const Color PathTracer::SampleLights(const Ray& ray, const ShadingData& shadingD
     // TODO check only nearest lights
     for (const LightPtr& light : mScene.GetLights())
     {
-        // TODO multiple importance sampling
-
-        float distanceToLight;
-
         // calculate light contribution
-        Color lightColor = light->Illuminate(shadingData.position, context, dirToLight, distanceToLight);
-        if (lightColor.AlmostZero())
+        float distanceToLight;
+        float lightDirectPdfW;
+        Color radiance = light->Illuminate(shadingData.position, context, dirToLight, distanceToLight, lightDirectPdfW);
+        if (radiance.AlmostZero())
         {
             continue;
         }
 
         // calculate BSDF contribution
-        lightColor *= shadingData.material->Evaluate(context.wavelength, shadingData, -ray.dir, -dirToLight);
-        if (lightColor.AlmostZero())
+        float bsdfPdfW;
+        const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -ray.dir, -dirToLight, &bsdfPdfW);
+        if (factor.AlmostZero())
         {
             continue;
         }
@@ -69,8 +112,21 @@ const Color PathTracer::SampleLights(const Ray& ray, const ShadingData& shadingD
             }
         }
 
-        //const float NdotL = Vector4::Dot3(dirToLight, shadingData.normal);
-        accumulatedColor += lightColor / (distanceToLight * distanceToLight);
+        float weight = 1.0f;
+        if (!light->IsDelta())
+        {
+            // TODO this should be based on material color
+            const float continuationProbability = 1.0f;
+
+            bsdfPdfW *= continuationProbability;
+            weight = CombineMis(lightDirectPdfW /* * lightPickProb*/, bsdfPdfW); // ???
+        }
+
+        const float NdotL = Abs(Vector4::Dot3(dirToLight, shadingData.normal));
+        const Color lightContribution = (radiance * factor) * (weight * NdotL / lightDirectPdfW);
+        accumulatedColor += lightContribution;
+
+        //accumulatedColor += lightContribution / (distanceToLight * distanceToLight);
     }
 
     return accumulatedColor;
@@ -90,6 +146,9 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
     PathTerminationReason pathTerminationReason = PathTerminationReason::None;
 
+    bool lastSpecular = true;
+    float lastPdfW = 1.0f;
+
     for (;;)
     {
         hitPoint.distance = FLT_MAX;
@@ -105,6 +164,8 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             break;
         }
 
+        mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
+
         // we hit a light directly
         if (hitPoint.triangleId == RT_LIGHT_OBJECT)
         {
@@ -113,14 +174,26 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             const ILight& light = lightSceneObj->GetLight();
 
             const Vector4 hitPos = ray.origin + ray.dir * hitPoint.distance;
-            const Color lightContribution = light.GetRadiance(context, ray.dir, hitPos);
 
-            resultColor += throughput * lightContribution;
+            float directPdfA;
+            const Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
+ 
+            if (!lightContribution.AlmostZero())
+            {
+                float misWeight = 1.0f;
+                if (mSampleLights && depth > 0 && !lastSpecular)
+                {
+                    const float cosTheta = Abs(Vector4::Dot3(ray.dir, shadingData.normal));
+                    const float directPdfW = PdfAtoW(directPdfA, hitPoint.distance, cosTheta);
+                    misWeight = CombineMis(lastPdfW, directPdfW /* * lightPickProb*/); // ???????
+                }
+
+                resultColor += throughput * lightContribution * misWeight;
+            }
+
             pathTerminationReason = PathTerminationReason::HitLight;
             break;
         }
-
-        mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
 
         // accumulate emission color
         const Color emissionColor = Color::SampleRGB(context.wavelength, shadingData.material->GetEmissionColor(shadingData.texCoord));
@@ -175,6 +248,8 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         // generate secondary ray
         ray = Ray(shadingData.position, incomingDirWorldSpace);
         ray.origin += ray.dir * 0.001f;
+
+        lastSpecular = false; // TODO
 
         depth++;
     }

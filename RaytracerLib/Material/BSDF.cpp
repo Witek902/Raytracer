@@ -10,14 +10,9 @@ namespace rt {
 
 using namespace math;
 
-OrenNayarBSDF::OrenNayarBSDF()
-    : mBaseColor(1.0f, 1.0f, 1.0f, 0.0f)
-    , mRoughness(0.1f)
-{}
 
-OrenNayarBSDF::OrenNayarBSDF(const Vector4& baseColor, const float roughness)
-    : mBaseColor(baseColor)
-    , mRoughness(roughness)
+OrenNayarBSDF::OrenNayarBSDF(const float roughness)
+    : mRoughness(roughness)
 {}
 
 void OrenNayarBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
@@ -56,7 +51,7 @@ void OrenNayarBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, V
     }
 }
 
-Vector4 OrenNayarBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
+Vector4 OrenNayarBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir, Float* outDirectPdfW) const
 {
     RT_UNUSED(outgoingDir);
 
@@ -65,6 +60,12 @@ Vector4 OrenNayarBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incom
 
     if (NdotV > 0.0f || NdotL > 0.0f)
     {
+        if (outDirectPdfW)
+        {
+            // cos-weighted hemisphere distribution
+            *outDirectPdfW = outgoingDir.z / RT_PI;
+        }
+
         const float LdotV = Max(0.0f, Vector4::Dot3(outgoingDir, -incomingDir));
 
         const float s2 = mRoughness * mRoughness;
@@ -96,11 +97,8 @@ static float NormalDistribution_GGX(const float NdotH, const float roughness)
     return a2 / (RT_PI * denomTerm * denomTerm);
 }
 
-void CookTorranceBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
+static const Vector4 Sample_GGX(Random& randomGenerator, const Float a)
 {
-    RT_UNUSED(wavelength);
-
-    const float a = mRougness * mRougness;
     const float a2 = a * a;
 
     // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
@@ -110,8 +108,17 @@ void CookTorranceBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir
     const float sinTheta = sqrtf(1.0f - cosThetaSqr);
     const float phi = 2.0f * RT_PI * u.y;
 
+    return Vector4(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta, 0.0f);
+}
+
+void CookTorranceBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir, Vector4& outIncomingDir, Color& outWeight, Random& randomGenerator) const
+{
+    RT_UNUSED(wavelength);
+
+    const float a = mRougness * mRougness;
+
     // microfacet normal (aka. half vector)
-    const Vector4 m(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta, 0.0f);
+    const Vector4 m = Sample_GGX(randomGenerator, a);
 
     outIncomingDir = -Vector4::Reflect3(outgoingDir, m);
 
@@ -136,7 +143,7 @@ void CookTorranceBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir
     outWeight = Color::One() * G;
 }
 
-Vector4 CookTorranceBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
+Vector4 CookTorranceBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir, Float* outDirectPdfW) const
 {
     const Vector4 half = (outgoingDir - incomingDir).FastNormalized3();
     const float NdotH = half.z;
@@ -160,7 +167,12 @@ Vector4 CookTorranceBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& in
 
     const float D = NormalDistribution_GGX(NdotH, mRougness);
 
-    return Vector4(D * G / (NdotV));
+    if (outDirectPdfW)
+    {
+        *outDirectPdfW = D * G / NdotV;
+    }
+
+    return Vector4(D * G / NdotV);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,10 +215,16 @@ void TransparencyBSDF::Sample(Wavelength& wavelength, const Vector4& outgoingDir
     outIncomingDir = Vector4::RefractZ(-outgoingDir, ior);
 }
 
-Vector4 TransparencyBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir) const
+Vector4 TransparencyBSDF::Evaluate(const Vector4& outgoingDir, const Vector4& incomingDir, Float* outDirectPdfW) const
 {
     RT_UNUSED(outgoingDir);
     RT_UNUSED(incomingDir);
+
+    if (outDirectPdfW)
+    {
+        // TODO
+        *outDirectPdfW = 0.0f;
+    }
 
     return Vector4();
 }

@@ -24,7 +24,13 @@ public:
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const = 0;
 
     // Illuminate a point in the scene.
-    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance) const = 0;
+    // Returns probability of sampling the returned direction.
+    virtual const Color Illuminate(
+        const math::Vector4& scenePoint,
+        RenderingContext& context,
+        math::Vector4& outDirectionToLight,
+        float& outDistance,
+        float& outDirectPdfW) const = 0;
 
     /*
     // Emit random light photon from the light
@@ -35,7 +41,12 @@ public:
         */
 
     // Returns radiance for ray hitting the light directly
-    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const = 0;
+    // Optionally returns probability of hitting this point
+    virtual const Color GetRadiance(
+        RenderingContext& context,
+        const math::Vector4& rayDirection,
+        const math::Vector4& hitPoint,
+        Float* outDirectPdfA = nullptr) const = 0;
 
     // Returs true if the light has finite extent.
     // E.g. point or area light.
@@ -69,8 +80,8 @@ public:
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
-    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance) const override;
-    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const override;
+    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const override;
+    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const override;
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final; 
 };
@@ -81,29 +92,25 @@ public:
 class RAYLIB_API AreaLight : public ILight
 {
 public:
-    AreaLight() = default;
+    AreaLight(const math::Vector4& p0, const math::Vector4& edge0, const math::Vector4& edge1, const math::Vector4& color);
 
-    AreaLight(const math::Vector4& p0, const math::Vector4& edge0, const math::Vector4& edge1, const math::Vector4& color)
-        : p0(p0)
-        , edge0(edge0)
-        , edge1(edge1)
-        , color(color)
-    {}
+    virtual const math::Box GetBoundingBox() const override;
+    virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
+    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const override;
+    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const override;
+    virtual bool IsFinite() const override final;
+    virtual bool IsDelta() const override final;
 
+private:
     math::Vector4 p0;
     math::Vector4 edge0;
     math::Vector4 edge1;
 
     math::Vector4 color;
 
-    bool isTriangle = false;
+    Float invArea; // inverted surface area
 
-    virtual const math::Box GetBoundingBox() const override;
-    virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
-    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance) const override;
-    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const override;
-    virtual bool IsFinite() const override final;
-    virtual bool IsDelta() const override final;
+    bool isTriangle = false;
 };
 
 
@@ -124,8 +131,8 @@ public:
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
-    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance) const override;
-    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const override;
+    virtual const Color Illuminate(const math::Vector4& scenePoint, RenderingContext& context, math::Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const override;
+    virtual const Color GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const override;
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final;
 };

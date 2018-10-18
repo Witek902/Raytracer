@@ -233,6 +233,7 @@ struct RT_ALIGN(16) Vector4
      * @return Length of vector @p.
      */
     RT_FORCE_INLINE Float Length3() const;
+    RT_FORCE_INLINE Float SqrLength3() const;
 
     /**
      * Calculate length of a 3D vector.

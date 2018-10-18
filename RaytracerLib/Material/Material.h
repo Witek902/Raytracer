@@ -28,6 +28,26 @@ struct RAYLIB_API DispersionParams
     DispersionParams();
 };
 
+template<typename T>
+struct MaterialParameter
+{
+    T baseValue;
+    Bitmap* texture = nullptr;
+
+    RT_FORCE_INLINE const math::Vector4 Sample(const math::Vector4 uv) const
+    {
+        T value = baseValue;
+
+        if (texture)
+        {
+            // TODO
+            value *= texture->Sample(uv, SamplerDesc());
+        }
+
+        return value;
+    }
+};
+
 // simple PBR material
 class RAYLIB_API RT_ALIGN(16) Material : public Aligned<16>
 {
@@ -91,7 +111,8 @@ public:
         const Wavelength& wavelength,
         const ShadingData& shadingData,
         const math::Vector4& outgoingDirWorldSpace,
-        const math::Vector4& incomingDirWorldSpace) const;
+        const math::Vector4& incomingDirWorldSpace,
+        Float* outPdfW = nullptr) const;
 
     // sample material's BSDFs
     const Color Sample(
@@ -99,7 +120,8 @@ public:
         const math::Vector4& outgoingDirWorldSpace,
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
-        math::Random& randomGenerator) const;
+        math::Random& randomGenerator,
+        Float* outPdfW = nullptr) const;
 
 private:
     Material(const Material&) = delete;
@@ -107,6 +129,7 @@ private:
 
     std::unique_ptr<BSDF> mDiffuseBSDF;
     std::unique_ptr<BSDF> mSpecularBSDF;
+    std::unique_ptr<BSDF> mTransparencyBSDF;
 };
 
 } // namespace rt

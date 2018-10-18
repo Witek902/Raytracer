@@ -69,6 +69,15 @@ RT_FORCE_INLINE constexpr T Abs(const T x)
 }
 
 /**
+ * Square.
+ */
+template<typename T>
+RT_FORCE_INLINE constexpr T Sqr(const T x)
+{
+    return x * x;
+}
+
+/**
  * Returns x with sign of y
  */
 RT_FORCE_INLINE float CopySign(const float x, const float y)

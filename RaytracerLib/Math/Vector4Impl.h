@@ -661,6 +661,11 @@ Float Vector4::Length3() const
     return result;
 }
 
+Float Vector4::SqrLength3() const
+{
+    return Dot3(*this, *this);
+}
+
 const Vector4 Vector4::Length3V() const
 {
     const __m128 vDot = Dot3V(v, v);

@@ -14,8 +14,8 @@
 
 struct Options
 {
-    Uint32 windowWidth = 960;
-    Uint32 windowHeight = 540;
+    Uint32 windowWidth = 1280;
+    Uint32 windowHeight = 720;
     std::string dataPath;
 
     // TODO JSON scene description

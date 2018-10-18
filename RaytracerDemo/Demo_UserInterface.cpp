@@ -176,6 +176,11 @@ void DemoWindow::RenderUI_Settings()
     {
         ResetFrame();
     }
+
+    if (ImGui::Button("Take screenshot"))
+    {
+        mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
+    }
 }
 
 bool DemoWindow::RenderUI_Settings_Rendering()

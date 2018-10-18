@@ -132,16 +132,9 @@ void InitScene_Simple_AreaLight(rt::Scene& scene, DemoWindow::Materials& materia
     {
         const Vector4 lightColor(10.0f, 10.0f, 10.0f, 0.0f);
         const Vector4 lightPosition(4.0f, 4.0f, 4.0f, 0.0f);
-        const Vector4 lightEdge0(-1.0f, 0.0f, 1.0f, 0.0f);
-        const Vector4 lightEdge1(0.0f, 1.0f, 0.0f, 0.0f);
+        const Vector4 lightEdge0(-0.5f, 1.0f, -0.5f, 0.0f);
+        const Vector4 lightEdge1(-1.0f, 0.0f, 1.0f, 0.0f);
         scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
-
-        /*
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(2.0f, material.get());
-        instance->mTransform.SetTranslation(Vector4(4.0f, 4.0f, 4.0f, 0.0f));
-        scene.AddObject(std::move(instance));
-        materials.push_back(std::move(material));
-        */
     }
 }
 
@@ -172,25 +165,25 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
     // lights
     {
         {
-            const Vector4 lightColor(25.0f, 0.5f, 0.5f, 0.0f);
-            const Vector4 lightPosition(2.0f, 0.0f, -1.0f, 0.0f);
-            const Vector4 lightEdge0(0.0f, 2.0f, 0.0f, 0.0f);
+            const Vector4 lightColor(25.0f, 0.05f, 0.05f, 0.0f);
+            const Vector4 lightPosition(2.0f, 0.5f, -1.0f, 0.0f);
+            const Vector4 lightEdge0(0.0f, 1.0f, 0.0f, 0.0f);
             const Vector4 lightEdge1(0.02f, 0.0f, 0.0f, 0.0f);
             scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
         }
 
         {
-            const Vector4 lightColor(0.1f, 5.0f, 0.1f, 0.0f);
-            const Vector4 lightPosition(0.0f, 0.0f, -1.0f, 0.0f);
-            const Vector4 lightEdge0(0.0f, 2.0f, 0.0f, 0.0f);
+            const Vector4 lightColor(0.01f, 5.0f, 0.01f, 0.0f);
+            const Vector4 lightPosition(0.0f, 0.5f, -1.0f, 0.0f);
+            const Vector4 lightEdge0(0.0f, 1.0f, 0.0f, 0.0f);
             const Vector4 lightEdge1(0.1f, 0.0f, 0.0f, 0.0f);
             scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
         }
 
         {
-            const Vector4 lightColor(0.02f, 0.02f, 1.0f, 0.0f);
-            const Vector4 lightPosition(-2.0f, 0.0f, -1.0f, 0.0f);
-            const Vector4 lightEdge0(0.0f, 2.0f, 0.0f, 0.0f);
+            const Vector4 lightColor(0.002f, 0.002f, 1.0f, 0.0f);
+            const Vector4 lightPosition(-2.0f, 0.5f, -1.0f, 0.0f);
+            const Vector4 lightEdge0(0.0f, 1.0f, 0.0f, 0.0f);
             const Vector4 lightEdge1(0.5f, 0.0f, 0.0f, 0.0f);
             scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
         }

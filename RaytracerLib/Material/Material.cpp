@@ -42,7 +42,7 @@ void Material::Compile()
     }
     else
     {
-        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(baseColor, roughness);
+        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(roughness); // TODO
     }
 
     mSpecularBSDF = std::make_unique<CookTorranceBSDF>(roughness);
@@ -133,7 +133,8 @@ const Color Material::Evaluate(
     const Wavelength& wavelength,
     const ShadingData& shadingData,
     const Vector4& outgoingDirWorldSpace,
-    const Vector4& incomingDirWorldSpace) const
+    const Vector4& incomingDirWorldSpace,
+    Float* outPdfW) const
 {
     // TODO this is already done in Sample()
     const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
@@ -145,6 +146,11 @@ const Color Material::Evaluate(
         return Color();
     }
 
+    if (outPdfW)
+    {
+        *outPdfW = 0.0f;
+    }
+
     Vector4 metalValue;
     Vector4 dielectricValue;
 
@@ -153,7 +159,7 @@ const Color Material::Evaluate(
 
     if (metalnessValue > 0.0f)
     {
-        metalValue = baseColorValue * FresnelMetal(NdotV, IoR, K) * mSpecularBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace);
+        metalValue = baseColorValue * FresnelMetal(NdotV, IoR, K) * mSpecularBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace, outPdfW);
     }
 
     if (metalnessValue < 1.0f)
@@ -163,8 +169,8 @@ const Color Material::Evaluate(
         const float specularWeight = totalInternalReflection ? 1.0f : F;
         const float diffuseWeight = 1.0f - specularWeight;
 
-        dielectricValue = specularWeight * mSpecularBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace);
-        dielectricValue += diffuseWeight * baseColorValue * mDiffuseBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace);
+        dielectricValue = specularWeight * mSpecularBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace, outPdfW);
+        dielectricValue += diffuseWeight * baseColorValue * mDiffuseBSDF->Evaluate(outgoingDirLocalSpace, incomingDirLocalSpace, outPdfW);
     }
 
     const Vector4 value = Vector4::Lerp(dielectricValue, metalValue, metalnessValue);
@@ -176,7 +182,8 @@ const Color Material::Sample(
     const Vector4& outgoingDirWorldSpace,
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
-    Random& randomGenerator) const
+    Random& randomGenerator,
+    Float* outPdfW) const
 {
     const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
     const float NdotV = outgoingDirLocalSpace.z;
@@ -221,7 +228,15 @@ const Color Material::Sample(
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(incomingDirLocalSpace);
 
+    if (outPdfW)
+    {
+        *outPdfW = 0.0f;
+    }
+
     return weight * Color::SampleRGB(wavelength, value);
 }
+
+///
+
 
 } // namespace rt

@@ -21,20 +21,24 @@ bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color PointLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance) const
+const Color PointLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
 {
     outDirectionToLight = position - scenePoint;
-    outDistance = outDirectionToLight.Length3();
+    const float sqrDistance = outDirectionToLight.SqrLength3();
+
+    outDirectPdfW = sqrDistance;
+    outDistance = std::sqrt(sqrDistance);
     outDirectionToLight /= outDistance;
 
     return Color::SampleRGB(context.wavelength, color);
 }
 
-const Color PointLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const
+const Color PointLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(rayDirection);
     RT_UNUSED(hitPoint);
     RT_UNUSED(context);
+    RT_UNUSED(outDirectPdfA);
 
     RT_FATAL("Cannot hit point light");
     return Color();
@@ -51,6 +55,21 @@ bool PointLight::IsDelta() const
 }
 
 /////////////////////////////////////////////////////////////////
+
+AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edge1, const Vector4& color)
+    : p0(p0)
+    , edge0(edge0)
+    , edge1(edge1)
+    , color(color)
+{
+    Float surfaceArea = Vector4::Cross3(edge0, edge1).Length3();
+    if (isTriangle)
+    {
+        surfaceArea *= 0.5f;
+    }
+
+    invArea = 1.0f / surfaceArea;
+}
 
 const Box AreaLight::GetBoundingBox() const
 {
@@ -85,25 +104,44 @@ bool AreaLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color AreaLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance) const
+const Color AreaLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
 {
     const Float2 uv = isTriangle ? context.randomGenerator.GetTriangle() : context.randomGenerator.GetFloat2();
     const Vector4 lightPoint = p0 + edge0 * uv.x + edge1 * uv.y;
 
     outDirectionToLight = lightPoint - scenePoint;
-    outDistance = outDirectionToLight.Length3();
+    const float sqrDistance = outDirectionToLight.SqrLength3();
+
+    outDistance = sqrtf(sqrDistance);
     outDirectionToLight /= outDistance;
 
-    // TODO include light area
+    const Vector4 normal = Vector4::Cross3(edge1, edge0).Normalized3();
+    const float cosNormalDir = Vector4::Dot3(normal, -outDirectionToLight);
+    if (cosNormalDir < RT_EPSILON)
+    {
+        return Color();
+    }
+
+    outDirectPdfW = invArea * sqrDistance / cosNormalDir;
 
     return Color::SampleRGB(context.wavelength, color);
 }
 
-const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const
+const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
-    RT_UNUSED(rayDirection);
     RT_UNUSED(hitPoint);
-    // TODO
+
+    const Vector4 normal = Vector4::Cross3(edge1, edge0).Normalized3();
+    const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
+    if (cosNormalDir < RT_EPSILON)
+    {
+        return Color();
+    }
+    
+    if (outDirectPdfA)
+    {
+        *outDirectPdfA = invArea;
+    }
 
     return Color::SampleRGB(context.wavelength, color);
 }
@@ -134,22 +172,24 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) cons
     return false;
 }
 
-const Color DirectionalLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance) const
+const Color DirectionalLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
 {
     RT_UNUSED(context);
     RT_UNUSED(scenePoint);
 
     outDirectionToLight = -direction;
     outDistance = 1.0f;
+    outDirectPdfW = 1.0f;
 
     return Color::SampleRGB(context.wavelength, color);
 }
 
-const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint) const
+const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(rayDirection);
     RT_UNUSED(hitPoint);
     RT_UNUSED(context);
+    RT_UNUSED(outDirectPdfA);
 
     RT_FATAL("Cannot hit directinal");
     return Color();
