@@ -149,6 +149,8 @@ const Float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 
 /////////////////////////////////////////////////////////////////////////////////
 
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+
 void Wavelength::Randomize(Random& rng)
 {
     constexpr float offset = 1.0f / static_cast<float>(NumComponents);
@@ -286,7 +288,7 @@ Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbValues)
     return result * 0.86445f;
 }
 
-Vector4 Color::ToXYZ(const Wavelength& wavelength) const
+Vector4 Color::Resolve(const Wavelength& wavelength) const
 {
     Vector3x8 xyz;
     Color illuminant = SampleSpectrum(illuminantD65, NumBins, wavelength);
@@ -303,5 +305,23 @@ Vector4 Color::ToXYZ(const Wavelength& wavelength) const
     result *= colorMatchinhNormFactor / static_cast<float>(Wavelength::NumComponents);
     return result;
 }
+
+#else // !RT_ENABLE_SPECTRAL_RENDERING
+
+void Wavelength::Randomize(Random&)
+{
+}
+
+Color Color::SampleRGB(const Wavelength&, const Vector4& rgbValues)
+{
+    return Color{ rgbValues };
+}
+
+Vector4 Color::Resolve(const Wavelength&) const
+{
+    return value;
+}
+
+#endif // RT_ENABLE_SPECTRAL_RENDERING
 
 } // namespace rt

@@ -158,7 +158,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
                 // generate primary ray
                 const Ray ray = camera.GenerateRay(coords * invSize, context);
                 const Color color = scene.TraceRay_Single(ray, context);
-                sampleColor += color.ToXYZ(context.wavelength);
+                sampleColor += color.Resolve(context.wavelength);
             }
 
             sumPixels[renderTargetWidth * y + x] += sampleColor;
@@ -193,7 +193,7 @@ void Viewport::RenderTile(const Scene& scene, const Camera& camera, RenderingCon
                 }
                 color *= 1.0f / 8.0f;
 
-                const Vector4 cieXYZ = color.ToXYZ(context.wavelength);
+                const Vector4 cieXYZ = color.Resolve(context.wavelength);
                 sumPixels[renderTargetWidth * y + x] += cieXYZ;
             }
         }

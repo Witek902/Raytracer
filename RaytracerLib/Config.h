@@ -7,4 +7,5 @@
 #define RT_ENABLE_PATH_DEBUGGING
 
 // enables spectral rendering via Monte Carlo wavelength sampling
-#define RT_ENABLE_SPECTRAL_RENDERING
+// NOTE: this slows down everything significantly
+// #define RT_ENABLE_SPECTRAL_RENDERING

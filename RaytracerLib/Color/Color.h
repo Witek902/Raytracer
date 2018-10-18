@@ -17,8 +17,14 @@ struct Wavelength
 {
     static constexpr float Lower = 0.380e-6f;
     static constexpr float Higher = 0.720e-6f;
+
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
     static constexpr Uint32 NumComponents = 8;
     using ValueType = math::Vector8;
+#else
+    static constexpr Uint32 NumComponents = 4;
+    using ValueType = math::Vector4;
+#endif 
 
     ValueType value;
 
@@ -47,12 +53,20 @@ struct Color
 
     RT_FORCE_INLINE static Color One()
     {
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
         return Color{ math::VECTOR8_ONE };
+#else
+        return Color{ math::VECTOR_ONE };
+#endif
     }
 
     RT_FORCE_INLINE static Color SingleWavelengthFallback()
     {
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
         return Color{ math::Vector8(8.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
+#else
+        return Color{ math::VECTOR_ONE };
+#endif
     }
 
     RT_FORCE_INLINE Color operator + (const Color& other) const
@@ -90,7 +104,7 @@ struct Color
 
     RT_FORCE_INLINE bool AlmostZero() const
     {
-        return math::Vector8::AlmostEqual(value, math::Vector8());
+        return Wavelength::ValueType::AlmostEqual(value, Wavelength::ValueType());
     }
 
     RT_FORCE_INLINE Float Max() const
@@ -100,17 +114,18 @@ struct Color
 
     RT_FORCE_INLINE bool Validate() const
     {
-        return math::Vector8::GreaterEqMask(value, math::Vector8()) == 0xFF;
+        return Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
     }
 
     // calculate ray color values for given wavelength and linear RGB values
-    RAYLIB_API static Color BlackBody(const Wavelength& wavelength, const float temperature);
+    static Color BlackBody(const Wavelength& wavelength, const float temperature);
 
     // calculate ray color values for given wavelength and linear RGB values
-    RAYLIB_API static Color SampleRGB(const Wavelength& wavelength, const math::Vector4& rgbValues);
+    static Color SampleRGB(const Wavelength& wavelength, const math::Vector4& rgbValues);
 
     // convert to CIE XYZ tristimulus values
-    RAYLIB_API math::Vector4 ToXYZ(const Wavelength& wavelength) const;
+    // NOTE: when spectral rendering is disabled, this function does nothing
+    math::Vector4 Resolve(const Wavelength& wavelength) const;
 };
 
 
