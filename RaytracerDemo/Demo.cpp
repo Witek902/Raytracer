@@ -171,7 +171,7 @@ void DemoWindow::ResetCounters()
     mAccumulatedRenderTime = 0.0;
     mAverageRenderDeltaTime = 0.0;
     mTotalRenderTime = 0.0;
-    mPostProcessDeltaTime = 0.0;
+    mPostProcessDeltaTime = 10000.0;
 }
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
@@ -358,7 +358,7 @@ bool DemoWindow::Loop()
         //// post process
         localTimer.Start();
         mViewport->PostProcess(mPostprocessParams);
-        mPostProcessDeltaTime = localTimer.Stop();
+        mPostProcessDeltaTime = math::Min(mPostProcessDeltaTime, localTimer.Stop());
 
         RenderUI();
 

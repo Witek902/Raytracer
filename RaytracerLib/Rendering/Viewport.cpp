@@ -112,6 +112,9 @@ bool Viewport::PostProcess(const PostprocessParams& params)
 
     mThreadPool.RunParallelTask(taskCallback, numTiles, 1);
 
+    // flush non-temporal stores
+    _mm_mfence();
+
     return true;
 }
 
@@ -287,12 +290,8 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
         const Vector4 toneMapped = ToneMap(rgbColor * colorMultiplier);
         const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), params.ditheringStrength, toneMapped);
 
-        const Vector4 clampedValue = dithered.Swizzle<2, 1, 0, 3>().Clamped(Vector4(), VECTOR_ONE) * 255.0f;
-        clampedValue.Store4_NonTemporal(frontBufferPixels + 4 * i);
+        dithered.StoreBGR_NonTemporal(frontBufferPixels + 4 * i);
     }
-
-    // flush non-temporal stores
-    _mm_mfence();
 }
 
 void Viewport::Reset()

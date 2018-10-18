@@ -10,21 +10,28 @@ RT_GLOBAL_CONST math::Vector4 XYZtoRGB_r = {  3.240479f, -1.537150f, -0.498535f,
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_g = { -0.969256f,  1.875991f,  0.041556f, 0.0f };
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_b = {  0.055648f, -0.204043f,  1.057311f, 0.0f };
 
+
+static RT_FORCE_INLINE void Transpose3(math::Vector4& a, math::Vector4& b, math::Vector4& c)
+{
+    const math::Vector4 t0 = _mm_unpacklo_ps(a, b);
+    const math::Vector4 t1 = _mm_unpacklo_ps(c, c);
+    const math::Vector4 t2 = _mm_unpackhi_ps(a, b);
+    const math::Vector4 t3 = _mm_unpackhi_ps(c, c);
+    a = _mm_movelh_ps(t0, t1);
+    b = _mm_movehl_ps(t1, t0);
+    c = _mm_movelh_ps(t2, t3);
+}
+
 // Convert CIE XYZ to linear RGB (Rec. BT.709)
 RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4 xyzColor)
 {
-    const math::Vector4 r = XYZtoRGB_r * xyzColor;
-    const math::Vector4 g = XYZtoRGB_g * xyzColor;
-    const math::Vector4 b = XYZtoRGB_b * xyzColor;
+    math::Vector4 r = XYZtoRGB_r * xyzColor;
+    math::Vector4 g = XYZtoRGB_g * xyzColor;
+    math::Vector4 b = XYZtoRGB_b * xyzColor;
 
-    const math::Vector4 rgb(
-        r[0] + r[1] + r[2],
-        g[0] + g[1] + g[2],
-        b[0] + b[1] + b[2],
-        0.0f
-    );
+    Transpose3(r, g, b);
 
-    return rgb;
+    return r + g + b;
 }
 
 // Convert linear RGB (Rec. BT.709) to CIE XYZ

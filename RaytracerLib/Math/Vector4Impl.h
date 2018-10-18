@@ -92,13 +92,29 @@ const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
 
-void Vector4::Store4_NonTemporal(Uint8* dest) const
+void Vector4::StoreBGR_NonTemporal(Uint8* dest) const
 {
-    // Clamp to Uint8 range
-    const Vector4 vResult = Clamp(*this, Vector4(), VECTOR_255);
+    const Vector4 scale = VECTOR_255;
+    const Vector4 scaled = (*this) * scale;
+    const Vector4 fixed = scaled.Clamped(Vector4(), scale);
 
     // Convert to int & extract components
-    __m128i vResulti = _mm_cvttps_epi32(vResult);
+    // in: 000000BB  000000GG  000000RR
+    // out:                    00RRGGBB
+    const __m128i vInt = _mm_cvttps_epi32(fixed);
+    const __m128i b = _mm_srli_si128(vInt, 8);
+    const __m128i g = _mm_srli_si128(vInt, 3);
+    const __m128i r = _mm_slli_si128(vInt, 2);
+
+    __m128i result = _mm_or_si128(r, _mm_or_si128(g, b));
+
+    _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(result, 0));
+}
+
+void Vector4::Store4_NonTemporal(Uint8* dest) const
+{
+    // Convert to int & extract components
+    __m128i vResulti = _mm_cvttps_epi32(v);
     __m128i Yi = _mm_srli_si128(vResulti, 3);
     __m128i Zi = _mm_srli_si128(vResulti, 6);
     __m128i Wi = _mm_srli_si128(vResulti, 9);

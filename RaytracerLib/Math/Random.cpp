@@ -119,7 +119,6 @@ const Vector4 Random::GetVector4()
     // setup float mask
     v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
     v = _mm_or_si128(v, _mm_set1_epi32(0x3f800000u));
-    v = _mm_add_epi32(v, _mm_set1_epi32(1u));
 
     // convert to float and go from [1, 2) to [0, 1) range
     Vector4 result = _mm_castsi128_ps(v);
@@ -135,7 +134,6 @@ const Vector4 Random::GetVector4Bipolar()
     // setup float mask
     v = _mm_and_si128(v, _mm_set1_epi32(0x007fffffu));
     v = _mm_or_si128(v, _mm_set1_epi32(0x40000000u));
-    v = _mm_add_epi32(v, _mm_set1_epi32(1u));
 
     // convert to float and go from [2, 4) to [-1, 1) range
     Vector4 result = _mm_castsi128_ps(v);
@@ -151,7 +149,6 @@ const Vector8 Random::GetVector8()
     // setup float mask
     v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
     v = _mm256_or_si256(v, _mm256_set1_epi32(0x3f800000u));
-    v = _mm256_add_epi32(v, _mm256_set1_epi32(1u));
 
     // convert to float and go from [1, 2) to [0, 1) range
     Vector8 result = _mm256_castsi256_ps(v);
@@ -167,7 +164,6 @@ const Vector8 Random::GetVector8Bipolar()
     // setup float mask
     v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
     v = _mm256_or_si256(v, _mm256_set1_epi32(0x40000000u));
-    v = _mm256_add_epi32(v, _mm256_set1_epi32(1u));
 
     // convert to float and go from [2, 4) to [-1, 1) range
     Vector8 result = _mm256_castsi256_ps(v);

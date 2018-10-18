@@ -21,7 +21,7 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
     ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
     ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
-    ImGui::Text("Post-process time:   %.3f ms", 1000.0 * mPostProcessDeltaTime);
+    ImGui::Text("Post-process time:   %.2f ms", 1000.0 * mPostProcessDeltaTime);
     ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
     ImGui::Text("Frame number:        %u", mFrameNumber);
 

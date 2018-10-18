@@ -113,6 +113,11 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 LoadBGR_UNorm(const Uint8* src);
 
     /**
+     * Convert to 3 uint8 values.
+     */
+    RT_FORCE_INLINE void StoreBGR_NonTemporal(Uint8* dest) const;
+
+    /**
      * Convert a Vector4 to 4 unsigned chars.
      */
     RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
