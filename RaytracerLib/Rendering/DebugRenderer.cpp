@@ -11,6 +11,12 @@ namespace rt {
 
 using namespace math;
 
+// convert [-1..1] range to [0..1]
+static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
+{
+    return Vector4::MulAndAdd(x, VECTOR_HALVES, VECTOR_HALVES);
+}
+
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
     , mRenderingMode(DebugRenderingMode::BaseColor)
@@ -45,22 +51,22 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         }
         case DebugRenderingMode::Normals:
         {
-            resultColor = Vector4::MulAndAdd(shadingData.normal, VECTOR_HALVES, VECTOR_HALVES);
+            resultColor = ScaleBipolarRange(shadingData.normal);
             break;
         }
         case DebugRenderingMode::Tangents:
         {
-            resultColor = Vector4::MulAndAdd(shadingData.tangent, VECTOR_HALVES, VECTOR_HALVES);
+            resultColor = ScaleBipolarRange(shadingData.tangent);
             break;
         }
         case DebugRenderingMode::Bitangents:
         {
-            resultColor = Vector4::MulAndAdd(shadingData.bitangent, VECTOR_HALVES, VECTOR_HALVES);
+            resultColor = ScaleBipolarRange(shadingData.bitangent);
             break;
         }
         case DebugRenderingMode::Position:
         {
-            resultColor = Vector4::MulAndAdd(shadingData.position, VECTOR_HALVES, VECTOR_HALVES);
+            resultColor = ScaleBipolarRange(shadingData.position);
             break;
         }
         case DebugRenderingMode::TexCoords:
@@ -79,22 +85,34 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         // Material
         case DebugRenderingMode::BaseColor:
         {
-            resultColor = shadingData.material->GetBaseColor(shadingData.texCoord);
+            if (shadingData.material)
+            {
+                resultColor = shadingData.material->GetBaseColor(shadingData.texCoord);
+            }
             break;
         }
         case DebugRenderingMode::Emission:
         {
-            resultColor = shadingData.material->GetEmissionColor(shadingData.texCoord);
+            if (shadingData.material)
+            {
+                resultColor = shadingData.material->GetEmissionColor(shadingData.texCoord);
+            }
             break;
         }
         case DebugRenderingMode::Roughness:
         {
-            resultColor = Vector4(shadingData.material->GetRoughness(shadingData.texCoord));
+            if (shadingData.material)
+            {
+                resultColor = Vector4(shadingData.material->GetRoughness(shadingData.texCoord));
+            }
             break;
         }
         case DebugRenderingMode::Metalness:
         {
-            resultColor = Vector4(shadingData.material->GetMetalness(shadingData.texCoord));
+            if (shadingData.material)
+            {
+                resultColor = Vector4(shadingData.material->GetMetalness(shadingData.texCoord));
+            }
             break;
         }
 

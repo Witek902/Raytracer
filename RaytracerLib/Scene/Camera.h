@@ -54,8 +54,10 @@ public:
 
     void SetPerspective(const math::Transform& transform, Float aspectRatio, Float FoV);
 
+    void SetAngularVelocity(const math::Quaternion& quat);
+
     // Sample camera transfrom for given time point
-    math::Transform SampleTransform(const float time) const;
+    RT_FORCE_INLINE math::Transform SampleTransform(const float time) const;
 
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
@@ -71,7 +73,6 @@ public:
 
     // camera velocity
     math::Vector4 mLinearVelocity;
-    math::Quaternion mAngularVelocity;
 
     // width to height ratio
     Float mAspectRatio;
@@ -89,6 +90,9 @@ public:
 
 private:
     Float mTanHalfFoV;
+
+    math::Quaternion mAngularVelocity;
+    bool mAngularVelocityIsZero;
 };
 
 } // namespace rt

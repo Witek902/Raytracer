@@ -440,10 +440,10 @@ void DemoWindow::UpdateCamera()
         const Quaternion q1 = cameraOrientation.Conjugate();
         const Quaternion q2 = oldCameraSetup.mTransform.GetRotation();
 
-        mCamera.mAngularVelocity = (q1 * q2).Normalized();
+        mCamera.SetAngularVelocity(q1 * q2);
     }
     else
     {
-        mCamera.mAngularVelocity = Quaternion::Identity();
+        mCamera.SetAngularVelocity(Quaternion::Identity());
     }
 }

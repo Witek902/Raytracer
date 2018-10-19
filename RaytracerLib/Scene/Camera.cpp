@@ -23,22 +23,24 @@ void Camera::SetPerspective(const math::Transform& transform, Float aspectRatio,
     mTanHalfFoV = tanf(mFieldOfView * 0.5f);
 }
 
+void Camera::SetAngularVelocity(const math::Quaternion& quat)
+{
+    mAngularVelocity = quat.Normalized();
+    mAngularVelocityIsZero = Quaternion::AlmostEqual(mAngularVelocity, Quaternion::Identity());
+}
+
 Transform Camera::SampleTransform(const float time) const
 {
-    const Vector4 position = mTransform.GetTranslation() + mLinearVelocity * time;
-    const Quaternion rotation0 = mTransform.GetRotation();
-    Quaternion rotation;
+    const Vector4 position = Vector4::MulAndAdd(mLinearVelocity, time, mTransform.GetTranslation());
+    const Quaternion& rotation0 = mTransform.GetRotation();
 
-    if (Quaternion::AlmostEqual(mAngularVelocity, Quaternion::Identity()))
+    if (mAngularVelocityIsZero)
     {
-        rotation = rotation0;
-    }
-    else
-    {
-        const Quaternion rotation1 = rotation0 * mAngularVelocity;
-        rotation = Quaternion::Interpolate(rotation0, rotation1, time);
+        return Transform(position, rotation0);
     }
 
+    const Quaternion rotation1 = rotation0 * mAngularVelocity;
+    const Quaternion rotation = Quaternion::Interpolate(rotation0, rotation1, time);
     return Transform(position, rotation);
 }
 
@@ -48,7 +50,7 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
 
     // barrel distortion
-    if (enableBarellDistortion)
+    if (barrelDistortionVariableFactor)
     {
         Vector4 radius = Vector4::Dot2V(offsetedCoords, offsetedCoords);
         radius *= (barrelDistortionConstFactor + barrelDistortionVariableFactor * context.randomGenerator.GetFloat());
