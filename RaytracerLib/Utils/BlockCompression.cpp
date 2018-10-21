@@ -48,8 +48,8 @@ Vector4 DecodeBC1(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width)
     return Vector4::Load4((const Uint8*)&rgba) * (1.0f / 255.0f);
     */
 
-    static const Vector4 U565And = { 0x1F << 11, 0x3F << 5, 0x1F, 0 };
-    static const Vector4 U565Mul = { 1.0f / 65536.0f, 1.0f / 2048.f, 1.0f / 32.0f, 0.0f };
+    const Vector4 U565And = { 0x1F << 11, 0x3F << 5, 0x1F, 0 };
+    const Vector4 U565Mul = { 1.0f / 65536.0f, 1.0f / 2048.f, 1.0f / 32.0f, 0.0f };
     const float weights[] = { 0.0f, 1.0f, 1.0f / 3.0f, 2.0f / 3.0f };
 
     const Uint32 blocksInRow = width / 4; // TODO non-4-multiply width support

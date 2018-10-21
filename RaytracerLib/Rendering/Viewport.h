@@ -50,8 +50,15 @@ public:
 private:
     void InitThreadData();
 
+    struct TileRenderingContext
+    {
+        const IRenderer& renderer;
+        const Camera& camera;
+        const math::Vector4 sampleOffset;
+    };
+
     // raytrace single image tile (will be called from multiple threads)
-    void RenderTile(const IRenderer& renderer, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0);
+    void RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, Uint32 x0, Uint32 y0);
 
     // generate "front buffer" image from "average" image
     void PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID);

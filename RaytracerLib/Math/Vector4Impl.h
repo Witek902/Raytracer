@@ -56,6 +56,11 @@ void Vector4::Set(Float scalar)
     v = _mm_set1_ps(scalar);
 }
 
+const Vector4 Vector4::FromInteger(Uint32 x)
+{
+    return Vector4(_mm_cvtepi32_ps(_mm_set1_epi32(x)));
+}
+
 const Vector4 Vector4::FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
 {
     return Vector4(_mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x)));
@@ -65,9 +70,9 @@ const Vector4 Vector4::FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
 
 const Vector4 Vector4::Load4(const Uint8* src)
 {
-    static const Vector4 mask = { 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
-    static const Vector4 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
-    static const Vector4 unsignedOffset = { 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
+    const Vector4 mask = { 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
+    const Vector4 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
+    const Vector4 unsignedOffset = { 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
 
     __m128 vTemp = _mm_load_ps1((const Float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
@@ -81,8 +86,8 @@ const Vector4 Vector4::Load4(const Uint8* src)
 
 const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 {
-    static const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
-    static const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
+    const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
+    const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
     __m128 vTemp = _mm_load_ps1((const Float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);

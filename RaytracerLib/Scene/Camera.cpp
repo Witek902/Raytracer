@@ -11,8 +11,8 @@ Camera::Camera()
     : mAspectRatio(1.0f)
     , mFieldOfView(RT_PI * 60.0f / 180.0f)
     , barrelDistortionConstFactor(0.01f)
-    , barrelDistortionVariableFactor(0.005f)
-    , enableBarellDistortion(true)
+    , barrelDistortionVariableFactor(0.0f)
+    , enableBarellDistortion(false)
 { }
 
 void Camera::SetPerspective(const math::Transform& transform, Float aspectRatio, Float FoV)

@@ -69,13 +69,23 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const Ren
 
     // render
     {
+        // randomize pixel offset
+        const Vector4 u = mThreadData[0].randomGenerator.GetFloatNormal2();
+
+        const TileRenderingContext tileContext =
+        {
+            renderer,
+            camera,
+            u * mThreadData[0].params->antiAliasingSpread
+        };
+
         const Uint32 tileSize = 1u << (Uint32)params.tileOrder;
         const Uint32 rows = 1 + (GetHeight() - 1) / tileSize;
         const Uint32 columns = 1 + (GetWidth() - 1) / tileSize;
 
         const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
         {
-            RenderTile(renderer, camera, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
+            RenderTile(tileContext, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
         };
 
         mThreadPool.RunParallelTask(taskCallback, rows, columns);
@@ -112,11 +122,11 @@ bool Viewport::PostProcess(const PostprocessParams& params)
     return true;
 }
 
-void Viewport::RenderTile(const IRenderer& renderer, const Camera& camera, RenderingContext& context, Uint32 x0, Uint32 y0)
+void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, Uint32 x0, Uint32 y0)
 {
     const Vector4 invSize = Vector4(VECTOR_ONE2) / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
-    const Uint32 tileSize = 1u << context.params->tileOrder;
-    const Uint32 samplesPerPixel = context.params->samplesPerPixel;
+    const Uint32 tileSize = 1u << renderingContext.params->tileOrder;
+    const Uint32 samplesPerPixel = renderingContext.params->samplesPerPixel;
     const Uint32 maxX = Min(x0 + tileSize, GetWidth());
     const Uint32 maxY = Min(y0 + tileSize, GetHeight());
 
@@ -125,7 +135,9 @@ void Viewport::RenderTile(const IRenderer& renderer, const Camera& camera, Rende
     const size_t renderTargetWidth = GetWidth();
     Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mAccumulated.GetData());
 
-    if (context.params->traversalMode == TraversalMode::Single)
+    const Vector4 sampleOffset = renderingContext.randomGenerator.GetFloatNormal2();
+
+    if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 i = 0; i < tileSize * tileSize; ++i)
         {
@@ -137,22 +149,18 @@ void Viewport::RenderTile(const IRenderer& renderer, const Camera& camera, Rende
             if (x >= maxX || y >= maxY) continue;
 
             const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
-            const Vector4 baseCoords = Vector4::FromIntegers(x, realY);
+            const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
             Vector4 sampleColor;
             for (Uint32 s = 0; s < samplesPerPixel; ++s)
             {
-                context.time = context.randomGenerator.GetFloat() * context.params->motionBlurStrength;
-                context.wavelength.Randomize(context.randomGenerator);
-
-                // randomize pixel offset
-                const Vector4 u = context.randomGenerator.GetVector4();
-                const Vector4 coords = Vector4::MulAndAdd(u, context.params->antiAliasingSpread, baseCoords);
+                renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
+                renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
 
                 // generate primary ray
-                const Ray ray = camera.GenerateRay(coords * invSize, context);
-                const Color color = renderer.TraceRay_Single(ray, context);
-                sampleColor += color.Resolve(context.wavelength);
+                const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
+                const Color color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
+                sampleColor += color.Resolve(renderingContext.wavelength);
             }
 
             sumPixels[renderTargetWidth * y + x] += sampleColor;
@@ -233,7 +241,7 @@ void Viewport::RenderTile(const IRenderer& renderer, const Camera& camera, Rende
     }
     */
 
-    context.counters.numPrimaryRays += tileSize * tileSize * context.params->samplesPerPixel;
+    renderingContext.counters.numPrimaryRays += tileSize * tileSize * renderingContext.params->samplesPerPixel;
 }
 
 template<typename T>

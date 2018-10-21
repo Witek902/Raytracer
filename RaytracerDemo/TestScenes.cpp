@@ -20,8 +20,27 @@ void InitScene_Empty(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
     RT_UNUSED(scene);
     RT_UNUSED(materials);
     RT_UNUSED(meshes);
-    
+
     camera = CameraSetup();
+}
+
+void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+{
+    // floor
+    {
+        auto mesh = helpers::CreatePlaneMesh(materials, 100.0f, 1.0f);
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+        instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+        scene.AddObject(std::move(instance));
+        meshes.push_back(std::move(mesh));
+    }
+
+    {
+        camera = CameraSetup();
+        camera.position = Vector4(0.11f, 10.6f, 2.6f, 0.0f);
+        camera.pitch = -0.5f;
+        camera.yaw = -3.0f;
+    }
 }
 
 void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
@@ -329,6 +348,7 @@ void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& ma
 void DemoWindow::RegisterTestScenes()
 {
     mRegisteredScenes["Empty"] = InitScene_Empty;
+    mRegisteredScenes["Plane"] = InitScene_Plane;
     mRegisteredScenes["Specular Test"] = InitScene_Specular_Test;
     mRegisteredScenes["Simple + Background Light"] = InitScene_Simple_BackgroundLight;
     mRegisteredScenes["Simple + Point Light"] = InitScene_Simple_PointLight;

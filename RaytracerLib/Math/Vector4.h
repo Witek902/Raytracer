@@ -47,7 +47,9 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
     RT_FORCE_INLINE void Set(Float scalar);
-    RT_FORCE_INLINE static const Vector4 FromIntegers(Uint32 x, Uint32 y = 0, Uint32 z = 0, Uint32 w = 0);
+
+    RT_FORCE_INLINE static const Vector4 FromInteger(Uint32 x);
+    RT_FORCE_INLINE static const Vector4 FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w);
 
     RT_FORCE_INLINE operator __m128() const { return v; }
     RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }

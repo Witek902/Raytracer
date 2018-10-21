@@ -38,6 +38,7 @@ public:
     enum class Format : Uint8
     {
         Unknown = 0,
+        R8_Uint,
         B8G8R8_Uint,
         B8G8R8A8_Uint,
         R32G32B32_Float,
@@ -97,22 +98,8 @@ public:
     // Note: format must be R32G32B32A32_Float
     void AccumulateFloat_Unsafe(const Uint32 x, const Uint32 y, const math::Vector4 value);
 
-    // write whole pixels row
-    void WriteHorizontalLine(Uint32 y, const math::Vector4* values);
-    void WriteVerticalLine(Uint32 x, const math::Vector4* values);
-
-    // read whole pixels row
-    void ReadHorizontalLine(Uint32 y, math::Vector4* outValues) const;
-    void ReadVerticalLine(Uint32 x, math::Vector4* outValues) const;
-
     // fill with zeros
     void Zero();
-
-    // fast Box blur
-    static Bool VerticalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 radius);
-    static Bool HorizontalBoxBlur(Bitmap& target, const Bitmap& src, const Uint32 radius);
-
-    static Bool Blur(Bitmap& target, const Bitmap& src, const Float sigma, const Uint32 n);
 
 private:
 
@@ -121,9 +108,6 @@ private:
 
     bool LoadBMP(FILE* file, const char* path);
     bool LoadDDS(FILE* file, const char* path);
-
-    static void BoxBlur_Internal(math::Vector4* targetLine, const math::Vector4* srcLine,
-                                 const Uint32 radius, const Uint32 width, const Float factor);
 
     math::Vector4 mSize;
     Uint8* mData;

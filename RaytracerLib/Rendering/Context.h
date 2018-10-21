@@ -24,7 +24,7 @@ struct RenderingParams
 {
     // Antialiasing factor
     // Setting to higher values will blur the image
-    Float antiAliasingSpread = 1.25f;
+    Float antiAliasingSpread = 0.5f;
 
     // Motion blur multiplier
     // NOTE: must be in [0...1] range
