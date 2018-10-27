@@ -3,8 +3,6 @@
 #include "Simd4Vector3.h"
 #include "Ray.h"
 
-#include <assert.h>
-
 
 namespace rt {
 namespace math {

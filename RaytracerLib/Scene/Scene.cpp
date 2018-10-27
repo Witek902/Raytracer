@@ -33,9 +33,9 @@ Scene::Scene(Scene&&) = default;
 
 Scene& Scene::operator = (Scene&&) = default;
 
-void Scene::SetEnvironment(const SceneEnvironment& env)
+void Scene::SetBackgroundLight(std::unique_ptr<BackgroundLight> light)
 {
-    mEnvironment = env;
+    mBackground = std::move(light);
 }
 
 void Scene::AddLight(LightPtr object)
@@ -52,7 +52,7 @@ bool Scene::BuildBVH()
 {
     for (const LightPtr& light : mLights)
     {
-        if (light->IsFinite())
+        if (!light->IsDelta() && light->IsFinite())
         {
             mObjects.emplace_back(std::make_unique<LightSceneObject>(*light));
         }
@@ -288,104 +288,7 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     outShadingData.normal = transform.TransformVector(outShadingData.normal);
 }
 
-void Scene::TraceRay_Simd8(const Ray_Simd8& simdRay, RenderingContext& context, Color* outColors) const
-{
-    HitPoint_Simd8 hitPoints;
-
-    context.localCounters.Reset();
-
-    const SimdTraversalContext traversalContext =
-    {
-        simdRay,
-        hitPoints,
-        context
-    };
-
-    const size_t numObjects = mObjects.size();
-    if (numObjects == 1) // bypass BVH
-    {
-        // TODO transform ray
-        mObjects.front()->Traverse_Simd8(traversalContext, 0);
-    }
-    else if (numObjects > 1) // full BVH traversal
-    {
-        GenericTraverse_Simd8(traversalContext, 0, this);
-    }
-
-    context.counters.Append(context.localCounters);
-
-    Shade_Simd8(simdRay, hitPoints, context, outColors);
-}
-
-void Scene::Shade_Simd8(const Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, RenderingContext& context, Color* outColors) const
-{
-    // TODO if all rays hit the same triangle, use the SIMD version
-
-    Vector4 rayOrigins[8];
-    Vector4 rayDirs[8];
-
-    ray.origin.Unpack(rayOrigins);
-    ray.dir.Unpack(rayDirs);
-
-    ShadingData shadingData;
-
-    for (Uint32 i = 0; i < 8; ++i)
-    {
-        Color resultColor;
-
-        // ray missed - return background color
-        if (hitPoints.objectId[i] == UINT32_MAX)
-        {
-            const Vector4 backgroundColorRGB = mEnvironment.backgroundColor;
-            const Color backgroundColor = Color::SampleRGB(context.wavelength, backgroundColorRGB);
-            //resultColor += throughput * mEnvironment.backgroundColor;
-            resultColor = backgroundColor;
-        }
-        else
-        {
-            const HitPoint hitPoint = hitPoints.Get(i);
-            ExtractShadingData(rayOrigins[i], rayDirs[i], hitPoint, context.time, shadingData);
-        }
-
-        // TODO push secondary rays to output stream
-
-        outColors[i] = resultColor;
-    }
-}
-
-void Scene::Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const
-{
-    ShadingData shadingData;
-
-    const Uint32 numGroups = packet.GetNumGroups();
-    for (Uint32 i = 0; i < numGroups; ++i)
-    {
-        const HitPoint_Simd8& hitPoint = hitPoints[i];
-        const Ray_Simd8& ray = packet.groups[i].rays;
-
-        Color colors[8];
-        Shade_Simd8(ray, hitPoint, context, colors);
-
-        // TODO push secondary rays to output stream
-
-        Vector4 weights[8];
-        packet.weights[i].Unpack(weights);
-
-        for (Uint32 j = 0; j < RayPacket::RaysPerGroup; ++j)
-        {
-            const ImageLocationInfo& imageLocation = packet.imageLocations[RayPacket::RaysPerGroup * i + j];
-
-            //TODO
-            //const Vector4 color = weights[j] * colors[j].values;
-            const Vector4 color;
-
-            // TODO this should be performed using dedicated Bitmap method in one batch
-            renderTarget.AccumulateFloat_Unsafe(imageLocation.x, imageLocation.y, color);
-        }
-    }
-}
-
-
+/*
 Color Scene::GetBackgroundColor(const Ray& ray, RenderingContext& context) const
 {
     Vector4 rgbColor = mEnvironment.backgroundColor;
@@ -402,5 +305,6 @@ Color Scene::GetBackgroundColor(const Ray& ray, RenderingContext& context) const
 
     return Color::SampleRGB(context.wavelength, rgbColor);
 }
+*/
 
 } // namespace rt

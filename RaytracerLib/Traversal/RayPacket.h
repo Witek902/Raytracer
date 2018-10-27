@@ -54,7 +54,7 @@ struct RT_ALIGN(32) RayPacket
 
     RT_FORCE_INLINE void PushRays(const math::Ray_Simd8& rays, const math::Vector3x8& weight, const ImageLocationInfo& location)
     {
-        assert(numRays < MaxRayPacketSize);
+        RT_ASSERT(numRays < MaxRayPacketSize);
 
         RayGroup& group = groups[numRays / RaysPerGroup];
         group.rays = rays;

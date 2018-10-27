@@ -12,7 +12,7 @@ RayStream::~RayStream() = default;
 
 void RayStream::PushRay(const math::Ray& ray, const math::Vector4& weight, const ImageLocationInfo& imageLocation)
 {
-    assert(mNumRays < MaxRays);
+    RT_ASSERT(mNumRays < MaxRays);
 
     PendingRay& pendingRay = mRays[mNumRays];
     pendingRay.rayWeight = weight;

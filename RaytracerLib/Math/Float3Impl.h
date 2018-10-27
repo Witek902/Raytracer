@@ -30,13 +30,13 @@ constexpr Float3::Float3(float x, float y, float z)
 
 float Float3::Get(Uint32 index) const
 {
-    assert(index < 3);
+    RT_ASSERT(index < 3);
     return (&x)[index];
 }
 
 float& Float3::Get(Uint32 index)
 {
-    assert(index < 3);
+    RT_ASSERT(index < 3);
     return (&x)[index];
 }
 
@@ -130,9 +130,9 @@ constexpr const Float3 Float3::operator* (const Float3& b) const
 const Float3 Float3::operator/ (const Float3& b) const
 {
     // TODO make it constexpr
-    assert(math::Abs(b.x) > FLT_EPSILON);
-    assert(math::Abs(b.y) > FLT_EPSILON);
-    assert(math::Abs(b.z) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.z) > FLT_EPSILON);
 
     return Float3(x / b.x, y / b.y, z / b.z);
 }
@@ -145,7 +145,7 @@ constexpr const Float3 Float3::operator* (float b) const
 const Float3 Float3::operator/ (float b) const
 {
     // TODO make it constexpr
-    assert(math::Abs(b) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b) > FLT_EPSILON);
 
     return Float3(x / b, y / b, z / b);
 }
@@ -183,9 +183,9 @@ Float3& Float3::operator*= (const Float3& b)
 
 Float3& Float3::operator/= (const Float3& b)
 {
-    assert(math::Abs(b.x) > FLT_EPSILON);
-    assert(math::Abs(b.y) > FLT_EPSILON);
-    assert(math::Abs(b.z) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.z) > FLT_EPSILON);
 
     x /= b.x;
     y /= b.y;
@@ -203,7 +203,7 @@ Float3& Float3::operator*= (float b)
 
 Float3& Float3::operator/= (float b)
 {
-    assert(math::Abs(b) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b) > FLT_EPSILON);
 
     x /= b;
     y /= b;
@@ -220,18 +220,18 @@ const Float3 Float3::Floor(const Float3& v)
 
 const Float3 Float3::Sqrt(const Float3& v)
 {
-    assert(v.x >= 0.0f);
-    assert(v.y >= 0.0f);
-    assert(v.z >= 0.0f);
+    RT_ASSERT(v.x >= 0.0f);
+    RT_ASSERT(v.y >= 0.0f);
+    RT_ASSERT(v.z >= 0.0f);
 
     return Float3(sqrtf(v.x), sqrtf(v.y), sqrtf(v.z));
 }
 
 const Float3 Float3::Reciprocal(const Float3& v)
 {
-    assert(math::Abs(v.x) > FLT_EPSILON);
-    assert(math::Abs(v.y) > FLT_EPSILON);
-    assert(math::Abs(v.z) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(v.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(v.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(v.z) > FLT_EPSILON);
 
     // this checks are required to avoid "potential divide by 0" warning
     return Float3(v.x != 0.0f ? 1.0f / v.x : INFINITY,
@@ -341,7 +341,7 @@ float Float3::Length() const
 const Float3 Float3::Normalized() const
 {
     const float len = Length();
-    assert(len > FLT_EPSILON);
+    RT_ASSERT(len > FLT_EPSILON);
 
     const float lenInv = 1.0f / len;
     return *this * lenInv;
@@ -350,7 +350,7 @@ const Float3 Float3::Normalized() const
 Float3& Float3::Normalize()
 {
     const float len = Length();
-    assert(len > FLT_EPSILON);
+    RT_ASSERT(len > FLT_EPSILON);
 
     const float lenInv = 1.0f / len;
     *this *= lenInv;

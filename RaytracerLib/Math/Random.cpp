@@ -228,15 +228,22 @@ const Vector4 Random::GetHexagon()
     return Vector4(xy.x * a.x + xy.y * b.x, xy.x * a.y + xy.y * b.y, 0.0f, 0.0f);
 }
 
+const Vector4 Random::GetSphere()
+{
+    const Vector4 u = GetVector4();
+
+    const float theta = 2.0f * RT_PI * u.x;
+    const float t = 2.0f * Sqrt(u.y * (1.0f - u.y));
+    return Vector4(t * Sin(theta), t * Cos(theta), 1.0f - 2.0f * u.y, 0.0f);
+}
+
 const Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();
 
-    // TODO optimize sqrtf, sin and cos (use approximations)
-    const Vector4 t = Vector4::Sqrt4(Vector4(u[0], 1.0f - u[0], 0.0f, 0.0f));
-
-    float theta = 2.0f * RT_PI * u[1];
-    return Vector4(t[0] * Sin(theta), t[0] * Cos(theta), t[1], 0.0f);
+    const Vector4 t = Vector4::Sqrt4(Vector4(u.x, 1.0f - u.x, 0.0f, 0.0f));
+    float theta = 2.0f * RT_PI * u.y;
+    return Vector4(t.x * Sin(theta), t.x * Cos(theta), t.y, 0.0f);
 }
 
 const Vector4 Random::GetFloatNormal2()

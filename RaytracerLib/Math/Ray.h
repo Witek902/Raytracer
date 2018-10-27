@@ -17,13 +17,18 @@ public:
     Vector4 origin;
     Vector4 dir;
 
-    Ray() {}
+    RT_FORCE_INLINE Ray() = default;
 
-    Ray(const Vector4& origin, const Vector4& direction)
+    RT_FORCE_INLINE Ray(const Vector4& origin, const Vector4& direction)
         : origin(origin)
     {
         dir = direction.Normalized3();
         invDir = Vector4::Reciprocal(dir);
+    }
+
+    RT_FORCE_INLINE const Vector4 GetAtDistance(const Float t) const
+    {
+        return Vector4::MulAndAdd(dir, t, origin);
     }
 };
 

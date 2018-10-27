@@ -192,7 +192,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
 bool Bitmap::MakeTiled(Uint8 order)
 {
-    assert(order <= 16);
+    RT_ASSERT(order <= 16);
 
     const Uint32 bitsPerPixel = BitsPerPixel(mFormat);
     const Uint32 bytesPerPixel = bitsPerPixel / 8;
@@ -614,8 +614,8 @@ void Bitmap::SetPixel(Uint32 x, Uint32 y, const Vector4& value)
 
 Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 {
-    assert(x < mWidth);
-    assert(y < mHeight);
+    RT_ASSERT(x < mWidth);
+    RT_ASSERT(y < mHeight);
 
     const Uint32 tileSize = 1 << mTileOrder;
     const Uint32 tileX = x >> mTileOrder;
@@ -760,7 +760,7 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 
 void Bitmap::AccumulateFloat_Unsafe(const Uint32 x, const Uint32 y, const math::Vector4 value)
 {
-    assert(mFormat == Format::R32G32B32A32_Float);
+    RT_ASSERT(mFormat == Format::R32G32B32A32_Float);
 
     Vector4* typedData = reinterpret_cast<Vector4*>(mData);
     typedData[mWidth * y + x] += value;

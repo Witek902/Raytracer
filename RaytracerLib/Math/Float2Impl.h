@@ -30,13 +30,13 @@ constexpr Float2::Float2(float x, float y)
 
 float Float2::Get(Uint32 index) const
 {
-    assert(index < 2);
+    RT_ASSERT(index < 2);
     return (&x)[index];
 }
 
 float& Float2::Get(Uint32 index)
 {
-    assert(index < 2);
+    RT_ASSERT(index < 2);
     return (&x)[index];
 }
 
@@ -108,8 +108,8 @@ constexpr const Float2 Float2::operator* (const Float2& b) const
 const Float2 Float2::operator/ (const Float2& b) const
 {
     // TODO make it constexpr
-    assert(math::Abs(b.x) > FLT_EPSILON);
-    assert(math::Abs(b.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.y) > FLT_EPSILON);
 
     return Float2(x / b.x, y / b.y);
 }
@@ -122,7 +122,7 @@ constexpr const Float2 Float2::operator* (float b) const
 const Float2 Float2::operator/ (float b) const
 {
     // TODO make it constexpr
-    assert(math::Abs(b) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b) > FLT_EPSILON);
 
     return Float2(x / b, y / b);
 }
@@ -157,8 +157,8 @@ Float2& Float2::operator*= (const Float2& b)
 
 Float2& Float2::operator/= (const Float2& b)
 {
-    assert(math::Abs(b.x) > FLT_EPSILON);
-    assert(math::Abs(b.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b.y) > FLT_EPSILON);
 
     x /= b.x;
     y /= b.y;
@@ -174,7 +174,7 @@ Float2& Float2::operator*= (float b)
 
 Float2& Float2::operator/= (float b)
 {
-    assert(math::Abs(b) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(b) > FLT_EPSILON);
 
     x /= b;
     y /= b;
@@ -190,16 +190,16 @@ const Float2 Float2::Floor(const Float2& v)
 
 const Float2 Float2::Sqrt(const Float2& v)
 {
-    assert(v.x >= 0.0f);
-    assert(v.y >= 0.0f);
+    RT_ASSERT(v.x >= 0.0f);
+    RT_ASSERT(v.y >= 0.0f);
 
     return Float2(sqrtf(v.x), sqrtf(v.y));
 }
 
 const Float2 Float2::Reciprocal(const Float2& v)
 {
-    assert(math::Abs(v.x) > FLT_EPSILON);
-    assert(math::Abs(v.y) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(v.x) > FLT_EPSILON);
+    RT_ASSERT(math::Abs(v.y) > FLT_EPSILON);
 
     // this checks are required to avoid "potential divide by 0" warning
     return Float2(v.x != 0.0f ? 1.0f / v.x : INFINITY,
@@ -288,7 +288,7 @@ float Float2::Length() const
 const Float2 Float2::Normalized() const
 {
     const float len = Length();
-    assert(len > FLT_EPSILON);
+    RT_ASSERT(len > FLT_EPSILON);
 
     const float lenInv = 1.0f / len;
     return *this * lenInv;
@@ -297,7 +297,7 @@ const Float2 Float2::Normalized() const
 Float2& Float2::Normalize()
 {
     const float len = Length();
-    assert(len > FLT_EPSILON);
+    RT_ASSERT(len > FLT_EPSILON);
 
     const float lenInv = 1.0f / len;
     *this *= lenInv;

@@ -51,6 +51,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 FromInteger(Uint32 x);
     RT_FORCE_INLINE static const Vector4 FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w);
 
+    RT_FORCE_INLINE explicit operator Float() const { return x; }
     RT_FORCE_INLINE operator __m128() const { return v; }
     RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
     RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
@@ -92,36 +93,24 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE const Vector4 SplatZ() const;
     RT_FORCE_INLINE const Vector4 SplatW() const;
 
-    /**
-     * Rearrange vector elements.
-     */
+    // Rearrange vector elements.
     template<bool flipX = false, bool flipY = false, bool flipZ = false, bool flipW = false>
     RT_FORCE_INLINE const Vector4 ChangeSign() const;
 
-    /**
-     * Rearrange vector elements.
-     */
+    // Rearrange vector elements.
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
     RT_FORCE_INLINE const Vector4 Swizzle() const;
 
-    /**
-     * Convert 4 uint8 to a Vector4.
-     */
+    // Convert 4 uint8 to a Vector4.
     RT_FORCE_INLINE static const Vector4 Load4(const Uint8* src);
 
-    /**
-     * Convert 3 uint8 to a Vector4 and scale to 0...1 range.
-     */
+    // Convert 3 uint8 to a Vector4 and scale to 0...1 range.
     RT_FORCE_INLINE static const Vector4 LoadBGR_UNorm(const Uint8* src);
 
-    /**
-     * Convert to 3 uint8 values.
-     */
+    // Convert to 3 uint8 values.
     RT_FORCE_INLINE void StoreBGR_NonTemporal(Uint8* dest) const;
 
-    /**
-     * Convert a Vector4 to 4 unsigned chars.
-     */
+    // Convert a Vector4 to 4 unsigned chars.
     RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
 
     RT_FORCE_INLINE void Store(Float* dest) const;
@@ -163,186 +152,109 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static bool GreaterEq3(const Vector4& v1, const Vector4& v2);
     RT_FORCE_INLINE static bool NotEqual3(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Build mask of sign bits.
-     */
+    // Build mask of sign bits.
     RT_FORCE_INLINE int GetSignMask() const;
 
-    /**
-     * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
-     */
+    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
     RT_FORCE_INLINE static const Vector4 SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel);
 
-    /**
-     * Calculate 2D dot product.
-     * @return Vector4 of dot products.
-     */
-
+    // Calculate 2D dot product (scalar result)
     RT_FORCE_INLINE static Float Dot2(const Vector4& v1, const Vector4& v2);
-    /**
-     * Calculate 2D dot product.
-     * @return Vector4 of dot products.
-     */
+
+    // Calculate 2D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot2V(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate 3D dot product.
-     * @return Dot product (scalar value).
-     */
+    // Calculate 3D dot product (scalar result)
     RT_FORCE_INLINE static Float Dot3(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate 3D dot product.
-     * @return Vector4 of dot products.
-     */
+    // Calculate 3D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot3V(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate 4D dot product.
-     * @return Vector4 of dot products.
-     */
+    // Calculate 4D dot product (scalar result)
     RT_FORCE_INLINE static Float Dot4(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate 4D dot product.
-     * @return Dot product (scalar value).
-     */
+    // Calculate 4D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot4V(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate 3D cross product.
-     * @return Vector4 of dot products.
-     */
+    // Calculate 3D cross product.
     RT_FORCE_INLINE static const Vector4 Cross3(const Vector4& v1, const Vector4& v2);
 
-    /**
-     * Calculate length of a 2D vector.
-     * @details 3rd and 4th elements are ignored.
-     * @return Length of vector @p.
-     */
+    // Length of a 2D vector (scalar result)
     RT_FORCE_INLINE Float Length2() const;
 
-    /**
-     * Calculate length of a 2D vector.
-     * @details 3rd and 4th elements are ignored.
-     * @return Length of vector @p.
-     */
+    // Length of a 2D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length2V() const;
 
-    /**
-     * Calculate length of a 3D vector.
-     * @details 4th element is ignored.
-     * @return Length of vector @p.
-     */
+    // Length of a 3D vector (scalar result)
     RT_FORCE_INLINE Float Length3() const;
+
+    // Square length of a 2D vector (scalar result)
     RT_FORCE_INLINE Float SqrLength3() const;
 
-    /**
-     * Calculate length of a 3D vector.
-     * @details 4th element is ignored.
-     * @return Vector4 of @p v length.
-     */
+    // Length of a 3D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length3V() const;
 
-    /**
-     * Calculate length of a 4D vector.
-     * @return Length of vector @p.
-     */
+    // Length of a 4D vector (scalar result)
     RT_FORCE_INLINE Float Length4() const;
 
-    /**
-     * Calculate length of a 4D vector.
-     * @return Length of vector @p.
-     */
+    // Length of a 4D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length4V() const;
 
-    /**
-     * Normalize as 3D vector.
-     * @details 4th element is ignored.
-     */
+    // Normalize as 3D vector.
     RT_FORCE_INLINE Vector4& Normalize3();
     RT_FORCE_INLINE Vector4& FastNormalize3();
 
-    /**
-     * Normalize as 4D vector.
-     */
+    // Normalize as 4D vector.
     RT_FORCE_INLINE Vector4& Normalize4();
 
-    /**
-     * Return normalized 3D vector.
-     * @details 4th element is ignored.
-     */
+    // Return normalized 3D vector.
     RT_FORCE_INLINE const Vector4 Normalized3() const;
     RT_FORCE_INLINE const Vector4 FastNormalized3() const;
 
-    /**
-     * Return normalized 4D vector.
-     */
+    // Return normalized 4D vector.
     RT_FORCE_INLINE const Vector4 Normalized4() const;
 
-    /**
-     * Reflect a 3D vector.
-     * @param i incident vector
-     * @param n normal vector
-     * @details 4th element is ignored.
-     */
+    // Reflect a 3D vector.
     RT_FORCE_INLINE static const Vector4 Reflect3(const Vector4& i, const Vector4& n);
 
-    /**
-     * Refract a 3D vector assumig Z+ is normal vector.
-     * @param i incident vector
-     */
+    // Refract a 3D vector assumig Z+ is normal vector.
     static const Vector4 RefractZ(const Vector4& i, float eta);
 
-    /**
-     * Check if two vectors are (almost) equal.
-     */
+    // Check if two vectors are (almost) equal.
     RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON);
 
-    /**
-     * Check if the vector is equal to zero Vector4()
-     */
-    RT_FORCE_INLINE bool IsZero() const
-    {
-        return _mm_movemask_ps(_mm_cmpeq_ps(v, Vector4())) == 0xF;
-    }
+    // Check if the vector is equal to zero Vector4()
+    RT_FORCE_INLINE bool IsZero() const;
 
-    /**
-     * Fused multiply and add.
-     * @return  a * b + c
-     */
+    // Check if any component is NaN
+    RT_FORCE_INLINE bool IsNaN() const;
+
+    // Check if any component is an infinity
+    RT_FORCE_INLINE bool IsInfinite() const;
+
+    // Check if is not NaN or infinity
+    RT_FORCE_INLINE bool IsValid() const;
+
+    // Fused multiply and add (a * b + c)
     RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Float b, const Vector4& c);
 
-    /**
-     * Fused multiply and subtract.
-     * @return  a * b - c
-     */
+    // Fused multiply and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
-    /**
-     * Fused multiply (negated) and add.
-     * @return  - a * b + c
-     */
+    // Fused multiply (negated) and add (a * b + c)
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c);
 
-    /**
-     * Fused multiply (negated) and subtract.
-     * @return  - a * b - c
-     */
+    // Fused multiply (negated) and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
-    /**
-     * Calculate horizontal minimum. Result is splatted across all elements.
-     */
+    // Calculate horizontal minimum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector4 HorizontalMin() const;
 
-    /**
-     * Calculate horizontal maximum. Result is splatted across all elements.
-     */
+    // Calculate horizontal maximum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector4 HorizontalMax() const;
 };
 
@@ -354,7 +266,9 @@ RT_FORCE_INLINE const Vector4 operator*(Float a, const Vector4& b);
 
 RT_GLOBAL_CONST Vector4 VECTOR_EPSILON = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
 RT_GLOBAL_CONST Vector4 VECTOR_HALVES = { 0.5f, 0.5f, 0.5f, 0.5f };
-RT_GLOBAL_CONST Vector4 VECTOR_MAX = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
+RT_GLOBAL_CONST Vector4 VECTOR_MIN = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
+RT_GLOBAL_CONST Vector4 VECTOR_MAX = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+RT_GLOBAL_CONST Vector4 VECTOR_INF = { std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity() };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE = { 1.0f, 1.0f, 1.0f, 1.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE3 = { 1.0f, 1.0f, 1.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE2 = { 1.0f, 1.0f, 0.0f, 0.0f };

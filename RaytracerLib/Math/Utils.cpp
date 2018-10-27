@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "Utils.h"
+#include "Math.h"
 
 namespace rt {
 namespace math {
@@ -18,7 +19,7 @@ float FresnelDielectric(float NdV, float eta, bool& totalInternalReflection)
     if (g < 1.0f)
     {
         totalInternalReflection = false;
-        g = sqrtf(1.0f - g);
+        g = Sqrt(1.0f - g);
         const float A = (g - c) / (g + c);
         const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
         return 0.5f * A * A * (1.0f + B * B);

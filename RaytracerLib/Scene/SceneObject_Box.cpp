@@ -104,6 +104,7 @@ RT_FORCE_NOINLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
 BoxSceneObject::BoxSceneObject(const Vector4& size, const Material* material)
     : mMaterial(material)
     , mSize(size)
+    , mInvSize(VECTOR_ONE / mSize)
 { }
 
 Box BoxSceneObject::GetBoundingBox() const
@@ -125,8 +126,8 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
         HitPoint& hitPoint = context.hitPoint;
 
         if (nearDist > 0.0f && nearDist < hitPoint.distance)
-        {
-            const Vector4 cubePoint = (ray.origin + ray.dir * nearDist) / mSize;
+        {       
+            const Vector4 cubePoint = ray.GetAtDistance(nearDist) * mInvSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
             if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
             {
@@ -139,7 +140,7 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
 
         if (farDist > 0.0f && farDist < hitPoint.distance)
         {
-            const Vector4 cubePoint = (ray.origin + ray.dir * farDist) / mSize;
+            const Vector4 cubePoint = ray.GetAtDistance(farDist) * mInvSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
             if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
             {
@@ -199,7 +200,7 @@ void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shadin
 
     outShadingData.material = mMaterial;
 
-    const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.position / mSize, outShadingData.texCoord);
+    const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.position * mInvSize, outShadingData.texCoord);
     outShadingData.normal = normalsAndTangnts[2 * side];
     outShadingData.tangent = normalsAndTangnts[2 * side + 1];
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);

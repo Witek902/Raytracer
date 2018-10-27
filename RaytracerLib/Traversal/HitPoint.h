@@ -4,7 +4,6 @@
 #include "../Math/VectorInt8.h"
 
 #include <float.h>
-#include <assert.h>
 
 constexpr Uint32 RT_INVALID_OBJECT = UINT32_MAX;
 constexpr Uint32 RT_LIGHT_OBJECT = 0xFFFFFFFE;
@@ -47,7 +46,7 @@ struct RT_ALIGN(32) HitPoint_Simd8
     // extract single hit point
     RT_FORCE_INLINE HitPoint Get(Uint32 i) const
     {
-        assert(i < 8);
+        RT_ASSERT(i < 8);
 
         HitPoint result;
         result.distance = distance[i];

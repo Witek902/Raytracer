@@ -65,6 +65,16 @@
 
 #define RT_FATAL(x) __debugbreak()
 
+// TODO assertions should be disabled in "Final" build
+#define RT_ASSERT(expression, ...) \
+do { \
+    if (!(expression)) \
+    { \
+        __debugbreak(); \
+    } \
+} while (0)
+
+
 #if defined(__LINUX__) | defined(__linux__)
 using Uint64 = uint64_t;
 using Int64 = int64_t;

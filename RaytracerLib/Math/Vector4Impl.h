@@ -748,5 +748,32 @@ bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon)
     return Abs(v1 - v2) < Vector4(epsilon);
 }
 
+bool Vector4::IsZero() const
+{
+    return _mm_movemask_ps(_mm_cmpeq_ps(v, Vector4())) == 0xF;
+}
+
+// Check if any component is NaN
+bool Vector4::IsNaN() const
+{
+    // Test against itself. NaN is always not equal
+    const __m128 temp = _mm_cmpneq_ps(v, v);
+    return _mm_movemask_ps(temp) != 0;
+}
+
+bool Vector4::IsInfinite() const
+{
+    // Mask off the sign bit
+    __m128 temp = _mm_and_ps(v, VECTOR_MASK_SIGN);
+    // Compare to infinity
+    temp = _mm_cmpeq_ps(temp, VECTOR_INF);
+    return _mm_movemask_ps(temp) != 0;
+}
+
+bool Vector4::IsValid() const
+{
+    return !IsNaN() && !IsInfinite();
+}
+
 } // namespace math
 } // namespace rt

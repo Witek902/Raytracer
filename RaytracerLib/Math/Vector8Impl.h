@@ -66,6 +66,13 @@ const Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Ve
     return _mm256_blendv_ps(a, b, sel);
 }
 
+bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon)
+{
+    const Vector8 diff = Abs(v1 - v2);
+    const Vector8 epsilonV = Vector8(epsilon);
+    return diff < epsilonV;
+}
+
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
 const Vector8 Vector8::Swizzle() const
 {

@@ -4,7 +4,6 @@
 #include "Utils/Timer.h"
 
 #include <algorithm>
-#include <assert.h>
 
 namespace rt {
 
@@ -88,8 +87,8 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
         BuildNode(rootWorkSet, context, rootNode);
     }
 
-    assert(mNumGeneratedLeaves == mNumLeaves); // Number of generated leaves is invalid
-    assert(mNumGeneratedNodes <= 2 * mNumLeaves); // Number of generated nodes is invalid
+    RT_ASSERT(mNumGeneratedLeaves == mNumLeaves); // Number of generated leaves is invalid
+    RT_ASSERT(mNumGeneratedNodes <= 2 * mNumLeaves); // Number of generated nodes is invalid
 
     // shrink BVH nodes array
     mTarget.mNumNodes = mNumGeneratedNodes;
@@ -118,10 +117,10 @@ void BVHBuilder::GenerateLeaf(const WorkSet& workSet, BVH::Node& targetNode)
 
 void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& targetNode)
 {
-    assert(workSet.numLeaves <= mNumLeaves);
-    assert(workSet.numLeaves > 0);
-    assert(workSet.depth < mNumLeaves);
-    assert(workSet.depth <= BVH::MaxDepth);
+    RT_ASSERT(workSet.numLeaves <= mNumLeaves);
+    RT_ASSERT(workSet.numLeaves > 0);
+    RT_ASSERT(workSet.depth < mNumLeaves);
+    RT_ASSERT(workSet.depth <= BVH::MaxDepth);
 
     targetNode.min = workSet.box.min.ToFloat3();
     targetNode.max = workSet.box.max.ToFloat3();
@@ -241,8 +240,8 @@ void BVHBuilder::SortLeaves(const WorkSet& workSet, Context& context) const
 
             const auto comparator = [this, axis](const Uint32 a, const Uint32 b)
             {
-                assert(a < mNumLeaves);
-                assert(b < mNumLeaves);
+                RT_ASSERT(a < mNumLeaves);
+                RT_ASSERT(b < mNumLeaves);
 
                 const Box& leafA = mLeafBoxes[a];
                 const Box& leafB = mLeafBoxes[b];

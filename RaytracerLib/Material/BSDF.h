@@ -3,12 +3,11 @@
 #include "../RayLib.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Math/Ray.h"
+#include "../Color/Color.h"
 
 namespace rt {
 
 class Material;
-struct Wavelength;
-struct Color;
 
 namespace math
 {
@@ -18,7 +17,7 @@ namespace math
 struct SampledMaterialParameters
 {
     Float roughness;
-    Float metalness;
+    Float IoR;
 };
 
 // Abstract class for Bidirectional Scattering Density Function
@@ -27,17 +26,62 @@ struct SampledMaterialParameters
 class BSDF : public Aligned<16>
 {
 public:
+    enum EventType : Uint8
+    {
+        NullEvent                   = 0,
+        DiffuseReflectionEvent      = 1 << 0,
+        DiffuseTransmissionEvent    = 1 << 1,
+        GlossyReflectionEvent       = 1 << 2,
+        GlossyRefractionEvent       = 1 << 3,
+        SpecularReflectionEvent     = 1 << 4,
+        SpecularRefractionEvent     = 1 << 5,
+
+        DiffuseEvent                = DiffuseReflectionEvent | DiffuseTransmissionEvent,
+        GlossyEvent                 = GlossyReflectionEvent | GlossyRefractionEvent,
+        SpecularEvent               = SpecularReflectionEvent | SpecularRefractionEvent,
+
+        ReflectiveEvent             = DiffuseReflectionEvent | GlossyReflectionEvent | SpecularReflectionEvent,
+        TransmissiveEvent           = SpecularRefractionEvent | GlossyRefractionEvent | DiffuseTransmissionEvent,
+
+        AnyEvent                    = ReflectiveEvent | TransmissiveEvent,
+    };
+
     virtual ~BSDF() = default;
 
+    struct SamplingContext
+    {
+        // inputs
+        const Material& material;
+        SampledMaterialParameters materialParam;
+        const math::Vector4 outgoingDir;
+        Wavelength& wavelength; // non-const, because can trigger dispersion
+        math::Random& randomGenerator;
+
+        // outputs
+        Color outColor;
+        math::Vector4 outIncomingDir;
+        Float outPdf = 0.0f;
+        EventType outEventType = NullEvent;
+    };
+
+    struct EvaluationContext
+    {
+        const Material& material;
+        SampledMaterialParameters materialParam;
+        const Wavelength& wavelength;
+        const math::Vector4 outgoingDir;
+        const math::Vector4 incomingDir;
+    };
+
     // Importance sample the BSDF
-    // Generates incoming light direction for given outgoing ray direction
-    // Ray weight (BSDF+PDF correction) is returned as well.
-    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const = 0;
+    // Generates incoming light direction for given outgoing ray direction.
+    // Returns ray weight (NdotL multiplied) as well as sampling probability of the generated direction.
+    virtual bool Sample(SamplingContext& ctx) const = 0;
 
     // Evaluate BRDF
     // Optionally returns probability of sampling this direction
-    // TODO wavelength
-    virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir, Float* outDirectPdfW = nullptr) const = 0;
+    // NOTE: the result is NdotL multiplied
+    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
 };
 
 ///
@@ -46,38 +90,24 @@ public:
 class OrenNayarBSDF : public BSDF
 {
 public:
-    OrenNayarBSDF(const float roughness = 0.1f);
-
-    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
-    virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir, Float* outDirectPdfW) const override;
-
-    // TODO SampledMaterialParameters
-    float mRoughness;
+    virtual bool Sample(SamplingContext& ctx) const override;
+    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
 };
 
 // Cook-Torrance specular BSDF
 class CookTorranceBSDF : public BSDF
 {
 public:
-    explicit CookTorranceBSDF(const float roughness = 0.1f);
-
-    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
-    virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir, Float* outDirectPdfW) const override;
-
-    // TODO SampledMaterialParameters
-    float mRougness;
+    virtual bool Sample(SamplingContext& ctx) const override;
+    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
 };
 
 // TODO general Cook-Torrance specular reflection/refraction BSDF
 class TransparencyBSDF : public BSDF
 {
 public:
-    TransparencyBSDF(const Material& material);
-    virtual void Sample(Wavelength& wavelength, const math::Vector4& outgoingDir, math::Vector4& outIncomingDir, Color& outWeight, math::Random& randomGenerator) const override;
-    virtual math::Vector4 Evaluate(const math::Vector4& outgoingDir, const math::Vector4& incomingDir, Float* outDirectPdfW) const override;
-
-    // TODO SampledMaterialParameters
-    const Material& material;
+    virtual bool Sample(SamplingContext& ctx) const override;
+    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
 };
 
 } // namespace rt

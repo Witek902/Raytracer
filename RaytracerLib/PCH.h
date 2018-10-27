@@ -15,7 +15,6 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
-#include <assert.h>
 #include <math.h>
 #include <float.h>
 #include <stdarg.h>

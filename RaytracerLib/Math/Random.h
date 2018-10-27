@@ -56,6 +56,9 @@ public:
     // get random point on a regular hexagon (uniform distribution)
     const Vector4 GetHexagon();
 
+    // generate random vector on a sphere (uniform sampling)
+    const Vector4 GetSphere();
+
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
     // typical usage: Lambertian BRDF sampling
     const Vector4 GetHemishpereCos();

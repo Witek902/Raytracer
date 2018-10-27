@@ -76,8 +76,8 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tin
 
     material->debugName = sourceMaterial.name;
     material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
-    material->emissionColor = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
-    material->baseColorMap = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
+    material->emission.baseValue = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
+    material->baseColor.texture = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
     material->normalMap = LoadTexture(baseDir, sourceMaterial.normal_texname);
     material->maskMap = LoadTexture(baseDir, sourceMaterial.alpha_texname);
 
@@ -91,7 +91,7 @@ const rt::Material* CreateDefaultMaterial(MaterialsList& outMaterials)
     auto material = std::make_unique<rt::Material>();
     material->debugName = "default";
     material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
-    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->emission.baseValue = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.75f;
     material->Compile();
 
@@ -291,13 +291,13 @@ std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Flo
     auto material = std::make_unique<rt::Material>();
     material->debugName = "floor";
     material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-    material->emissionColor = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.8f;
 
     //material->baseColorMap = LoadTexture("TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
     //material->normalMap = LoadTexture(".TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");
     //material->roughnessMap = LoadTexture("TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
-    material->baseColorMap = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+    material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
     //material->normalMap = LoadTexture("TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
     //material->baseColorMap->MakeTiled(4);
     //material->normalMap->MakeTiled(4);

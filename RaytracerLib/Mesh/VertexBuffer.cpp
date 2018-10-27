@@ -4,7 +4,6 @@
 #include "Utils/AlignmentAllocator.h"
 #include "Math/Simd8Triangle.h"
 
-#include <assert.h>
 #include <string.h>
 
 namespace rt {
@@ -159,7 +158,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
 void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const
 {
-    assert(triangleIndex < mNumTriangles);
+    RT_ASSERT(triangleIndex < mNumTriangles);
 
     const VertexIndices* buffer = reinterpret_cast<const VertexIndices*>(mBuffer + mVertexIndexBufferOffset);
     indices = buffer[triangleIndex];
@@ -167,7 +166,7 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
 
 const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
 {
-    assert(materialIndex < mNumMaterials);
+    RT_ASSERT(materialIndex < mNumMaterials);
 
     const Material** materialBufferData = reinterpret_cast<const Material**>(mBuffer + mMaterialBufferOffset);
     return materialBufferData[materialIndex];

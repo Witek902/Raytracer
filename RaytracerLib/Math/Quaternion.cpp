@@ -98,7 +98,7 @@ void Quaternion::ToAxis(Vector4& outAxis, float& outAngle) const
     const float scalar = normalized.q[3];
     outAngle = 2.0f * acosf(scalar);
 
-    const float s = sqrtf(1.0f - scalar * scalar);
+    const float s = Sqrt(1.0f - scalar * scalar);
     outAxis = normalized.q;
     if (s >= 0.001)
     {
@@ -125,7 +125,7 @@ Quaternion Quaternion::Interpolate(const Quaternion& q0, const Quaternion& q1, f
     }
     else
     {
-        float sinOmega = sqrtf(1.0f - cosOmega * cosOmega);
+        float sinOmega = Sqrt(1.0f - cosOmega * cosOmega);
         float omega = atan2f(sinOmega, cosOmega);
         float oneOverSinOmega = 1.0f / sinOmega;
         k0 = Sin((1.0f - t) * omega) * oneOverSinOmega;

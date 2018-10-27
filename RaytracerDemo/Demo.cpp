@@ -200,22 +200,23 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
     Uint32 width, height;
     GetSize(width, height);
 
+    auto renderingContext = std::make_unique<rt::RenderingContext>();
+
     if (mFocalDistancePicking && button == MouseButton::Left)
     {
         rt::RenderingParams params = mRenderingParams;
         params.antiAliasingSpread = 0.0f;
 
-        rt::RenderingContext context;
-        context.params = &params;
+        renderingContext->params = &params;
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
-        const Ray ray = mCamera.GenerateRay(coords, context);
+        const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
-        mRenderer->TraceRay_Single(ray, context);
-        assert(!mPathDebugData.data.empty());
+        mRenderer->TraceRay_Single(ray, *renderingContext);
+        RT_ASSERT(!mPathDebugData.data.empty());
 
         HitPoint hitPoint;
-        mScene->Traverse_Single({ ray, hitPoint, context });
+        mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
 
         if (hitPoint.distance == FLT_MAX)
         {
@@ -236,19 +237,18 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         rt::RenderingParams params = mRenderingParams;
         params.antiAliasingSpread = 0.0f;
 
-        rt::RenderingContext context;
-        context.params = &params;
-        context.pathDebugData = &mPathDebugData;
+        renderingContext->params = &params;
+        renderingContext->pathDebugData = &mPathDebugData;
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
-        const Ray ray = mCamera.GenerateRay(coords, context);
+        const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
         // TODO DebugPathTracer?
-        mRenderer->TraceRay_Single(ray, context);
-        assert(!mPathDebugData.data.empty());
+        mRenderer->TraceRay_Single(ray, *renderingContext);
+        RT_ASSERT(!mPathDebugData.data.empty());
 
         HitPoint hitPoint;
-        mScene->Traverse_Single({ ray, hitPoint, context });
+        mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
 
         if (mPathDebugData.data[0].hitPoint.objectId != UINT32_MAX)
         {

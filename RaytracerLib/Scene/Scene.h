@@ -13,6 +13,7 @@ namespace rt {
 
 class ISceneObject;
 class ILight;
+class BackgroundLight;
 class Bitmap;
 class Camera;
 struct RenderingContext;
@@ -31,18 +32,6 @@ class Ray_Simd4;
 class Ray_Simd8;
 } // namespace math
 
-
-/**
- * Global environment settings.
- */
-struct SceneEnvironment
-{
-    math::Vector4 backgroundColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-
-    // optional spherical texture
-    Bitmap* texture = nullptr;
-};
-
 /**
  * Rendering scene.
  * Allows for placing objects (meshes, lights, etc.) and raytracing them.
@@ -55,8 +44,7 @@ public:
     Scene(Scene&&);
     Scene& operator = (Scene&&);
 
-    void SetEnvironment(const SceneEnvironment& env);
-
+    void SetBackgroundLight(std::unique_ptr<BackgroundLight> light);
     void AddLight(LightPtr object);
     void AddObject(SceneObjectPtr object);
 
@@ -65,6 +53,7 @@ public:
     RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
     RT_FORCE_INLINE const std::vector<SceneObjectPtr>& GetObjects() const { return mObjects; }
     RT_FORCE_INLINE const std::vector<LightPtr>& GetLights() const { return mLights; }
+    RT_FORCE_INLINE const BackgroundLight* GetBackgroundLight() const { return mBackground.get(); }
 
     // traverse the scene, returns hit points
     void Traverse_Single(const SingleTraversalContext& context) const;
@@ -83,8 +72,6 @@ public:
 
     bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;
 
-    void Shade_Simd8(const math::Ray_Simd8& ray, const HitPoint_Simd8& hitPoints, RenderingContext& context, Color* outColors) const;
-
     // perform ray packet shading:
     // 1. apply calculated color to render target
     // 2. generate secondary rays
@@ -100,9 +87,8 @@ private:
     void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
     bool Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
-    SceneEnvironment mEnvironment;
-
     std::vector<LightPtr> mLights;
+    std::unique_ptr<BackgroundLight> mBackground;
 
     std::vector<SceneObjectPtr> mObjects;
 

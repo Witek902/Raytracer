@@ -20,8 +20,8 @@ const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
         return Vector4();
     }
 
-    Vector4 transmitted = i * eta - (eta * NdotV + sqrtf(k)) * VECTOR_Z;
-    assert(fabsf(1.0f - transmitted.Length3()) < 0.01f);
+    Vector4 transmitted = i * eta - (eta * NdotV + math::Sqrt(k)) * VECTOR_Z;
+    RT_ASSERT(math::Abs(1.0f - transmitted.Length3()) < 0.01f);
 
     if (NdotV > 0.0f)
     {

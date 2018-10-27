@@ -87,7 +87,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         {
             if (shadingData.material)
             {
-                resultColor = shadingData.material->GetBaseColor(shadingData.texCoord);
+                resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord);
             }
             break;
         }
@@ -95,7 +95,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         {
             if (shadingData.material)
             {
-                resultColor = shadingData.material->GetEmissionColor(shadingData.texCoord);
+                resultColor = shadingData.material->emission.Evaluate(shadingData.texCoord);
             }
             break;
         }
@@ -103,7 +103,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         {
             if (shadingData.material)
             {
-                resultColor = Vector4(shadingData.material->GetRoughness(shadingData.texCoord));
+                resultColor = Vector4(shadingData.material->roughness.Evaluate(shadingData.texCoord));
             }
             break;
         }
@@ -111,7 +111,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         {
             if (shadingData.material)
             {
-                resultColor = Vector4(shadingData.material->GetMetalness(shadingData.texCoord));
+                resultColor = Vector4(shadingData.material->metalness.Evaluate(shadingData.texCoord));
             }
             break;
         }

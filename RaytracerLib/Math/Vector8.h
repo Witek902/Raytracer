@@ -98,59 +98,32 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE static Int32 GreaterEqMask(const Vector8& v1, const Vector8& v2);
     RT_FORCE_INLINE static Int32 NotEqualMask(const Vector8& v1, const Vector8& v2);
 
-    /**
-     * Build mask of sign bits.
-     */
+    // Build mask of sign bits.
     RT_FORCE_INLINE Int32 GetSignMask() const;
 
-
-    /**
-     * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
-     */
+    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
     RT_FORCE_INLINE static const Vector8 SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel);
 
-    /**
-     * Check if two vectors are (almost) equal.
-     */
-    RT_FORCE_INLINE static bool AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon = RT_EPSILON)
-    {
-        const Vector8 diff = Abs(v1 - v2);
-        const Vector8 epsilonV = Vector8(epsilon);
-        return diff < epsilonV;
-    }
+    // Check if two vectors are (almost) equal.
+    RT_FORCE_INLINE static bool AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon = RT_EPSILON);
 
-    /**
-     * Fused multiply and add.
-     * @return  a * b + c
-     */
+    // Fused multiply and add (a * b + c)
     RT_FORCE_INLINE static const Vector8 MulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
 
-    /**
-     * Fused multiply and subtract.
-     * @return  a * b - c
-     */
+    // Fused multiply and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector8 MulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
 
-    /**
-     * Fused multiply (negated) and add.
-     * @return  - a * b + c
-     */
+    // Fused multiply (negated) and add (a * b + c)
+    // Fused multiply (negated) and add (a * b + c)
     RT_FORCE_INLINE static const Vector8 NegMulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
 
-    /**
-     * Fused multiply (negated) and subtract.
-     * @return  - a * b - c
-     */
+    // Fused multiply (negated) and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector8 NegMulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
 
-    /**
-     * Calculate horizontal minimum. Result is splatted across all elements.
-     */
+    // Calculate horizontal minimum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector8 HorizontalMin() const;
 
-    /**
-     * Calculate horizontal maximum. Result is splatted across all elements.
-     */
+    // Calculate horizontal maximum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector8 HorizontalMax() const;
 
     // Compute fmodf(x, 1.0f)
@@ -173,7 +146,9 @@ RT_FORCE_INLINE const Vector8 operator*(Float a, const Vector8& b);
 // some commonly used constants
 RT_GLOBAL_CONST Vector8 VECTOR8_Epsilon = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
 RT_GLOBAL_CONST Vector8 VECTOR8_HALVES = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
-RT_GLOBAL_CONST Vector8 VECTOR8_MAX = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
+RT_GLOBAL_CONST Vector8 VECTOR8_MIN = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
+RT_GLOBAL_CONST Vector8 VECTOR8_MAX = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+RT_GLOBAL_CONST Vector8 VECTOR8_INF = { std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity() };
 RT_GLOBAL_CONST Vector8 VECTOR8_ONE = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 RT_GLOBAL_CONST Vector8 VECTOR8_MINUS_ONE = { -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f };
 RT_GLOBAL_CONST Vector8 VECTOR8_MASK_X = { 0xFFFFFFFFu, 0u, 0u, 0u, 0u, 0u, 0u, 0u };

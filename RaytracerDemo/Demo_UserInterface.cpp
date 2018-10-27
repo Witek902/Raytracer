@@ -10,6 +10,7 @@
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
 #include "../RaytracerLib/Scene/SceneObject_Box.h"
 #include "../RaytracerLib/Color/ColorHelpers.h"
+#include "../RaytracerLib/Rendering/PathTracer.h"
 
 #include "../External/imgui/imgui.h"
 
@@ -206,6 +207,11 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         resetFrame |= ImGui::Combo("Rendering mode", &debugRenderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
         mDebugRenderer->mRenderingMode = static_cast<DebugRenderingMode>(debugRenderingModeIndex);
     }
+    else
+    {
+        rt::PathTracer* pathTracer = (PathTracer*)mRenderer.get();
+        resetFrame |= ImGui::Checkbox("Light sampling", &pathTracer->mSampleLights);
+    }
   
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
     int tileOrder = static_cast<int>(mRenderingParams.tileOrder);
@@ -327,10 +333,10 @@ bool DemoWindow::RenderUI_Settings_Material()
     bool changed = false;
 
     changed |= ImGui::Checkbox("Transparent", &mSelectedMaterial->transparent);
-    changed |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emissionColor[0], ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-    changed |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor[0], ImGuiColorEditFlags_Float);
-    changed |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness, 0.0f, 1.0f);
-    changed |= ImGui::SliderFloat("Metalness", &mSelectedMaterial->metalness, 0.0f, 1.0f);
+    changed |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emission.baseValue.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+    changed |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor.baseValue.x, ImGuiColorEditFlags_Float);
+    changed |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness.baseValue, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Metalness", &mSelectedMaterial->metalness.baseValue, 0.0f, 1.0f);
     changed |= ImGui::Checkbox("Dispersive", &mSelectedMaterial->isDispersive);
 
     if (mSelectedMaterial->isDispersive)
@@ -339,12 +345,12 @@ bool DemoWindow::RenderUI_Settings_Material()
         changed |= ImGui::InputFloat3("C", mSelectedMaterial->dispersionParams.C);
     }
 
-    if (mSelectedMaterial->metalness > 0.0f || !mSelectedMaterial->isDispersive)
+    if (mSelectedMaterial->metalness.baseValue > 0.0f || !mSelectedMaterial->isDispersive)
     {
         changed |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
     }
 
-    if (mSelectedMaterial->metalness > 0.0f)
+    if (mSelectedMaterial->metalness.baseValue > 0.0f)
     {
         changed |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
     }

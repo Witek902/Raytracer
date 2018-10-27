@@ -117,9 +117,13 @@ struct Color
         return value.HorizontalMax()[0];
     }
 
-    RT_FORCE_INLINE bool Validate() const
+    RT_FORCE_INLINE bool IsValid() const
     {
-        return Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+        return value.IsValid() && Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
+#else
+        return value.IsValid() && (Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) & 0x7);
+#endif
     }
 
     // calculate ray color values for given wavelength and linear RGB values

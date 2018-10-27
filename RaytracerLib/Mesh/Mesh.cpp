@@ -93,7 +93,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
         for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
         {
             const Uint32 newTriangleIndex = newTrianglesOrder[i];
-            assert(newTriangleIndex < desc.vertexBufferDesc.numTriangles);
+            RT_ASSERT(newTriangleIndex < desc.vertexBufferDesc.numTriangles);
 
             newIndexBuffer[3 * i] = indexBuffer[3 * newTriangleIndex];
             newIndexBuffer[3 * i + 1] = indexBuffer[3 * newTriangleIndex + 1];

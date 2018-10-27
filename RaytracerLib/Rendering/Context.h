@@ -34,7 +34,7 @@ struct RenderingParams
     Uint32 samplesPerPixel = 1;
 
     // maximum ray depth
-    Uint32 maxRayDepth = 20;
+    Uint32 maxRayDepth = 50;
 
     // ray depth at which Russian Roulette algorithm kicks in
     Uint32 minRussianRouletteDepth = 2;
@@ -50,7 +50,7 @@ struct RenderingParams
  * A structure with local (per-thread) data.
  * It's like a hub for all global params (read only) and local state (read write).
  */
-struct RT_ALIGN(64) RenderingContext
+struct RT_ALIGN(64) RenderingContext : public Aligned<64>
 {
     Wavelength wavelength;
 

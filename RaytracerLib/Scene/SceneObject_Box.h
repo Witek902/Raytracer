@@ -27,6 +27,7 @@ private:
 
     // half size
     math::Vector4 mSize;
+    math::Vector4 mInvSize;
 };
 
 } // namespace rt
