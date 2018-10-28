@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../RayLib.h"
-#include "../Utils/AlignmentAllocator.h"
-#include "../Math/Ray.h"
-#include "../Color/Color.h"
+#include "../../RayLib.h"
+#include "../../Utils/AlignmentAllocator.h"
+#include "../../Math/Ray.h"
+#include "../../Color/Color.h"
 
 namespace rt {
 
@@ -46,6 +46,8 @@ public:
         AnyEvent                    = ReflectiveEvent | TransmissiveEvent,
     };
 
+    static constexpr Float CosEpsilon = 1.0e-5f;
+
     virtual ~BSDF() = default;
 
     struct SamplingContext
@@ -82,32 +84,6 @@ public:
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
     virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
-};
-
-///
-
-// diffuse reflection BRDF
-class OrenNayarBSDF : public BSDF
-{
-public:
-    virtual bool Sample(SamplingContext& ctx) const override;
-    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
-};
-
-// Cook-Torrance specular BSDF
-class CookTorranceBSDF : public BSDF
-{
-public:
-    virtual bool Sample(SamplingContext& ctx) const override;
-    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
-};
-
-// TODO general Cook-Torrance specular reflection/refraction BSDF
-class TransparencyBSDF : public BSDF
-{
-public:
-    virtual bool Sample(SamplingContext& ctx) const override;
-    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
 };
 
 } // namespace rt

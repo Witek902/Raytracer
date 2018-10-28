@@ -4,7 +4,10 @@
 
 #include "../RaytracerLib/Mesh/Mesh.h"
 #include "../RaytracerLib/Material/Material.h"
-#include "../RaytracerLib/Scene/Light.h"
+#include "../RaytracerLib/Scene/Light/PointLight.h"
+#include "../RaytracerLib/Scene/Light/AreaLight.h"
+#include "../RaytracerLib/Scene/Light/BackgroundLight.h"
+#include "../RaytracerLib/Scene/Light/DirectionalLight.h"
 #include "../RaytracerLib/Scene/SceneObject_Mesh.h"
 #include "../RaytracerLib/Scene/SceneObject_Sphere.h"
 #include "../RaytracerLib/Scene/SceneObject_Box.h"

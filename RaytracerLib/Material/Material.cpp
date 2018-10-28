@@ -1,6 +1,8 @@
 #include "PCH.h"
 #include "Material.h"
-#include "BSDF.h"
+#include "BSDF/GlossyReflectiveBSDF.h"
+#include "BSDF/SpecularTransmissiveBSDF.h"
+#include "BSDF/LambertianBSDF.h"
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
@@ -38,14 +40,14 @@ void Material::Compile()
 
     if (transparent)
     {
-        mDiffuseBSDF = std::make_unique<TransparencyBSDF>(); // TODO
+        mDiffuseBSDF = std::make_unique<SpecularTransmissiveBSDF>();
     }
     else
     {
-        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>(); // TODO
+        mDiffuseBSDF = std::make_unique<LambertianBSDF>();
     }
 
-    mSpecularBSDF = std::make_unique<CookTorranceBSDF>();
+    mSpecularBSDF = std::make_unique<GlossyReflectiveBSDF>();
 }
 
 const Vector4 Material::GetNormalVector(const Vector4 uv) const

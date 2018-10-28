@@ -88,9 +88,6 @@
     <ClInclude Include="Scene\Camera.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\Light.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Traversal\RayPacket.h">
       <Filter>Traversal</Filter>
     </ClInclude>
@@ -120,9 +117,6 @@
     </ClInclude>
     <ClInclude Include="Math\Float3Impl.h">
       <Filter>Math\Float3</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF.h">
-      <Filter>Material</Filter>
     </ClInclude>
     <ClInclude Include="Scene\SceneObject.h">
       <Filter>Scene</Filter>
@@ -227,6 +221,42 @@
     <ClInclude Include="Scene\SceneObject_Light.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\Light\AreaLight.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light\BackgroundLight.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light\DirectionalLight.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light\Light.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light\PointLight.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\BSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\LambertianBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\OrenNayarBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\SpecularReflectiveBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\SpecularTransmissiveBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\GlossyReflectiveBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\Microfacet.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -289,9 +319,6 @@
     <ClCompile Include="Math\Float3.cpp">
       <Filter>Math\Float3</Filter>
     </ClCompile>
-    <ClCompile Include="Material\BSDF.cpp">
-      <Filter>Material</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\SceneObject.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -338,9 +365,6 @@
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Scene\Light.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\PathTracer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -352,6 +376,39 @@
     </ClCompile>
     <ClCompile Include="Scene\SceneObject_Light.cpp">
       <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\BackgroundLight.cpp">
+      <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\DirectionalLight.cpp">
+      <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\Light.cpp">
+      <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\PointLight.cpp">
+      <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\AreaLight.cpp">
+      <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\BSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\LambertianBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\OrenNayarBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\SpecularReflectiveBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\SpecularTransmissiveBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\GlossyReflectiveBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -417,6 +474,12 @@
     </Filter>
     <Filter Include="Math\Random">
       <UniqueIdentifier>{7de38233-fcb3-471f-8e36-0afe02709002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Light">
+      <UniqueIdentifier>{1a67979b-f2b6-4548-b3a8-78ad216c402d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Material\BSDF">
+      <UniqueIdentifier>{96844df5-97ff-4bc0-8809-bce29902a306}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

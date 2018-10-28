@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BSDF.h"
+#include "BSDF/BSDF.h"
 #include "../RayLib.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Color/Color.h"
