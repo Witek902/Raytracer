@@ -30,6 +30,10 @@ void DemoWindow::RenderUI_Stats()
 
     ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
 
+    ImGui::Separator();
+
+    ImGui::Text("Avg. error: %.5f", mViewport->GetAverageError());
+
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     const RayTracingCounters& counters = mViewport->GetCounters();
     ImGui::Separator();
@@ -108,7 +112,7 @@ void DemoWindow::RenderUI_Debugging_Color()
     {
         const Uint32 numSamples = mViewport->GetNumSamplesRendered();
 
-        hdrColor = mViewport->GetAccumulatedBuffer().GetPixel(x, y, true) / static_cast<Float>(numSamples);
+        hdrColor = mViewport->GetSumBuffer().GetPixel(x, y, true) / static_cast<Float>(numSamples);
         ldrColor = mViewport->GetFrontBuffer().GetPixel(x, y, true);
     }
 

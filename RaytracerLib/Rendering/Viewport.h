@@ -39,13 +39,14 @@ public:
     void Reset();
 
     RT_FORCE_INLINE const rt::Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
-    RT_FORCE_INLINE const rt::Bitmap& GetAccumulatedBuffer() const { return mAccumulated; }
+    RT_FORCE_INLINE const rt::Bitmap& GetSumBuffer() const { return mSum; }
 
     RT_FORCE_INLINE Uint32 GetNumSamplesRendered() const { return mNumSamplesRendered; }
-    RT_FORCE_INLINE Uint32 GetWidth() const { return mAccumulated.GetWidth(); }
-    RT_FORCE_INLINE Uint32 GetHeight() const { return mAccumulated.GetHeight(); }
+    RT_FORCE_INLINE Uint32 GetWidth() const { return mSum.GetWidth(); }
+    RT_FORCE_INLINE Uint32 GetHeight() const { return mSum.GetHeight(); }
 
     RT_FORCE_INLINE const RayTracingCounters& GetCounters() const { return mCounters; }
+    RT_FORCE_INLINE Float GetAverageError() const { return mAverageError; }
 
 private:
     void InitThreadData();
@@ -63,15 +64,20 @@ private:
     // generate "front buffer" image from "average" image
     void PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID);
 
+    void EstimateError();
+
     ThreadPool mThreadPool;
 
     std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 
-    Bitmap mAccumulated;    // image with accumulated samples (floating point, high dynamic range)
+    Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
+    Bitmap mSecondarySum;   // contains image with every second sample - required for adaptive rendering
     Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
 
     RayTracingCounters mCounters;
-    Uint32 mNumSamplesRendered; // number of samples averaged
+    Uint32 mNumSamplesRendered;     // number of accumulated samples
+
+    Float mAverageError;
 };
 
 } // namespace rt

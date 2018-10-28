@@ -15,6 +15,7 @@ static const Uint32 MAX_IMAGE_SZIE = 1 << 16;
 
 Viewport::Viewport()
     : mNumSamplesRendered(0)
+    , mAverageError(0.0f)
 {
     InitThreadData();
 }
@@ -41,7 +42,10 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (width == GetWidth() && height == GetHeight())
         return true;
 
-    if (!mAccumulated.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+    if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+        return false;
+
+    if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
         return false;
 
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
@@ -93,6 +97,8 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const Ren
 
     mNumSamplesRendered += params.samplesPerPixel;
 
+    EstimateError();
+
     // accumulate counters
     mCounters.Reset();
     for (const RenderingContext& ctx : mThreadData)
@@ -133,7 +139,8 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     const bool verticalFlip = true;
 
     const size_t renderTargetWidth = GetWidth();
-    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mAccumulated.GetData());
+    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+    Vector4* __restrict secondarySumPixels = reinterpret_cast<Vector4*>(mSecondarySum.GetData());
 
     const Vector4 sampleOffset = renderingContext.randomGenerator.GetFloatNormal2();
 
@@ -163,7 +170,13 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 sampleColor += color.Resolve(renderingContext.wavelength);
             }
 
-            sumPixels[renderTargetWidth * y + x] += sampleColor;
+            const size_t pixelIndex = renderTargetWidth * y + x;
+            sumPixels[pixelIndex] += sampleColor;
+
+            if (mNumSamplesRendered % 2 == 0)
+            {
+                secondarySumPixels[pixelIndex] += sampleColor;
+            }
         }
     }
 
@@ -270,16 +283,17 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
     const Float scalingFactor = exp2f(params.exposure) / (Float)mNumSamplesRendered;
     const Vector4 colorMultiplier = params.colorFilter * scalingFactor;
 
-    const Vector4* __restrict accumulatedPixels = reinterpret_cast<Vector4*>(mAccumulated.GetData());
+    const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+
     Uint8* frontBufferPixels = reinterpret_cast<Uint8*>(mFrontBuffer.GetData());
 
     for (size_t i = minIndex; i < maxIndex; ++i)
     {
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-        const Vector4 xyzColor = accumulatedPixels[i];
+        const Vector4 xyzColor = sumPixels[i];
         const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
 #else
-        const Vector4 rgbColor = accumulatedPixels[i];
+        const Vector4 rgbColor = sumPixels[i];
 #endif
 
         const Vector4 toneMapped = ToneMap(rgbColor * colorMultiplier);
@@ -289,10 +303,45 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
     }
 }
 
+void Viewport::EstimateError()
+{
+    // we need even number of samples
+    if (mNumSamplesRendered > 0 && (mNumSamplesRendered % 2 == 0))
+    {
+        const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
+        const Vector4* __restrict secondarySumPixels = reinterpret_cast<Vector4*>(mSecondarySum.GetData());
+
+        const size_t width = GetWidth();
+        const size_t height = GetHeight();
+
+        const float scalingFactor = 1.0f / static_cast<Float>(mNumSamplesRendered);
+
+        Vector4 totalError = Vector4();
+
+        size_t index = 0;
+        for (size_t i = 0; i < height; ++i)
+        {
+            Vector4 rowError;
+            for (size_t j = 0; j < width; ++j)
+            {
+                const Vector4 diff = (sumPixels[index] - 2.0f * secondarySumPixels[index]) * scalingFactor;
+                rowError += diff * diff;
+                index++;
+            }
+            totalError += rowError;
+        }
+
+        mAverageError = (totalError.x + totalError.y + totalError.z) / static_cast<Float>(3 * width * height);
+    }
+}
+
 void Viewport::Reset()
 {
     mNumSamplesRendered = 0;
-    mAccumulated.Zero();
+    mAverageError = 0.0f;
+
+    mSum.Zero();
+    mSecondarySum.Zero();
 }
 
 } // namespace rt
