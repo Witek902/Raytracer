@@ -14,6 +14,7 @@ enum class PathTerminationReason
     HitLight,
     Depth,
     Throughput,
+    NoSampledEvent,
     RussianRoulette,
 };
 

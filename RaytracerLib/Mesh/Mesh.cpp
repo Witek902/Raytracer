@@ -343,19 +343,22 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     }
 }
 
-rt::Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
+const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
 {
-    return tangent * localCoords[0] + bitangent * localCoords[1] + normal * localCoords[2];
+    Vector4 result = tangent * localCoords.x;
+    result = Vector4::MulAndAdd(bitangent, localCoords.y, result);
+    result = Vector4::MulAndAdd(normal, localCoords.z, result);
+    return result;
 }
 
-Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
+const Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
 {
-    // TODO optimize transposition
-    const Vector4 worldToLocalX = Vector4(tangent[0], bitangent[0], normal[0], 0.0f);
-    const Vector4 worldToLocalY = Vector4(tangent[1], bitangent[1], normal[1], 0.0f);
-    const Vector4 worldToLocalZ = Vector4(tangent[2], bitangent[2], normal[2], 0.0f);
+    Vector4 worldToLocalX = tangent;
+    Vector4 worldToLocalY = bitangent;
+    Vector4 worldToLocalZ = normal;
+    Vector4::Transpose3(worldToLocalX, worldToLocalY, worldToLocalZ);
 
-    return worldToLocalX * worldCoords[0] + worldToLocalY * worldCoords[1] + worldToLocalZ * worldCoords[2];
+    return worldToLocalX * worldCoords.x + worldToLocalY * worldCoords.y + worldToLocalZ * worldCoords.z;
 }
 
 } // namespace rt

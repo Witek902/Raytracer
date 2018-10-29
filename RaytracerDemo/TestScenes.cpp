@@ -8,9 +8,10 @@
 #include "../RaytracerLib/Scene/Light/AreaLight.h"
 #include "../RaytracerLib/Scene/Light/BackgroundLight.h"
 #include "../RaytracerLib/Scene/Light/DirectionalLight.h"
-#include "../RaytracerLib/Scene/SceneObject_Mesh.h"
-#include "../RaytracerLib/Scene/SceneObject_Sphere.h"
-#include "../RaytracerLib/Scene/SceneObject_Box.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Mesh.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Sphere.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Box.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Plane.h"
 
 using namespace rt;
 using namespace math;
@@ -31,7 +32,7 @@ void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
 {
     // floor
     {
-        auto mesh = helpers::CreatePlaneMesh(materials, 100.0f, 1.0f);
+        auto mesh = helpers::CreatePlane(materials, 100.0f, 1.0f);
         SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
@@ -41,8 +42,8 @@ void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
     {
         camera = CameraSetup();
         camera.position = Vector4(0.11f, 10.6f, 2.6f, 0.0f);
-        camera.pitch = -0.5f;
-        camera.yaw = -3.0f;
+        camera.orientation.y = -0.5f;
+        camera.orientation.x = -3.0f;
     }
 }
 
@@ -50,11 +51,17 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
 {
     // floor
     {
-        auto mesh = helpers::CreatePlaneMesh(materials, 100.0f, 1.0f);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+        auto material = std::make_unique<rt::Material>();
+        material->debugName = "floor";
+        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+        material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+        material->roughness = 0.8f;
+        material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+        material->Compile();
+
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(material.get());
         scene.AddObject(std::move(instance));
-        meshes.push_back(std::move(mesh));
+        materials.push_back(std::move(material));
     }
 
     {
@@ -132,8 +139,8 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
     {
         camera = CameraSetup();
         camera.position = Vector4(0.11f, 1.6f, 2.6f, 0.0f);
-        camera.pitch = -0.3f;
-        camera.yaw = -3.11f;
+        camera.orientation.y = -0.3f;
+        camera.orientation.x = -3.11f;
     }
 }
 
@@ -142,7 +149,13 @@ void InitScene_Simple_BackgroundLight(rt::Scene& scene, DemoWindow::Materials& m
     InitScene_Simple(scene, materials, meshes, camera);
 
     const Vector4 lightColor(1.0f, 1.0f, 1.0f, 0.0f);
-    scene.SetBackgroundLight(std::make_unique<BackgroundLight>(lightColor));
+
+    auto background = std::make_unique<BackgroundLight>(lightColor);
+    if (!gOptions.envMapPath.empty())
+    {
+        background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+    }
+    scene.SetBackgroundLight(std::move(background));
 }
 
 void InitScene_Simple_PointLight(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
@@ -180,7 +193,7 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
 {
     // floor
     {
-        auto mesh = helpers::CreatePlaneMesh(materials, 100.0f, 1.0f);
+        auto mesh = helpers::CreatePlane(materials, 100.0f, 1.0f);
         SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
@@ -276,8 +289,8 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
     {
         camera = CameraSetup();
         camera.position = Vector4(0.11f, 0.8f, 3.5f, 0.0f);
-        camera.pitch = -0.1f;
-        camera.yaw = -3.11f;
+        camera.orientation.y = -0.1f;
+        camera.orientation.x = -3.11f;
     }
 }
 
@@ -319,8 +332,8 @@ void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, 
     {
         camera = CameraSetup();
         camera.position = Vector4(0.f, 0.0f, 3.0f, 0.0f);
-        camera.pitch = -0.01f;
-        camera.yaw = -3.14f;
+        camera.orientation.y = -0.01f;
+        camera.orientation.x = -3.14f;
     }
 }
 
@@ -363,8 +376,8 @@ void InitScene_Specular_Test(rt::Scene& scene, DemoWindow::Materials& materials,
     {
         camera = CameraSetup();
         camera.position = Vector4(0.f, 0.0f, 3.0f, 0.0f);
-        camera.pitch = -0.01f;
-        camera.yaw = -3.14f;
+        camera.orientation.y = -0.01f;
+        camera.orientation.x = -3.14f;
     }
 }
 
@@ -397,8 +410,8 @@ void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& ma
     {
         camera = CameraSetup();
         camera.position = Vector4(10.0f, 20.6f, 10.0f, 0.0f);
-        camera.pitch = -0.6f;
-        camera.yaw = RT_PI / 4.0f;
+        camera.orientation.y = -0.6f;
+        camera.orientation.x = RT_PI / 4.0f;
     }
 }
 

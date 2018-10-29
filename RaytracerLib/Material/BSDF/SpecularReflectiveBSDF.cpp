@@ -20,7 +20,7 @@ bool SpecularReflectiveBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Vector4 SpecularReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Color SpecularReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
@@ -28,7 +28,7 @@ const Vector4 SpecularReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Flo
     {
         *outDirectPdfW = 0.0f;
     }
-    return Vector4();
+    return Color();
 }
 
 } // namespace rt

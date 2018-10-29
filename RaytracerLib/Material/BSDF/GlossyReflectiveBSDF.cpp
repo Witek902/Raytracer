@@ -43,24 +43,18 @@ bool GlossyReflectiveBSDF::Sample(SamplingContext& ctx) const
     const float NdotL = ctx.outIncomingDir.z;
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
 
-    // clip the function to avoid division by zero
-    if (NdotV < CosEpsilon || NdotL < CosEpsilon)
-    {
-        return false;
-    }
-
     const float pdf = microfacet.Pdf(m);
     const float D = microfacet.D(m);
     const float G = microfacet.G(NdotV, NdotL);
 
     ctx.outPdf = pdf / (4.0f * VdotH);
-    ctx.outColor = Color::One() * (G * D / (4.0f * NdotV));
+    ctx.outColor = Color(G * D / (4.0f * NdotV));
     ctx.outEventType = GlossyReflectionEvent;
 
     return true;
 }
 
-const Vector4 GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
@@ -71,7 +65,7 @@ const Vector4 GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float
         {
             *outDirectPdfW = 0.0f;
         }
-        return Vector4();
+        return Color();
     }
 
     // microfacet normal
@@ -85,7 +79,7 @@ const Vector4 GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float
     // clip the function
     if (NdotV < CosEpsilon || NdotL < CosEpsilon)
     {
-        return Vector4();
+        return Color();
     }
 
     const Microfacet microfacet(roughness * roughness);
@@ -97,7 +91,7 @@ const Vector4 GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float
         *outDirectPdfW = microfacet.Pdf(m) / (4.0f * VdotH);
     }
 
-    return Vector4(G * D / (4.0f * NdotV));
+    return Color(G * D / (4.0f * NdotV));
 }
 
 } // namespace rt

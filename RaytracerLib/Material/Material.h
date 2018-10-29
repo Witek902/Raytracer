@@ -103,10 +103,11 @@ public:
     const math::Vector4 GetNormalVector(const math::Vector4 uv) const;
     Bool GetMaskValue(const math::Vector4 uv) const;
 
+    void EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const;
+
     // sample material's BSDFs
     const Color Sample(
         Wavelength& wavelength,
-        const math::Vector4& outgoingDirWorldSpace,
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
         math::Random& randomGenerator,
@@ -117,7 +118,6 @@ public:
     const Color Evaluate(
         const Wavelength& wavelength,
         const ShadingData& shadingData,
-        const math::Vector4& outgoingDirWorldSpace,
         const math::Vector4& incomingDirWorldSpace,
         Float* outPdfW = nullptr) const;
 

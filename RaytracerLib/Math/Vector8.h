@@ -104,21 +104,37 @@ struct RT_ALIGN(32) Vector8
     // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
     RT_FORCE_INLINE static const Vector8 SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel);
 
+    // Check if the vector is equal to zero
+    RT_FORCE_INLINE bool IsZero() const;
+
+    // Check if any component is NaN
+    RT_FORCE_INLINE bool IsNaN() const;
+
+    // Check if any component is an infinity
+    RT_FORCE_INLINE bool IsInfinite() const;
+
+    // Check if is not NaN or infinity
+    RT_FORCE_INLINE bool IsValid() const;
+
     // Check if two vectors are (almost) equal.
     RT_FORCE_INLINE static bool AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon = RT_EPSILON);
 
     // Fused multiply and add (a * b + c)
     RT_FORCE_INLINE static const Vector8 MulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 MulAndAdd(const Vector8& a, const Float b, const Vector8& c);
 
     // Fused multiply and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector8 MulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 MulAndSub(const Vector8& a, const Float b, const Vector8& c);
 
     // Fused multiply (negated) and add (a * b + c)
     // Fused multiply (negated) and add (a * b + c)
     RT_FORCE_INLINE static const Vector8 NegMulAndAdd(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 NegMulAndAdd(const Vector8& a, const Float b, const Vector8& c);
 
     // Fused multiply (negated) and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector8 NegMulAndSub(const Vector8& a, const Vector8& b, const Vector8& c);
+    RT_FORCE_INLINE static const Vector8 NegMulAndSub(const Vector8& a, const Float b, const Vector8& c);
 
     // Calculate horizontal minimum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector8 HorizontalMin() const;
@@ -144,7 +160,7 @@ private:
 RT_FORCE_INLINE const Vector8 operator*(Float a, const Vector8& b);
 
 // some commonly used constants
-RT_GLOBAL_CONST Vector8 VECTOR8_Epsilon = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
+RT_GLOBAL_CONST Vector8 VECTOR8_EPSILON = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
 RT_GLOBAL_CONST Vector8 VECTOR8_HALVES = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
 RT_GLOBAL_CONST Vector8 VECTOR8_MIN = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 RT_GLOBAL_CONST Vector8 VECTOR8_MAX = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
@@ -157,6 +173,7 @@ RT_GLOBAL_CONST Vector8 VECTOR8_MASK_Z = { 0u, 0u, 0xFFFFFFFF, 0u, 0u, 0u, 0u, 0
 RT_GLOBAL_CONST Vector8 VECTOR8_MASK_W = { 0u, 0u, 0u, 0xFFFFFFFF, 0u, 0u, 0u, 0u };
 RT_GLOBAL_CONST Vector8 VECTOR8_MASK_ALL = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 RT_GLOBAL_CONST Vector8 VECTOR8_MASK_ABS = { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+RT_GLOBAL_CONST Vector8 VECTOR8_MASK_SIGN = { 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u };
 RT_GLOBAL_CONST Vector8 VECTOR8_INV_255 = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
 RT_GLOBAL_CONST Vector8 VECTOR8_255 = { 255.0f, 255.0f, 255.0f, 255.0f, 255.0f, 255.0f, 255.0f, 255.0f };
 

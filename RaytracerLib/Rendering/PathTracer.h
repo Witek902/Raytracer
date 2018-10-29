@@ -20,10 +20,10 @@ public:
 
 private:
     // importance sample light sources
-    const Color SampleLights(const math::Ray& ray, const ShadingData& shadingData, RenderingContext& context) const;
+    const Color SampleLights(const ShadingData& shadingData, RenderingContext& context) const;
 
     // importance sample single light source
-    const Color SampleLight(const ILight* light, const math::Ray& ray, const ShadingData& shadingData, RenderingContext& context) const;
+    const Color SampleLight(const ILight* light, const ShadingData& shadingData, RenderingContext& context) const;
 };
 
 } // namespace rt

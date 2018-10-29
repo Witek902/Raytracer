@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Material.h"
 #include "BSDF/GlossyReflectiveBSDF.h"
+#include "BSDF/SpecularReflectiveBSDF.h"
 #include "BSDF/SpecularTransmissiveBSDF.h"
 #include "BSDF/OrenNayarBSDF.h"
 #include "Mesh/Mesh.h"
@@ -47,7 +48,14 @@ void Material::Compile()
         mDiffuseBSDF = std::make_unique<OrenNayarBSDF>();
     }
 
-    mSpecularBSDF = std::make_unique<GlossyReflectiveBSDF>();
+    if (roughness.baseValue >= 0.01f)
+    {
+        mSpecularBSDF = std::make_unique<GlossyReflectiveBSDF>();
+    }
+    else
+    {
+        mSpecularBSDF = std::make_unique<SpecularReflectiveBSDF>();
+    }
 }
 
 const Vector4 Material::GetNormalVector(const Vector4 uv) const
@@ -83,19 +91,24 @@ Bool Material::GetMaskValue(const Vector4 uv) const
     return true;
 }
 
+void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
+{
+    shadingData.materialParams.baseColor = Color::SampleRGB(wavelength, baseColor.Evaluate(shadingData.texCoord));
+    shadingData.materialParams.roughness = roughness.Evaluate(shadingData.texCoord);
+    shadingData.materialParams.metalness = metalness.Evaluate(shadingData.texCoord);
+    shadingData.materialParams.IoR = IoR;
+}
+
 const Color Material::Evaluate(
     const Wavelength& wavelength,
     const ShadingData& shadingData,
-    const Vector4& outgoingDirWorldSpace,
     const Vector4& incomingDirWorldSpace,
     Float* outPdfW) const
 {
-    // TODO this is already done in Sample()
-    const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
     const Vector4 incomingDirLocalSpace = shadingData.WorldToLocal(incomingDirWorldSpace);
-    const float NdotV = outgoingDirLocalSpace.z;
+    const float NdotV = shadingData.outgoingDirLocalSpace.z;
 
-    if (outgoingDirLocalSpace.z < FLT_EPSILON || incomingDirLocalSpace.z > FLT_EPSILON)
+    if (NdotV < FLT_EPSILON || incomingDirLocalSpace.z > FLT_EPSILON)
     {
         return Color();
     }
@@ -105,33 +118,26 @@ const Color Material::Evaluate(
         *outPdfW = 0.0f;
     }
 
-    Vector4 metalValue;
-    Vector4 dielectricValue;
-
-    const Vector4 baseColorValue = baseColor.Evaluate(shadingData.texCoord);
-    const Float metalnessValue = metalness.Evaluate(shadingData.texCoord);
-
-    SampledMaterialParameters materialParam;
-    materialParam.roughness = roughness.Evaluate(shadingData.texCoord);
-    materialParam.IoR = IoR;
+    Color metalValue;
+    Color dielectricValue;
 
     const BSDF::EvaluationContext samplingContext =
     {
         *this,
-        materialParam,
+        shadingData.materialParams,
         wavelength,
-        outgoingDirLocalSpace,
+        shadingData.outgoingDirLocalSpace,
         incomingDirLocalSpace
     };
 
-    if (metalnessValue > 0.0f)
+    if (shadingData.materialParams.metalness > 0.0f)
     {
-        metalValue = baseColorValue;
+        metalValue = shadingData.materialParams.baseColor;
         metalValue *= mSpecularBSDF->Evaluate(samplingContext, outPdfW);
         metalValue *= FresnelMetal(NdotV, IoR, K);
     }
 
-    if (metalnessValue < 1.0f)
+    if (shadingData.materialParams.metalness < 1.0f)
     {
         bool totalInternalReflection = false;
         const float F = FresnelDielectric(NdotV, IoR, totalInternalReflection);
@@ -142,7 +148,7 @@ const Color Material::Evaluate(
         dielectricValue = specularWeight * mSpecularBSDF->Evaluate(samplingContext, &specularPdf);
 
         float diffusePdf;
-        dielectricValue += diffuseWeight * baseColorValue * mDiffuseBSDF->Evaluate(samplingContext, &diffusePdf);
+        dielectricValue += diffuseWeight * shadingData.materialParams.baseColor * mDiffuseBSDF->Evaluate(samplingContext, &diffusePdf);
 
         if (outPdfW)
         {
@@ -150,36 +156,28 @@ const Color Material::Evaluate(
         }
     }
 
-    const Vector4 value = Vector4::Lerp(dielectricValue, metalValue, metalnessValue);
-    return Color::SampleRGB(wavelength, value);
+    return Color::Lerp(dielectricValue, metalValue, shadingData.materialParams.metalness);
 }
 
 const Color Material::Sample(
     Wavelength& wavelength,
-    const Vector4& outgoingDirWorldSpace,
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
     Random& randomGenerator,
     Float& outPdfW,
     BSDF::EventType& outSampledEvent) const
 {
-    const Vector4 outgoingDirLocalSpace = shadingData.WorldToLocal(outgoingDirWorldSpace);
-    const float NdotV = outgoingDirLocalSpace.z;
+    const float NdotV = shadingData.outgoingDirLocalSpace.z;
 
     const BSDF* bsdf = nullptr;
-    float bsdfPdf = 1.0f;
-
-    Vector4 value; // TODO spectral color definitions
-
-    const Vector4 baseColorValue = baseColor.Evaluate(shadingData.texCoord);
-    const Float metalnessValue = metalness.Evaluate(shadingData.texCoord);
+    Color value;
 
     // TODO enclose into "FresnelBSDF"
-    if (randomGenerator.GetFloat() < metalnessValue)
+    if (randomGenerator.GetFloat() < shadingData.materialParams.metalness)
     {
         if (NdotV > 0.0f)
         {
-            value = baseColorValue;
+            value = shadingData.materialParams.baseColor;
             value *= FresnelMetal(NdotV, IoR, K);
         }
         bsdf = mSpecularBSDF.get();
@@ -191,27 +189,21 @@ const Color Material::Sample(
 
         if (randomGenerator.GetFloat() < F || totalInternalReflection) // glossy reflection
         {
-            value = VECTOR_ONE;
+            value = Color::One();
             bsdf = mSpecularBSDF.get();
-            //bsdfPdf = F;
         }
         else // diffuse reflection / refraction
         {
-            value = baseColorValue;
+            value = shadingData.materialParams.baseColor;
             bsdf = mDiffuseBSDF.get();
-            //bsdfPdf = 1.0f - F;
         }
     }
-
-    SampledMaterialParameters materialParam;
-    materialParam.roughness = roughness.Evaluate(shadingData.texCoord);
-    materialParam.IoR = IoR;
 
     BSDF::SamplingContext samplingContext =
     {
         *this,
-        materialParam,
-        outgoingDirLocalSpace,
+        shadingData.materialParams,
+        shadingData.outgoingDirLocalSpace,
         wavelength,
         randomGenerator,
     };
@@ -229,10 +221,10 @@ const Color Material::Sample(
 
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(samplingContext.outIncomingDir);
-    outPdfW = samplingContext.outPdf * bsdfPdf;
+    outPdfW = samplingContext.outPdf;
     outSampledEvent = samplingContext.outEventType;
 
-    return samplingContext.outColor * Color::SampleRGB(wavelength, value);
+    return samplingContext.outColor * value;
 }
 
 ///

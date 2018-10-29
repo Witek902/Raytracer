@@ -1,27 +1,39 @@
 #pragma once
 
 #include "../Common.h"
-#include "../Math/Vector4.h"
-
+#include "../Color/Color.h"
 
 namespace rt {
 
 class Material;
 
+struct SampledMaterialParameters
+{
+    Color baseColor;
+    Float roughness;
+    Float metalness;
+    Float IoR;
+};
+
 struct ShadingData
 {
-    const Material* material = nullptr;
-
+    // geometry data
     math::Vector4 position;
-
     math::Vector4 tangent;
     math::Vector4 bitangent;
     math::Vector4 normal;
-
     math::Vector4 texCoord;
 
-    math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
-    math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
+    const Material* material = nullptr;
+
+    // incoming ray data
+    math::Vector4 outgoingDirLocalSpace;
+    math::Vector4 outgoingDirWorldSpace;
+
+    SampledMaterialParameters materialParams;
+
+    const math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
+    const math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
 };
 
 

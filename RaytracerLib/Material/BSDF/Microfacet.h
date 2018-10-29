@@ -35,10 +35,12 @@ public:
         return 2.0f / (1.0f + math::Sqrt(1.0f + mAlpha2 * tanThetaSq));
     }
 
-    // shadowin-masking term
+    // shadowing-masking term
     float G(const float NdotV, const float NdotL) const
     {
-        return G1(NdotV) * G1(NdotL);
+        float tanThetaSqV = (1.0f - NdotV * NdotV) / (NdotV * NdotV);
+        float tanThetaSqL = (1.0f - NdotL * NdotL) / (NdotL * NdotL);
+        return 4.0f / ((1.0f + math::Sqrt(1.0f + mAlpha2 * tanThetaSqV)) * (1.0f + math::Sqrt(1.0f + mAlpha2 * tanThetaSqL)));
     }
 
     const math::Vector4 Sample(math::Random& randomGenerator) const

@@ -6,9 +6,9 @@
 #include "../RaytracerLib/Rendering/Context.h"
 #include "../RaytracerLib/Rendering/ShadingData.h"
 #include "../RaytracerLib/Traversal/TraversalContext.h"
-#include "../RaytracerLib/Scene/SceneObject_Mesh.h"
-#include "../RaytracerLib/Scene/SceneObject_Sphere.h"
-#include "../RaytracerLib/Scene/SceneObject_Box.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Mesh.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Sphere.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Box.h"
 #include "../RaytracerLib/Color/ColorHelpers.h"
 #include "../RaytracerLib/Rendering/PathTracer.h"
 
@@ -32,7 +32,7 @@ void DemoWindow::RenderUI_Stats()
 
     ImGui::Separator();
 
-    ImGui::Text("Avg. error: %.5f", mViewport->GetAverageError());
+    ImGui::Text("Avg. error: %.3e", mViewport->GetAverageError());
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     const RayTracingCounters& counters = mViewport->GetCounters();
@@ -93,6 +93,7 @@ void DemoWindow::RenderUI_Debugging_Path()
     case PathTerminationReason::HitLight: terminationReasonStr = "Hit light"; break;
     case PathTerminationReason::Depth: terminationReasonStr = "Depth exeeded"; break;
     case PathTerminationReason::Throughput: terminationReasonStr = "Throughput too low"; break;
+    case PathTerminationReason::NoSampledEvent: terminationReasonStr = "No sampled BSDF event"; break;
     case PathTerminationReason::RussianRoulette: terminationReasonStr = "Russian roulette"; break;
     }
 
@@ -245,6 +246,7 @@ bool DemoWindow::RenderUI_Settings_Camera()
     int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
 
     resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
+    resetFrame |= ImGui::InputFloat3("Orientation", &mCameraSetup.orientation.x, 3);
 
     resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
     resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);

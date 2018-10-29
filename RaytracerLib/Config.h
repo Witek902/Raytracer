@@ -8,4 +8,4 @@
 
 // enables spectral rendering via Monte Carlo wavelength sampling
 // NOTE: this slows down everything significantly
-// #define RT_ENABLE_SPECTRAL_RENDERING
+//#define RT_ENABLE_SPECTRAL_RENDERING

@@ -1,23 +1,12 @@
 #include "PCH.h"
 #include "Scene.h"
-#include "SceneObject.h"
-#include "Light.h"
-#include "SceneObject_Light.h"
-#include "Rendering/Context.h"
+#include "Light/BackgroundLight.h"
+#include "Object/SceneObject_Light.h"
 #include "Rendering/ShadingData.h"
-#include "Rendering/PathDebugging.h"
-#include "Mesh/Mesh.h"
-#include "Material/Material.h"
-#include "Math/Transcendental.h"
-#include "Utils/Bitmap.h"
 #include "BVH/BVHBuilder.h"
 
-#include "Traversal/TraversalContext.h"
 #include "Traversal/Traversal_Single.h"
-#include "Traversal/Traversal_Simd.h"
 #include "Traversal/Traversal_Packet.h"
-
-#include "Color/Color.h"
 
 
 namespace rt {
@@ -287,24 +276,5 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     outShadingData.bitangent = transform.TransformVector(outShadingData.bitangent);
     outShadingData.normal = transform.TransformVector(outShadingData.normal);
 }
-
-/*
-Color Scene::GetBackgroundColor(const Ray& ray, RenderingContext& context) const
-{
-    Vector4 rgbColor = mEnvironment.backgroundColor;
-
-    // sample environment map
-    if (mEnvironment.texture)
-    {
-        const Float theta = ACos(ray.dir[1]);
-        const Float phi = FastATan2(ray.dir[2], ray.dir[0]);
-        const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
-
-        rgbColor *= mEnvironment.texture->Sample(coords, SamplerDesc());
-    }
-
-    return Color::SampleRGB(context.wavelength, rgbColor);
-}
-*/
 
 } // namespace rt

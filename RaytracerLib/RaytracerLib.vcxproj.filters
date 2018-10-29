@@ -118,9 +118,6 @@
     <ClInclude Include="Math\Float3Impl.h">
       <Filter>Math\Float3</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObject.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Context.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -142,17 +139,8 @@
     <ClInclude Include="Math\Vector2x8.h">
       <Filter>Math\Simd8</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObject_Mesh.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneObject_Sphere.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\ShadingData.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneObject_Box.h">
-      <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="Utils\BlockCompression.h">
       <Filter>Utils</Filter>
@@ -218,9 +206,6 @@
     <ClInclude Include="Rendering\DebugRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\SceneObject_Light.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\Light\AreaLight.h">
       <Filter>Scene\Light</Filter>
     </ClInclude>
@@ -256,6 +241,24 @@
     </ClInclude>
     <ClInclude Include="Material\BSDF\Microfacet.h">
       <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject_Mesh.h">
+      <Filter>Scene\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject_Plane.h">
+      <Filter>Scene\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject_Sphere.h">
+      <Filter>Scene\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject.h">
+      <Filter>Scene\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject_Box.h">
+      <Filter>Scene\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Object\SceneObject_Light.h">
+      <Filter>Scene\Object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -319,9 +322,6 @@
     <ClCompile Include="Math\Float3.cpp">
       <Filter>Math\Float3</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\SceneObject.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Box.cpp">
       <Filter>Math\Shapes</Filter>
     </ClCompile>
@@ -330,15 +330,6 @@
     </ClCompile>
     <ClCompile Include="Traversal\RayStream.cpp">
       <Filter>Traversal</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneObject_Mesh.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneObject_Sphere.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneObject_Box.cpp">
-      <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="Utils\BlockCompression.cpp">
       <Filter>Utils</Filter>
@@ -374,9 +365,6 @@
     <ClCompile Include="Rendering\DebugRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\SceneObject_Light.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Light\BackgroundLight.cpp">
       <Filter>Scene\Light</Filter>
     </ClCompile>
@@ -409,6 +397,24 @@
     </ClCompile>
     <ClCompile Include="Material\BSDF\GlossyReflectiveBSDF.cpp">
       <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp">
+      <Filter>Scene\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject_Plane.cpp">
+      <Filter>Scene\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp">
+      <Filter>Scene\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject.cpp">
+      <Filter>Scene\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject_Box.cpp">
+      <Filter>Scene\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Object\SceneObject_Light.cpp">
+      <Filter>Scene\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -480,6 +486,9 @@
     </Filter>
     <Filter Include="Material\BSDF">
       <UniqueIdentifier>{96844df5-97ff-4bc0-8809-bce29902a306}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Object">
+      <UniqueIdentifier>{c01a4456-2851-4af7-b060-17f1973ae79a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

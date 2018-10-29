@@ -15,13 +15,13 @@ bool LambertianBSDF::Sample(SamplingContext& ctx) const
 
     ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
     ctx.outPdf = ctx.outIncomingDir.z * RT_INV_PI;
-    ctx.outColor = Color::One() * ctx.outIncomingDir.z * RT_INV_PI;
+    ctx.outColor = Color(ctx.outIncomingDir.z * RT_INV_PI);
     ctx.outEventType = DiffuseReflectionEvent;
 
     return true;
 }
 
-const Vector4 LambertianBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Color LambertianBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -34,10 +34,10 @@ const Vector4 LambertianBSDF::Evaluate(const EvaluationContext& ctx, Float* outD
             *outDirectPdfW = NdotL * RT_INV_PI;
         }
 
-        return Vector4(NdotL * RT_INV_PI);
+        return Color(NdotL * RT_INV_PI);
     }
 
-    return Vector4();
+    return Color();
 }
 
 } // namespace rt

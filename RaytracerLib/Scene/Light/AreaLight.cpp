@@ -13,7 +13,10 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     , edge1(edge1)
     , color(color)
 {
-    Float surfaceArea = Vector4::Cross3(edge0, edge1).Length3();
+    const Vector4 cross = Vector4::Cross3(edge1, edge0);
+    normal = cross.Normalized3();
+
+    Float surfaceArea = cross.Length3();
     if (isTriangle)
     {
         surfaceArea *= 0.5f;
@@ -58,7 +61,9 @@ bool AreaLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 const Color AreaLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
 {
     const Float2 uv = isTriangle ? context.randomGenerator.GetTriangle() : context.randomGenerator.GetFloat2();
-    const Vector4 lightPoint = p0 + edge0 * uv.x + edge1 * uv.y;
+
+    // p0 + edge0 * uv.x + edge1 * uv.y;
+    const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
     outDirectionToLight = lightPoint - scenePoint;
     const float sqrDistance = outDirectionToLight.SqrLength3();
@@ -66,7 +71,6 @@ const Color AreaLight::Illuminate(const Vector4& scenePoint, RenderingContext& c
     outDistance = Sqrt(sqrDistance);
     outDirectionToLight /= outDistance;
 
-    const Vector4 normal = Vector4::Cross3(edge1, edge0).Normalized3();
     const float cosNormalDir = Vector4::Dot3(normal, -outDirectionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
@@ -82,7 +86,6 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
 {
     RT_UNUSED(hitPoint);
 
-    const Vector4 normal = Vector4::Cross3(edge1, edge0).Normalized3();
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
     {

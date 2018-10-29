@@ -419,14 +419,12 @@ const Vector4 Vector4::FastReciprocal(const Vector4& v)
 
 const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight)
 {
-    const Vector4 diff = v2 - v1;
-    return Vector4::MulAndAdd(diff, weight, v1);
+    return MulAndAdd(v2 - v1, weight, v1);
 }
 
 const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, Float weight)
 {
-    const Vector4 diff = v2 - v1;
-    return Vector4::MulAndAdd(diff, Vector4(weight), v1);
+    return MulAndAdd(v2 - v1, Vector4(weight), v1);
 }
 
 const Vector4 Vector4::Min(const Vector4& a, const Vector4& b)
@@ -773,6 +771,17 @@ bool Vector4::IsInfinite() const
 bool Vector4::IsValid() const
 {
     return !IsNaN() && !IsInfinite();
+}
+
+void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)
+{
+    const Vector4 t0 = _mm_unpacklo_ps(a, b);
+    const Vector4 t1 = _mm_unpacklo_ps(c, c);
+    const Vector4 t2 = _mm_unpackhi_ps(a, b);
+    const Vector4 t3 = _mm_unpackhi_ps(c, c);
+    a = _mm_movelh_ps(t0, t1);
+    b = _mm_movehl_ps(t1, t0);
+    c = _mm_movelh_ps(t2, t3);
 }
 
 } // namespace math

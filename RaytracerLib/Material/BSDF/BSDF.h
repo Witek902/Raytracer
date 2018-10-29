@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../RayLib.h"
+#include "../../Rendering/ShadingData.h"
 #include "../../Utils/AlignmentAllocator.h"
 #include "../../Math/Ray.h"
 #include "../../Color/Color.h"
@@ -13,12 +14,6 @@ namespace math
 {
     class Random;
 }
-
-struct SampledMaterialParameters
-{
-    Float roughness;
-    Float IoR;
-};
 
 // Abstract class for Bidirectional Scattering Density Function
 // Handles both reflection and transmission
@@ -83,7 +78,7 @@ public:
     // Evaluate BRDF
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
-    virtual const math::Vector4 Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
+    virtual const Color Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
 };
 
 } // namespace rt

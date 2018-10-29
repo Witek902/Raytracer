@@ -34,7 +34,7 @@ bool SpecularTransmissiveBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Vector4 SpecularTransmissiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Color SpecularTransmissiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     RT_UNUSED(ctx);
     RT_UNUSED(outDirectPdfW);
@@ -45,7 +45,7 @@ const Vector4 SpecularTransmissiveBSDF::Evaluate(const EvaluationContext& ctx, F
         *outDirectPdfW = 0.0f;
     }
 
-    return Vector4();
+    return Color();
 }
 
 } // namespace rt

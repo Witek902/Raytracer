@@ -77,9 +77,6 @@ public:
     // 2. generate secondary rays
     RT_FORCE_NOINLINE void Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
 
-    // sample background color
-    Color GetBackgroundColor(const math::Ray& ray, RenderingContext& context) const;
-
 private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;

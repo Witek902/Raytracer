@@ -20,6 +20,7 @@ private:
     math::Vector4 p0;
     math::Vector4 edge0;
     math::Vector4 edge1;
+    math::Vector4 normal;
 
     math::Vector4 color;
 

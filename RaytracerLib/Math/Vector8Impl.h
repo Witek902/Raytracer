@@ -68,9 +68,7 @@ const Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Ve
 
 bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon)
 {
-    const Vector8 diff = Abs(v1 - v2);
-    const Vector8 epsilonV = Vector8(epsilon);
-    return diff < epsilonV;
+    return Abs(v1 - v2) < Vector8(epsilon);
 }
 
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
@@ -234,6 +232,25 @@ const Vector8 Vector8::NegMulAndSub(const Vector8& a, const Vector8& b, const Ve
 #endif
 }
 
+const Vector8 Vector8::MulAndAdd(const Vector8& a, const Float b, const Vector8& c)
+{
+    return MulAndAdd(a, Vector8(b), c);
+}
+
+const Vector8 Vector8::MulAndSub(const Vector8& a, const Float b, const Vector8& c)
+{
+    return MulAndSub(a, Vector8(b), c);
+}
+
+const Vector8 Vector8::NegMulAndAdd(const Vector8& a, const Float b, const Vector8& c)
+{
+    return NegMulAndAdd(a, Vector8(b), c);
+}
+
+const Vector8 Vector8::NegMulAndSub(const Vector8& a, const Float b, const Vector8& c)
+{
+    return NegMulAndSub(a, Vector8(b), c);
+}
 
 const Vector8 Vector8::Floor(const Vector8& V)
 {
@@ -242,7 +259,6 @@ const Vector8 Vector8::Floor(const Vector8& V)
     vResult = _mm256_cvtepi32_ps(vInt);
     return vResult;
 }
-
 
 const Vector8 Vector8::Sqrt(const Vector8& V)
 {
@@ -264,17 +280,12 @@ const Vector8 Vector8::FastReciprocal(const Vector8& v)
 
 const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, const Vector8& weight)
 {
-    __m256 vTemp = _mm256_sub_ps(v2, v1);
-    vTemp = _mm256_mul_ps(vTemp, weight);
-    return _mm256_add_ps(v1, vTemp);
+    return MulAndAdd(v2 - v1, weight, v1);
 }
 
 const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, Float weight)
 {
-    __m256 vWeight = _mm256_set1_ps(weight);
-    __m256 vTemp = _mm256_sub_ps(v2, v1);
-    vTemp = _mm256_mul_ps(vTemp, vWeight);
-    return _mm256_add_ps(v1, vTemp);
+    return MulAndAdd(v2 - v1, weight, v1);
 }
 
 const Vector8 Vector8::Min(const Vector8& a, const Vector8& b)
@@ -359,34 +370,59 @@ Int32 Vector8::NotEqualMask(const Vector8& v1, const Vector8& v2)
 
 bool Vector8::operator== (const Vector8& b) const
 {
-    return EqualMask(*this, b) == 0xF;
+    return EqualMask(*this, b) == 0xFF;
 }
 
 bool Vector8::operator< (const Vector8& b) const
 {
-    return LessMask(*this, b) == 0xF;
+    return LessMask(*this, b) == 0xFF;
 }
 
 bool Vector8::operator<= (const Vector8& b) const
 {
-    return LessEqMask(*this, b) == 0xF;
+    return LessEqMask(*this, b) == 0xFF;
 }
 
 bool Vector8::operator> (const Vector8& b) const
 {
-    return GreaterMask(*this, b) == 0xF;
+    return GreaterMask(*this, b) == 0xFF;
 }
 
 bool Vector8::operator>= (const Vector8& b) const
 {
-    return GreaterEqMask(*this, b) == 0xF;
+    return GreaterEqMask(*this, b) == 0xFF;
 }
 
 bool Vector8::operator!= (const Vector8& b) const
 {
-    return NotEqualMask(*this, b) == 0xF;
+    return NotEqualMask(*this, b) == 0xFF;
 }
 
+bool Vector8::IsZero() const
+{
+    return _mm256_movemask_ps(_mm256_cmp_ps(v, _mm256_setzero_ps(), _CMP_EQ_OQ)) == 0xFF;
+}
+
+bool Vector8::IsNaN() const
+{
+    // Test against itself. NaN is always not equal
+    const __m256 temp = _mm256_cmp_ps(v, v, _CMP_NEQ_OQ);
+    return _mm256_movemask_ps(temp) != 0;
+}
+
+bool Vector8::IsInfinite() const
+{
+    // Mask off the sign bit
+    __m256 temp = _mm256_and_ps(v, VECTOR8_MASK_SIGN);
+    // Compare to infinity
+    temp = _mm256_cmp_ps(temp, VECTOR8_INF, _CMP_EQ_OQ);
+    return _mm256_movemask_ps(temp) != 0;
+}
+
+bool Vector8::IsValid() const
+{
+    return !IsNaN() && !IsInfinite();
+}
 
 } // namespace math
 } // namespace rt

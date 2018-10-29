@@ -256,6 +256,9 @@ struct RT_ALIGN(16) Vector4
 
     // Calculate horizontal maximum. Result is splatted across all elements.
     RT_FORCE_INLINE const Vector4 HorizontalMax() const;
+
+    // transpose 3x3 matrix
+    RT_FORCE_INLINE static void Transpose3(Vector4& a, Vector4& b, Vector4& c);
 };
 
 // like Vector4::operator * (Float)

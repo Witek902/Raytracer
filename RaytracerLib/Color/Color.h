@@ -49,7 +49,8 @@ struct Color
     RT_FORCE_INLINE Color(const Color& other) = default;
     RT_FORCE_INLINE Color& operator = (const Color& other) = default;
 
-    //RT_FORCE_INLINE explicit Color(const float val) : value(val) { }
+    RT_FORCE_INLINE explicit Color(const float val) : value(val) { }
+    RT_FORCE_INLINE explicit Color(const Wavelength::ValueType& val) : value(val) { }
 
     RT_FORCE_INLINE static const Color One()
     {
@@ -126,17 +127,25 @@ struct Color
 #endif
     }
 
-    // calculate ray color values for given wavelength and linear RGB values
-    static Color BlackBody(const Wavelength& wavelength, const float temperature);
+    RT_FORCE_INLINE static const Color Lerp(const Color& a, const Color& b, const float factor)
+    {
+        return Color{ Wavelength::ValueType::Lerp(a.value, b.value, factor) };
+    }
 
     // calculate ray color values for given wavelength and linear RGB values
-    static Color SampleRGB(const Wavelength& wavelength, const math::Vector4& rgbValues);
+    static const Color BlackBody(const Wavelength& wavelength, const float temperature);
+
+    // calculate ray color values for given wavelength and linear RGB values
+    static const Color SampleRGB(const Wavelength& wavelength, const math::Vector4& rgbValues);
 
     // convert to CIE XYZ tristimulus values
     // NOTE: when spectral rendering is disabled, this function does nothing
-    math::Vector4 Resolve(const Wavelength& wavelength) const;
+    const math::Vector4 Resolve(const Wavelength& wavelength) const;
 };
 
-
+RT_FORCE_INLINE const Color operator * (const float a, const Color& b)
+{
+    return b * a;
+}
 
 } // namespace rt

@@ -2,19 +2,13 @@
 #include "Demo.h"
 #include "MeshLoader.h"
 
-#include "../RaytracerLib/Mesh/Mesh.h"
-#include "../RaytracerLib/Material/Material.h"
 #include "../RaytracerLib/Utils/Timer.h"
 #include "../RaytracerLib/Utils/Logger.h"
-#include "../RaytracerLib/Rendering/Context.h"
-#include "../RaytracerLib/Rendering/ShadingData.h"
 #include "../RaytracerLib/Rendering/PathTracer.h"
 #include "../RaytracerLib/Traversal/TraversalContext.h"
-#include "../RaytracerLib/Scene/SceneObject_Mesh.h"
-#include "../RaytracerLib/Scene/SceneObject_Sphere.h"
-#include "../RaytracerLib/Scene/SceneObject_Box.h"
+#include "../RaytracerLib/Scene/Object/SceneObject_Mesh.h"
+#include "../RaytracerLib/Scene/Light/BackgroundLight.h"
 
-#include "../External/imgui/imgui.h"
 #include "../External/imgui/imgui_sw.hpp"
 
 using namespace rt;
@@ -74,21 +68,23 @@ bool DemoWindow::Initialize()
 
     /*
     auto loadedMesh = helpers::LoadMesh(gOptions.dataPath + gOptions.modelPath, mMaterials, 1.0f);
-
-    SceneEnvironment env;
-    env.backgroundColor = Vector4(2.0f, 2.0f, 2.0f, 0.0f);
-    if (!gOptions.envMapPath.empty())
     {
-        env.texture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
-    }
-    mScene->SetEnvironment(env);
+        const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
+        auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
 
-    if (!gOptions.modelPath.empty())
-    {
-        SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
-        mScene->AddObject(std::move(meshInstance));
+        if (!gOptions.envMapPath.empty())
+        {
+            backgroundLight->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+        }
+        mScene->SetBackgroundLight(std::move(backgroundLight));
+
+        if (!gOptions.modelPath.empty())
+        {
+            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
+            mScene->AddObject(std::move(meshInstance));
+        }
+        mMeshes.push_back(std::move(loadedMesh));
     }
-    mMeshes.push_back(std::move(loadedMesh));
     */
 
     return true;
@@ -142,7 +138,6 @@ void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
     mScene = std::make_unique<Scene>();
     mMaterials.clear();
     mMeshes.clear();
-    // TODO clear textures
 
     initFunction(*mScene, mMaterials, mMeshes, mCameraSetup);
 
@@ -267,16 +262,16 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
     if (IsMouseButtonDown(MouseButton::Right))
     {
         const Float sensitivity = 0.0001f * mCameraSetup.fov;
-        mCameraSetup.yaw += sensitivity * (Float)deltaX;
-        mCameraSetup.pitch -= sensitivity * (Float)deltaY;
+        mCameraSetup.orientation.x += sensitivity * (Float)deltaX;
+        mCameraSetup.orientation.y -= sensitivity * (Float)deltaY;
 
         // clamp yaw
-        if (mCameraSetup.yaw > RT_PI)   mCameraSetup.yaw -= 2.0f * RT_PI;
-        if (mCameraSetup.yaw < -RT_PI)  mCameraSetup.yaw += 2.0f * RT_PI;
+        if (mCameraSetup.orientation.x > RT_PI)   mCameraSetup.orientation.x -= 2.0f * RT_PI;
+        if (mCameraSetup.orientation.x < -RT_PI)  mCameraSetup.orientation.x += 2.0f * RT_PI;
 
         // clamp pitch
-        if (mCameraSetup.pitch > RT_PI * 0.49f)     mCameraSetup.pitch = RT_PI * 0.49f;
-        if (mCameraSetup.pitch < -RT_PI * 0.49f)    mCameraSetup.pitch = -RT_PI * 0.49f;
+        if (mCameraSetup.orientation.y > RT_PI * 0.49f)     mCameraSetup.orientation.y = RT_PI * 0.49f;
+        if (mCameraSetup.orientation.y < -RT_PI * 0.49f)    mCameraSetup.orientation.y = -RT_PI * 0.49f;
     }
 }
 
@@ -396,7 +391,7 @@ void DemoWindow::UpdateCamera()
     const Camera oldCameraSetup = mCamera;
 
     // calculate camera direction from Euler angles
-    const Quaternion cameraOrientation = Quaternion::FromAngles(-mCameraSetup.pitch, mCameraSetup.yaw, 0.0f);
+    const Quaternion cameraOrientation = Quaternion::FromAngles(-mCameraSetup.orientation.y, mCameraSetup.orientation.x, mCameraSetup.orientation.z);
     const Vector4 direction = cameraOrientation.GetAxisZ();
 
     Vector4 movement;

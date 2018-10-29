@@ -34,13 +34,13 @@ bool OrenNayarBSDF::Sample(SamplingContext& ctx) const
     const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
     ctx.outPdf = NdotL * RT_INV_PI;
-    ctx.outColor = Color::One() * value;
+    ctx.outColor = Color(value);
     ctx.outEventType = DiffuseReflectionEvent;
 
     return true;
 }
 
-const Vector4 OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
+const Color OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -56,10 +56,10 @@ const Vector4 OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDi
         const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.incomingDir));
         const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
-        return Vector4(value);
+        return Color(value);
     }
 
-    return Vector4();
+    return Color();
 }
 
 } // namespace rt

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../RayLib.h"
-#include "../Math/Box.h"
-#include "../Math/Transform.h"
-#include "../Utils/AlignmentAllocator.h"
-#include "../Traversal/HitPoint.h"
+#include "../../RayLib.h"
+#include "../../Math/Box.h"
+#include "../../Math/Transform.h"
+#include "../../Utils/AlignmentAllocator.h"
+#include "../../Traversal/HitPoint.h"
 
 #include <memory>
 

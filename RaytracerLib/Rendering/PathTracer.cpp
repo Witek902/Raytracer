@@ -5,7 +5,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Light/Light.h"
 #include "Scene/Light/BackgroundLight.h"
-#include "Scene/SceneObject_Light.h"
+#include "Scene/Object/SceneObject_Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 
@@ -38,7 +38,7 @@ PathTracer::PathTracer(const Scene& scene)
 {
 }
 
-const Color PathTracer::SampleLight(const ILight* light, const Ray& ray, const ShadingData& shadingData, RenderingContext& context) const
+const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shadingData, RenderingContext& context) const
 {
     Vector4 dirToLight;
 
@@ -51,9 +51,12 @@ const Color PathTracer::SampleLight(const ILight* light, const Ray& ray, const S
         return Color();
     }
 
+    RT_ASSERT(IsValid(lightDirectPdfW));
+    RT_ASSERT(lightDirectPdfW >= 0.0f);
+
     // calculate BSDF contribution
     float bsdfPdfW;
-    const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -ray.dir, -dirToLight, &bsdfPdfW);
+    const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -dirToLight, &bsdfPdfW);
     if (factor.AlmostZero())
     {
         return Color();
@@ -88,7 +91,7 @@ const Color PathTracer::SampleLight(const ILight* light, const Ray& ray, const S
     return (radiance * factor) * (weight / lightDirectPdfW);
 }
 
-const Color PathTracer::SampleLights(const Ray& ray, const ShadingData& shadingData, RenderingContext& context) const
+const Color PathTracer::SampleLights(const ShadingData& shadingData, RenderingContext& context) const
 {
     Color accumulatedColor;
 
@@ -96,13 +99,13 @@ const Color PathTracer::SampleLights(const Ray& ray, const ShadingData& shadingD
     // TODO check only nearest lights
     for (const LightPtr& light : mScene.GetLights())
     {
-        accumulatedColor += SampleLight(light.get(), ray, shadingData, context);
+        accumulatedColor += SampleLight(light.get(), shadingData, context);
     }
 
     // TODO background light should be on mScene.GetLights() list
     if (const BackgroundLight* light = mScene.GetBackgroundLight())
     {
-        accumulatedColor += SampleLight(light, ray, shadingData, context);
+        accumulatedColor += SampleLight(light, shadingData, context);
     }
 
     return accumulatedColor;
@@ -158,8 +161,6 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
         mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
 
-        // TODO evaluate material parameters
-
         // we hit a light directly
         if (hitPoint.triangleId == RT_LIGHT_OBJECT)
         {
@@ -189,6 +190,15 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             break;
         }
 
+        // fill up structure with shading data
+        {
+            shadingData.outgoingDirWorldSpace = -ray.dir;
+            shadingData.outgoingDirLocalSpace = shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace);
+
+            RT_ASSERT(shadingData.material != nullptr);
+            shadingData.material->EvaluateShadingData(context.wavelength, shadingData);
+        }
+
         // accumulate emission color
         const Color emissionColor = Color::SampleRGB(context.wavelength, shadingData.material->emission.Evaluate(shadingData.texCoord));
         resultColor += throughput * emissionColor;
@@ -196,7 +206,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         if (mSampleLights)
         {
             // sample lights directly (a.k.a. next event estimation)
-            resultColor += throughput * SampleLights(ray, shadingData, context);
+            resultColor += throughput * SampleLights(shadingData, context);
         }
 
         // check if the ray depth won't be exeeded in the next iteration
@@ -221,7 +231,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         // sample BSDF
         float pdf = 0.0f;
         BSDF::EventType sampledEvent = BSDF::NullEvent;
-        throughput *= shadingData.material->Sample(context.wavelength, -ray.dir, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, sampledEvent);
+        throughput *= shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, sampledEvent);
 
         // ray is not visible anymore
         if (throughput.AlmostZero())
@@ -230,7 +240,12 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             break;
         }
 
-        RT_ASSERT(sampledEvent != BSDF::NullEvent);
+        if (sampledEvent == BSDF::NullEvent)
+        {
+            pathTerminationReason = PathTerminationReason::NoSampledEvent;
+            break;
+        }
+
         RT_ASSERT(pdf > 0.0f);
 
         lastSpecular = (sampledEvent & BSDF::SpecularEvent) != 0;

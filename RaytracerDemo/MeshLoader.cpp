@@ -286,7 +286,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     return mesh;
 }
 
-std::unique_ptr<rt::Mesh> CreatePlaneMesh(MaterialsList& outMaterials, const Float size, const Float textureScale)
+std::unique_ptr<rt::Mesh> CreatePlane(MaterialsList& outMaterials, const Float size, const Float textureScale)
 {
     auto material = std::make_unique<rt::Material>();
     material->debugName = "floor";
