@@ -6,45 +6,41 @@ namespace rt {
 
 using namespace math;
 
+
+float OrenNayarBSDF::Evaluate_Internal(const float NdotL, const float NdotV, const float LdotV, const float roughness)
+{
+    // based on http://mimosa-pudica.net/improved-oren-nayar.html
+    const float s2 = roughness * roughness;
+    const float A = 1.0f - 0.50f * s2 / (0.33f + s2);
+    const float B =        0.45f * s2 / (0.09f + s2);
+    const float s = LdotV - NdotL * NdotV;
+    const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
+
+    return Max(RT_INV_PI * NdotL * (A + B * stinv), 0.0f);
+}
+
 bool OrenNayarBSDF::Sample(SamplingContext& ctx) const
 {
-    if (ctx.outgoingDir.z < CosEpsilon)
+    const float NdotV = ctx.outgoingDir.z;
+    if (NdotV < CosEpsilon)
     {
         return false;
     }
 
     ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
-    ctx.outPdf = ctx.outIncomingDir.z * RT_INV_PI;
-    ctx.outColor = Color::One() * ctx.outIncomingDir.z * RT_INV_PI;
+
+    const float NdotL = ctx.outIncomingDir.z;
+    const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.outIncomingDir));
+    const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
+
+    ctx.outPdf = NdotL * RT_INV_PI;
+    ctx.outColor = Color::One() * value;
     ctx.outEventType = DiffuseReflectionEvent;
-
-    /*
-    const float NdotV = ctx.outgoingDir.z;
-    const float NdotL = outIncomingDir.z;
-
-    if (NdotV > CosEpsilon || NdotL > CosEpsilon)
-    {
-        const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -outIncomingDir));
-
-        const float s2 = mRoughness * mRoughness;
-        const float A = 1.0f - 0.50f * s2 / (0.33f + s2);
-        const float B = 0.45f * s2 / (0.09f + s2);
-
-        // based on http://mimosa-pudica.net/improved-oren-nayar.html
-        const float s = LdotV - NdotL * NdotV;
-        const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
-
-        outPdf = outIncomingDir.z / RT_PI;
-        return Color::One() * Max(A + B * stinv, 0.0f);
-    }
-
-    return Color();
-    */
 
     return true;
 }
 
-const Vector4 OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Vector4 OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -57,21 +53,10 @@ const Vector4 OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, Float* outDi
             *outDirectPdfW = NdotL * RT_INV_PI;
         }
 
-        return Vector4(NdotL * RT_INV_PI);
-
-        /*
         const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.incomingDir));
+        const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
-        const float s2 = mRoughness * mRoughness;
-        const float A = 1.0f - 0.50f * s2 / (0.33f + s2);
-        const float B =        0.45f * s2 / (0.09f + s2);
-
-        // based on http://mimosa-pudica.net/improved-oren-nayar.html
-        const float s = LdotV - NdotL * NdotV;
-        const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
-
-        return Vector4(Max(RT_PI * NdotL * (A + B * stinv), 0.0f));
-        */
+        return Vector4(value);
     }
 
     return Vector4();

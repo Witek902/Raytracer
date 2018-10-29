@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "BSDF/GlossyReflectiveBSDF.h"
 #include "BSDF/SpecularTransmissiveBSDF.h"
-#include "BSDF/LambertianBSDF.h"
+#include "BSDF/OrenNayarBSDF.h"
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
@@ -44,7 +44,7 @@ void Material::Compile()
     }
     else
     {
-        mDiffuseBSDF = std::make_unique<LambertianBSDF>();
+        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>();
     }
 
     mSpecularBSDF = std::make_unique<GlossyReflectiveBSDF>();
