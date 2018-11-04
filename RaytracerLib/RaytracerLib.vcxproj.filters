@@ -76,9 +76,6 @@
     <ClInclude Include="BVH\BVHBuilder.h">
       <Filter>BVH</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Bitmap.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\ThreadPool.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -260,6 +257,15 @@
     <ClInclude Include="Scene\Object\SceneObject_Light.h">
       <Filter>Scene\Object</Filter>
     </ClInclude>
+    <ClInclude Include="..\External\tinyexr\tinyexr.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Half.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Bitmap.h">
+      <Filter>Utils\Bitmap</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -294,9 +300,6 @@
     </ClCompile>
     <ClCompile Include="BVH\BVH.cpp">
       <Filter>BVH</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Bitmap.cpp">
-      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ThreadPool.cpp">
       <Filter>Utils</Filter>
@@ -416,6 +419,21 @@
     <ClCompile Include="Scene\Object\SceneObject_Light.cpp">
       <Filter>Scene\Object</Filter>
     </ClCompile>
+    <ClCompile Include="..\External\tinyexr\tinyexr.cc">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapBMP.cpp">
+      <Filter>Utils\Bitmap</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapDDS.cpp">
+      <Filter>Utils\Bitmap</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapEXR.cpp">
+      <Filter>Utils\Bitmap</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Bitmap.cpp">
+      <Filter>Utils\Bitmap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
@@ -489,6 +507,9 @@
     </Filter>
     <Filter Include="Scene\Object">
       <UniqueIdentifier>{c01a4456-2851-4af7-b060-17f1973ae79a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Bitmap">
+      <UniqueIdentifier>{7bffc33c-adf6-48ed-a54c-123587f3ee2e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

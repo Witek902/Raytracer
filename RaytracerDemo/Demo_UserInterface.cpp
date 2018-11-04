@@ -183,9 +183,20 @@ void DemoWindow::RenderUI_Settings()
         ResetFrame();
     }
 
-    if (ImGui::Button("Take screenshot"))
+    // screenshot saving
     {
-        mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
+        if (ImGui::Button("LDR screenshot"))
+        {
+            mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("HDR screenshot"))
+        {
+            const Float colorScale = 1.0f / (Float)mViewport->GetNumSamplesRendered();
+            mViewport->GetSumBuffer().SaveEXR("screenshot.exr", colorScale);
+        }
     }
 }
 

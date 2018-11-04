@@ -3,8 +3,6 @@
 #include "Math.h"
 #include "Vector4.h"
 
-#define RT_USE_FMA
-
 namespace rt {
 namespace math {
 

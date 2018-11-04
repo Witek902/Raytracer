@@ -22,6 +22,9 @@
 #endif // _MSC_VER
 
 
+#define RT_USE_FMA
+#define RT_USE_FP16C
+
 #define RT_UNUSED(x) (void)(x)
 #define RT_INLINE inline
 

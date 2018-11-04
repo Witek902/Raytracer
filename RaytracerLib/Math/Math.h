@@ -21,6 +21,9 @@
 namespace rt {
 namespace math {
 
+// half (16-bit) floating point type
+using Half = Uint16;
+
 // Union providing easy manipulations on 32-bit values
 union Bits32
 {
@@ -180,7 +183,6 @@ RT_FORCE_INLINE Uint32 PopCount(Uint32 x)
 #elif defined(__LINUX__) | defined(__linux__)
     return __builtin_popcount(x);
 #endif // defined(WIN32)
-
 }
 
 } // namespace math

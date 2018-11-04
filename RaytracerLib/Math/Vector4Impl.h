@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Half.h"
+
 namespace rt {
 namespace math {
 
@@ -64,6 +66,20 @@ const Vector4 Vector4::FromInteger(Uint32 x)
 const Vector4 Vector4::FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
 {
     return Vector4(_mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x)));
+}
+
+const Vector4 Vector4::FromHalves(const Half* src)
+{
+#ifdef RT_USE_FP16C
+    const __m128i v = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(src));
+    return _mm_cvtph_ps(v);
+#else // RT_USE_FP16C
+    return Vector4(
+        ConvertHalfToFloat(src[0]),
+        ConvertHalfToFloat(src[1]),
+        ConvertHalfToFloat(src[2]),
+        ConvertHalfToFloat(src[3]));
+#endif // RT_USE_FP16C
 }
 
 // Load & store ===================================================================================

@@ -57,7 +57,7 @@ Uint32 Random::GetInt()
 float Random::GetFloat()
 {
     Bits32 myrand;
-    myrand.ui = 1 + ((GetInt() & 0x007fffff) | 0x3f800000);
+    myrand.ui = (GetInt() & 0x007fffff) | 0x3f800000;
     return myrand.f - 1.0f;
 }
 
@@ -74,7 +74,7 @@ const Float3 Random::GetFloat3()
 float Random::GetFloatBipolar()
 {
     Bits32 myrand;
-    myrand.ui = 1 + ((GetInt() & 0x007fffff) | 0x40000000);
+    myrand.ui = (GetInt() & 0x007fffff) | 0x40000000;
     return myrand.f - 3.0f;
 }
 

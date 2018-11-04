@@ -28,6 +28,25 @@ void InitScene_Empty(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
     camera = CameraSetup();
 }
 
+void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::Meshes&, CameraSetup& camera)
+{
+    const Vector4 lightColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+    auto background = std::make_unique<BackgroundLight>(lightColor);
+    if (!gOptions.envMapPath.empty())
+    {
+        background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+    }
+    scene.SetBackgroundLight(std::move(background));
+
+    {
+        camera = CameraSetup();
+        camera.position = Vector4(0.11f, 10.6f, 2.6f, 0.0f);
+        camera.orientation.y = -0.5f;
+        camera.orientation.x = -3.0f;
+    }
+}
+
 void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     // floor
@@ -420,6 +439,7 @@ void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& ma
 void DemoWindow::RegisterTestScenes()
 {
     mRegisteredScenes["Empty"] = InitScene_Empty;
+    mRegisteredScenes["Background"] = InitScene_Background;
     mRegisteredScenes["Plane"] = InitScene_Plane;
     mRegisteredScenes["Furnace Test"] = InitScene_Furnace_Test;
     mRegisteredScenes["Specular Test"] = InitScene_Specular_Test;

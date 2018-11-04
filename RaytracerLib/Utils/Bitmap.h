@@ -43,6 +43,7 @@ public:
         B8G8R8A8_Uint,
         R32G32B32_Float,
         R32G32B32A32_Float,
+        R16G16B16_Half,
         BC1,
         BC4,
         BC5,
@@ -54,6 +55,13 @@ public:
     ~Bitmap();
     Bitmap(Bitmap&&) = default;
     Bitmap& operator = (Bitmap&&) = default;
+
+    template<typename T>
+    RT_FORCE_INLINE T* GetDataAs()
+    {
+        // TODO validate type
+        return reinterpret_cast<T*>(GetData());
+    }
 
     RT_FORCE_INLINE void* GetData() { return mData; }
     RT_FORCE_INLINE const void* GetData() const { return mData; }
@@ -71,6 +79,10 @@ public:
 
     // save to BMP file
     bool SaveBMP(const char* path, bool flipVertically) const;
+
+    // save to OpenEXR file
+    // NOTE: must be Float or Half format
+    bool SaveEXR(const char* path, const Float exposure) const;
 
     // release memory
     void Release();
@@ -95,11 +107,8 @@ public:
     // sample the bitmap (including filtering and coordinates wrapping)
     math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
 
-    // Note: format must be R32G32B32A32_Float
-    void AccumulateFloat_Unsafe(const Uint32 x, const Uint32 y, const math::Vector4 value);
-
     // fill with zeros
-    void Zero();
+    void Clear();
 
 private:
 
@@ -108,6 +117,7 @@ private:
 
     bool LoadBMP(FILE* file, const char* path);
     bool LoadDDS(FILE* file, const char* path);
+    bool LoadEXR(FILE* file, const char* path);
 
     math::Vector4 mSize;
     Uint8* mData;

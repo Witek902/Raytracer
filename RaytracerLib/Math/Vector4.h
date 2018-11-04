@@ -50,6 +50,7 @@ struct RT_ALIGN(16) Vector4
 
     RT_FORCE_INLINE static const Vector4 FromInteger(Uint32 x);
     RT_FORCE_INLINE static const Vector4 FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w);
+    RT_FORCE_INLINE static const Vector4 FromHalves(const Half* src);
 
     RT_FORCE_INLINE explicit operator Float() const { return x; }
     RT_FORCE_INLINE operator __m128() const { return v; }

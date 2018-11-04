@@ -42,10 +42,10 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (width == GetWidth() && height == GetHeight())
         return true;
 
-    if (!mSum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+    if (!mSum.Init(width, height, Bitmap::Format::R32G32B32_Float))
         return false;
 
-    if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32A32_Float))
+    if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32_Float))
         return false;
 
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
@@ -130,7 +130,7 @@ bool Viewport::PostProcess(const PostprocessParams& params)
 
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, Uint32 x0, Uint32 y0)
 {
-    const Vector4 invSize = Vector4(VECTOR_ONE2) / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
+    const Vector4 invSize = VECTOR_ONE2 / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
     const Uint32 tileSize = 1u << renderingContext.params->tileOrder;
     const Uint32 samplesPerPixel = renderingContext.params->samplesPerPixel;
     const Uint32 maxX = Min(x0 + tileSize, GetWidth());
@@ -138,46 +138,52 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     const bool verticalFlip = true;
 
-    const size_t renderTargetWidth = GetWidth();
-    Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
-    Vector4* __restrict secondarySumPixels = reinterpret_cast<Vector4*>(mSecondarySum.GetData());
+    Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
+    Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
     const Vector4 sampleOffset = renderingContext.randomGenerator.GetFloatNormal2();
 
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
-        for (Uint32 i = 0; i < tileSize * tileSize; ++i)
+        for (Uint32 y = y0; y < maxY; ++y)
         {
-            // fill the tile using Morton Curve for better cache locality
-            Uint32 localX, localY;
-            DecodeMorton(i, localX, localY);
-            const Uint32 x = x0 + localX;
-            const Uint32 y = y0 + localY;
-            if (x >= maxX || y >= maxY) continue;
-
-            const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
-            const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
-
-            Vector4 sampleColor;
-            for (Uint32 s = 0; s < samplesPerPixel; ++s)
+            for (Uint32 x = x0; x < maxX; ++x)
             {
-                renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
-                renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
+                const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
+                const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                // generate primary ray
-                const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
-                const Color color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
-                sampleColor += color.Resolve(renderingContext.wavelength);
-            }
+                Vector4 sampleColor;
+                for (Uint32 s = 0; s < samplesPerPixel; ++s)
+                {
+                    renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
+                    renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
 
-            const size_t pixelIndex = renderTargetWidth * y + x;
-            sumPixels[pixelIndex] += sampleColor;
+                    // generate primary ray
+                    const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
+                    const Color color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
+                    sampleColor += color.Resolve(renderingContext.wavelength);
+                }
 
-            if (mNumSamplesRendered % 2 == 0)
-            {
-                secondarySumPixels[pixelIndex] += sampleColor;
+                const size_t pixelIndex = GetWidth() * y + x;
+                sumPixels[pixelIndex] += sampleColor.ToFloat3();
+
+                if (mNumSamplesRendered % 2 == 0)
+                {
+                    secondarySumPixels[pixelIndex] += sampleColor.ToFloat3();
+                }
             }
         }
+
+        //for (Uint32 i = 0; i < tileSize * tileSize; ++i)
+        //{
+        //    // fill the tile using Morton Curve for better cache locality
+        //    Uint32 localX, localY;
+        //    DecodeMorton(i, localX, localY);
+        //    const Uint32 x = x0 + localX;
+        //    const Uint32 y = y0 + localY;
+        //    if (x >= maxX || y >= maxY) continue;
+        //
+        //}
     }
 
     // TODO
@@ -283,9 +289,8 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
     const Float scalingFactor = exp2f(params.exposure) / (Float)mNumSamplesRendered;
     const Vector4 colorMultiplier = params.colorFilter * scalingFactor;
 
-    const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
-
-    Uint8* frontBufferPixels = reinterpret_cast<Uint8*>(mFrontBuffer.GetData());
+    const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
+    Uint8* __restrict frontBufferPixels = mFrontBuffer.GetDataAs<Uint8>();
 
     for (size_t i = minIndex; i < maxIndex; ++i)
     {
@@ -293,7 +298,7 @@ void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uin
         const Vector4 xyzColor = sumPixels[i];
         const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
 #else
-        const Vector4 rgbColor = sumPixels[i];
+        const Vector4 rgbColor = Vector4(sumPixels[i]);
 #endif
 
         const Vector4 toneMapped = ToneMap(rgbColor * colorMultiplier);
@@ -308,8 +313,8 @@ void Viewport::EstimateError()
     // we need even number of samples
     if (mNumSamplesRendered > 0 && (mNumSamplesRendered % 2 == 0))
     {
-        const Vector4* __restrict sumPixels = reinterpret_cast<Vector4*>(mSum.GetData());
-        const Vector4* __restrict secondarySumPixels = reinterpret_cast<Vector4*>(mSecondarySum.GetData());
+        const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
+        const Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
         const size_t width = GetWidth();
         const size_t height = GetHeight();
@@ -324,7 +329,7 @@ void Viewport::EstimateError()
             Vector4 rowError;
             for (size_t j = 0; j < width; ++j)
             {
-                const Vector4 diff = (sumPixels[index] - 2.0f * secondarySumPixels[index]) * scalingFactor;
+                const Vector4 diff = (Vector4(sumPixels[index]) - 2.0f * Vector4(secondarySumPixels[index])) * scalingFactor;
                 rowError += diff * diff;
                 index++;
             }
@@ -340,8 +345,8 @@ void Viewport::Reset()
     mNumSamplesRendered = 0;
     mAverageError = 0.0f;
 
-    mSum.Zero();
-    mSecondarySum.Zero();
+    mSum.Clear();
+    mSecondarySum.Clear();
 }
 
 } // namespace rt

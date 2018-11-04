@@ -205,6 +205,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\External\tinyexr\tinyexr.h" />
     <ClInclude Include="BVH\BVH.h" />
     <ClInclude Include="BVH\BVHBuilder.h" />
     <ClInclude Include="Color\Color.h" />
@@ -226,6 +227,7 @@
     <ClInclude Include="Math\Float3.h" />
     <ClInclude Include="Math\Float3Impl.h" />
     <ClInclude Include="Math\Geometry.h" />
+    <ClInclude Include="Math\Half.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Quaternion.h" />
     <ClInclude Include="Math\QuaternionImpl.h" />
@@ -296,6 +298,12 @@
     <ClInclude Include="Utils\ThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\External\tinyexr\tinyexr.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="BVH\BVH.cpp" />
     <ClCompile Include="BVH\BVHBuilder.cpp" />
     <ClCompile Include="Color\Color.cpp" />
@@ -349,6 +357,9 @@
     <ClCompile Include="Traversal\RayStream.cpp" />
     <ClCompile Include="Traversal\Traversal_Packet.cpp" />
     <ClCompile Include="Utils\Bitmap.cpp" />
+    <ClCompile Include="Utils\BitmapBMP.cpp" />
+    <ClCompile Include="Utils\BitmapDDS.cpp" />
+    <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
