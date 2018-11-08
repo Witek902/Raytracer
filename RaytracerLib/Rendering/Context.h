@@ -20,6 +20,16 @@ enum class TraversalMode : Uint8
     Packet,
 };
 
+struct AdaptiveRenderingSettings
+{
+    Bool enable = true;
+    Uint32 numInitialPasses = 10;
+    Uint32 minBlockSize = 4;
+    Uint32 maxBlockSize = 256;
+    Float subdivisionTreshold = 0.005f;
+    Float convergenceTreshold = 0.0001f;
+};
+
 struct RenderingParams
 {
     // Antialiasing factor
@@ -40,10 +50,13 @@ struct RenderingParams
     Uint32 minRussianRouletteDepth = 2;
 
     // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
-    Uint8 tileOrder = 4;
+    Uint16 tileSize = 16;
 
     // select mode of ray traversal
     TraversalMode traversalMode = TraversalMode::Single;
+
+    // adaptive rendering settings
+    AdaptiveRenderingSettings adaptiveSettings;
 };
 
 /**

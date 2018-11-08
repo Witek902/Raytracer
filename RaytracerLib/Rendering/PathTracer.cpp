@@ -40,23 +40,21 @@ PathTracer::PathTracer(const Scene& scene)
 
 const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shadingData, RenderingContext& context) const
 {
-    Vector4 dirToLight;
+    ILight::IlluminateParam illuminateParam = { shadingData, context };
 
     // calculate light contribution
-    float distanceToLight;
-    float lightDirectPdfW;
-    Color radiance = light->Illuminate(shadingData.position, context, dirToLight, distanceToLight, lightDirectPdfW);
+    Color radiance = light->Illuminate(illuminateParam);
     if (radiance.AlmostZero())
     {
         return Color();
     }
 
-    RT_ASSERT(IsValid(lightDirectPdfW));
-    RT_ASSERT(lightDirectPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateParam.outDirectPdfW));
+    RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
 
     // calculate BSDF contribution
     float bsdfPdfW;
-    const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -dirToLight, &bsdfPdfW);
+    const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
     if (factor.AlmostZero())
     {
         return Color();
@@ -65,9 +63,9 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
     // cast shadow ray
     {
         HitPoint hitPoint;
-        hitPoint.distance = distanceToLight;
+        hitPoint.distance = illuminateParam.outDistance;
 
-        Ray shadowRay(shadingData.position, dirToLight);
+        Ray shadowRay(shadingData.position, illuminateParam.outDirectionToLight);
         shadowRay.origin += shadowRay.dir * 0.001f;
 
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
@@ -84,11 +82,11 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
         const float continuationProbability = 1.0f;
 
         bsdfPdfW *= continuationProbability;
-        weight = CombineMis(lightDirectPdfW, bsdfPdfW);
+        weight = CombineMis(illuminateParam.outDirectPdfW, bsdfPdfW);
     }
 
     //const float NdotL = Abs(Vector4::Dot3(dirToLight, shadingData.normal));
-    return (radiance * factor) * (weight / lightDirectPdfW);
+    return (radiance * factor) * (weight / illuminateParam.outDirectPdfW);
 }
 
 const Color PathTracer::SampleLights(const ShadingData& shadingData, RenderingContext& context) const

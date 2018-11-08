@@ -4,8 +4,10 @@
 
 #include "Context.h"
 #include "Counters.h"
+#include "PostProcess.h"
 
 #include "../Math/Random.h"
+#include "../Math/Rectangle.h"
 #include "../Utils/Bitmap.h"
 #include "../Utils/ThreadPool.h"
 #include "../Utils/AlignmentAllocator.h"
@@ -16,17 +18,13 @@ namespace rt {
 class IRenderer;
 class Camera;
 
-struct PostprocessParams
+struct RenderingProgress
 {
-    math::Vector4 colorFilter = math::VECTOR_ONE;
-
-    // exposure in log scale
-    float exposure = 0.0f;
-
-    // applied after tonemapping
-    float ditheringStrength = 0.005f;
+    Uint32 passesFinished = 0;
+    Uint32 activePixels = 0;
+    Uint32 activeBlocks = 0;
+    Float converged = 0.0f;
 };
-
 
 class RT_ALIGN(64) RAYLIB_API Viewport : public Aligned<64>
 {
@@ -34,22 +32,27 @@ public:
     Viewport();
 
     bool Resize(Uint32 width, Uint32 height);
-    bool Render(const IRenderer& renderer, const Camera& camera, const RenderingParams& params);
-    bool PostProcess(const PostprocessParams& params);
+    bool SetRenderingParams(const RenderingParams& params);
+    bool SetPostprocessParams(const PostprocessParams& params);
+    bool Render(const IRenderer& renderer, const Camera& camera);
     void Reset();
 
-    RT_FORCE_INLINE const rt::Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
-    RT_FORCE_INLINE const rt::Bitmap& GetSumBuffer() const { return mSum; }
+    RT_FORCE_INLINE const Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
+    RT_FORCE_INLINE const Bitmap& GetSumBuffer() const { return mSum; }
 
-    RT_FORCE_INLINE Uint32 GetNumSamplesRendered() const { return mNumSamplesRendered; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return mSum.GetWidth(); }
     RT_FORCE_INLINE Uint32 GetHeight() const { return mSum.GetHeight(); }
 
+    RT_FORCE_INLINE const RenderingProgress& GetProgress() const { return mProgress; }
     RT_FORCE_INLINE const RayTracingCounters& GetCounters() const { return mCounters; }
-    RT_FORCE_INLINE Float GetAverageError() const { return mAverageError; }
+
+    void VisualizeActiveBlocks(Bitmap& bitmap) const;
 
 private:
     void InitThreadData();
+
+    // region of a image used for adaptive rendering
+    using Block = math::Rectangle<Uint32>;
 
     struct TileRenderingContext
     {
@@ -58,13 +61,31 @@ private:
         const math::Vector4 sampleOffset;
     };
 
+    struct RT_ALIGN(16) PostprocessParamsInternal
+    {
+        PostprocessParams params;
+
+        math::Vector4 colorScale;
+        Bool fullUpdateRequired = false;
+    };
+
+    void BuildInitialBlocksList();
+
+    // calculate estimated error (variance) of a given block
+    Float ComputeBlockError(const Block& block) const;
+
+    // generate list of tiles to be rendered (updates mRenderingTiles)
+    void GenerateRenderingTiles();
+
+    void UpdateBlocksList();
+
     // raytrace single image tile (will be called from multiple threads)
-    void RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, Uint32 x0, Uint32 y0);
+    void RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile);
 
-    // generate "front buffer" image from "average" image
-    void PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID);
+    void PerformPostProcess();
 
-    void EstimateError();
+    // generate "front buffer" image from "sum" image
+    void PostProcessTile(const Block& tile, Uint32 threadID);
 
     ThreadPool mThreadPool;
 
@@ -73,11 +94,17 @@ private:
     Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
     Bitmap mSecondarySum;   // contains image with every second sample - required for adaptive rendering
     Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
+    std::vector<Uint32> mPassesPerPixel;
+
+    RenderingParams mParams;
+    PostprocessParamsInternal mPostprocessParams;
 
     RayTracingCounters mCounters;
-    Uint32 mNumSamplesRendered;     // number of accumulated samples
 
-    Float mAverageError;
+    RenderingProgress mProgress;
+
+    std::vector<Block> mBlocks;
+    std::vector<Block> mRenderingTiles;
 };
 
 } // namespace rt

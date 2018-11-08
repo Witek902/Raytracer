@@ -266,6 +266,15 @@
     <ClInclude Include="Utils\Bitmap.h">
       <Filter>Utils\Bitmap</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Rectangle.h">
+      <Filter>Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\LdrColor.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PostProcess.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -433,6 +442,9 @@
     </ClCompile>
     <ClCompile Include="Utils\Bitmap.cpp">
       <Filter>Utils\Bitmap</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\PostProcess.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

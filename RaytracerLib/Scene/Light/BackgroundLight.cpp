@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "BackgroundLight.h"
 #include "../../Rendering/Context.h"
+#include "../../Rendering/ShadingData.h"
 #include "../../Utils/Bitmap.h"
 #include "../../Math/Transcendental.h"
 
@@ -41,15 +42,14 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
     return Color::SampleRGB(context.wavelength, rgbColor);
 }
 
-const Color BackgroundLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
+const Color BackgroundLight::Illuminate(IlluminateParam& param) const
 {
-    RT_UNUSED(scenePoint);
+    const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();  
+    param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
+    param.outDirectPdfW = RT_INV_PI / 2.0f; // hemisphere area
+    param.outDistance = g_backgroundLightDistance;
 
-    outDirectionToLight = context.randomGenerator.GetSphere();
-    outDirectPdfW = RT_INV_PI / 4.0f;
-    outDistance = g_backgroundLightDistance;
-
-    return GetBackgroundColor(outDirectionToLight, context);
+    return GetBackgroundColor(param.outDirectionToLight, param.context);
 }
 
 const Color BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
@@ -58,7 +58,7 @@ const Color BackgroundLight::GetRadiance(RenderingContext& context, const math::
     
     if (outDirectPdfA)
     {
-        *outDirectPdfA = RT_INV_PI / 4.0f;
+        *outDirectPdfA = RT_INV_PI / 2.0f; // hemisphere area
     }
 
     return GetBackgroundColor(rayDirection, context);

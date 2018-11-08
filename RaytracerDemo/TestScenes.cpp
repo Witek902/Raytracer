@@ -42,8 +42,8 @@ void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::
     {
         camera = CameraSetup();
         camera.position = Vector4(0.11f, 10.6f, 2.6f, 0.0f);
-        camera.orientation.y = -0.5f;
-        camera.orientation.x = -3.0f;
+        camera.orientation.y = 0.198f;
+        camera.orientation.x = 0.184f;
     }
 }
 
@@ -97,27 +97,11 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
         materials.push_back(std::move(material));
     }
 
-    /*
-    {
-        auto material = std::make_unique<rt::Material>();
-        material->debugName = "glass";
-        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-        material->roughness = 0.001f;
-        material->transparent = true;
-        material->Compile();
-
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
-        scene.AddObject(std::move(instance));
-        materials.push_back(std::move(material));
-    }
-    */
-
     {
         auto material = std::make_unique<rt::Material>();
         material->debugName = "glossy";
-        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-        material->roughness = 0.2f;
+        material->baseColor = math::Vector4(1.0f, 0.7f, 0.2f, 0.0f);
+        material->roughness = 0.4f;
         material->metalness = 1.0f;
         material->Compile();
 
@@ -132,7 +116,8 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
         material->debugName = "specular";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.0f;
-        material->metalness = 1.0f;
+        material->metalness = 0.0f;
+        material->transparent = true;
         material->Compile();
 
         SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
@@ -141,19 +126,19 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
         materials.push_back(std::move(material));
     }
 
-    {
-        auto material = std::make_unique<rt::Material>();
-        material->debugName = "wall";
-        material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
-        material->roughness = 0.2f;
-        material->metalness = 0.0f;
-        material->Compile();
+    //{
+    //    auto material = std::make_unique<rt::Material>();
+    //    material->debugName = "wall";
+    //    material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
+    //    material->roughness = 0.05f;
+    //    material->metalness = 0.0f;
+    //    material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 10.0f, 1.0f, 0.0f), material.get());
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, -2.0f, 0.0f));
-        scene.AddObject(std::move(instance));
-        materials.push_back(std::move(material));
-    }
+    //    SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 10.0f, 1.0f, 0.0f), material.get());
+    //    instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, -2.0f, 0.0f));
+    //    scene.AddObject(std::move(instance));
+    //    materials.push_back(std::move(material));
+    //}
 
     {
         camera = CameraSetup();
@@ -191,10 +176,12 @@ void InitScene_Simple_AreaLight(rt::Scene& scene, DemoWindow::Materials& materia
     InitScene_Simple(scene, materials, meshes, camera);
 
     {
-        const Vector4 lightColor(5.0f, 5.0f, 5.0f, 0.0f);
+        const float size = 1.0f;
+
+        const Vector4 lightColor = Vector4(8.0f, 8.0f, 8.0f, 0.0f) / (size * size);
         const Vector4 lightPosition(4.0f, 4.0f, 4.0f, 0.0f);
-        const Vector4 lightEdge0(-0.5f, 1.0f, -0.5f, 0.0f);
-        const Vector4 lightEdge1(-1.0f, 0.0f, 1.0f, 0.0f);
+        const Vector4 lightEdge0(-size, 2.0f * size, -size, 0.0f);
+        const Vector4 lightEdge1(-2.0f * size, 0.0f, 2.0f * size, 0.0f);
         scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
     }
 }
@@ -423,8 +410,15 @@ void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& ma
 
     materials.push_back(std::move(material));
 
-    const Vector4 lightColor(1.0f, 1.0f, 1.0f, 0.0f);
-    scene.SetBackgroundLight(std::make_unique<BackgroundLight>(lightColor));
+    {
+        const Vector4 lightColor(1.0f, 1.0f, 1.0f, 0.0f);
+        auto background = std::make_unique<BackgroundLight>(lightColor);
+        if (!gOptions.envMapPath.empty())
+        {
+            background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+        }
+        scene.SetBackgroundLight(std::move(background));
+    }
 
     {
         camera = CameraSetup();

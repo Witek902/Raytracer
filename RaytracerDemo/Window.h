@@ -38,9 +38,6 @@ public:
     // Get Window's size
     void GetSize(Uint32& width, Uint32& height) const;
 
-    // Check if window is currently in Fullscreen mode.
-    bool GetFullscreenMode() const;
-
     // Acquire how much did the mouse wheel scroll.
     int GetMouseWheelDelta() const;
 
@@ -55,9 +52,6 @@ public:
 
     // Set window's new size
     void SetSize(Uint32 width, Uint32 height);
-
-    // Enable or disable fullscreen
-    void SetFullscreenMode(bool enabled);
 
     // Make window invisible or visible
     void SetInvisible(bool invisible);
@@ -114,7 +108,6 @@ private:
 #endif // defined(WIN32)
 
     bool mClosed;
-    bool mFullscreen;
     bool mInvisible;
     Uint32 mWidth;
     Uint32 mHeight;

@@ -237,6 +237,13 @@ const Vector4 Random::GetSphere()
     return Vector4(t * Sin(theta), t * Cos(theta), 1.0f - 2.0f * u.y, 0.0f);
 }
 
+const Vector4 Random::GetHemishpere()
+{
+    Vector4 p = GetSphere();
+    p.z = Abs(p.z);
+    return p;
+}
+
 const Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();

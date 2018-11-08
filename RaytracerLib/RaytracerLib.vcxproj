@@ -210,6 +210,7 @@
     <ClInclude Include="BVH\BVHBuilder.h" />
     <ClInclude Include="Color\Color.h" />
     <ClInclude Include="Color\ColorHelpers.h" />
+    <ClInclude Include="Color\LdrColor.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Material\BSDF\BSDF.h" />
@@ -233,6 +234,7 @@
     <ClInclude Include="Math\QuaternionImpl.h" />
     <ClInclude Include="Math\Random.h" />
     <ClInclude Include="Math\Ray.h" />
+    <ClInclude Include="Math\Rectangle.h" />
     <ClInclude Include="Math\Simd4Box.h" />
     <ClInclude Include="Math\Simd4Geometry.h" />
     <ClInclude Include="Math\Simd4Ray.h" />
@@ -266,6 +268,7 @@
     <ClInclude Include="Rendering\DebugRenderer.h" />
     <ClInclude Include="Rendering\PathDebugging.h" />
     <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\PostProcess.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ShadingData.h" />
     <ClInclude Include="Rendering\Viewport.h" />
@@ -338,6 +341,7 @@
     </ClCompile>
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
     <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\PostProcess.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />

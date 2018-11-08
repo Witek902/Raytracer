@@ -137,6 +137,24 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
     return true;
 }
 
+Bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
+{
+    if (target.mWidth != source.mWidth || target.mHeight != source.mHeight)
+    {
+        RT_LOG_ERROR("Bitmap copy failed: bitmaps have different dimensions");
+        return false;
+    }
+
+    if (target.mFormat != source.mFormat)
+    {
+        RT_LOG_ERROR("Bitmap copy failed: bitmaps have different formats");
+        return false;
+    }
+
+    memcpy(target.GetData(), source.GetData(), GetDataSize(target.mWidth, target.mHeight, target.mFormat));
+    return true;
+}
+
 bool Bitmap::MakeTiled(Uint8 order)
 {
     RT_ASSERT(order <= 16);

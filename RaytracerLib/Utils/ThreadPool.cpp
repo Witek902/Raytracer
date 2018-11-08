@@ -5,10 +5,9 @@
 namespace rt {
 
 ThreadPool::ThreadPool()
-    : mRows(0)
-    , mColumns(0)
-    , mCurrentX(0)
-    , mCurrentY(0)
+    : mNumTasks(0)
+    , mCurrentTask(0)
+    , mTasksLeft(0)
     , mFinishThreads(false)
 {
     const Uint32 numThreads = std::thread::hardware_concurrency();
@@ -34,56 +33,47 @@ ThreadPool::~ThreadPool()
     }
 }
 
-void ThreadPool::ThreadCallback(Uint32 id)
+void ThreadPool::ThreadCallback(Uint32 threadID)
 {
     for (;;)
     {
-        Uint32 x, y;
+        Uint32 taskID;
 
         {
             Lock lock(mMutex);
-            while (!mFinishThreads && (mRows == 0 || mColumns == 0))
+            while (!mFinishThreads && (mNumTasks == 0))
                 mNewTaskCV.wait(lock);
 
             if (mFinishThreads)
                 break;
 
-            x = mCurrentX++;
-            y = mCurrentY;
-            if (mCurrentX >= mColumns)
-            {
-                mCurrentX = 0;
-                mCurrentY++;
-            }
+            taskID = mCurrentTask++;
 
-            // last tile
-            if (mCurrentY >= mRows)
+            // last task
+            if (mCurrentTask >= mNumTasks)
             {
-                mRows = 0;
-                mColumns = 0;
+                mNumTasks = 0;
             }
         }
 
-        mTask(x, y, id);
+        mTask(taskID, threadID);
 
         {
-            if (--mTilesLeftToComplete == 0)
+            if (--mTasksLeft == 0)
                 mTileFinishedCV.notify_all();
         }
     }
 }
 
-void ThreadPool::RunParallelTask(const ParallelTask& task, Uint32 rows, Uint32 columns)
+void ThreadPool::RunParallelTask(const ParallelTask& task, Uint32 num)
 {
     {
         Lock lock(mMutex);
 
         mTask = task;
-        mCurrentX = 0;
-        mCurrentY = 0;
-        mRows = rows;
-        mColumns = columns;
-        mTilesLeftToComplete = rows * columns;
+        mCurrentTask = 0;
+        mNumTasks = num;
+        mTasksLeft = num;
 
         mNewTaskCV.notify_all();
 

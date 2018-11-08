@@ -8,8 +8,6 @@ namespace {
 
 const DWORD gWindowedExStyle = WS_EX_WINDOWEDGE;
 const DWORD gWindowedStyle = WS_OVERLAPPEDWINDOW;
-const DWORD gFullscreenExStyle = 0;
-const DWORD gFullscreenStyle = WS_POPUP | WS_SYSMENU;
 
 WPARAM MapLeftRightSpecialKey(WPARAM wParam, LPARAM lParam)
 {
@@ -74,7 +72,6 @@ Window::Window()
     , mHeight(200)
     , mLeft(10)
     , mTop(10)
-    , mFullscreen(false)
     , mInvisible(false)
     , mTitle("Window")
     , mMouseWheelDelta(0)
@@ -121,37 +118,6 @@ void Window::SetTitle(const char* title)
         if (UTF8ToUTF16(title, wideTitle))
             SetWindowText(mHandle, wideTitle.c_str());
     }
-}
-
-void Window::SetFullscreenMode(bool enabled)
-{
-    if (mFullscreen && !enabled)
-    {
-        // escape fullscreen
-        RECT windowRect;
-        windowRect.left = mLeft;
-        windowRect.right = mLeft + mWidth;
-        windowRect.top = mTop;
-        windowRect.bottom = mTop + mHeight;
-        AdjustWindowRectEx(&windowRect, gWindowedStyle, FALSE, gWindowedExStyle);
-
-        SetWindowLong(mHandle, GWL_EXSTYLE, gWindowedExStyle);
-        SetWindowLong(mHandle, GWL_STYLE, gWindowedStyle);
-        SetWindowPos(mHandle, HWND_NOTOPMOST,
-                     mTop, mTop,
-                     windowRect.right - windowRect.left,
-                     windowRect.bottom - windowRect.top,
-                     SWP_NOACTIVATE | SWP_SHOWWINDOW);
-    }
-    else if (!mFullscreen && enabled)
-    {
-        // enter fullscreen
-        SetWindowLong(mHandle, GWL_EXSTYLE, gFullscreenExStyle);
-        SetWindowLong(mHandle, GWL_STYLE, WS_VISIBLE | WS_POPUP );
-        SetWindowPos(mHandle, nullptr, 0, 0, mWidth, mHeight, SWP_NOZORDER );
-    }
-
-    mFullscreen = enabled;
 }
 
 void Window::SetInvisible(bool invisible)
@@ -209,32 +175,19 @@ bool Window::Open()
     if (!UTF8ToUTF16(mTitle, wideTitle))
         return false;
 
-    if (mFullscreen)
-    {
-        mHandle = CreateWindowEx(gFullscreenExStyle, mWndClass, wideTitle.c_str(),
-                                 gFullscreenStyle, 0, 0, mWidth, mHeight,
-                                 nullptr, nullptr, mInstance, nullptr);
-    }
-    else
-    {
-        RECT windowRect;
-        windowRect.left = (long)mLeft;
-        windowRect.right = (long)(mWidth + mLeft);
-        windowRect.top = (long)mTop;
-        windowRect.bottom = (long)(mHeight + mTop);
-        AdjustWindowRectEx(&windowRect, gWindowedStyle, FALSE, gWindowedExStyle);
+    RECT windowRect;
+    windowRect.left = (long)mLeft;
+    windowRect.right = (long)(mWidth + mLeft);
+    windowRect.top = (long)mTop;
+    windowRect.bottom = (long)(mHeight + mTop);
+    AdjustWindowRectEx(&windowRect, gWindowedStyle, FALSE, gWindowedExStyle);
 
-        mLeft = -windowRect.left;
-        mTop = -windowRect.top;
+    mLeft = -windowRect.left;
+    mTop = -windowRect.top;
 
-        mHandle = CreateWindowEx(gWindowedExStyle,
-                                 mWndClass, wideTitle.c_str(),
-                                 gWindowedStyle,
-                                 mTop, mTop,
-                                 windowRect.right - windowRect.left,
-                                 windowRect.bottom - windowRect.top,
-                                 nullptr, nullptr, mInstance, nullptr);
-    }
+    mHandle = CreateWindowEx(gWindowedExStyle, mWndClass, wideTitle.c_str(), gWindowedStyle,
+                             mTop, mTop, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
+                             nullptr, nullptr, mInstance, nullptr);
 
     if (!mHandle)
         return false;
@@ -486,11 +439,6 @@ void Window::GetSize(Uint32& Width, Uint32& Height) const
 {
     Width = mWidth;
     Height = mHeight;
-}
-
-bool Window::GetFullscreenMode() const
-{
-    return mFullscreen;
 }
 
 void Window::ProcessMessages()

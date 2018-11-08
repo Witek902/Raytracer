@@ -20,16 +20,13 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) cons
     return false;
 }
 
-const Color DirectionalLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
+const Color DirectionalLight::Illuminate(IlluminateParam& param) const
 {
-    RT_UNUSED(context);
-    RT_UNUSED(scenePoint);
+    param.outDirectionToLight = -direction;
+    param.outDistance = 1.0f;
+    param.outDirectPdfW = 1.0f;
 
-    outDirectionToLight = -direction;
-    outDistance = 1.0f;
-    outDirectPdfW = 1.0f;
-
-    return Color::SampleRGB(context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, color);
 }
 
 const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const

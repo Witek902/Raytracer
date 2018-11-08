@@ -70,6 +70,8 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             goto exrImageError;
         }
 
+        const size_t numPixels = static_cast<size_t>(exrImage.width) * static_cast<size_t>(exrImage.height);
+
         if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_FLOAT)
         {
             if (!Init(exrImage.width, exrImage.height, Format::R32G32B32_Float, nullptr, true))
@@ -78,7 +80,7 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             }
 
             Float* typedData = reinterpret_cast<Float*>(mData);
-            for (size_t i = 0; i < exrImage.width * exrImage.height; ++i)
+            for (size_t i = 0; i < numPixels; ++i)
             {
                 typedData[3 * i    ] = reinterpret_cast<const Float*>(exrImage.images[2])[i];
                 typedData[3 * i + 1] = reinterpret_cast<const Float*>(exrImage.images[1])[i];
@@ -93,7 +95,7 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             }
 
             Uint16* typedData = reinterpret_cast<Uint16*>(mData);
-            for (size_t i = 0; i < exrImage.width * exrImage.height; ++i)
+            for (size_t i = 0; i < numPixels; ++i)
             {
                 typedData[3 * i    ] = reinterpret_cast<const Uint16*>(exrImage.images[2])[i];
                 typedData[3 * i + 1] = reinterpret_cast<const Uint16*>(exrImage.images[1])[i];

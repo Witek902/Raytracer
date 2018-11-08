@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "PointLight.h"
 #include "../../Rendering/Context.h"
+#include "../../Rendering/ShadingData.h"
 
 namespace rt {
 
@@ -20,16 +21,16 @@ bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color PointLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
+const Color PointLight::Illuminate(IlluminateParam& param) const
 {
-    outDirectionToLight = position - scenePoint;
-    const float sqrDistance = outDirectionToLight.SqrLength3();
+    param.outDirectionToLight = position - param.shadingData.position;
+    const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
-    outDirectPdfW = sqrDistance;
-    outDistance = std::sqrt(sqrDistance);
-    outDirectionToLight /= outDistance;
+    param.outDirectPdfW = sqrDistance;
+    param.outDistance = std::sqrt(sqrDistance);
+    param.outDirectionToLight /= param.outDistance;
 
-    return Color::SampleRGB(context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, color);
 }
 
 const Color PointLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const

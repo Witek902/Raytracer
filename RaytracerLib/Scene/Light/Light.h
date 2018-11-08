@@ -12,11 +12,22 @@ class Ray;
 } // math
 
 struct RenderingContext;
+struct ShadingData;
 
 // abstract light
 class RT_ALIGN(16) RAYLIB_API ILight : public Aligned<16>
 {
 public:
+    struct IlluminateParam
+    {
+        const ShadingData& shadingData;
+        RenderingContext& context;
+
+        math::Vector4 outDirectionToLight;
+        float outDistance;
+        float outDirectPdfW;
+    };
+
     ILight() = default;
     virtual ~ILight() = default;
 
@@ -28,12 +39,7 @@ public:
 
     // Illuminate a point in the scene.
     // Returns probability of sampling the returned direction.
-    virtual const Color Illuminate(
-        const math::Vector4& scenePoint,
-        RenderingContext& context,
-        math::Vector4& outDirectionToLight,
-        float& outDistance,
-        float& outDirectPdfW) const = 0;
+    virtual const Color Illuminate(IlluminateParam& param) const = 0;
 
     /*
     // Emit random light photon from the light

@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "AreaLight.h"
 #include "../../Rendering/Context.h"
+#include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
 
 namespace rt {
@@ -58,28 +59,28 @@ bool AreaLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color AreaLight::Illuminate(const Vector4& scenePoint, RenderingContext& context, Vector4& outDirectionToLight, float& outDistance, float& outDirectPdfW) const
+const Color AreaLight::Illuminate(IlluminateParam& param) const
 {
-    const Float2 uv = isTriangle ? context.randomGenerator.GetTriangle() : context.randomGenerator.GetFloat2();
+    const Float2 uv = isTriangle ? param.context.randomGenerator.GetTriangle() : param.context.randomGenerator.GetFloat2();
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
-    outDirectionToLight = lightPoint - scenePoint;
-    const float sqrDistance = outDirectionToLight.SqrLength3();
+    param.outDirectionToLight = lightPoint - param.shadingData.position;
+    const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
-    outDistance = Sqrt(sqrDistance);
-    outDirectionToLight /= outDistance;
+    param.outDistance = Sqrt(sqrDistance);
+    param.outDirectionToLight /= param.outDistance;
 
-    const float cosNormalDir = Vector4::Dot3(normal, -outDirectionToLight);
+    const float cosNormalDir = Vector4::Dot3(normal, -param.outDirectionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
         return Color();
     }
 
-    outDirectPdfW = invArea * sqrDistance / cosNormalDir;
+    param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
 
-    return Color::SampleRGB(context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, color);
 }
 
 const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const

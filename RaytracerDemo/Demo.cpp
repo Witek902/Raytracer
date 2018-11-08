@@ -61,31 +61,11 @@ bool DemoWindow::Initialize()
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
+    mImage.Init(gOptions.windowWidth, gOptions.windowHeight, Bitmap::Format::B8G8R8A8_Uint);
 
     mCamera.mDOF.aperture = 0.0f;
 
-    SwitchScene(mRegisteredScenes["MIS Test"]);
-
-    /*
-    auto loadedMesh = helpers::LoadMesh(gOptions.dataPath + gOptions.modelPath, mMaterials, 1.0f);
-    {
-        const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
-        auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-
-        if (!gOptions.envMapPath.empty())
-        {
-            backgroundLight->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
-        }
-        mScene->SetBackgroundLight(std::move(backgroundLight));
-
-        if (!gOptions.modelPath.empty())
-        {
-            SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(loadedMesh.get());
-            mScene->AddObject(std::move(meshInstance));
-        }
-        mMeshes.push_back(std::move(loadedMesh));
-    }
-    */
+    SwitchScene(mRegisteredScenes["Background"]);
 
     return true;
 }
@@ -95,12 +75,11 @@ void DemoWindow::InitializeUI()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    ImGui::GetIO().Fonts->AddFontDefault();
-
-    imgui_sw::bind_imgui_painting();
-
-    //ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/DroidSans.ttf", 10);
-    //ImGui::GetIO().Fonts->GetTexDataAsRGBA32()
+    ImFontConfig fontConfig;
+    fontConfig.OversampleH = 4;
+    fontConfig.OversampleV = 4;
+    fontConfig.PixelSnapH = true;
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/Fonts/DroidSans.ttf", 13, &fontConfig);
 
     // Setup back-end capabilities flags
     ImGuiIO& io = ImGui::GetIO();
@@ -130,7 +109,15 @@ void DemoWindow::InitializeUI()
     io.KeyMap[ImGuiKey_Y] = (int)KeyCode::Y;
     io.KeyMap[ImGuiKey_Z] = (int)KeyCode::Z;
 
-    //io.ImeWindowHandle = reinterpret_cast<HWND>(GetHandle());
+    ImGui::GetStyle().FramePadding = ImVec2(4, 2);
+    ImGui::GetStyle().ItemSpacing = ImVec2(4, 2);
+    ImGui::GetStyle().ItemInnerSpacing = ImVec2(2, 2);
+    ImGui::GetStyle().ScrollbarSize = 13.0f;
+    ImGui::GetStyle().ScrollbarRounding = 0.0f;
+    ImGui::GetStyle().WindowRounding = 5.0f;
+    ImGui::GetStyle().WindowPadding = ImVec2(6, 6);
+
+    imgui_sw::bind_imgui_painting();
 }
 
 void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
@@ -166,11 +153,9 @@ void DemoWindow::ResetCounters()
 {
     mFrameNumber = 0;
     mFrameCounterForAverage = 0;
-    mMinRenderDeltaTime = std::numeric_limits<Double>::max();
     mAccumulatedRenderTime = 0.0;
     mAverageRenderDeltaTime = 0.0;
     mTotalRenderTime = 0.0;
-    mPostProcessDeltaTime = 10000.0;
 }
 
 void DemoWindow::OnResize(Uint32 width, Uint32 height)
@@ -178,6 +163,7 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
     if (mViewport)
     {
         mViewport->Resize(width, height);
+        mImage.Init(width, height, Bitmap::Format::B8G8R8A8_Uint);
     }
 
     UpdateCamera();
@@ -300,17 +286,9 @@ void DemoWindow::OnScroll(int delta)
 
 void DemoWindow::OnKeyPress(KeyCode key)
 {
-    if (key == KeyCode::F1)
+    if (key == KeyCode::U)
     {
-        SetFullscreenMode(!GetFullscreenMode());
-    }
-
-    if (mViewport)
-    {
-        if (key == KeyCode::R)
-        {
-            mViewport->Reset();
-        }
+        mEnableUI = !mEnableUI;
     }
 
     mLastKeyDown = key;
@@ -332,7 +310,8 @@ bool DemoWindow::Loop()
 
     while (!IsClosed())
     {
-        sprintf(buffer, "Raytracer Demo [Sample %u]", mViewport->GetNumSamplesRendered());
+        const rt::RenderingProgress& progress = mViewport->GetProgress();
+        sprintf(buffer, "Raytracer Demo [%.1f%% converged, pass %u, dt: %.2f]", 100.0f * progress.converged, progress.passesFinished, 1000.0f * mDeltaTime);
         SetTitle(buffer);
 
         mDeltaTime = displayTimer.Reset();
@@ -340,47 +319,58 @@ bool DemoWindow::Loop()
         ProcessMessages();
         UpdateCamera();
 
-        const bool isPreview = IsMouseButtonDown(MouseButton::Right);
-        if (isPreview && mViewport)
+        if (IsPreview() && mViewport)
         {
             mPreviewRenderingParams = mRenderingParams;
             mPreviewRenderingParams.antiAliasingSpread = 0.0f;
             mPreviewRenderingParams.samplesPerPixel = 1;
-
             ResetFrame();
         }
 
         //// render
-        localTimer.Start();
         const IRenderer& renderer = mUseDebugRenderer ? (*mDebugRenderer) : (*mRenderer);
-        mViewport->Render(renderer, mCamera, isPreview ? mPreviewRenderingParams : mRenderingParams);
+        mViewport->SetRenderingParams(IsPreview() ? mPreviewRenderingParams : mRenderingParams);
+        localTimer.Start();
+        mViewport->Render(renderer, mCamera);
         mRenderDeltaTime = localTimer.Stop();
 
-        //// post process
-        localTimer.Start();
-        mViewport->PostProcess(mPostprocessParams);
-        mPostProcessDeltaTime = math::Min(mPostProcessDeltaTime, localTimer.Stop());
+        if (mEnableUI)
+        {
+            RenderUI();
+        }
 
-        RenderUI();
+        rt::Bitmap::Copy(mImage, mViewport->GetFrontBuffer());
 
-        const rt::Bitmap& frontBuffer = mViewport->GetFrontBuffer();
+        if (mVisualizeAdaptiveRenderingBlocks)
+        {
+            mViewport->VisualizeActiveBlocks(mImage);
+        }
 
-        imgui_sw::paint_imgui((uint32_t*)frontBuffer.GetData(), frontBuffer.GetWidth(), frontBuffer.GetHeight());
+        // render UI into the front buffer
+        if (mEnableUI)
+        {
+            imgui_sw::paint_imgui((uint32_t*)mImage.GetData(), mImage.GetWidth(), mImage.GetHeight());
+        }
 
-        DrawPixels(frontBuffer.GetData());
+        // display pixels in the window
+        DrawPixels(mImage.GetData());
 
         mLastKeyDown = KeyCode::Invalid;
 
         mTotalRenderTime += mRenderDeltaTime;
         mRefreshTime += mRenderDeltaTime;
         mAccumulatedRenderTime += mRenderDeltaTime;
-        mMinRenderDeltaTime = Min(mMinRenderDeltaTime, mRenderDeltaTime);
         mFrameCounterForAverage++;
         mFrameNumber++;
         mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
     }
 
     return true;
+}
+
+bool DemoWindow::IsPreview() const
+{
+    return IsMouseButtonDown(MouseButton::Right);
 }
 
 void DemoWindow::UpdateCamera()
@@ -404,6 +394,8 @@ void DemoWindow::UpdateCamera()
     if (IsKeyPressed(KeyCode::D))
         movement -= Vector4(-direction.z, 0.0f, direction.x, 0.0f);
 
+    mCamera.mLinearVelocity = mCameraSetup.linearVelocity;
+
     if (movement.Length3() > RT_EPSILON)
     {
         ResetFrame();
@@ -418,11 +410,7 @@ void DemoWindow::UpdateCamera()
 
         const Vector4 delta = movement * (float)mDeltaTime;
         mCameraSetup.position += delta;
-        mCamera.mLinearVelocity = -delta;
-    }
-    else
-    {
-        mCamera.mLinearVelocity = Vector4();
+        mCamera.mLinearVelocity -= delta;
     }
 
     const Float aspectRatio = (Float)width / (Float)height;
@@ -430,7 +418,7 @@ void DemoWindow::UpdateCamera()
     mCamera.SetPerspective(Transform(mCameraSetup.position, cameraOrientation), aspectRatio, FoV);
 
     // rotation motion blur
-    if (mFrameNumber > 0)
+    if (IsPreview())
     {
         const Quaternion q1 = cameraOrientation.Conjugate();
         const Quaternion q2 = oldCameraSetup.mTransform.GetRotation();
@@ -439,6 +427,6 @@ void DemoWindow::UpdateCamera()
     }
     else
     {
-        mCamera.SetAngularVelocity(Quaternion::Identity());
+        mCamera.SetAngularVelocity(Quaternion::FromAngles(-mCameraSetup.angularVelocity.y, mCameraSetup.angularVelocity.x, mCameraSetup.angularVelocity.z));
     }
 }

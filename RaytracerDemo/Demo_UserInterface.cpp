@@ -19,29 +19,49 @@ using namespace math;
 
 void DemoWindow::RenderUI_Stats()
 {
-    ImGui::Text("Average render time: %.2f ms", 1000.0 * mAverageRenderDeltaTime);
-    ImGui::Text("Minimum render time: %.2f ms", 1000.0 * mMinRenderDeltaTime);
-    ImGui::Text("Total render time:   %.3f s", mTotalRenderTime);
-    ImGui::Text("Post-process time:   %.2f ms", 1000.0 * mPostProcessDeltaTime);
-    ImGui::Text("Samples rendered:    %u", mViewport->GetNumSamplesRendered());
-    ImGui::Text("Frame number:        %u", mFrameNumber);
+    const RenderingProgress& progress = mViewport->GetProgress();
+
+    ImGui::Columns(2);
+
+    ImGui::Text("Average render time"); ImGui::NextColumn();
+    ImGui::Text("%.2f ms", 1000.0 * mAverageRenderDeltaTime); ImGui::NextColumn();
+
+    ImGui::Text("Total render time"); ImGui::NextColumn();
+    ImGui::Text("%.3f s", mTotalRenderTime); ImGui::NextColumn();
 
     ImGui::Separator();
 
-    ImGui::Text("Delta time: %.2f ms", 1000.0 * mDeltaTime);
+    ImGui::Text("Passes finished"); ImGui::NextColumn();
+    ImGui::Text("%u", progress.passesFinished); ImGui::NextColumn();
+
+    ImGui::Text("Progress"); ImGui::NextColumn();
+    ImGui::Text("%.2f%%", 100.0f * progress.converged); ImGui::NextColumn();
+
+    ImGui::Text("Active blocks"); ImGui::NextColumn();
+    ImGui::Text("%u", progress.activeBlocks); ImGui::NextColumn();
 
     ImGui::Separator();
 
-    ImGui::Text("Avg. error: %.3e", mViewport->GetAverageError());
+    ImGui::Text("Delta time"); ImGui::NextColumn();
+    ImGui::Text("%.2f ms", 1000.0 * mDeltaTime); ImGui::NextColumn();
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     const RayTracingCounters& counters = mViewport->GetCounters();
     ImGui::Separator();
-    ImGui::Text("Ray-box tests (total):  %.2fM", (float)counters.numRayBoxTests / 1000000.0f);
-    ImGui::Text("Ray-box tests (passed): %.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f);
-    ImGui::Text("Ray-tri tests (total):  %.2fM", (float)counters.numRayTriangleTests / 1000000.0f);
-    ImGui::Text("Ray-tri tests (passed): %.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f);
+    ImGui::Text("Ray-box tests (total)"); ImGui::NextColumn();
+    ImGui::Text("%.2fM", (float)counters.numRayBoxTests / 1000000.0f); ImGui::NextColumn();
+
+    ImGui::Text("Ray-box tests (passed)"); ImGui::NextColumn();
+    ImGui::Text("%.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f); ImGui::NextColumn();
+
+    ImGui::Text("Ray-tri tests (total)"); ImGui::NextColumn();
+    ImGui::Text("%.2fM", (float)counters.numRayTriangleTests / 1000000.0f); ImGui::NextColumn();
+
+    ImGui::Text("Ray-tri tests (passed)"); ImGui::NextColumn();
+    ImGui::Text("%.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f); ImGui::NextColumn();
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+    ImGui::Columns(1);
 }
 
 void DemoWindow::RenderUI_Debugging()
@@ -111,8 +131,8 @@ void DemoWindow::RenderUI_Debugging_Color()
     Vector4 hdrColor, ldrColor;
     if (x >= 0 && y >= 0 && (Uint32)x < width && (Uint32)y < height)
     {
-        const Uint32 numSamples = mViewport->GetNumSamplesRendered();
-
+        // TODO this is incorrect, each pixel can have different number of samples
+        const Uint32 numSamples = mViewport->GetProgress().passesFinished;
         hdrColor = mViewport->GetSumBuffer().GetPixel(x, y, true) / static_cast<Float>(numSamples);
         ldrColor = mViewport->GetFrontBuffer().GetPixel(x, y, true);
     }
@@ -145,6 +165,12 @@ void DemoWindow::RenderUI_Settings()
     if (ImGui::TreeNode("Rendering"))
     {
         resetFrame |= RenderUI_Settings_Rendering();
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Adaptive Rendering"))
+    {
+        resetFrame |= RenderUI_Settings_AdaptiveRendering();
         ImGui::TreePop();
     }
 
@@ -194,7 +220,8 @@ void DemoWindow::RenderUI_Settings()
 
         if (ImGui::Button("HDR screenshot"))
         {
-            const Float colorScale = 1.0f / (Float)mViewport->GetNumSamplesRendered();
+            // TODO this is incorrect
+            const Float colorScale = 1.0f / (Float)mViewport->GetProgress().passesFinished;
             mViewport->GetSumBuffer().SaveEXR("screenshot.exr", colorScale);
         }
     }
@@ -230,12 +257,12 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     }
   
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
-    int tileOrder = static_cast<int>(mRenderingParams.tileOrder);
+    int tileOrder = static_cast<int>(mRenderingParams.tileSize);
 
     const char* traversalModeItems[] = { "Single", "SIMD", "Packet" };
     resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
 
-    ImGui::SliderInt("Tile order", (int*)&tileOrder, 0, 8); // max 256x256 tile
+    ImGui::SliderInt("Tile size", (int*)&tileOrder, 1, 1024);
 
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 50);
     ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
@@ -244,7 +271,25 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);
     
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
-    mRenderingParams.tileOrder = static_cast<Uint8>(tileOrder);
+    mRenderingParams.tileSize = static_cast<Uint16>(tileOrder);
+
+    return resetFrame;
+}
+
+bool DemoWindow::RenderUI_Settings_AdaptiveRendering()
+{
+    bool resetFrame = false;
+
+    AdaptiveRenderingSettings& settings = mRenderingParams.adaptiveSettings;
+
+    resetFrame |= ImGui::Checkbox("Enable", &settings.enable);
+    resetFrame |= ImGui::SliderInt("Num initial passes", (int*)&settings.numInitialPasses, 1, 100);
+    resetFrame |= ImGui::SliderInt("Max block size", (int*)&settings.maxBlockSize, settings.minBlockSize, 1024);
+    resetFrame |= ImGui::SliderInt("Min block size", (int*)&settings.minBlockSize, 1, settings.maxBlockSize);
+    resetFrame |= ImGui::SliderFloat("Convergence treshold", &settings.convergenceTreshold, 1.0e-8f, settings.subdivisionTreshold, "%.2e", 10.0f);
+    resetFrame |= ImGui::SliderFloat("Subdivision treshold", &settings.subdivisionTreshold, settings.convergenceTreshold, 1.0f, "%.2e", 10.0f);
+
+    ImGui::Checkbox("(Debug) Visualize", &mVisualizeAdaptiveRenderingBlocks);
 
     return resetFrame;
 }
@@ -253,40 +298,60 @@ bool DemoWindow::RenderUI_Settings_Camera()
 {
     bool resetFrame = false;
 
-    const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box" };
-    int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
-
-    resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
-    resetFrame |= ImGui::InputFloat3("Orientation", &mCameraSetup.orientation.x, 3);
-
-    resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
-    resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
+    if (ImGui::TreeNode("Transform"))
     {
-        ImGui::Columns(2, nullptr, false);
-        resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
-        ImGui::NextColumn();
-        if (ImGui::Button("Pick..."))
-        {
-            mFocalDistancePicking = true;
-        }
-        ImGui::Columns(1);
+        resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
+        resetFrame |= ImGui::InputFloat3("Orientation", &mCameraSetup.orientation.x, 3);
+
+        resetFrame |= ImGui::InputFloat3("Velocity", &mCameraSetup.linearVelocity.x, 3);
+        resetFrame |= ImGui::InputFloat3("Angular velocity", &mCameraSetup.angularVelocity.x, 3);
+
+        ImGui::TreePop(); // Transform
     }
 
-    resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
-    resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
-    resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
-    resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);
+    if (ImGui::TreeNode("Lens"))
+    {
+        resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
+        resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
+        {
+            ImGui::Columns(2, nullptr, false);
+            resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
+            ImGui::NextColumn();
+            if (ImGui::Button("Pick..."))
+            {
+                mFocalDistancePicking = true;
+            }
+            ImGui::Columns(1);
+        }
 
-    mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
+        const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box" };
+        int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
+
+        resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
+        resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
+        resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
+        resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);
+
+        mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
+
+        ImGui::TreePop(); // Lens
+    }
 
     return resetFrame;
 }
 
 bool DemoWindow::RenderUI_Settings_PostProcess()
 {
-    ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
-    ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
-    ImGui::ColorEdit3("Color filter", &mPostprocessParams.colorFilter.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+    bool changed = false;
+
+    changed |= ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
+    changed |= ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
+    changed |= ImGui::ColorEdit3("Color filter", &mPostprocessParams.colorFilter.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+
+    if (changed)
+    {
+        mViewport->SetPostprocessParams(mPostprocessParams);
+    }
 
     return false;
 }
@@ -392,11 +457,10 @@ void DemoWindow::RenderUI()
     io.KeyShift = IsKeyPressed(KeyCode::Shift);
     io.KeyAlt = IsKeyPressed(KeyCode::Alt);
 
-    // TODO
-    //for (Uint32 i = 0; i < 256; ++i)
-    //{
-    //    io.KeysDown[i] = IsKeyPressed(i);
-    //}
+    for (Uint32 i = 0; i < 256; ++i)
+    {
+        io.KeysDown[i] = IsKeyPressed(static_cast<KeyCode>(i));
+    }
 
     ImGui::NewFrame();
     {

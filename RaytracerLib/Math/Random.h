@@ -59,6 +59,9 @@ public:
     // generate random vector on a sphere (uniform sampling)
     const Vector4 GetSphere();
 
+    // generate random vector on a hemisphere (uniform sampling, Z+ oriented)
+    const Vector4 GetHemishpere();
+
     // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
     // typical usage: Lambertian BRDF sampling
     const Vector4 GetHemishpereCos();

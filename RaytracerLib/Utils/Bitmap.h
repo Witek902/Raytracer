@@ -63,6 +63,13 @@ public:
         return reinterpret_cast<T*>(GetData());
     }
 
+    template<typename T>
+    RT_FORCE_INLINE const T* GetDataAs() const
+    {
+        // TODO validate type
+        return reinterpret_cast<const T*>(GetData());
+    }
+
     RT_FORCE_INLINE void* GetData() { return mData; }
     RT_FORCE_INLINE const void* GetData() const { return mData; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return (Uint32)mWidth; }
@@ -73,6 +80,10 @@ public:
 
     // initialize bitmap with data (or clean if passed nullptr)
     Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
+
+    // copy texture data
+    // NOTE: both textures must have the same format and size
+    static Bool Copy(Bitmap& target, const Bitmap& source);
 
     // load from file
     Bool Load(const char* path);

@@ -5,6 +5,7 @@
 #include "Scene/Camera.h"
 #include "Color/Color.h"
 #include "Color/ColorHelpers.h"
+#include "Color/LdrColor.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
@@ -14,8 +15,6 @@ using namespace math;
 static const Uint32 MAX_IMAGE_SZIE = 1 << 16;
 
 Viewport::Viewport()
-    : mNumSamplesRendered(0)
-    , mAverageError(0.0f)
 {
     InitThreadData();
 }
@@ -51,12 +50,50 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
         return false;
 
+    mPassesPerPixel.resize(width * height);
+
     Reset();
 
     return true;
 }
 
-bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const RenderingParams& params)
+void Viewport::Reset()
+{
+    mPostprocessParams.fullUpdateRequired = true;
+
+    mProgress = RenderingProgress();
+
+    mSum.Clear();
+    mSecondarySum.Clear();
+
+    memset(mPassesPerPixel.data(), 0, sizeof(Uint32) * GetWidth() * GetHeight());
+
+    BuildInitialBlocksList();
+}
+
+bool Viewport::SetRenderingParams(const RenderingParams& params)
+{
+    mParams = params;
+
+    // TODO validation
+
+    return true;
+}
+
+bool Viewport::SetPostprocessParams(const PostprocessParams& params)
+{
+    if (mPostprocessParams.params != params)
+    {
+        mPostprocessParams.params = params;
+        mPostprocessParams.fullUpdateRequired = true;
+    }
+
+    // TODO validation
+
+    return true;
+}
+
+bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
 {
     const Uint32 width = GetWidth();
     const Uint32 height = GetHeight();
@@ -68,7 +105,12 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const Ren
     for (RenderingContext& ctx : mThreadData)
     {
         ctx.counters.Reset();
-        ctx.params = &params;
+        ctx.params = &mParams;
+    }
+
+    if (mRenderingTiles.empty() || mProgress.passesFinished == 0)
+    {
+        GenerateRenderingTiles();
     }
 
     // render
@@ -76,28 +118,33 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const Ren
         // randomize pixel offset
         const Vector4 u = mThreadData[0].randomGenerator.GetFloatNormal2();
 
-        const TileRenderingContext tileContext =
+        if (!mRenderingTiles.empty())
         {
-            renderer,
-            camera,
-            u * mThreadData[0].params->antiAliasingSpread
-        };
+            const TileRenderingContext tileContext =
+            {
+                renderer,
+                camera,
+                u * mThreadData[0].params->antiAliasingSpread
+            };
 
-        const Uint32 tileSize = 1u << (Uint32)params.tileOrder;
-        const Uint32 rows = 1 + (GetHeight() - 1) / tileSize;
-        const Uint32 columns = 1 + (GetWidth() - 1) / tileSize;
+            const auto taskCallback = [&](Uint32 id, Uint32 threadID)
+            {
+                RenderTile(tileContext, mThreadData[threadID], mRenderingTiles[id]);
+            };
 
-        const auto taskCallback = [&](Uint32 tileX, Uint32 tileY, Uint32 threadID)
-        {
-            RenderTile(tileContext, mThreadData[threadID], tileSize * tileX, tileSize * tileY);
-        };
-
-        mThreadPool.RunParallelTask(taskCallback, rows, columns);
+            mThreadPool.RunParallelTask(taskCallback, (Uint32)(mRenderingTiles.size()));
+        }
     }
 
-    mNumSamplesRendered += params.samplesPerPixel;
+    PerformPostProcess();
 
-    EstimateError();
+    mProgress.passesFinished++;
+
+    if (mParams.adaptiveSettings.enable && (mProgress.passesFinished > 0) && (mProgress.passesFinished % 2 == 0))
+    {
+        UpdateBlocksList();
+        GenerateRenderingTiles();
+    }
 
     // accumulate counters
     mCounters.Reset();
@@ -109,32 +156,17 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera, const Ren
     return true;
 }
 
-bool Viewport::PostProcess(const PostprocessParams& params)
+void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
 {
-    const Uint32 numTiles = mThreadPool.GetNumThreads();
+    RT_ASSERT(tile.minX < tile.maxX);
+    RT_ASSERT(tile.minY < tile.maxY);
+    RT_ASSERT(tile.maxX <= GetWidth());
+    RT_ASSERT(tile.maxY <= GetHeight());
 
-    const auto taskCallback = [&](Uint32, Uint32 tileY, Uint32 threadID)
-    {
-        const Uint32 ymin = GetHeight() * tileY / numTiles;
-        const Uint32 ymax = GetHeight() * (tileY + 1) / numTiles;
-        PostProcessTile(params, ymin, ymax, threadID);
-    };
-
-    mThreadPool.RunParallelTask(taskCallback, numTiles, 1);
-
-    // flush non-temporal stores
-    _mm_mfence();
-
-    return true;
-}
-
-void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, Uint32 x0, Uint32 y0)
-{
     const Vector4 invSize = VECTOR_ONE2 / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
-    const Uint32 tileSize = 1u << renderingContext.params->tileOrder;
+    const Uint32 tileSize = renderingContext.params->tileSize;
     const Uint32 samplesPerPixel = renderingContext.params->samplesPerPixel;
-    const Uint32 maxX = Min(x0 + tileSize, GetWidth());
-    const Uint32 maxY = Min(y0 + tileSize, GetHeight());
+    const Float sampleScale = 1.0f / (Float)samplesPerPixel;
 
     const bool verticalFlip = true;
 
@@ -145,9 +177,9 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
-        for (Uint32 y = y0; y < maxY; ++y)
+        for (Uint32 y = tile.minY; y < tile.maxY; ++y)
         {
-            for (Uint32 x = x0; x < maxX; ++x)
+            for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
                 const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
@@ -164,10 +196,14 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                     sampleColor += color.Resolve(renderingContext.wavelength);
                 }
 
+                // TODO get rid of this
+                sampleColor *= sampleScale;
+
                 const size_t pixelIndex = GetWidth() * y + x;
                 sumPixels[pixelIndex] += sampleColor.ToFloat3();
+                mPassesPerPixel[pixelIndex]++;
 
-                if (mNumSamplesRendered % 2 == 0)
+                if (mProgress.passesFinished % 2 == 0)
                 {
                     secondarySumPixels[pixelIndex] += sampleColor.ToFloat3();
                 }
@@ -263,90 +299,308 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     renderingContext.counters.numPrimaryRays += tileSize * tileSize * renderingContext.params->samplesPerPixel;
 }
 
-template<typename T>
-RT_FORCE_INLINE static T ToneMap(T color)
+void Viewport::PerformPostProcess()
 {
-    const T b = T(6.2f);
-    const T c = T(1.7f);
-    const T d = T(0.06f);
+    mPostprocessParams.colorScale = mPostprocessParams.params.colorFilter * exp2f(mPostprocessParams.params.exposure);
 
-    // Jim Hejl and Richard Burgess-Dawson formula
-    const T t0 = color * T::MulAndAdd(color, b, T(0.5f));
-    const T t1 = T::MulAndAdd(color, b, c);
-    const T t2 = T::MulAndAdd(color, t1, d);
-    return t0 * T::FastReciprocal(t2);
+    if (mPostprocessParams.fullUpdateRequired)
+    {
+        // post processing params has changed, perfrom full image update
+
+        const Uint32 numTiles = mThreadPool.GetNumThreads();
+
+        const auto taskCallback = [this, numTiles](Uint32 id, Uint32 threadID)
+        {
+            Block block;
+            block.minY = GetHeight() * id / numTiles;
+            block.maxY = GetHeight() * (id + 1) / numTiles;
+            block.minX = 0;
+            block.maxX = GetWidth();
+
+            PostProcessTile(block, threadID);
+        };
+
+        mThreadPool.RunParallelTask(taskCallback, numTiles);
+
+        mPostprocessParams.fullUpdateRequired = false;
+    }
+    else
+    {
+        // apply post proces on active blocks only
+
+        if (!mRenderingTiles.empty())
+        {
+            const auto taskCallback = [this](Uint32 id, Uint32 threadID)
+            {
+                PostProcessTile(mRenderingTiles[id], threadID);
+            };
+
+            mThreadPool.RunParallelTask(taskCallback, (Uint32)(mRenderingTiles.size()));
+        }
+    }
+
+    // flush non-temporal stores
+    _mm_mfence();
 }
 
-
-void Viewport::PostProcessTile(const PostprocessParams& params, Uint32 ymin, Uint32 ymax, Uint32 threadID)
+void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 {
-    const size_t width = GetWidth();
-    const size_t minIndex = (size_t)ymin * width;
-    const size_t maxIndex = (size_t)ymax * width;
-
     Random& randomGenerator = mThreadData[threadID].randomGenerator;
-
-    const Float scalingFactor = exp2f(params.exposure) / (Float)mNumSamplesRendered;
-    const Vector4 colorMultiplier = params.colorFilter * scalingFactor;
 
     const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
     Uint8* __restrict frontBufferPixels = mFrontBuffer.GetDataAs<Uint8>();
 
-    for (size_t i = minIndex; i < maxIndex; ++i)
+    for (Uint32 y = block.minY; y < block.maxY; ++y)
     {
+        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        {
+            const size_t pixelIndex = GetWidth() * y + x;
+
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-        const Vector4 xyzColor = sumPixels[i];
-        const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
+            const Vector4 xyzColor = sumPixels[pixelIndex];
+            const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
 #else
-        const Vector4 rgbColor = Vector4(sumPixels[i]);
+            const Vector4 rgbColor = Vector4(sumPixels[pixelIndex]);
 #endif
 
-        const Vector4 toneMapped = ToneMap(rgbColor * colorMultiplier);
-        const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), params.ditheringStrength, toneMapped);
+            const Float pixelScaling = 1.0f / static_cast<Float>(mPassesPerPixel[pixelIndex]);
 
-        dithered.StoreBGR_NonTemporal(frontBufferPixels + 4 * i);
+            const Vector4 toneMapped = ToneMap(rgbColor * mPostprocessParams.colorScale * pixelScaling);
+            const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
+
+            dithered.StoreBGR_NonTemporal(frontBufferPixels + 4 * pixelIndex);
+        }
     }
 }
 
-void Viewport::EstimateError()
+Float Viewport::ComputeBlockError(const Block& block) const
 {
-    // we need even number of samples
-    if (mNumSamplesRendered > 0 && (mNumSamplesRendered % 2 == 0))
+    if (mProgress.passesFinished == 0)
     {
-        const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
-        const Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
+        return std::numeric_limits<Float>::max();
+    }
 
-        const size_t width = GetWidth();
-        const size_t height = GetHeight();
+    RT_ASSERT(mProgress.passesFinished % 2 == 0, "This funcion can be only called after even number of passes");
 
-        const float scalingFactor = 1.0f / static_cast<Float>(mNumSamplesRendered);
+    const Float3* sumPixels = mSum.GetDataAs<Float3>();
+    const Float3* secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
-        Vector4 totalError = Vector4();
+    const Float imageScalingFactor = 1.0f / (Float)mProgress.passesFinished;
 
-        size_t index = 0;
-        for (size_t i = 0; i < height; ++i)
+    Float totalError = 0.0f;
+    for (Uint32 y = block.minY; y < block.maxY; ++y)
+    {
+        Float rowError = 0.0f;
+        for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            Vector4 rowError;
-            for (size_t j = 0; j < width; ++j)
+            const size_t pixelIndex = GetWidth() * y + x;
+            const Vector4 a = imageScalingFactor * Vector4(sumPixels[pixelIndex]);
+            const Vector4 b = (2.0f * imageScalingFactor) * Vector4(secondarySumPixels[pixelIndex]);
+            const Vector4 diff = Vector4::Abs(a - b);
+            const Float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * b.y + b.z);
+            rowError += error;
+        }
+        totalError += rowError;
+    }
+
+    const Uint32 totalArea = GetWidth() * GetHeight();
+    const Uint32 blockArea = block.Width() * block.Height();
+    return totalError * Sqrt((Float)blockArea / (Float)totalArea) / (Float)blockArea;
+}
+
+void Viewport::GenerateRenderingTiles()
+{
+    mRenderingTiles.clear();
+    mRenderingTiles.reserve(mBlocks.size());
+
+    const Uint32 tileSize = mParams.tileSize;
+
+    for (const Block& block : mBlocks)
+    {
+        const Uint32 rows = 1 + (block.Height() - 1) / tileSize;
+        const Uint32 columns = 1 + (block.Width() - 1) / tileSize;
+
+        Block tile;
+
+        for (Uint32 j = 0; j < rows; ++j)
+        {
+            tile.minY = block.minY + j * tileSize;
+            tile.maxY = Min(block.maxY, block.minY + j * tileSize + tileSize);
+            RT_ASSERT(tile.maxY > tile.minY);
+
+            for (Uint32 i = 0; i < columns; ++i)
             {
-                const Vector4 diff = (Vector4(sumPixels[index]) - 2.0f * Vector4(secondarySumPixels[index])) * scalingFactor;
-                rowError += diff * diff;
-                index++;
+                tile.minX = block.minX + i * tileSize;
+                tile.maxX = Min(block.maxX, block.minX + i * tileSize + tileSize);
+                RT_ASSERT(tile.maxX > tile.minX);
+
+                mRenderingTiles.push_back(tile);
             }
-            totalError += rowError;
+        }
+    }
+}
+
+void Viewport::BuildInitialBlocksList()
+{
+    mBlocks.clear();
+
+    const Uint32 blockSize = mParams.adaptiveSettings.maxBlockSize;
+    const Uint32 rows = 1 + (GetHeight() - 1) / blockSize;
+    const Uint32 columns = 1 + (GetWidth() - 1) / blockSize;
+
+    for (Uint32 j = 0; j < rows; ++j)
+    {
+        Block block;
+
+        block.minY = j * blockSize;
+        block.maxY = Min(GetHeight(), (j + 1) * blockSize);
+        RT_ASSERT(block.maxY > block.minY);
+
+        for (Uint32 i = 0; i < columns; ++i)
+        {
+            block.minX = i * blockSize;
+            block.maxX = Min(GetWidth(), (i + 1) * blockSize);
+            RT_ASSERT(block.maxX > block.minX);
+
+            mBlocks.push_back(block);
+        }
+    }
+
+    mProgress.activeBlocks = (Uint32)mBlocks.size();
+}
+
+void Viewport::UpdateBlocksList()
+{
+    std::vector<Block> newBlocks;
+
+    const AdaptiveRenderingSettings& settings = mParams.adaptiveSettings;
+
+    if (mProgress.passesFinished < settings.numInitialPasses)
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < mBlocks.size(); ++i)
+    {
+        const Block block = mBlocks[i];
+        const Float blockError = ComputeBlockError(block);
+
+        if (blockError < settings.convergenceTreshold)
+        {
+            // block is fully converged - remove it
+            mBlocks[i] = mBlocks.back();
+            mBlocks.pop_back();
+            continue;
+        }
+        
+        if ((blockError < settings.subdivisionTreshold) &&
+            (block.Width() > settings.minBlockSize || block.Height() > settings.minBlockSize))
+        {
+            // block is somewhat converged - split it into two parts
+
+            mBlocks[i] = mBlocks.back();
+            mBlocks.pop_back();
+
+            Block childA, childB;
+
+            // TODO split the block so the error is equal on both sides
+
+            if (block.Width() > block.Height())
+            {
+                const Uint32 halfPoint = (block.minX + block.maxX) / 2u;
+
+                childA.minX = block.minX;
+                childA.maxX = halfPoint;
+                childA.minY = block.minY;
+                childA.maxY = block.maxY;
+
+                childB.minX = halfPoint;
+                childB.maxX = block.maxX;
+                childB.minY = block.minY;
+                childB.maxY = block.maxY;
+            }
+            else
+            {
+                const Uint32 halfPoint = (block.minY + block.maxY) / 2u;
+
+                childA.minX = block.minX;
+                childA.maxX = block.maxX;
+                childA.minY = block.minY;
+                childA.maxY = halfPoint;
+
+                childB.minX = block.minX;
+                childB.maxX = block.maxX;
+                childB.minY = halfPoint;
+                childB.maxY = block.maxY;
+            }
+
+            newBlocks.push_back(childA);
+            newBlocks.push_back(childB);
+        }
+    }
+
+    // add splitted blocks to the list
+    mBlocks.reserve(mBlocks.size() + newBlocks.size());
+    for (const Block& block : newBlocks)
+    {
+        mBlocks.push_back(block);
+    }
+
+    // calculate number of active pixels
+    {
+        mProgress.activePixels = 0;
+        for (const Block& block : mBlocks)
+        {
+            mProgress.activePixels += block.Width() * block.Height();
+        }
+    }
+
+    mProgress.converged = 1.0f - (Float)mProgress.activePixels / (Float)(GetWidth() * GetHeight());
+    mProgress.activeBlocks = (Uint32)mBlocks.size();
+}
+
+void Viewport::VisualizeActiveBlocks(Bitmap& bitmap) const
+{
+    LdrColor* frontBufferPixels = bitmap.GetDataAs<LdrColor>();
+
+    const LdrColor color(255, 0, 0);
+    const Uint8 alpha = 64;
+
+    for (const Block& block : mBlocks)
+    {
+        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        {
+            for (Uint32 x = block.minX; x < block.maxX; ++x)
+            {
+                const size_t pixelIndex = GetWidth() * y + x;
+                frontBufferPixels[pixelIndex] = Lerp(frontBufferPixels[pixelIndex], color, alpha);
+            }
         }
 
-        mAverageError = (totalError.x + totalError.y + totalError.z) / static_cast<Float>(3 * width * height);
+        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        {
+            const size_t pixelIndex = GetWidth() * y + block.minX;
+            frontBufferPixels[pixelIndex] = color;
+        }
+
+        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        {
+            const size_t pixelIndex = GetWidth() * y + (block.maxX - 1);
+            frontBufferPixels[pixelIndex] = color;
+        }
+
+        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        {
+            const size_t pixelIndex = GetWidth() * block.minY + x;
+            frontBufferPixels[pixelIndex] = color;
+        }
+
+        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        {
+            const size_t pixelIndex = GetWidth() * (block.maxY - 1) + x;
+            frontBufferPixels[pixelIndex] = color;
+        }
     }
-}
-
-void Viewport::Reset()
-{
-    mNumSamplesRendered = 0;
-    mAverageError = 0.0f;
-
-    mSum.Clear();
-    mSecondarySum.Clear();
 }
 
 } // namespace rt

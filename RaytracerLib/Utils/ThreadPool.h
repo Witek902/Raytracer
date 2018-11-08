@@ -11,7 +11,7 @@
 
 namespace rt {
 
-using ParallelTask = std::function<void(Uint32 x, Uint32 y, Uint32 threadID)>;
+using ParallelTask = std::function<void(Uint32 taskID, Uint32 threadID)>;
 
 class ThreadPool
 {
@@ -25,7 +25,7 @@ public:
     ThreadPool();
     ~ThreadPool();
 
-    void RunParallelTask(const ParallelTask& task, Uint32 rows, Uint32 columns);
+    void RunParallelTask(const ParallelTask& task, Uint32 num);
 
     RT_FORCE_INLINE Uint32 GetNumThreads() const
     {
@@ -41,10 +41,10 @@ private:
     std::mutex mMutex;
 
     ParallelTask mTask;
-    Uint32 mRows, mColumns;
-    Uint32 mCurrentX, mCurrentY;
+    Uint32 mNumTasks;
+    Uint32 mCurrentTask;
 
-    std::atomic<Uint32> mTilesLeftToComplete;
+    std::atomic<Uint32> mTasksLeft;
 
     bool mFinishThreads;
 

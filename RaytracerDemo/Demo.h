@@ -26,12 +26,14 @@ struct Options
 struct RT_ALIGN(16) CameraSetup
 {
     rt::math::Vector4 position;
+    rt::math::Vector4 linearVelocity;
     rt::math::Float3 orientation; // yaw, pitch, roll
+    rt::math::Float3 angularVelocity;
     Float fov = 60.0f;
 };
 
 
-class RT_ALIGN(16) DemoWindow : public Window
+class RT_ALIGN(64) DemoWindow : public Window
 {
 public:
     using Materials = std::vector<std::unique_ptr<rt::Material>>;
@@ -52,6 +54,7 @@ public:
 
 private:
     std::unique_ptr<rt::Viewport> mViewport;
+    rt::Bitmap mImage;
 
     KeyCode mLastKeyDown;
 
@@ -76,8 +79,6 @@ private:
     Double mAverageRenderDeltaTime;
     Double mAccumulatedRenderTime;
     Double mRenderDeltaTime;
-    Double mPostProcessDeltaTime;
-    Double mMinRenderDeltaTime;
     Double mTotalRenderTime;
 
     Float mCameraSpeed;
@@ -86,6 +87,8 @@ private:
     std::unique_ptr<rt::DebugRenderer> mDebugRenderer;
     bool mUseDebugRenderer = false;
 
+    bool mEnableUI = true;
+    bool mVisualizeAdaptiveRenderingBlocks = false;
 
     // debugging
     rt::PathDebugData mPathDebugData;
@@ -107,6 +110,7 @@ private:
 
     void RenderUI_Settings();
     bool RenderUI_Settings_Rendering();
+    bool RenderUI_Settings_AdaptiveRendering();
     bool RenderUI_Settings_Camera();
     bool RenderUI_Settings_PostProcess();
     bool RenderUI_Settings_Object();
@@ -121,6 +125,7 @@ private:
     virtual void OnKeyPress(KeyCode key) override;
     virtual void OnCharTyped(const char* charUTF8) override;
 
+    bool IsPreview() const;
     void ResetCounters();
     void UpdateCamera();
 };
