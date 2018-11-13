@@ -17,8 +17,10 @@ namespace math {
  */
 RAYLIB_API float Sin(float x);
 RAYLIB_API float Cos(float x);
-RAYLIB_API Vector4 Sin(Vector4 x);
-RAYLIB_API Vector8 Sin(Vector8 x);
+RAYLIB_API const Vector4 Sin(Vector4 x);
+RAYLIB_API const Vector4 Cos(Vector4 x);
+RAYLIB_API const Vector8 Sin(Vector8 x);
+RAYLIB_API const Vector8 Cos(Vector8 x);
 
 // Compute sine and cosine in one go
 RT_FORCE_INLINE const Vector4 SinCos(const Float x)

@@ -102,8 +102,13 @@ TEST(MathTest, Sin_8)
 
 TEST(MathTest, Cos)
 {
+    const auto func = [](Float x)
+    {
+        return math::Cos(x);
+    };
+
     TestRange range(-10.0f, 10.0f, 0.01f, TestRange::StepType::Increment);
-    TestTranscendental("Cos", range, math::Cos, cosf, 1.0e-06f, 1.0f);
+    TestTranscendental("Cos", range, func, cosf, 1.0e-06f, 1.0f);
 }
 
 TEST(MathTest, FastACos)

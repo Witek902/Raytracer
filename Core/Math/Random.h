@@ -57,6 +57,11 @@ public:
 
     // get random point on a regular hexagon (uniform distribution)
     const Vector4 GetHexagon();
+    const Vector2x8 GetHexagon_Simd8();
+
+    // get random point inside a regular polygon
+    const Vector4 GetRegularPolygon(const Uint32 n);
+    const Vector2x8 GetRegularPolygon_Simd8(const Uint32 n);
 
     // generate random vector on a sphere (uniform sampling)
     const Vector4 GetSphere();

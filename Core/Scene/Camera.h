@@ -21,6 +21,7 @@ enum class BokehShape : Uint8
     Circle = 0,
     Hexagon,
     Square,
+    NGon,
 };
 
 /**
@@ -29,18 +30,15 @@ enum class BokehShape : Uint8
 struct DOFSettings
 {
     // distance from camera at which plane of perfect focus is located
-    Float focalPlaneDistance;
+    Float focalPlaneDistance = 2.0f;
 
     // the bigger value, the bigger out-of-focus blur
-    Float aperture;
+    Float aperture = 0.1f;
 
-    BokehShape bokehType;
+    BokehShape bokehType = BokehShape::Circle;
 
-    DOFSettings()
-        : focalPlaneDistance(2.0f)
-        , aperture(0.02f)
-        , bokehType(BokehShape::Circle)
-    { }
+    // used when bokeh type is "NGon"
+    Uint32 apertureBlades = 5;
 };
 
 
@@ -64,7 +62,8 @@ public:
     math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
     math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2x8& coords, RenderingContext& context) const;
 
-    RT_FORCE_INLINE math::Vector4 GenerateBokeh(RenderingContext& context) const;
+    RT_FORCE_INLINE const math::Vector4 GenerateBokeh(RenderingContext& context) const;
+    RT_FORCE_INLINE const math::Vector2x8 GenerateBokeh_Simd8(RenderingContext& context) const;
 
     // TODO generate ray packet
 

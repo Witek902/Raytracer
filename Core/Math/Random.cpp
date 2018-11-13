@@ -210,7 +210,7 @@ const Vector4 Random::GetHexagon()
 {
     const Vector4 u = GetVector4();
 
-    constexpr Float2 g_hexVectors[] =
+    constexpr Float2 hexVectors[] =
     {
         { -1.0f, 0.0f },
         { 0.5f, 0.8660254f }, // sqrt(3.0f) / 2.0f
@@ -219,10 +219,78 @@ const Vector4 Random::GetHexagon()
     };
 
     const Uint32 x = GetInt() % 3u;
-    const Float2 a = g_hexVectors[x];
-    const Float2 b = g_hexVectors[x + 1];
+    const Float2 a = hexVectors[x];
+    const Float2 b = hexVectors[x + 1];
 
     return Vector4(u.x * a.x + u.y * b.x, u.x * a.y + u.y * b.y, 0.0f, 0.0f);
+}
+
+const Vector2x8 Random::GetHexagon_Simd8()
+{
+    // TODO uint vector
+    const VectorInt8 i = (GetIntVector8() & VectorInt8(0x7FFFFFFF)) % 3;
+    const VectorInt8 j = i + 1;
+
+    const Vector2x8 u{ GetVector8(), GetVector8() };
+
+    const Vector8 hexVectorsX(-1.0f, 0.5f, 0.5f, -1.0f, -1.0f, 0.5f, 0.5f, -1.0f);
+    const Vector8 hexVectorsY(0.0f, 0.8660254f, -0.8660254f, 0.0f, 0.0f, 0.8660254f, -0.8660254f, 0.0f);
+    const Vector2x8 x{ _mm256_permutevar_ps(hexVectorsX, i), _mm256_permutevar_ps(hexVectorsX, j) };
+    const Vector2x8 y{ _mm256_permutevar_ps(hexVectorsY, i), _mm256_permutevar_ps(hexVectorsY, j) };
+
+    return { Vector2x8::Dot(u, x), Vector2x8::Dot(u, y) };
+}
+
+const Vector4 Random::GetRegularPolygon(const Uint32 n)
+{
+    RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
+
+    // generate random point in a generic triangle
+    const Float2 uv = GetVector4().ToFloat2();
+    const Float u = sqrtf(uv.x);
+    const Float2 triangle(1.0f - u, uv.y * u);
+
+    // base triangle size
+    const Float a = Sin(RT_PI / (Float)n); // can be precomputed
+    const Float b = sqrtf(1.0f - a * a);
+
+    // genrate point in base triangle
+    const Float sign = GetInt() % 2 ? 1.0f : -1.0f;
+    const Vector4 base(b * (triangle.x + triangle.y), a * triangle.y * sign, 0.0f, 0.0f);
+
+    // rotate
+    const Float alpha = RT_2PI * (Float)(GetInt() % n) / (Float)n;
+    const Vector4 sinCosAlpha = SinCos(alpha);
+
+    return Vector4(sinCosAlpha.y * base.x - sinCosAlpha.x * base.y, sinCosAlpha.y * base.y + sinCosAlpha.x * base.x, 0.0f, 0.0f);
+}
+
+const Vector2x8 Random::GetRegularPolygon_Simd8(const Uint32 n)
+{
+    RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
+
+    const Float invN = 1.0f / (Float)n;
+
+    // generate random point in a generic triangle
+    const Vector2x8 uv{ GetVector8(), GetVector8() };
+    const Vector8 u = Vector8::Sqrt(uv.x);
+    const Vector2x8 triangle(Vector8(1.0f) - u, uv.y * u);
+
+    // base triangle size
+    const Float a = Sin(RT_PI * invN); // can be precomputed
+    const Float b = sqrtf(1.0f - a * a);
+
+    // genrate point in base triangle
+    const Float sign = GetInt() % 2 ? 1.0f : -1.0f;
+    const Vector2x8 base(b * (triangle.x + triangle.y), a * triangle.y * sign);
+
+    // rotate
+    const VectorInt8 i = (GetIntVector8() & VectorInt8(0x7FFFFFFF)) % n;
+    const Vector8 alpha = i.ConvertToFloat() * (RT_2PI * invN);
+    const Vector8 sinAlpha = Sin(alpha);
+    const Vector8 cosAlpha = Cos(alpha);
+
+    return Vector2x8(cosAlpha * base.x - sinAlpha * base.y, cosAlpha * base.y + sinAlpha * base.x);
 }
 
 const Vector4 Random::GetSphere()

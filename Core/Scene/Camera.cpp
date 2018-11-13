@@ -9,7 +9,7 @@ using namespace math;
 
 Camera::Camera()
     : mAspectRatio(1.0f)
-    , mFieldOfView(RT_PI * 60.0f / 180.0f)
+    , mFieldOfView(RT_PI * 20.0f / 180.0f)
     , barrelDistortionConstFactor(0.01f)
     , barrelDistortionVariableFactor(0.0f)
     , enableBarellDistortion(false)
@@ -128,7 +128,7 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
         const Vector4 up = transform.GetRotation().GetAxisY();
 
         // TODO different bokeh shapes, texture, etc.
-        const Vector2x8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
+        const Vector2x8 randomPointOnCircle = GenerateBokeh_Simd8(context) * mDOF.aperture;
         origin = Vector3x8::MulAndAdd(Vector3x8(randomPointOnCircle.x), Vector3x8(right), origin);
         origin = Vector3x8::MulAndAdd(Vector3x8(randomPointOnCircle.y), Vector3x8(up), origin);
 
@@ -140,7 +140,7 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
 
 //////////////////////////////////////////////////////////////////////////
 
-Vector4 Camera::GenerateBokeh(RenderingContext& context) const
+const Vector4 Camera::GenerateBokeh(RenderingContext& context) const
 {
     switch (mDOF.bokehType)
     {
@@ -150,9 +150,30 @@ Vector4 Camera::GenerateBokeh(RenderingContext& context) const
         return context.randomGenerator.GetHexagon();
     case BokehShape::Square:
         return context.randomGenerator.GetVector4Bipolar();
+    case BokehShape::NGon:
+        return context.randomGenerator.GetRegularPolygon(mDOF.apertureBlades);
     }
 
+    RT_FATAL("Invalid bokeh type");
     return Vector4::Zero();
+}
+
+const Vector2x8 Camera::GenerateBokeh_Simd8(RenderingContext& context) const
+{
+    switch (mDOF.bokehType)
+    {
+    case BokehShape::Circle:
+        return context.randomGenerator.GetCircle_Simd8();
+    case BokehShape::Hexagon:
+        return context.randomGenerator.GetHexagon_Simd8();
+    case BokehShape::Square:
+        return Vector2x8{ context.randomGenerator.GetVector8Bipolar(), context.randomGenerator.GetVector8Bipolar() };
+    case BokehShape::NGon:
+        return context.randomGenerator.GetRegularPolygon_Simd8(mDOF.apertureBlades);
+    }
+
+    RT_FATAL("Invalid bokeh type");
+    return Vector2x8::Zero();
 }
 
 } // namespace rt

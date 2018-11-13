@@ -42,10 +42,13 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE const VectorInt8 operator - () const;
     RT_FORCE_INLINE const VectorInt8 operator + (const VectorInt8& b) const;
     RT_FORCE_INLINE const VectorInt8 operator - (const VectorInt8& b) const;
+    RT_FORCE_INLINE const VectorInt8 operator * (const VectorInt8& b) const;
     RT_FORCE_INLINE VectorInt8& operator += (const VectorInt8& b);
     RT_FORCE_INLINE VectorInt8& operator -= (const VectorInt8& b);
     RT_FORCE_INLINE const VectorInt8 operator + (Int32 b) const;
     RT_FORCE_INLINE const VectorInt8 operator - (Int32 b) const;
+    RT_FORCE_INLINE const VectorInt8 operator * (Int32 b) const;
+    RT_FORCE_INLINE const VectorInt8 operator % (Int32 b) const;
     RT_FORCE_INLINE VectorInt8& operator += (Int32 b);
     RT_FORCE_INLINE VectorInt8& operator -= (Int32 b);
 
@@ -55,10 +58,6 @@ struct RT_ALIGN(32) VectorInt8
 
     /// comparison operators (returns true, if all the elements satisfy the equation)
     RT_FORCE_INLINE bool operator == (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator < (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator <= (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator > (const VectorInt8& b) const;
-    RT_FORCE_INLINE bool operator >= (const VectorInt8& b) const;
     RT_FORCE_INLINE bool operator != (const VectorInt8& b) const;
 
     RT_FORCE_INLINE static const VectorInt8 Min(const VectorInt8& a, const VectorInt8& b);

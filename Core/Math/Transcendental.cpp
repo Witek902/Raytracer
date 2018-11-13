@@ -50,7 +50,7 @@ float Sin(float x)
     return (i & 1) ? -y : y;
 }
 
-Vector4 Sin(Vector4 x)
+const Vector4 Sin(Vector4 x)
 {
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
@@ -79,7 +79,7 @@ Vector4 Sin(Vector4 x)
     return y ^ (i << 31).CastToFloat();
 }
 
-Vector8 Sin(Vector8 x)
+const Vector8 Sin(Vector8 x)
 {
 #ifdef RT_USE_AVX2
     // based on:
@@ -115,6 +115,16 @@ Vector8 Sin(Vector8 x)
 float Cos(float x)
 {
     return Sin(x + RT_PI / 2.0f);
+}
+
+const Vector4 Cos(Vector4 x)
+{
+    return Sin(x + Vector4(RT_PI / 2.0f));
+}
+
+const Vector8 Cos(Vector8 x)
+{
+    return Sin(x + Vector8(RT_PI / 2.0f));
 }
 
 float FastACos(float x)

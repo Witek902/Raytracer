@@ -252,6 +252,7 @@
     <ClCompile Include="MathVector4Test.cpp" />
     <ClCompile Include="MathVector8Test.cpp" />
     <ClCompile Include="MathVectorInt4Test.cpp" />
+    <ClCompile Include="MathVectorInt8Test.cpp" />
     <ClCompile Include="RaytracingTests.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

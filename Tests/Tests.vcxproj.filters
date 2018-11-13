@@ -36,6 +36,7 @@
     <ClCompile Include="MathVector8Test.cpp" />
     <ClCompile Include="MathVectorInt4Test.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MathVectorInt8Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

@@ -20,6 +20,11 @@ public:
     Vector2x8(const Vector2x8&) = default;
     Vector2x8& operator = (const Vector2x8&) = default;
 
+    RT_FORCE_INLINE static const Vector2x8 Zero()
+    {
+        return { Vector8::Zero(), Vector8::Zero() };
+    }
+
     RT_FORCE_INLINE Vector2x8(const Vector8& x, const Vector8& y)
         : x(x), y(y)
     { }

@@ -379,10 +379,15 @@ bool DemoWindow::RenderUI_Settings_Camera()
             ImGui::Columns(1);
         }
 
-        const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box" };
+        const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box", "n-gon" };
         int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
 
         resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
+        if (mCamera.mDOF.bokehType == BokehShape::NGon)
+        {
+            resetFrame |= ImGui::SliderInt("No. of blades", (int*)&mCamera.mDOF.apertureBlades, 3, 20);
+        }
+
         resetFrame |= ImGui::Checkbox("Enable lens distortions", &mCamera.enableBarellDistortion);
         resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
         resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);

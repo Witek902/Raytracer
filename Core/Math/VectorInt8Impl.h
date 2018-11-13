@@ -110,6 +110,11 @@ const VectorInt8 VectorInt8::operator - (const VectorInt8& b) const
     return _mm256_sub_epi32(v, b);
 }
 
+const VectorInt8 VectorInt8::operator * (const VectorInt8& b) const
+{
+    return _mm256_mullo_epi32(v, b);
+}
+
 VectorInt8& VectorInt8::operator += (const VectorInt8& b)
 {
     v = _mm256_add_epi32(v, b);
@@ -132,6 +137,17 @@ const VectorInt8 VectorInt8::operator - (Int32 b) const
     return _mm256_sub_epi32(v, _mm256_set1_epi32(b));
 }
 
+const VectorInt8 VectorInt8::operator * (Int32 b) const
+{
+    return _mm256_mullo_epi32(v, _mm256_set1_epi32(b));
+}
+
+const VectorInt8 VectorInt8::operator % (Int32 b) const
+{
+    // TODO
+    return VectorInt8(i[0] % b, i[1] % b, i[2] % b, i[3] % b, i[4] % b, i[5] % b, i[6] % b, i[7] % b);
+}
+
 VectorInt8& VectorInt8::operator += (Int32 b)
 {
     v = _mm256_add_epi32(v, _mm256_set1_epi32(b));
@@ -142,6 +158,18 @@ VectorInt8& VectorInt8::operator -= (Int32 b)
 {
     v = _mm256_sub_epi32(v, _mm256_set1_epi32(b));
     return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+bool VectorInt8::operator == (const VectorInt8& b) const
+{
+    return _mm256_movemask_ps(_mm256_cvtepi32_ps(_mm256_cmpeq_epi32(v, b.v))) == 0xFF;
+}
+
+bool VectorInt8::operator != (const VectorInt8& b) const
+{
+    return _mm256_movemask_ps(_mm256_cvtepi32_ps(_mm256_cmpeq_epi32(v, b.v))) != 0xFF;
 }
 
 //////////////////////////////////////////////////////////////////////////
