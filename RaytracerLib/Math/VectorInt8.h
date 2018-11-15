@@ -63,6 +63,9 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE static const VectorInt8 Convert(const Vector8& v);
 
     // convert to float vector
+    RT_FORCE_INLINE const Vector8 CastToFloat() const;
+
+    // convert to float vector
     RT_FORCE_INLINE const Vector8 ConvertToFloat() const;
 
 
@@ -85,7 +88,6 @@ private:
         __m256i v;
     };
 };
-
 
 } // namespace math
 } // namespace rt

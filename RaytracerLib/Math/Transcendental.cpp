@@ -9,43 +9,21 @@ namespace math {
 
 namespace {
 
-Int32 FloatAsInt(const float f)
+RT_FORCE_INLINE Int32 FloatAsInt(const float f)
 {
     Bits32 bits;
     bits.f = f;
     return bits.si;
 }
 
-float IntAsFloat(const Int32 i)
+RT_FORCE_INLINE float IntAsFloat(const Int32 i)
 {
     Bits32 bits;
     bits.si = i;
     return bits.f;
 }
 
-// calculates acos(|x|)
-RT_FORCE_INLINE float ACosAbs(float x)
-{
-    // based on DirectXMath implementation:
-    // https://github.com/Microsoft/DirectXMath/blob/master/Inc/DirectXMathMisc.inl
-
-    x = fabsf(x);
-    float root = sqrtf(1.0f - x);
-
-    const float c0 =  1.5707963050f;
-    const float c1 = -0.2145988016f;
-    const float c2 =  0.0889789874f;
-    const float c3 = -0.0501743046f;
-    const float c4 =  0.0308918810f;
-    const float c5 = -0.0170881256f;
-    const float c6 =  0.0066700901f;
-    const float c7 = -0.0012624911f;
-
-    return root * (c0 + x * (c1 + x * (c2 + x * (c3 + x * (c4 + x * (c5 + x * (c6 + x * c7)))))));
-}
-
 } // namespace
-
 
 float Sin(float x)
 {
@@ -77,18 +55,18 @@ Vector4 Sin(Vector4 x)
 
     // range reduction
     __m128i i = _mm_cvtps_epi32(x * (1.0f / RT_PI));
-    x -= Vector4(_mm_cvtepi32_ps(i)) * RT_PI;
+    x = Vector4::NegMulAndAdd(Vector4(_mm_cvtepi32_ps(i)), RT_PI, x);
 
     const Vector4 x2 = x * x;
 
-    const Vector4 c0 = Vector4(9.9999970197e-01f);
+    const Vector4 c0 = Vector4( 9.9999970197e-01f);
     const Vector4 c1 = Vector4(-1.6666577756e-01f);
-    const Vector4 c2 = Vector4(8.3325579762e-03f);
+    const Vector4 c2 = Vector4( 8.3325579762e-03f);
     const Vector4 c3 = Vector4(-1.9812576647e-04f);
-    const Vector4 c4 = Vector4(2.7040521217e-06f);
+    const Vector4 c4 = Vector4( 2.7040521217e-06f);
     const Vector4 c5 = Vector4(-2.0532988642e-08f);
 
-    Vector4 y = Vector4::MulAndAdd(c4, x2, c5);
+    Vector4 y = Vector4::MulAndAdd(c5, x2, c4);
     y = Vector4::MulAndAdd(y, x2, c3);
     y = Vector4::MulAndAdd(y, x2, c2);
     y = Vector4::MulAndAdd(y, x2, c1);
@@ -96,8 +74,8 @@ Vector4 Sin(Vector4 x)
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
-    const __m128i cmpMaks = _mm_cmpeq_epi32(_mm_and_si128(i, _mm_set1_epi32(1)), _mm_setzero_si128());
-    return _mm_xor_ps(y, _mm_andnot_ps(VECTOR_MASK_ABS, _mm_castsi128_ps(cmpMaks)));
+    const __m128 signMask = _mm_castsi128_ps(_mm_slli_epi32(i, 31));
+    return _mm_xor_ps(y, signMask);
 }
 
 Vector8 Sin(Vector8 x)
@@ -107,18 +85,18 @@ Vector8 Sin(Vector8 x)
 
     // range reduction
     __m256i i = _mm256_cvtps_epi32(x * (1.0f / RT_PI));
-    x -= Vector8(_mm256_cvtepi32_ps(i)) * RT_PI;
+    x = Vector8::NegMulAndAdd(Vector8(_mm256_cvtepi32_ps(i)), RT_PI, x);
 
     const Vector8 x2 = x * x;
 
-    const Vector8 c0 = Vector8(9.9999970197e-01f);
+    const Vector8 c0 = Vector8( 9.9999970197e-01f);
     const Vector8 c1 = Vector8(-1.6666577756e-01f);
-    const Vector8 c2 = Vector8(8.3325579762e-03f);
+    const Vector8 c2 = Vector8( 8.3325579762e-03f);
     const Vector8 c3 = Vector8(-1.9812576647e-04f);
-    const Vector8 c4 = Vector8(2.7040521217e-06f);
+    const Vector8 c4 = Vector8( 2.7040521217e-06f);
     const Vector8 c5 = Vector8(-2.0532988642e-08f);
 
-    Vector8 y = Vector8::MulAndAdd(c4, x2, c5);
+    Vector8 y = Vector8::MulAndAdd(c5, x2, c4);
     y = Vector8::MulAndAdd(y, x2, c3);
     y = Vector8::MulAndAdd(y, x2, c2);
     y = Vector8::MulAndAdd(y, x2, c1);
@@ -126,8 +104,8 @@ Vector8 Sin(Vector8 x)
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
-    const __m256i cmpMaks = _mm256_cmpeq_epi32(_mm256_and_si256(i, _mm256_set1_epi32(1)), _mm256_setzero_si256());
-    return _mm256_xor_ps(y, _mm256_andnot_ps(VECTOR8_MASK_ABS, _mm256_castsi256_ps(cmpMaks)));
+    const __m256 signMask = _mm256_castsi256_ps(_mm256_slli_epi32(i, 31));
+    return _mm256_xor_ps(y, signMask);
 }
 
 float Cos(float x)
@@ -135,59 +113,20 @@ float Cos(float x)
     return Sin(x + RT_PI / 2.0f);
 }
 
-float ACos(float x)
-{
-    bool nonnegative = (x >= 0.0f);
-    const float acosAbs = ACosAbs(x);
-
-    // acos(x) = pi - acos(-x) when x < 0
-    return nonnegative ? acosAbs : RT_PI - acosAbs;
-}
-
-float ASin(float x)
-{
-    bool nonnegative = (x >= 0.0f);
-    const float acosAbs = ACosAbs(x);
-
-    // acos(x) = pi - acos(-x) when x < 0, asin(x) = pi/2 - acos(x)
-    return nonnegative ?
-        RT_PI / 2.0f - acosAbs :
-        acosAbs - RT_PI / 2.0f;
-}
-
-float ATan(float x)
+float FastACos(float x)
 {
     // based on:
-    // https://stackoverflow.com/questions/26692859/best-machine-optimized-polynomial-minimax-approximation-to-arctangent-on-1-1
+    // https://stackoverflow.com/a/26030435/10061517
 
-    float t = Abs(x);
-
-    // range reduction
-    float z = t;
-    if (t > 1.0f)
-    {
-        z = 1.0f / z;
-    }
-
-    const float x2 = z * z;
-    float y =    2.78569828e-3f;
-    y = y * x2 - 1.58660226e-2f;
-    y = y * x2 + 4.24722321e-2f;
-    y = y * x2 - 7.49753043e-2f;
-    y = y * x2 + 1.06448799e-1f;
-    y = y * x2 - 1.42070308e-1f;
-    y = y * x2 + 1.99934542e-1f;
-    y = y * x2 - 3.33331466e-1f;
-    y *= x2;
-    y = y * z + z;
-
-    // atan(x) = pi/2 - atan(1/x)
-    if (t > 1.0f)
-    {
-        y = RT_PI / 2.0f - y;
-    }
-
-    return CopySign(y, x);
+    float negate = float(x < 0);
+    x = fabsf(x);
+    float ret = -0.0187293f;
+    ret = ret * x + 0.0742610f;
+    ret = ret * x - 0.2121144f;
+    ret = ret * x + 1.5707288f;
+    ret = ret * sqrtf(1.0f - x);
+    ret = ret - 2.0f * negate * ret;
+    return negate * 3.14159265358979f + ret;
 }
 
 float FastExp(float x)
@@ -270,24 +209,25 @@ float FastATan2(const float y, const float x)
 {
     // https://stackoverflow.com/questions/46210708/atan2-approximation-with-11bits-in-mantissa-on-x86with-sse2-and-armwith-vfpv4
 
-    float a, r, s, t, c, q, ax, ay, mx, mn;
-    ax = math::Abs(x);
-    ay = math::Abs(y);
-    mx = math::Max(ay, ax);
-    mn = math::Min(ay, ax);
-    a = mn / mx;
-    /* Minimax polynomial approximation to atan(a) on [0,1] */
-    s = a * a;
-    c = s * a;
-    q = s * s;
-    r = 0.024840285f * q + 0.18681418f;
-    t = -0.094097948f * q - 0.33213072f;
+    const float ax = math::Abs(x);
+    const float ay = math::Abs(y);
+    const float mx = math::Max(ay, ax);
+    const float mn = math::Min(ay, ax);
+    const float a = mn / mx;
+
+    // Minimax polynomial approximation to atan(a) on [0,1]
+    const float s = a * a;
+    const float c = s * a;
+    const float q = s * s;
+    const float t = -0.094097948f * q - 0.33213072f;
+    float r = (0.024840285f * q + 0.18681418f);
     r = r * s + t;
     r = r * c + a;
-    /* Map to full circle */
+
+    // Map to full circle
     if (ay > ax) r = 1.57079637f - r;
-    if (x < 0) r = RT_PI - r;
-    if (y < 0) r = -r;
+    if (x < 0.0f) r = RT_PI - r;
+    if (y < 0.0f) r = -r;
     return r;
 }
 

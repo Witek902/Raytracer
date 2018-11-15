@@ -5,6 +5,7 @@
 #include "Float3.h"
 #include "Vector4.h"
 #include "Vector2x8.h"
+#include "VectorInt8.h"
 
 namespace rt {
 namespace math {
@@ -46,7 +47,7 @@ public:
     // generate random vector of 8 elements from range [-1.0f, 1.0f)
     const Vector8 GetVector8Bipolar();
 
-    // generate random triangle coordinates (barycentric)
+    // generate random UV triangle coordinates (barycentric)
     const Float2 GetTriangle();
 
     // get random point on a circle (uniform distribution)
@@ -73,7 +74,10 @@ private:
     RT_FORCE_INLINE __m256i GetIntVector8();
 
     __m256i mSeedSimd8[2];
+
     __m128i mSeedSimd4[2];
+    Vector4 mCachedVector4;
+
     Uint64 mSeed[2];
 };
 

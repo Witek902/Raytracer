@@ -15,10 +15,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaytracerTest", "RaytracerT
 		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D} = {3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaytracerBenchmark", "RaytracerBenchmark\RaytracerBenchmark.vcxproj", "{8CF5875D-8856-429C-9B64-EFBB9EA9162D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D} = {3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}
+	EndProjectSection
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -50,12 +52,23 @@ Global
 		{F0148AD0-C7EB-4EE1-B18C-82D2C6CEB4EA}.Release|x64.Build.0 = Release|x64
 		{F0148AD0-C7EB-4EE1-B18C-82D2C6CEB4EA}.Release|x86.ActiveCfg = Release|Win32
 		{F0148AD0-C7EB-4EE1-B18C-82D2C6CEB4EA}.Release|x86.Build.0 = Release|Win32
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Debug|x64.ActiveCfg = Debug|x64
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Debug|x64.Build.0 = Debug|x64
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Debug|x86.ActiveCfg = Debug|Win32
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Debug|x86.Build.0 = Debug|Win32
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Release|x64.ActiveCfg = Release|x64
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Release|x64.Build.0 = Release|x64
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Release|x86.ActiveCfg = Release|Win32
+		{8CF5875D-8856-429C-9B64-EFBB9EA9162D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {23B2F25D-324D-47D2-9332-03C43B09708C}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

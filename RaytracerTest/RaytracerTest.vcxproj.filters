@@ -33,6 +33,7 @@
     </ClCompile>
     <ClCompile Include="ColorTest.cpp" />
     <ClCompile Include="RaytracingTests.cpp" />
+    <ClCompile Include="MathTranscendental.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

@@ -56,9 +56,7 @@ Uint32 Random::GetInt()
 
 float Random::GetFloat()
 {
-    Bits32 myrand;
-    myrand.ui = (GetInt() & 0x007fffff) | 0x3f800000;
-    return myrand.f - 1.0f;
+    return static_cast<Float>(GetInt()) / static_cast<Float>(std::numeric_limits<Uint32>::max());
 }
 
 const Float2 Random::GetFloat2()
@@ -144,37 +142,31 @@ const Vector4 Random::GetVector4Bipolar()
 
 const Vector8 Random::GetVector8()
 {
-    __m256i v = GetIntVector8();
+    VectorInt8 v = GetIntVector8();
 
     // setup float mask
-    v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
-    v = _mm256_or_si256(v, _mm256_set1_epi32(0x3f800000u));
+    v &= VectorInt8(0x007fffffu);
+    v |= VectorInt8(0x3f800000u);
 
     // convert to float and go from [1, 2) to [0, 1) range
-    Vector8 result = _mm256_castsi256_ps(v);
-    result -= VECTOR8_ONE;
-
-    return result;
+    return v.CastToFloat() - VECTOR8_ONE;
 }
 
 const Vector8 Random::GetVector8Bipolar()
 {
-    __m256i v = GetIntVector8();
+    VectorInt8 v = GetIntVector8();
 
     // setup float mask
-    v = _mm256_and_si256(v, _mm256_set1_epi32(0x007fffffu));
-    v = _mm256_or_si256(v, _mm256_set1_epi32(0x40000000u));
+    v &= VectorInt8(0x007fffffu);
+    v |= VectorInt8(0x40000000u);
 
-    // convert to float and go from [2, 4) to [-1, 1) range
-    Vector8 result = _mm256_castsi256_ps(v);
-    result -= Vector8(3.0f);
-
-    return result;
+    // convert to float and go from [1, 2) to [0, 1) range
+    return v.CastToFloat() - Vector8(3.0f);
 }
 
 const Float2 Random::GetTriangle()
 {
-    const Float2 uv = GetVector4().ToFloat2();
+    const Float2 uv = GetFloat2();
     const Float u = sqrtf(uv.x);
     return { 1.0f - u, uv.y * u };
 }
@@ -184,15 +176,12 @@ const Vector4 Random::GetCircle()
     const Vector4 v = GetVector4();
 
     // angle (uniform distribution)
-    const float theta = 2.0f * RT_PI * v[0];
+    const float theta = 2.0f * RT_PI * v.x;
 
     // radius (corrected distribution)
-    const float u = v[1] + v[2];
-    const float r = (u > 1.0f) ? (2.0f - u) : u;
+    const float r = sqrtf(v.y);
 
-    const Vector4 sinCos = Sin(Vector4(theta, theta + RT_PI / 2.0f, 0.0f, 0.0f));
-
-    return r * sinCos;
+    return r * SinCos(theta);
 }
 
 const Vector2x8 Random::GetCircle_Simd8()
@@ -201,8 +190,7 @@ const Vector2x8 Random::GetCircle_Simd8()
     const Vector8 theta = (2.0f * RT_PI) * GetVector8();
 
     // radius (corrected distribution)
-    const Vector8 u = GetVector8() + GetVector8();
-    const Vector8 r = Vector8::SelectBySign(Vector8(2.0f) - u, u, u - Vector8(1.0f));
+    const Vector8 r = Vector8::Sqrt(GetVector8());
 
     const Vector8 vSin = Sin(theta);
     const Vector8 vCos = Sin(theta + Vector8(RT_PI / 2.0f));
@@ -212,6 +200,8 @@ const Vector2x8 Random::GetCircle_Simd8()
 
 const Vector4 Random::GetHexagon()
 {
+    const Vector4 u = GetVector4();
+
     constexpr Float2 g_hexVectors[] =
     {
         { -1.0f, 0.0f },
@@ -223,18 +213,23 @@ const Vector4 Random::GetHexagon()
     const Uint32 x = GetInt() % 3u;
     const Float2 a = g_hexVectors[x];
     const Float2 b = g_hexVectors[x + 1];
-    const Vector4 xy = GetVector4();
 
-    return Vector4(xy.x * a.x + xy.y * b.x, xy.x * a.y + xy.y * b.y, 0.0f, 0.0f);
+    return Vector4(u.x * a.x + u.y * b.x, u.x * a.y + u.y * b.y, 0.0f, 0.0f);
 }
 
 const Vector4 Random::GetSphere()
 {
-    const Vector4 u = GetVector4();
+    // based on http://mathworld.wolfram.com/SpherePointPicking.html
 
-    const float theta = 2.0f * RT_PI * u.x;
-    const float t = 2.0f * Sqrt(u.y * (1.0f - u.y));
-    return Vector4(t * Sin(theta), t * Cos(theta), 1.0f - 2.0f * u.y, 0.0f);
+    const Vector4 u = GetVector4Bipolar();
+
+    const Float t = sqrtf(1.0f - u.y * u.y);
+    const Float theta = RT_PI * u.x;
+    Vector4 result = t * SinCos(theta); // xy
+
+    result.z = u.y;
+
+    return result;
 }
 
 const Vector4 Random::GetHemishpere()
@@ -248,22 +243,22 @@ const Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();
 
-    const Vector4 t = Vector4::Sqrt4(Vector4(u.x, 1.0f - u.x, 0.0f, 0.0f));
-    float theta = 2.0f * RT_PI * u.y;
-    return Vector4(t.x * Sin(theta), t.x * Cos(theta), t.y, 0.0f);
+    const Float theta = 2.0f * RT_PI * u.y;
+    const Float r = sqrtf(u.x); // this is required for the result vector to be normalized
+
+    Vector4 result = r * SinCos(theta); // xy
+    result.z = sqrtf(1.0f - u.x);
+
+    return result;
 }
 
 const Vector4 Random::GetFloatNormal2()
 {
-    Vector4 result;
-
     // Box-Muller method
     Vector4 uv = GetVector4();
     float temp = sqrtf(-2.0f * FastLog(uv.x));
 
-    result.x = temp * Cos(2.0f * RT_PI * uv.y);
-    result.y = temp * Sin(2.0f * RT_PI * uv.y);
-    return result;
+    return temp * SinCos(2.0f * RT_PI * uv.y);
 }
 
 } // namespace Math

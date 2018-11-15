@@ -133,6 +133,9 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
             };
 
             mThreadPool.RunParallelTask(taskCallback, (Uint32)(mRenderingTiles.size()));
+
+            // flush non-temporal stores
+            _mm_mfence();
         }
     }
 
@@ -156,6 +159,11 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
     return true;
 }
 
+RT_FORCE_INLINE void Store_NonTemporal(Uint32* target, const Uint32 value)
+{
+    _mm_stream_si32(reinterpret_cast<int*>(target), value);
+}
+
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
 {
     RT_ASSERT(tile.minX < tile.maxX);
@@ -170,6 +178,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     const bool verticalFlip = true;
 
+    const Uint32 currentPass = mProgress.passesFinished + 1;
     Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
     Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
@@ -201,7 +210,8 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 const size_t pixelIndex = GetWidth() * y + x;
                 sumPixels[pixelIndex] += sampleColor.ToFloat3();
-                mPassesPerPixel[pixelIndex]++;
+
+                Store_NonTemporal(&mPassesPerPixel[pixelIndex], currentPass);
 
                 if (mProgress.passesFinished % 2 == 0)
                 {

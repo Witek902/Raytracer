@@ -1,17 +1,13 @@
 #pragma once
 
 #include "../Common.h"
+#include "../RayLib.h"
 
 #include "Vector4.h"
 #include "Vector8.h"
 
-
 namespace rt {
 namespace math {
-
-
-// TODO atan2
-// TODO fast sin/cos
 
 
 /**
@@ -19,19 +15,19 @@ namespace math {
  * @note    This is faster than sinf/cosf
  * @note    Maximum absolute error: about 5.0e-07
  */
-float Sin(float x);
-float Cos(float x);
-Vector4 Sin(Vector4 x);
-Vector8 Sin(Vector8 x);
+RAYLIB_API float Sin(float x);
+RAYLIB_API float Cos(float x);
+RAYLIB_API Vector4 Sin(Vector4 x);
+RAYLIB_API Vector8 Sin(Vector8 x);
 
-/**
- * Accurate inverse trigonometric functions.
- * @note    This is faster than asinf/acosf/atanf
- * @note    Maximum absolute error: about 2.0e-07
- */
-float ASin(float x);
-float ACos(float x);
-float ATan(float x);
+// Compute sine and cosine in one go
+RT_FORCE_INLINE const Vector4 SinCos(const Float x)
+{
+    return Sin(Vector4(x, x + RT_PI / 2.0f, 0.0f, 0.0f));
+}
+
+// Maximum absolute error: about 7.0e-5
+RAYLIB_API float FastACos(float x);
 
 /**
  * Fast atan2f.
@@ -44,20 +40,20 @@ float FastATan2(const float y, const float x);
  * @note    This is much faster than expf
  * @note    Maximum relative error: about 0.2%
  */
-float FastExp(float x);
+RAYLIB_API float FastExp(float x);
 
 /**
  * Accurate natural logarithm.
  * @note    Maximum relative error: about 0.01%
  */
-float Log(float x);
+RAYLIB_API float Log(float x);
 
 /**
  * Fast natural logarithm.
  * @note    This is faster logf
  * @note    Maximum relative error: about 0.07%
  */
-float FastLog(float x);
+RAYLIB_API float FastLog(float x);
 
 
 } // namespace math

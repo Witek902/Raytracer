@@ -181,7 +181,7 @@ void Quaternion::ToAngles(float& outPitch, float& outYaw, float& outRoll) const
     t2 = Clamp(t2, -1.0f, 1.0f);
 
     outRoll = atan2f(t0, t1);
-    outPitch = ASin(t2);
+    outPitch = asinf(t2);
     outYaw = atan2f(t3, t4);
 }
 

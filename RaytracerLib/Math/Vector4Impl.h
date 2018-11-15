@@ -58,12 +58,12 @@ void Vector4::Set(Float scalar)
     v = _mm_set1_ps(scalar);
 }
 
-const Vector4 Vector4::FromInteger(Uint32 x)
+const Vector4 Vector4::FromInteger(Int32 x)
 {
     return Vector4(_mm_cvtepi32_ps(_mm_set1_epi32(x)));
 }
 
-const Vector4 Vector4::FromIntegers(Uint32 x, Uint32 y, Uint32 z, Uint32 w)
+const Vector4 Vector4::FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w)
 {
     return Vector4(_mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x)));
 }

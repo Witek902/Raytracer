@@ -32,7 +32,7 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
     // sample environment map
     if (mTexture)
     {
-        const Float theta = ACos(dir.y);
+        const Float theta = FastACos(dir.y);
         const Float phi = FastATan2(dir.z, dir.x);
         const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
 

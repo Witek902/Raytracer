@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="External">
+      <UniqueIdentifier>{f9c7611a-9597-4d10-8830-d89ce90c16a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Benchmarks">
+      <UniqueIdentifier>{539a792b-0a1a-4398-948a-9e344a6ee186}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PCH.cpp" />
+    <ClCompile Include="..\External\benchmark\src\benchmark.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\benchmark_api_internal.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\benchmark_main.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\benchmark_register.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\benchmark_runner.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\colorprint.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\commandlineflags.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\complexity.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\console_reporter.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\counter.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\csv_reporter.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\json_reporter.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\reporter.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\sleep.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\statistics.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\string_util.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\sysinfo.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\benchmark\src\timers.cc">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomBenchmark.cpp">
+      <Filter>Benchmarks</Filter>
+    </ClCompile>
+    <ClCompile Include="TranscendentalBenchmark.cpp">
+      <Filter>Benchmarks</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PCH.h" />
+  </ItemGroup>
+</Project>
