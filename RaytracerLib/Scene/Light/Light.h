@@ -23,9 +23,9 @@ public:
         const ShadingData& shadingData;
         RenderingContext& context;
 
-        math::Vector4 outDirectionToLight;
-        float outDistance;
-        float outDirectPdfW;
+        math::Vector4 outDirectionToLight = math::Vector4();
+        float outDistance = 0.0f;
+        float outDirectPdfW = 0.0f;
     };
 
     ILight() = default;

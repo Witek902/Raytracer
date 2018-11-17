@@ -22,7 +22,7 @@ bool SpecularReflectiveBSDF::Sample(SamplingContext& ctx) const
 
 const Color SpecularReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
-    const Float roughness = ctx.materialParam.roughness;
+    RT_UNUSED(ctx);
 
     if (outDirectPdfW)
     {

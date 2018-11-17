@@ -43,7 +43,6 @@ Window::Window()
     , mConnScreen(0)
     , mGraphicsContext(0u)
     , mClosed(true)
-    , mFullscreen(false)
     , mInvisible(false)
     , mWidth(400)
     , mHeight(400)
@@ -113,58 +112,6 @@ void Window::SetTitle(const char* title)
     if (!mClosed)
     {
         xcb_change_property(mConnection, XCB_PROP_MODE_REPLACE, mWindow, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, mTitle.length(), mTitle.data());
-    }
-}
-
-void Window::SetFullscreenMode(bool enabled)
-{
-    if (!mClosed)
-    {
-        // TODO here is only done hinting X11 that the screen will be fullscreen.
-        //      What needs to be added is switching video mode using XF86, RandR or sth else.
-
-        // acquire cookies
-        xcb_intern_atom_cookie_t wmStateCookie = xcb_intern_atom(mConnection, 1, 13, "_NET_WM_STATE");
-        xcb_intern_atom_reply_t* wmState = xcb_intern_atom_reply(mConnection, wmStateCookie, 0);
-        xcb_intern_atom_cookie_t fsCookie = xcb_intern_atom(mConnection, 1, 24, "_NET_WM_STATE_FULLSCREEN");
-        xcb_intern_atom_reply_t* fs = xcb_intern_atom_reply(mConnection, fsCookie, 0);
-
-        if (mFullscreen && !enabled)
-        {
-            xcb_client_message_event_t event;
-            memset(&event, 0, sizeof(event));
-            event.response_type = XCB_CLIENT_MESSAGE;
-            event.window = mScreen->root;
-            event.type = wmState->atom;
-            event.format = 32;
-            event.data.data32[0] = 0; // _NET_WM_STATE_REMOVE
-            event.data.data32[1] = fs->atom;
-            event.data.data32[2] = 0;
-
-            xcb_send_event(mConnection, 0, mScreen->root,
-                           XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
-                           reinterpret_cast<const char*>(&event));
-            xcb_flush(mConnection);
-        }
-        else if (!mFullscreen && enabled)
-        {
-            xcb_client_message_event_t event;
-            memset(&event, 0, sizeof(event));
-            event.response_type = XCB_CLIENT_MESSAGE;
-            event.window = mScreen->root;
-            event.type = wmState->atom;
-            event.format = 32;
-            event.data.data32[0] = 1; //_NET_WM_STATE_ADD
-            event.data.data32[1] = fs->atom;
-            event.data.data32[2] = 0;
-
-            xcb_send_event(mConnection, 0, mScreen->root,
-                           XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
-                           reinterpret_cast<const char*>(&event));
-            xcb_flush(mConnection);
-        }
-
-        mFullscreen = enabled;
     }
 }
 
@@ -467,6 +414,12 @@ bool Window::IsKeyPressed(KeyCode key) const
     return false;
 }
 
+void Window::GetMousePosition(int& x, int& y) const
+{
+    x = mMousePos[0];
+    y = mMousePos[1];
+}
+
 bool Window::HasFocus() const
 {
     xcb_get_input_focus_cookie_t inputCookie = xcb_get_input_focus(mConnection);
@@ -483,16 +436,6 @@ void Window::GetSize(Uint32& Width, Uint32& Height) const
 {
     Width = mWidth;
     Height = mHeight;
-}
-
-float Window::GetAspectRatio() const
-{
-    return (float)mWidth / (float)mHeight;
-}
-
-bool Window::GetFullscreenMode() const
-{
-    return mFullscreen;
 }
 
 void Window::OnClose()

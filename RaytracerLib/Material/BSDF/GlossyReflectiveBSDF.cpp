@@ -38,7 +38,6 @@ bool GlossyReflectiveBSDF::Sample(SamplingContext& ctx) const
         return false;
     }
 
-    const float NdotH = m.z;
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = ctx.outIncomingDir.z;
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
@@ -71,7 +70,6 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
     // microfacet normal
     const Vector4 m = (ctx.outgoingDir - ctx.incomingDir).FastNormalized3();
 
-    const float NdotH = m.z;
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);

@@ -12,6 +12,7 @@
 #include <immintrin.h>
 #include <emmintrin.h>
 
+#include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>

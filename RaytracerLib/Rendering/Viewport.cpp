@@ -182,8 +182,6 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
     Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
-    const Vector4 sampleOffset = renderingContext.randomGenerator.GetFloatNormal2();
-
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 y = tile.minY; y < tile.maxY; ++y)

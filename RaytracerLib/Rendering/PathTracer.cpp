@@ -23,10 +23,10 @@ RT_FORCE_INLINE static constexpr Float CombineMis(const Float samplePdf, const F
     return Mis(samplePdf) / (Mis(samplePdf) + Mis(otherPdf));
 }
 
-RT_FORCE_INLINE static constexpr Float PdfWtoA(const Float aPdfW, const Float aDist, const Float aCosThere)
-{
-    return aPdfW * Abs(aCosThere) / Sqr(aDist);
-}
+// RT_FORCE_INLINE static constexpr Float PdfWtoA(const Float aPdfW, const Float aDist, const Float aCosThere)
+// {
+//     return aPdfW * Abs(aCosThere) / Sqr(aDist);
+// }
 
 RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float aPdfA, const Float aDist, const Float aCosThere)
 {

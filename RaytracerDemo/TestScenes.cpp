@@ -89,7 +89,7 @@ void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
     }
 }
 
-void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     // floor
     {
@@ -323,7 +323,7 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
     }
 }
 
-void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     {
         auto material = std::make_unique<rt::Material>();
@@ -366,7 +366,7 @@ void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, 
     }
 }
 
-void InitScene_Specular_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Specular_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     {
         auto material = std::make_unique<rt::Material>();

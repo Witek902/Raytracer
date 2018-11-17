@@ -66,14 +66,21 @@
 #define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);
 #define RT_PREFETCH_L3(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T2);
 
-#define RT_FATAL(x) __debugbreak()
+// debug break
+#if defined(WIN32)
+#define RT_FATAL(...) __debugbreak()
+#elif defined(__LINUX__) | defined(__linux__)
+#define RT_FATAL(...) __builtin_trap()
+#else
+#error "Target system not supported!"
+#endif // defined(WIN32)
 
 // TODO assertions should be disabled in "Final" build
 #define RT_ASSERT(expression, ...) \
 do { \
     if (!(expression)) \
     { \
-        __debugbreak(); \
+        RT_FATAL(__VA_ARGS__); \
     } \
 } while (0)
 

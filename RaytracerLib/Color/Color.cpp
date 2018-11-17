@@ -15,6 +15,7 @@ using namespace math;
 
 static_assert(sizeof(Color) == sizeof(Float) * Wavelength::NumComponents, "Invalid number of color components");
 
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
 
 static constexpr Uint32 NumBins = 69;
 
@@ -148,8 +149,6 @@ const Float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 };
 
 /////////////////////////////////////////////////////////////////////////////////
-
-#ifdef RT_ENABLE_SPECTRAL_RENDERING
 
 void Wavelength::Randomize(Random& rng)
 {
