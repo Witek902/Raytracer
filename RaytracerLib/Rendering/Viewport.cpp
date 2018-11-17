@@ -205,6 +205,11 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                     sampleColor += color.Resolve(renderingContext.wavelength);
                 }
 
+                RT_ASSERT(sampleColor.IsValid());
+
+                sampleColor = Vector4::Max(sampleColor, Vector4()); // TODO fix this
+                RT_ASSERT(sampleColor >= Vector4());
+
                 // TODO get rid of this
                 sampleColor *= sampleScale;
 
@@ -407,7 +412,7 @@ Float Viewport::ComputeBlockError(const Block& block) const
             const Vector4 a = imageScalingFactor * Vector4(sumPixels[pixelIndex]);
             const Vector4 b = (2.0f * imageScalingFactor) * Vector4(secondarySumPixels[pixelIndex]);
             const Vector4 diff = Vector4::Abs(a - b);
-            const Float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * b.y + b.z);
+            const Float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * a.y + a.z);
             rowError += error;
         }
         totalError += rowError;
@@ -502,7 +507,7 @@ void Viewport::UpdateBlocksList()
             mBlocks.pop_back();
             continue;
         }
-        
+
         if ((blockError < settings.subdivisionTreshold) &&
             (block.Width() > settings.minBlockSize || block.Height() > settings.minBlockSize))
         {

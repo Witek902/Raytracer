@@ -47,6 +47,29 @@ void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::
     }
 }
 
+void InitScene_Mesh(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+{
+    const Vector4 lightColor(6.0f, 8.0f, 10.0f, 0.0f);
+
+    auto background = std::make_unique<BackgroundLight>(lightColor);
+    scene.SetBackgroundLight(std::move(background));
+
+    {
+        auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+        instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+        scene.AddObject(std::move(instance));
+        meshes.push_back(std::move(mesh));
+    }
+
+    {
+        camera = CameraSetup();
+        camera.position = Vector4(0.0f, 0.2f, 3.0f, 0.0f);
+        camera.orientation.y = 0.05f;
+        camera.orientation.x = 3.0f;
+    }
+}
+
 void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     // floor
@@ -437,6 +460,7 @@ void DemoWindow::RegisterTestScenes()
     mRegisteredScenes["Plane"] = InitScene_Plane;
     mRegisteredScenes["Furnace Test"] = InitScene_Furnace_Test;
     mRegisteredScenes["Specular Test"] = InitScene_Specular_Test;
+    mRegisteredScenes["Mesh"] = InitScene_Mesh;
     mRegisteredScenes["Simple + Background Light"] = InitScene_Simple_BackgroundLight;
     mRegisteredScenes["Simple + Point Light"] = InitScene_Simple_PointLight;
     mRegisteredScenes["Simple + Area Light"] = InitScene_Simple_AreaLight;
