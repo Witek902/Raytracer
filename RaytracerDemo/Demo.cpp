@@ -67,7 +67,7 @@ bool DemoWindow::Initialize()
 
     mCamera.mDOF.aperture = 0.0f;
 
-    SwitchScene(mRegisteredScenes["Background"]);
+    SwitchScene(mRegisteredScenes["Mesh"]);
 
     return true;
 }
@@ -386,7 +386,7 @@ void DemoWindow::UpdateCamera()
     const Quaternion cameraOrientation = Quaternion::FromAngles(-mCameraSetup.orientation.y, mCameraSetup.orientation.x, mCameraSetup.orientation.z);
     const Vector4 direction = cameraOrientation.GetAxisZ();
 
-    Vector4 movement;
+    Vector4 movement = math::Vector4::Zero();
     if (IsKeyPressed(KeyCode::W))
         movement += direction;
     if (IsKeyPressed(KeyCode::S))

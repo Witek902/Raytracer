@@ -27,7 +27,10 @@ public:
         , max(max)
     {}
 
-    Box(const Vector4& a, const Vector4& b, const Vector4& c);
+    RT_FORCE_INLINE Box(const Vector4& a, const Vector4& b, const Vector4& c)
+        : min(Vector4::Min(a, Vector4::Min(b, c)))
+        , max(Vector4::Max(a, Vector4::Max(b, c)))
+    {}
 
     RT_FORCE_INLINE static const Box Empty()
     {
@@ -41,17 +44,15 @@ public:
 
     // create box from center point and radius (e.g. bounding box of a sphere)
     RT_FORCE_INLINE Box(const Vector4& center, float radius)
-    {
-        min = center - Vector4(radius);
-        max = center + Vector4(radius);
-    }
+        : min(center - Vector4(radius))
+        , max(center + Vector4(radius))
+    {}
 
     // merge boxes
     RT_FORCE_INLINE Box(const Box& a, const Box& b)
-    {
-        min = Vector4::Min(a.min, b.min);
-        max = Vector4::Max(a.max, b.max);
-    }
+        : min(Vector4::Min(a.min, b.min))
+        , max(Vector4::Max(a.max, b.max))
+    {}
 
     RT_FORCE_INLINE const Box operator + (const Vector4& offset) const
     {

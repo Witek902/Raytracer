@@ -36,7 +36,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
     if (hitPoint.distance == FLT_MAX)
     {
         // ray hit background
-        return Color();
+        return Color::Zero();
     }
 
     Vector4 resultColor;

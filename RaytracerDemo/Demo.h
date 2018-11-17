@@ -25,8 +25,8 @@ struct Options
 
 struct RT_ALIGN(16) CameraSetup
 {
-    rt::math::Vector4 position;
-    rt::math::Vector4 linearVelocity;
+    rt::math::Vector4 position = rt::math::Vector4::Zero();
+    rt::math::Vector4 linearVelocity = rt::math::Vector4::Zero();
     rt::math::Float3 orientation; // yaw, pitch, roll
     rt::math::Float3 angularVelocity;
     Float fov = 60.0f;

@@ -63,7 +63,7 @@ RT_FORCE_INLINE math::Vector4 HSVtoRGB(const Float hue, const Float saturation, 
     else if (h_i == 5)
         return math::Vector4(value, p, q, 0.0f);
 
-    return math::Vector4();
+    return math::Vector4::Zero();
 }
 
 

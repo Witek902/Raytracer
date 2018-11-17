@@ -35,7 +35,8 @@ struct RT_ALIGN(16) Vector4
     }
 
     // constructors
-    RT_FORCE_INLINE Vector4();
+    Vector4() = default;
+    RT_FORCE_INLINE static const Vector4 Zero();
     RT_FORCE_INLINE explicit Vector4(const Float s); // splat
     RT_FORCE_INLINE Vector4(const Float x, const Float y, const Float z, const Float w);
     RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
@@ -221,7 +222,7 @@ struct RT_ALIGN(16) Vector4
     // Check if two vectors are (almost) equal.
     RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON);
 
-    // Check if the vector is equal to zero Vector4()
+    // Check if the vector is equal to zero
     RT_FORCE_INLINE bool IsZero() const;
 
     // Check if any component is NaN

@@ -46,7 +46,7 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
     Color radiance = light->Illuminate(illuminateParam);
     if (radiance.AlmostZero())
     {
-        return Color();
+        return Color::Zero();
     }
 
     RT_ASSERT(IsValid(illuminateParam.outDirectPdfW));
@@ -57,7 +57,7 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
     const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
     if (factor.AlmostZero())
     {
-        return Color();
+        return Color::Zero();
     }
 
     // cast shadow ray
@@ -71,7 +71,7 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
         {
             // shadow ray missed the light - light is occluded
-            return Color();
+            return Color::Zero();
         }
     }
 
@@ -91,7 +91,7 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
 
 const Color PathTracer::SampleLights(const ShadingData& shadingData, RenderingContext& context) const
 {
-    Color accumulatedColor;
+    Color accumulatedColor = Color::Zero();
 
     // TODO check only one (or few) lights per sample instead all of them
     // TODO check only nearest lights
@@ -118,7 +118,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
     ShadingData shadingData;
     Vector4 incomingDirWorldSpace;
 
-    Color resultColor;
+    Color resultColor = Color::Zero();
     Color throughput = Color::One();
 
     PathTerminationReason pathTerminationReason = PathTerminationReason::None;
@@ -139,7 +139,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             if (const BackgroundLight* light = mScene.GetBackgroundLight())
             {
                 float directPdfW;
-                const Color lightContribution = light->GetRadiance(context, ray.dir, Vector4(), &directPdfW);
+                const Color lightContribution = light->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
 
                 if (!lightContribution.AlmostZero())
                 {
@@ -170,7 +170,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
             float directPdfA;
             const Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
- 
+
             if (!lightContribution.AlmostZero())
             {
                 float misWeight = 1.0f;

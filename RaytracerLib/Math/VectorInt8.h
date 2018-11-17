@@ -13,7 +13,8 @@ struct Vector8;
 struct RT_ALIGN(32) VectorInt8
 {
     // constructors
-    RT_FORCE_INLINE VectorInt8();
+    RT_FORCE_INLINE VectorInt8() = default;
+    RT_FORCE_INLINE static const VectorInt8 Zero();
     RT_FORCE_INLINE VectorInt8(const __m256i& m);
     RT_FORCE_INLINE explicit VectorInt8(const __m256& m);
     RT_FORCE_INLINE explicit VectorInt8(const Int32 scalar);

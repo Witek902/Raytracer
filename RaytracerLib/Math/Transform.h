@@ -14,7 +14,10 @@ namespace math {
 class RT_ALIGN(16) Transform final
 {
 public:
-    Transform() = default;
+    RT_FORCE_INLINE Transform()
+        : mTranslation(Vector4::Zero())
+    { }
+
     Transform(const Transform&) = default;
     Transform& operator = (const Transform&) = default;
 

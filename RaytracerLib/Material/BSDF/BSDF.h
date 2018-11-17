@@ -55,8 +55,8 @@ public:
         math::Random& randomGenerator;
 
         // outputs
-        Color outColor = Color();
-        math::Vector4 outIncomingDir = math::Vector4();
+        Color outColor = Color::Zero();
+        math::Vector4 outIncomingDir = math::Vector4::Zero();
         Float outPdf = 0.0f;
         EventType outEventType = NullEvent;
     };

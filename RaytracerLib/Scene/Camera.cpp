@@ -143,7 +143,7 @@ Vector4 Camera::GenerateBokeh(RenderingContext& context) const
         return context.randomGenerator.GetVector4Bipolar();
     }
 
-    return Vector4();
+    return Vector4::Zero();
 }
 
 } // namespace rt

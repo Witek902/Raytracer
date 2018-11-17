@@ -60,8 +60,8 @@ void LightSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
 
     outShadingData.material = nullptr;
     outShadingData.normal = Vector4(0.0f, 0.0f, 1.0f, 0.0f); // HACK
-    outShadingData.tangent = Vector4();
-    outShadingData.bitangent = Vector4();
+    outShadingData.tangent = Vector4::Zero();
+    outShadingData.bitangent = Vector4::Zero();
 }
 
 

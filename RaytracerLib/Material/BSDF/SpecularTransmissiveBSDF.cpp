@@ -45,7 +45,7 @@ const Color SpecularTransmissiveBSDF::Evaluate(const EvaluationContext& ctx, Flo
         *outDirectPdfW = 0.0f;
     }
 
-    return Color();
+    return Color::Zero();
 }
 
 } // namespace rt

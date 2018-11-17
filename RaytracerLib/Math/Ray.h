@@ -13,17 +13,17 @@ namespace math {
 class RT_ALIGN(16) Ray
 {
 public:
-    Vector4 invDir;
     Vector4 origin;
     Vector4 dir;
+    Vector4 invDir;
 
     RT_FORCE_INLINE Ray() = default;
 
     RT_FORCE_INLINE Ray(const Vector4& origin, const Vector4& direction)
         : origin(origin)
+        , dir(direction.Normalized3())
+        , invDir(Vector4::Reciprocal(dir))
     {
-        dir = direction.Normalized3();
-        invDir = Vector4::Reciprocal(dir);
     }
 
     RT_FORCE_INLINE const Vector4 GetAtDistance(const Float t) const

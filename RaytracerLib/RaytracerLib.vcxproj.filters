@@ -277,14 +277,8 @@
     <ClCompile Include="Math\Math.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Geometry.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Vector4.cpp">
       <Filter>Math\Vector4</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Vector8.cpp">
-      <Filter>Math\Vector8</Filter>
     </ClCompile>
     <ClCompile Include="Utils\Logger.cpp">
       <Filter>Utils</Filter>
@@ -325,15 +319,6 @@
     <ClCompile Include="Color\Color.cpp">
       <Filter>Color</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Float2.cpp">
-      <Filter>Math\Float2</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Float3.cpp">
-      <Filter>Math\Float3</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Box.cpp">
-      <Filter>Math\Shapes</Filter>
-    </ClCompile>
     <ClCompile Include="Math\Transcendental.cpp">
       <Filter>Math\Transcendental</Filter>
     </ClCompile>
@@ -342,9 +327,6 @@
     </ClCompile>
     <ClCompile Include="Utils\BlockCompression.cpp">
       <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\VectorInt8.cpp">
-      <Filter>Math\VectorInt8</Filter>
     </ClCompile>
     <ClCompile Include="Traversal\Traversal_Packet.cpp">
       <Filter>Traversal</Filter>

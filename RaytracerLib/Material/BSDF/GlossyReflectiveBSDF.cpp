@@ -64,7 +64,7 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
         {
             *outDirectPdfW = 0.0f;
         }
-        return Color();
+        return Color::Zero();
     }
 
     // microfacet normal
@@ -77,7 +77,7 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
     // clip the function
     if (NdotV < CosEpsilon || NdotL < CosEpsilon)
     {
-        return Color();
+        return Color::Zero();
     }
 
     const Microfacet microfacet(roughness * roughness);

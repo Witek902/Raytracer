@@ -44,7 +44,7 @@ public:
     math::Transform mTransform;
 
     // local transform delta for motion blur
-    math::Vector4 mLinearVelocity;
+    math::Vector4 mLinearVelocity = math::Vector4::Zero();
     math::Quaternion mAngularVelocity;
 };
 

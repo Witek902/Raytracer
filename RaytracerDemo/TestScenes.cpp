@@ -49,9 +49,13 @@ void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::
 
 void InitScene_Mesh(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
-    const Vector4 lightColor(6.0f, 8.0f, 10.0f, 0.0f);
+    const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
 
     auto background = std::make_unique<BackgroundLight>(lightColor);
+    if (!gOptions.envMapPath.empty())
+    {
+        background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+    }
     scene.SetBackgroundLight(std::move(background));
 
     {

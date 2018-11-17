@@ -24,7 +24,7 @@ struct Wavelength
 #else
     static constexpr Uint32 NumComponents = 4;
     using ValueType = math::Vector4;
-#endif 
+#endif
 
     ValueType value;
 
@@ -51,6 +51,11 @@ struct Color
 
     RT_FORCE_INLINE explicit Color(const float val) : value(val) { }
     RT_FORCE_INLINE explicit Color(const Wavelength::ValueType& val) : value(val) { }
+
+    RT_FORCE_INLINE static const Color Zero()
+    {
+        return Color{ Wavelength::ValueType::Zero() };
+    }
 
     RT_FORCE_INLINE static const Color One()
     {
@@ -110,7 +115,7 @@ struct Color
 
     RT_FORCE_INLINE bool AlmostZero() const
     {
-        return Wavelength::ValueType::AlmostEqual(value, Wavelength::ValueType());
+        return Wavelength::ValueType::AlmostEqual(value, Wavelength::ValueType::Zero());
     }
 
     RT_FORCE_INLINE Float Max() const
@@ -123,7 +128,7 @@ struct Color
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
         return value.IsValid() && Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
 #else
-        return value.IsValid() && (Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) & 0x7);
+        return value.IsValid() && (Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType::Zero()) & 0x7);
 #endif
     }
 

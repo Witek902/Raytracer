@@ -65,7 +65,7 @@ private:
     {
         PostprocessParams params;
 
-        math::Vector4 colorScale;
+        math::Vector4 colorScale = math::Vector4::Zero();
         Bool fullUpdateRequired = false;
     };
 

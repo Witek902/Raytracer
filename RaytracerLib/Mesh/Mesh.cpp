@@ -359,7 +359,10 @@ const Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
     Vector4 worldToLocalZ = normal;
     Vector4::Transpose3(worldToLocalX, worldToLocalY, worldToLocalZ);
 
-    return worldToLocalX * worldCoords.x + worldToLocalY * worldCoords.y + worldToLocalZ * worldCoords.z;
+    Vector4 result = worldToLocalX * worldCoords.x;
+    result = Vector4::MulAndAdd(worldToLocalY, worldCoords.y, result);
+    result = Vector4::MulAndAdd(worldToLocalZ, worldCoords.z, result);
+    return result;
 }
 
 } // namespace rt

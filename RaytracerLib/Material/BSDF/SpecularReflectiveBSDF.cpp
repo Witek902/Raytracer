@@ -28,7 +28,7 @@ const Color SpecularReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float
     {
         *outDirectPdfW = 0.0f;
     }
-    return Color();
+    return Color::Zero();
 }
 
 } // namespace rt

@@ -330,6 +330,7 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
         default:
         {
             RT_FATAL("Unsupported bitmap format");
+            color = Vector4::Zero();
         }
     }
 

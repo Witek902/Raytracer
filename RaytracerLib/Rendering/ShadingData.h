@@ -32,8 +32,8 @@ struct ShadingData
 
     SampledMaterialParameters materialParams;
 
-    const math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
-    const math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
+    RT_FORCE_NOINLINE const math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
+    RT_FORCE_NOINLINE const math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
 };
 
 

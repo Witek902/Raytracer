@@ -197,7 +197,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                Vector4 sampleColor;
+                Vector4 sampleColor = Vector4::Zero();
                 for (Uint32 s = 0; s < samplesPerPixel; ++s)
                 {
                     renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
@@ -211,8 +211,8 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 RT_ASSERT(sampleColor.IsValid());
 
-                sampleColor = Vector4::Max(sampleColor, Vector4()); // TODO fix this
-                RT_ASSERT(sampleColor >= Vector4());
+                sampleColor = Vector4::Max(sampleColor, Vector4::Zero()); // TODO fix this
+                RT_ASSERT(sampleColor >= Vector4::Zero());
 
                 // TODO get rid of this
                 sampleColor *= sampleScale;
@@ -376,7 +376,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
             const size_t pixelIndex = GetWidth() * y + x;
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-            const Vector4 xyzColor = sumPixels[pixelIndex];
+            const Vector4 xyzColor = Vector4(sumPixels[pixelIndex]);
             const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
 #else
             const Vector4 rgbColor = Vector4(sumPixels[pixelIndex]);

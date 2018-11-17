@@ -72,7 +72,7 @@ public:
     math::Transform mTransform;
 
     // camera velocity
-    math::Vector4 mLinearVelocity;
+    math::Vector4 mLinearVelocity = math::Vector4::Zero();
 
     // width to height ratio
     Float mAspectRatio;

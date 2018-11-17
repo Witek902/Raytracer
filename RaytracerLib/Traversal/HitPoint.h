@@ -21,8 +21,6 @@ struct HitPoint
 
     RT_FORCE_INLINE HitPoint()
         : distance(FLT_MAX)
-        , u(0.0f)
-        , v(0.0f)
         , triangleId(RT_INVALID_OBJECT)
         , objectId(RT_INVALID_OBJECT)
     {}

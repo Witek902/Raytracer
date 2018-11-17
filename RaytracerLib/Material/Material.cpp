@@ -36,8 +36,8 @@ Material& Material::operator = (Material&&) = default;
 
 void Material::Compile()
 {
-    emission.baseValue = Vector4::Max(Vector4(), emission.baseValue);
-    baseColor.baseValue = Vector4::Max(Vector4(), Vector4::Min(VECTOR_ONE, baseColor.baseValue));
+    emission.baseValue = Vector4::Max(Vector4::Zero(), emission.baseValue);
+    baseColor.baseValue = Vector4::Max(Vector4::Zero(), Vector4::Min(VECTOR_ONE, baseColor.baseValue));
 
     if (transparent)
     {
@@ -110,7 +110,7 @@ const Color Material::Evaluate(
 
     if (NdotV < FLT_EPSILON || incomingDirLocalSpace.z > FLT_EPSILON)
     {
-        return Color();
+        return Color::Zero();
     }
 
     if (outPdfW)
@@ -118,8 +118,8 @@ const Color Material::Evaluate(
         *outPdfW = 0.0f;
     }
 
-    Color metalValue;
-    Color dielectricValue;
+    Color metalValue = Color::Zero();
+    Color dielectricValue = Color::Zero();
 
     const BSDF::EvaluationContext samplingContext =
     {

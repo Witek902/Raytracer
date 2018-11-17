@@ -316,10 +316,6 @@
     <ClCompile Include="Material\BSDF\SpecularReflectiveBSDF.cpp" />
     <ClCompile Include="Material\BSDF\SpecularTransmissiveBSDF.cpp" />
     <ClCompile Include="Material\Material.cpp" />
-    <ClCompile Include="Math\Box.cpp" />
-    <ClCompile Include="Math\Float2.cpp" />
-    <ClCompile Include="Math\Float3.cpp" />
-    <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Math\Random.cpp" />
@@ -327,8 +323,6 @@
     <ClCompile Include="Math\Transform.cpp" />
     <ClCompile Include="Math\Utils.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
-    <ClCompile Include="Math\Vector8.cpp" />
-    <ClCompile Include="Math\VectorInt8.cpp" />
     <ClCompile Include="Mesh\Mesh.cpp" />
     <ClCompile Include="Mesh\VertexBuffer.cpp" />
     <ClCompile Include="PCH.cpp">

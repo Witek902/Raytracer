@@ -75,7 +75,7 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
     const float cosNormalDir = Vector4::Dot3(normal, -param.outDirectionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
-        return Color();
+        return Color::Zero();
     }
 
     param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
@@ -90,9 +90,9 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
     {
-        return Color();
+        return Color::Zero();
     }
-    
+
     if (outDirectPdfA)
     {
         *outDirectPdfA = invArea;

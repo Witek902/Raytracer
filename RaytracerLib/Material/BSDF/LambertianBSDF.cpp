@@ -37,7 +37,7 @@ const Color LambertianBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
         return Color(NdotL * RT_INV_PI);
     }
 
-    return Color();
+    return Color::Zero();
 }
 
 } // namespace rt

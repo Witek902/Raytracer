@@ -30,7 +30,7 @@ std::unique_ptr<Material> CreateEmissiveMaterial(const Vector4& color)
 {
     auto material = std::make_unique<Material>();
     material->debugName = "emissive";
-    material->baseColor = Vector4();
+    material->baseColor = Vector4::Zero();
     material->emissionColor = color;
     material->roughness = 0.0f;
     material->Compile();
@@ -235,7 +235,7 @@ TEST_F(TestFixture, BackgroundOnly)
     const size_t maxProbes = 100;
     for (size_t i = 0; i < maxProbes; ++i)
     {
-        const Ray ray(Vector4(), random.GetVector4());
+        const Ray ray(Vector4::Zero(), random.GetVector4());
         const Color color = mScene->TraceRay_Single(ray, context);
 
         //EXPECT_EQ(env.backgroundColor.x, rgbColor.x);

@@ -22,7 +22,7 @@ enum class TextureFilterMode : Uint8
 
 struct SamplerDesc
 {
-    math::Vector4 borderColor;
+    math::Vector4 borderColor = math::Vector4::Zero();
     TextureAddressMode addressU = TextureAddressMode::Repeat;
     TextureAddressMode addressV = TextureAddressMode::Repeat;
     TextureFilterMode filter = TextureFilterMode::Bilinear;
@@ -130,7 +130,7 @@ private:
     bool LoadDDS(FILE* file, const char* path);
     bool LoadEXR(FILE* file, const char* path);
 
-    math::Vector4 mSize;
+    math::Vector4 mSize = math::Vector4::Zero();
     Uint8* mData;
     Uint16 mWidth;
     Uint16 mHeight;

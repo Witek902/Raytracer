@@ -5,61 +5,50 @@ namespace math {
 
 // Constructors ===================================================================================
 
-Vector8::Vector8()
+const Vector8 Vector8::Zero()
 {
-    v = _mm256_setzero_ps();
+    return _mm256_setzero_ps();
 }
 
 Vector8::Vector8(const Vector4& lo)
-{
-    v = _mm256_castps128_ps256(lo);
-}
+    : v(_mm256_castps128_ps256(lo))
+{}
 
 Vector8::Vector8(const Vector4& lo, const Vector4& hi)
-{
-    const __m256 tmp = _mm256_castps128_ps256(lo);
-    v = _mm256_insertf128_ps(tmp, hi, 1);
-}
+    : v(_mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1))
+{}
 
 Vector8::Vector8(const __m256& m)
     : v(m)
-{
-}
+{}
 
 Vector8::Vector8(Float e0, Float e1, Float e2, Float e3, Float e4, Float e5, Float e6, Float e7)
-{
-    v = _mm256_set_ps(e0, e1, e2, e3, e4, e5, e6, e7);
-}
+    : v(_mm256_set_ps(e0, e1, e2, e3, e4, e5, e6, e7))
+{}
 
 Vector8::Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7)
-{
-    v = _mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7));
-}
+    : v(_mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7)))
+{}
 
 Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7)
-{
-    v = _mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7));
-}
+    : v(_mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7)))
+{}
 
 Vector8::Vector8(const Float* src)
-{
-    v = _mm256_loadu_ps(src);
-}
+    : v(_mm256_loadu_ps(src))
+{}
 
 Vector8::Vector8(const Float scalar)
-{
-    v = _mm256_set1_ps(scalar);
-}
+    : v(_mm256_set1_ps(scalar))
+{}
 
 Vector8::Vector8(const Int32 i)
-{
-    v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(i)));
-}
+    : v(_mm256_castsi256_ps(_mm256_set1_epi32(i)))
+{}
 
 Vector8::Vector8(const Uint32 u)
-{
-    v = Vector8(_mm256_castsi256_ps(_mm256_set1_epi32(u)));
-}
+    : v(_mm256_castsi256_ps(_mm256_set1_epi32(u)))
+{}
 
 const Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
 {

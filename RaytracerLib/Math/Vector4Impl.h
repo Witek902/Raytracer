@@ -7,9 +7,9 @@ namespace math {
 
 // Constructors ===================================================================================
 
-Vector4::Vector4()
+const Vector4 Vector4::Zero()
 {
-    v = _mm_setzero_ps();
+    return _mm_setzero_ps();
 }
 
 Vector4::Vector4(const Float s)
@@ -117,7 +117,7 @@ void Vector4::StoreBGR_NonTemporal(Uint8* dest) const
 {
     const Vector4 scale = VECTOR_255;
     const Vector4 scaled = (*this) * scale;
-    const Vector4 fixed = scaled.Clamped(Vector4(), scale);
+    const Vector4 fixed = scaled.Clamped(Vector4::Zero(), scale);
 
     // Convert to int & extract components
     // in: 000000BB  000000GG  000000RR
@@ -269,7 +269,7 @@ Vector4& Vector4::operator^= (const Vector4& b)
 
 const Vector4 Vector4::operator- () const
 {
-    return Vector4() - (*this);
+    return Vector4::Zero() - (*this);
 }
 
 const Vector4 Vector4::operator+ (const Vector4& b) const
@@ -764,7 +764,7 @@ bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon)
 
 bool Vector4::IsZero() const
 {
-    return _mm_movemask_ps(_mm_cmpeq_ps(v, Vector4())) == 0xF;
+    return _mm_movemask_ps(_mm_cmpeq_ps(v, Vector4::Zero())) == 0xF;
 }
 
 // Check if any component is NaN

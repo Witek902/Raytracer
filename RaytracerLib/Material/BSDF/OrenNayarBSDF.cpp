@@ -59,7 +59,7 @@ const Color OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDire
         return Color(value);
     }
 
-    return Color();
+    return Color::Zero();
 }
 
 } // namespace rt

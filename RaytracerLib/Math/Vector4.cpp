@@ -17,7 +17,7 @@ const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
     //assert(k >= 0.0f);
     if (k < 0.0f)
     {
-        return Vector4();
+        return Vector4::Zero();
     }
 
     Vector4 transmitted = i * eta - (eta * NdotV + math::Sqrt(k)) * VECTOR_Z;

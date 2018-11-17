@@ -66,7 +66,7 @@ public:
 
     // light emitted by the material itself
     // useful for lamps, etc
-    MaterialParameter<math::Vector4> emission;
+    MaterialParameter<math::Vector4> emission = math::Vector4::Zero();
 
     // a.k.a. albedo
     // for metals this is specular/reflection color
