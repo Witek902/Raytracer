@@ -80,6 +80,7 @@ Vector4 Sin(Vector4 x)
 
 Vector8 Sin(Vector8 x)
 {
+#ifdef RT_USE_AVX2
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
@@ -106,6 +107,9 @@ Vector8 Sin(Vector8 x)
     // equivalent of: (i & 1) ? -y : y;
     const __m256 signMask = _mm256_castsi256_ps(_mm256_slli_epi32(i, 31));
     return _mm256_xor_ps(y, signMask);
+#else
+    return Vector8{sinf(x[0]), sinf(x[1]), sinf(x[2]), sinf(x[3]), sinf(x[4]), sinf(x[5]), sinf(x[6]), sinf(x[7])};
+#endif // RT_USE_AVX2
 }
 
 float Cos(float x)

@@ -176,9 +176,6 @@
     <ClInclude Include="Math\Random.h">
       <Filter>Math\Random</Filter>
     </ClInclude>
-    <ClInclude Include="Math\StratifiedRandom.h">
-      <Filter>Math\Random</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\PathDebugging.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -359,9 +356,6 @@
       <Filter>Math\Transform</Filter>
     </ClCompile>
     <ClCompile Include="Math\Random.cpp">
-      <Filter>Math\Random</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\StratifiedRandom.cpp">
       <Filter>Math\Random</Filter>
     </ClCompile>
     <ClCompile Include="Math\Utils.cpp">

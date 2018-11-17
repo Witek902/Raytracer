@@ -430,7 +430,7 @@ const Vector4 Vector4::FastReciprocal(const Vector4& v)
     const __m128 rcp = _mm_rcp_ps(v);
     const __m128 rcpSqr = _mm_mul_ps(rcp, rcp);
     const __m128 rcp2 = _mm_add_ps(rcp, rcp);
-    return _mm_fnmadd_ps(rcpSqr, v, rcp2);
+    return NegMulAndAdd(rcpSqr, v, rcp2);
 }
 
 const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight)

@@ -70,13 +70,14 @@ public:
     const Vector4 GetFloatNormal2();
 
 private:
-    RT_FORCE_INLINE __m128i GetIntVector4();
     RT_FORCE_INLINE __m256i GetIntVector8();
+    RT_FORCE_INLINE __m128i GetIntVector4();
 
+#ifdef RT_USE_AVX2
     __m256i mSeedSimd8[2];
+#endif // RT_USE_AVX2
 
     __m128i mSeedSimd4[2];
-    Vector4 mCachedVector4;
 
     Uint64 mSeed[2];
 };

@@ -290,7 +290,8 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
 
-    outShadingData.material = indices.materialIndex != -1 ? mVertexBuffer.GetMaterial(indices.materialIndex) : &gDefaultMaterial;
+    constexpr Uint32 invalidMaterialIndex = std::numeric_limits<Uint32>::max();
+    outShadingData.material = indices.materialIndex != invalidMaterialIndex ? mVertexBuffer.GetMaterial(indices.materialIndex) : &gDefaultMaterial;
 
     VertexShadingData vertexShadingData[3];
     mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);

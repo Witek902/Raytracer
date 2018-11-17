@@ -27,7 +27,7 @@ SET(RT_LIB_DIRECTORY ${RT_ROOT_DIRECTORY}/RaytracerLib)
 SET(RT_DEMO_DIRECTORY ${RT_ROOT_DIRECTORY}/RaytracerDemo)
 
 # Enable more warnings and make them errors
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-sign-compare -Werror")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 
 # Warnings exceptions
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-multichar")

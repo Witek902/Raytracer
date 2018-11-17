@@ -129,13 +129,13 @@ void BVH::CalculateStatsForNode(Uint32 nodeIndex, Stats& outStats, Uint32 depth)
     outStats.totalNodesVolume += box.Volume();
     outStats.maxDepth = std::max(outStats.maxDepth, depth);
 
-    if (node.numLeaves + 1 > outStats.leavesCountHistogram.size())
+    if (node.numLeaves + 1u > (Uint32)outStats.leavesCountHistogram.size())
     {
         outStats.leavesCountHistogram.resize(node.numLeaves + 1, 0);
     }
     outStats.leavesCountHistogram[node.numLeaves]++;
 
-    if (node.numLeaves == 0)
+    if (node.numLeaves == 0u)
     {
         CalculateStatsForNode(node.childIndex, outStats, depth + 1);
         CalculateStatsForNode(node.childIndex + 1, outStats, depth + 1);

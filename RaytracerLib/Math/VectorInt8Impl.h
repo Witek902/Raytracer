@@ -29,16 +29,6 @@ const Vector8 VectorInt8::CastToFloat() const
     return _mm256_castsi256_ps(v);
 }
 
-const VectorInt8 VectorInt8::Convert(const Vector8& v)
-{
-    return _mm256_cvtps_epi32(_mm256_round_ps(v, _MM_FROUND_TO_ZERO));
-}
-
-const Vector8 VectorInt8::ConvertToFloat() const
-{
-    return _mm256_cvtepi32_ps(v);
-}
-
 VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7)
 {
     v = _mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7);
@@ -61,35 +51,47 @@ const VectorInt8 VectorInt8::SelectBySign(const VectorInt8& a, const VectorInt8&
 
 const VectorInt8 VectorInt8::operator & (const VectorInt8& b) const
 {
-    return _mm256_and_si256(v, b);
+    return VectorInt8(_mm256_and_ps(f, b.f));
 }
 
 const VectorInt8 VectorInt8::operator | (const VectorInt8& b) const
 {
-    return _mm256_or_si256(v, b);
+    return VectorInt8(_mm256_or_ps(f, b.f));
 }
 
 const VectorInt8 VectorInt8::operator ^ (const VectorInt8& b) const
 {
-    return _mm256_xor_si256(v, b);
+    return VectorInt8(_mm256_xor_ps(f, b.f));
 }
 
 VectorInt8& VectorInt8::operator &= (const VectorInt8& b)
 {
-    v = _mm256_and_si256(v, b);
+    f = _mm256_and_ps(f, b.f);
     return *this;
 }
 
 VectorInt8& VectorInt8::operator |= (const VectorInt8& b)
 {
-    v = _mm256_or_si256(v, b);
+    f = _mm256_or_ps(f, b.f);
     return *this;
 }
 
 VectorInt8& VectorInt8::operator ^= (const VectorInt8& b)
 {
-    v = _mm256_xor_si256(v, b);
+    f = _mm256_xor_ps(f, b.f);
     return *this;
+}
+
+#ifdef RT_USE_AVX2
+
+const VectorInt8 VectorInt8::Convert(const Vector8& v)
+{
+    return _mm256_cvtps_epi32(_mm256_round_ps(v, _MM_FROUND_TO_ZERO));
+}
+
+const Vector8 VectorInt8::ConvertToFloat() const
+{
+    return _mm256_cvtepi32_ps(v);
 }
 
 const VectorInt8 VectorInt8::operator - () const
@@ -150,6 +152,8 @@ const VectorInt8 VectorInt8::Max(const VectorInt8& a, const VectorInt8& b)
 {
     return _mm256_max_epi32(a, b);
 }
+
+#endif // RT_USE_AVX2
 
 } // namespace math
 } // namespace rt

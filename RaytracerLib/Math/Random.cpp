@@ -22,7 +22,9 @@ void Random::Reset()
     {
         mSeed[i] = ((Uint64)GetEntropy() << 32) | (Uint64)GetEntropy();
         mSeedSimd4[i] = _mm_set_epi32(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+#ifdef RT_USE_AVX2
         mSeedSimd8[i] = _mm256_set_epi32(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+#endif // RT_USE_AVX2
     }
 }
 
@@ -93,23 +95,6 @@ __m128i Random::GetIntVector4()
     return v;
 }
 
-__m256i Random::GetIntVector8()
-{
-    // NOTE: xoroshiro128+ is faster when using general purpose registers, because there's
-    // no rotate left/right instruction in AVX2 (it's only in AVX512)
-
-    // xorshift128+ algorithm
-    const __m256i s0 = mSeedSimd8[1];
-    __m256i s1 = mSeedSimd8[0];
-    __m256i v = _mm256_add_epi64(s0, s1);
-    s1 = _mm256_slli_epi64(s1, 23);
-    const __m256i t0 = _mm256_srli_epi64(s0, 5);
-    const __m256i t1 = _mm256_srli_epi64(s1, 18);
-    mSeedSimd8[0] = s0;
-    mSeedSimd8[1] = _mm256_xor_si256(_mm256_xor_si256(s0, s1), _mm256_xor_si256(t0, t1));
-    return v;
-}
-
 const Vector4 Random::GetVector4()
 {
     __m128i v = GetIntVector4();
@@ -140,6 +125,36 @@ const Vector4 Random::GetVector4Bipolar()
     return result;
 }
 
+#ifdef RT_USE_AVX2
+
+__m256i Random::GetIntVector8()
+{
+    // NOTE: xoroshiro128+ is faster when using general purpose registers, because there's
+    // no rotate left/right instruction in AVX2 (it's only in AVX512)
+
+    // xorshift128+ algorithm
+    const __m256i s0 = mSeedSimd8[1];
+    __m256i s1 = mSeedSimd8[0];
+    __m256i v = _mm256_add_epi64(s0, s1);
+    s1 = _mm256_slli_epi64(s1, 23);
+    const __m256i t0 = _mm256_srli_epi64(s0, 5);
+    const __m256i t1 = _mm256_srli_epi64(s1, 18);
+    mSeedSimd8[0] = s0;
+    mSeedSimd8[1] = _mm256_xor_si256(_mm256_xor_si256(s0, s1), _mm256_xor_si256(t0, t1));
+    return v;
+}
+
+#else
+
+__m256i Random::GetIntVector8()
+{
+    const __m128i v0 = GetIntVector4();
+    const __m128i v1 = GetIntVector4();
+    return _mm256_insertf128_si256(_mm256_castsi128_si256(v1), (v0), 1u);
+}
+
+#endif // RT_USE_AVX2
+
 const Vector8 Random::GetVector8()
 {
     VectorInt8 v = GetIntVector8();
@@ -164,6 +179,20 @@ const Vector8 Random::GetVector8Bipolar()
     return v.CastToFloat() - Vector8(3.0f);
 }
 
+const Vector2x8 Random::GetCircle_Simd8()
+{
+    // angle (uniform distribution)
+    const Vector8 theta = (2.0f * RT_PI) * GetVector8();
+
+    // radius (corrected distribution)
+    const Vector8 r = Vector8::Sqrt(GetVector8());
+
+    const Vector8 vSin = Sin(theta);
+    const Vector8 vCos = Sin(theta + Vector8(RT_PI / 2.0f));
+
+    return { r * vSin, r * vCos };
+}
+
 const Float2 Random::GetTriangle()
 {
     const Float2 uv = GetFloat2();
@@ -182,20 +211,6 @@ const Vector4 Random::GetCircle()
     const float r = sqrtf(v.y);
 
     return r * SinCos(theta);
-}
-
-const Vector2x8 Random::GetCircle_Simd8()
-{
-    // angle (uniform distribution)
-    const Vector8 theta = (2.0f * RT_PI) * GetVector8();
-
-    // radius (corrected distribution)
-    const Vector8 r = Vector8::Sqrt(GetVector8());
-
-    const Vector8 vSin = Sin(theta);
-    const Vector8 vCos = Sin(theta + Vector8(RT_PI / 2.0f));
-
-    return { r * vSin, r * vCos };
 }
 
 const Vector4 Random::GetHexagon()

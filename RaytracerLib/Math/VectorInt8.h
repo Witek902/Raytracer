@@ -25,6 +25,16 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
     RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
 
+    /// bitwise logic operations
+    RT_FORCE_INLINE const VectorInt8 operator & (const VectorInt8& b) const;
+    RT_FORCE_INLINE const VectorInt8 operator | (const VectorInt8& b) const;
+    RT_FORCE_INLINE const VectorInt8 operator ^ (const VectorInt8& b) const;
+    RT_FORCE_INLINE VectorInt8& operator &= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator |= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator ^= (const VectorInt8& b);
+
+#ifdef RT_USE_AVX2
+
     // simple arithmetics
     RT_FORCE_INLINE const VectorInt8 operator - () const;
     RT_FORCE_INLINE const VectorInt8 operator + (const VectorInt8& b) const;
@@ -44,30 +54,23 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE bool operator >= (const VectorInt8& b) const;
     RT_FORCE_INLINE bool operator != (const VectorInt8& b) const;
 
-    /// bitwise logic operations
-    RT_FORCE_INLINE const VectorInt8 operator & (const VectorInt8& b) const;
-    RT_FORCE_INLINE const VectorInt8 operator | (const VectorInt8& b) const;
-    RT_FORCE_INLINE const VectorInt8 operator ^ (const VectorInt8& b) const;
-    RT_FORCE_INLINE VectorInt8& operator &= (const VectorInt8& b);
-    RT_FORCE_INLINE VectorInt8& operator |= (const VectorInt8& b);
-    RT_FORCE_INLINE VectorInt8& operator ^= (const VectorInt8& b);
-
     RT_FORCE_INLINE static const VectorInt8 Min(const VectorInt8& a, const VectorInt8& b);
     RT_FORCE_INLINE static const VectorInt8 Max(const VectorInt8& a, const VectorInt8& b);
     RT_FORCE_INLINE const VectorInt8 Clamped(const VectorInt8& min, const VectorInt8& max) const;
-
-    // cast from float vector (preserve bits)
-    RT_FORCE_INLINE static const VectorInt8 Cast(const Vector8& v);
 
     // convert from float vector to integer vector
     RT_FORCE_INLINE static const VectorInt8 Convert(const Vector8& v);
 
     // convert to float vector
-    RT_FORCE_INLINE const Vector8 CastToFloat() const;
-
-    // convert to float vector
     RT_FORCE_INLINE const Vector8 ConvertToFloat() const;
 
+#endif // RT_USE_AVX2
+
+    // cast from float vector (preserve bits)
+    RT_FORCE_INLINE static const VectorInt8 Cast(const Vector8& v);
+
+    // convert to float vector
+    RT_FORCE_INLINE const Vector8 CastToFloat() const;
 
     /**
      * Build mask of sign bits.

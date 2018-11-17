@@ -5,9 +5,6 @@
 #include "Float2.h"
 #include "Float3.h"
 
-
-#define RT_USE_FMA
-
 namespace rt {
 namespace math {
 
@@ -244,11 +241,11 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
-    // Fused multiply (negated) and add (a * b + c)
+    // Fused multiply (negated) and add (-a * b + c)
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c);
 
-    // Fused multiply (negated) and subtract (a * b - c)
+    // Fused multiply (negated) and subtract (-a * b - c)
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
 

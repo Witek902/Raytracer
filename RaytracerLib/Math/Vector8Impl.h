@@ -275,7 +275,7 @@ const Vector8 Vector8::FastReciprocal(const Vector8& v)
     const __m256 rcp = _mm256_rcp_ps(v);
     const __m256 rcpSqr = _mm256_mul_ps(rcp, rcp);
     const __m256 rcp2 = _mm256_add_ps(rcp, rcp);
-    return _mm256_fnmadd_ps(rcpSqr, v, rcp2);
+    return NegMulAndAdd(rcpSqr, v, rcp2);
 }
 
 const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, const Vector8& weight)
