@@ -8,22 +8,41 @@ ThreadPool::ThreadPool()
     : mNumTasks(0)
     , mCurrentTask(0)
     , mTasksLeft(0)
-    , mFinishThreads(false)
+    , mFinishThreads(true)
 {
-    const Uint32 numThreads = std::thread::hardware_concurrency();
+    StartWorkerThreads(std::thread::hardware_concurrency());
+}
 
-    // start worker threads
-    for (size_t i = 0; i < numThreads; ++i)
+ThreadPool::~ThreadPool()
+{
+    StopWorkerThreads();
+}
+
+void ThreadPool::StartWorkerThreads(Uint32 num)
+{
+    const Uint32 maxThreads = 256;
+
+    if (num > maxThreads)
+    {
+        num = maxThreads;
+    }
+
+    RT_ASSERT(mFinishThreads == true);
+    mFinishThreads = false;
+
+    for (size_t i = 0; i < num; ++i)
     {
         mThreads.emplace_back(std::thread(&ThreadPool::ThreadCallback, this, static_cast<Uint32>(i)));
     }
 }
 
-ThreadPool::~ThreadPool()
+void ThreadPool::StopWorkerThreads()
 {
+    RT_ASSERT(mFinishThreads == false);
+    mFinishThreads = true;
+
     {
         Lock lock(mMutex);
-        mFinishThreads = true;
         mNewTaskCV.notify_all();
     }
 
@@ -31,6 +50,8 @@ ThreadPool::~ThreadPool()
     {
         thread.join();
     }
+
+    mThreads.clear();
 }
 
 void ThreadPool::ThreadCallback(Uint32 threadID)
@@ -62,6 +83,15 @@ void ThreadPool::ThreadCallback(Uint32 threadID)
             if (--mTasksLeft == 0)
                 mTileFinishedCV.notify_all();
         }
+    }
+}
+
+void ThreadPool::SetNumThreads(const Uint32 numThreads)
+{
+    if (numThreads != GetNumThreads())
+    {
+        StopWorkerThreads();
+        StartWorkerThreads(numThreads);
     }
 }
 

@@ -59,6 +59,8 @@ bool DemoWindow::Initialize()
     InitializeUI();
     RegisterTestScenes();
 
+    mRenderingParams.numThreads = std::thread::hardware_concurrency();
+
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
     mImage.Init(gOptions.windowWidth, gOptions.windowHeight, Bitmap::Format::B8G8R8A8_Uint);

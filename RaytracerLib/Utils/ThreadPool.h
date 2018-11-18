@@ -25,6 +25,8 @@ public:
     ThreadPool();
     ~ThreadPool();
 
+    void SetNumThreads(const Uint32 numThreads);
+
     void RunParallelTask(const ParallelTask& task, Uint32 num);
 
     RT_FORCE_INLINE Uint32 GetNumThreads() const
@@ -33,6 +35,10 @@ public:
     }
 
 private:
+
+    void StartWorkerThreads(Uint32 num);
+    void StopWorkerThreads();
+
     using Lock = std::unique_lock<std::mutex>;
 
     std::vector<std::thread> mThreads;

@@ -32,6 +32,8 @@ struct AdaptiveRenderingSettings
 
 struct RenderingParams
 {
+    Uint32 numThreads = 0;
+
     // Antialiasing factor
     // Setting to higher values will blur the image
     Float antiAliasingSpread = 0.5f;

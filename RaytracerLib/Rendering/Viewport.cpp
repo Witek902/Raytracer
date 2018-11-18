@@ -73,6 +73,12 @@ void Viewport::Reset()
 
 bool Viewport::SetRenderingParams(const RenderingParams& params)
 {
+    if (mParams.numThreads != params.numThreads)
+    {
+        mThreadPool.SetNumThreads(params.numThreads);
+        InitThreadData();
+    }
+
     mParams = params;
 
     // TODO validation
