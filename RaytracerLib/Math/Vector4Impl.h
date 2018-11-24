@@ -53,11 +53,6 @@ Vector4::Vector4(const Float3& src)
     v = _mm_movelh_ps(vxy, vz);
 }
 
-void Vector4::Set(Float scalar)
-{
-    v = _mm_set1_ps(scalar);
-}
-
 const Vector4 Vector4::FromInteger(Int32 x)
 {
     return Vector4(_mm_cvtepi32_ps(_mm_set1_epi32(x)));
@@ -631,23 +626,17 @@ const Vector4 Vector4::Dot4V(const Vector4& v1, const Vector4& v2)
 
 Float Vector4::Dot2(const Vector4& v1, const Vector4& v2)
 {
-    Float result;
-    _mm_store_ss(&result, Dot2V(v1, v2));
-    return result;
+    return Dot2V(v1, v2).x;
 }
 
 Float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
 {
-    Float result;
-    _mm_store_ss(&result, Dot3V(v1, v2));
-    return result;
+    return Dot3V(v1, v2).x;
 }
 
 Float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
 {
-    Float result;
-    _mm_store_ss(&result, Dot4V(v1, v2));
-    return result;
+    return Dot4V(v1, v2).x;
 }
 
 const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
@@ -778,7 +767,7 @@ bool Vector4::IsNaN() const
 bool Vector4::IsInfinite() const
 {
     // Mask off the sign bit
-    __m128 temp = _mm_and_ps(v, VECTOR_MASK_SIGN);
+    __m128 temp = _mm_and_ps(v, VECTOR_MASK_ABS);
     // Compare to infinity
     temp = _mm_cmpeq_ps(temp, VECTOR_INF);
     return _mm_movemask_ps(temp) != 0;

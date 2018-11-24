@@ -23,15 +23,15 @@ Vector8::Vector8(const __m256& m)
 {}
 
 Vector8::Vector8(Float e0, Float e1, Float e2, Float e3, Float e4, Float e5, Float e6, Float e7)
-    : v(_mm256_set_ps(e0, e1, e2, e3, e4, e5, e6, e7))
+    : v(_mm256_set_ps(e7, e6, e5, e4, e3, e2, e1, e0))
 {}
 
 Vector8::Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7)
-    : v(_mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7)))
+    : v(_mm256_castsi256_ps(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0)))
 {}
 
 Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7)
-    : v(_mm256_castsi256_ps(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7)))
+    : v(_mm256_castsi256_ps(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0)))
 {}
 
 Vector8::Vector8(const Float* src)
@@ -325,6 +325,52 @@ const Vector8 Vector8::Fmod1(const Vector8 x)
     return _mm256_sub_ps(x, _mm256_round_ps(x, _MM_FROUND_TO_ZERO));
 }
 
+void Vector8::Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, Vector8& v4, Vector8& v5, Vector8& v6, Vector8& v7)
+{
+    const __m256 t0 = _mm256_unpacklo_ps(v0, v1);
+    const __m256 t1 = _mm256_unpackhi_ps(v0, v1);
+    const __m256 t2 = _mm256_unpacklo_ps(v2, v3);
+    const __m256 t3 = _mm256_unpackhi_ps(v2, v3);
+    const __m256 t4 = _mm256_unpacklo_ps(v4, v5);
+    const __m256 t5 = _mm256_unpackhi_ps(v4, v5);
+    const __m256 t6 = _mm256_unpacklo_ps(v6, v7);
+    const __m256 t7 = _mm256_unpackhi_ps(v6, v7);
+
+    // Using 4 shuffles + 8 blends (12 instructions in total) is faster than only 8 shuffles
+    // blends can be executed in parallel with shuffles, while shuffle can be only executed at port 5
+    __m256 v;
+    v = _mm256_shuffle_ps(t0, t2, 0x4E);
+    const __m256 tt0 = _mm256_blend_ps(t0, v, 0xCC);
+    const __m256 tt1 = _mm256_blend_ps(t2, v, 0x33);
+    v = _mm256_shuffle_ps(t1, t3, 0x4E);
+    const __m256 tt2 = _mm256_blend_ps(t1, v, 0xCC);
+    const __m256 tt3 = _mm256_blend_ps(t3, v, 0x33);
+    v = _mm256_shuffle_ps(t4, t6, 0x4E);
+    const __m256 tt4 = _mm256_blend_ps(t4, v, 0xCC);
+    const __m256 tt5 = _mm256_blend_ps(t6, v, 0x33);
+    v = _mm256_shuffle_ps(t5, t7, 0x4E);
+    const __m256 tt6 = _mm256_blend_ps(t5, v, 0xCC);
+    const __m256 tt7 = _mm256_blend_ps(t7, v, 0x33);
+
+    //const __m256 tt0 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(1, 0, 1, 0));
+    //const __m256 tt1 = _mm256_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 2, 3, 2));
+    //const __m256 tt2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
+    //const __m256 tt3 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
+    //const __m256 tt4 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(1, 0, 1, 0));
+    //const __m256 tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
+    //const __m256 tt6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
+    //const __m256 tt7 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
+
+    v0 = _mm256_permute2f128_ps(tt0, tt4, 0x20);
+    v1 = _mm256_permute2f128_ps(tt1, tt5, 0x20);
+    v2 = _mm256_permute2f128_ps(tt2, tt6, 0x20);
+    v3 = _mm256_permute2f128_ps(tt3, tt7, 0x20);
+    v4 = _mm256_permute2f128_ps(tt0, tt4, 0x31);
+    v5 = _mm256_permute2f128_ps(tt1, tt5, 0x31);
+    v6 = _mm256_permute2f128_ps(tt2, tt6, 0x31);
+    v7 = _mm256_permute2f128_ps(tt3, tt7, 0x31);
+}
+
 // Comparison functions ===========================================================================
 
 Int32 Vector8::EqualMask(const Vector8& v1, const Vector8& v2)
@@ -402,7 +448,7 @@ bool Vector8::IsNaN() const
 bool Vector8::IsInfinite() const
 {
     // Mask off the sign bit
-    __m256 temp = _mm256_and_ps(v, VECTOR8_MASK_SIGN);
+    __m256 temp = _mm256_and_ps(v, VECTOR8_MASK_ABS);
     // Compare to infinity
     temp = _mm256_cmp_ps(temp, VECTOR8_INF, _CMP_EQ_OQ);
     return _mm256_movemask_ps(temp) != 0;

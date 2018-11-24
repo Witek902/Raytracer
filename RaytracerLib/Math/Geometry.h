@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RayLib.h"
+#include "../RayLib.h"
 #include "Math.h"
 #include "Vector4.h"
 #include "Ray.h"
@@ -93,6 +93,7 @@ RT_FORCE_INLINE bool Intersect_TriangleRay(
     // calculate U parameter
     Vector4 u = Vector4::Dot3V(tvec, pvec);
 
+
     // prepare to test V parameter
     Vector4 qvec = Vector4::Cross3(tvec, edge01);
     // calculate V parameter
@@ -101,19 +102,19 @@ RT_FORCE_INLINE bool Intersect_TriangleRay(
     Vector4 t = Vector4::Dot3V(edge02, qvec);
 
     // prepare data to the final comparison
-    Vector4 tmp1 = _mm_shuffle_ps(v, u, _MM_SHUFFLE(0, 0, 0, 0));
-    Vector4 tmp2 = _mm_shuffle_ps(u + v, t, _MM_SHUFFLE(0, 0, 0, 0));
-    tmp1 = _mm_shuffle_ps(tmp2, tmp1, _MM_SHUFFLE(2, 0, 2, 0));
+    Vector4 tmp1 = _mm_shuffle_ps(v, u, _MM_SHUFFLE(0, 0, 0, 0)); // [u, u, v, v]
+    Vector4 tmp2 = _mm_shuffle_ps(u + v, t, _MM_SHUFFLE(0, 0, 0, 0)); // [t, t, u + v, u + v]
+    tmp1 = _mm_shuffle_ps(tmp2, tmp1, _MM_SHUFFLE(2, 0, 2, 0)); // [u, v, t, u + v]
     tmp1 = tmp1 / det; // TODO this is slow, but reciprocal approximation gives bad results (artifacts)
     tmp2 = _mm_set_ss(1.0f);
 
-    outU = tmp1[3];
-    outV = tmp1[2];
-    outDistance = tmp1[1];
+    outU = tmp1.w;
+    outV = tmp1.z;
+    outDistance = tmp1.y;
 
     // At this point, in tmp1 we have: [u, v, t, u + v]
     // and in tmp2 we have:            [0, 0, 0, 1].
-    // The intersection occurs if (u > 0 && v > 0 && t > 0 && u + v < 1),
+    // The intersection occurs if (u > 0 && v > 0 && t > 0 && u + v <= 1),
     // so when performing SSE comparison 3 upper components must return true,
     // and last false, which yields to 0xE bit mask.
     return (_mm_movemask_ps(_mm_cmpgt_ps(tmp1, tmp2)) == 0xE);

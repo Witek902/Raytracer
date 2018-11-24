@@ -22,9 +22,6 @@ RT_FORCE_INLINE const Vector8 Intersect_BoxRay_Simd8_Octant(
 {
     static_assert(Octatnt < 8, "Invalid octant");
 
-    // same as:
-    // const Vector3x8 tmp1 = box.min * ray.invDir - ray.originDivDir;
-    // const Vector3x8 tmp2 = box.max * ray.invDir - ray.originDivDir;
     const Vector3x8 tmp1 = Vector3x8::MulAndSub(box.min, rayInvDir, rayOriginDivDir);
     const Vector3x8 tmp2 = Vector3x8::MulAndSub(box.max, rayInvDir, rayOriginDivDir);
 
@@ -58,9 +55,6 @@ RT_FORCE_INLINE const Vector8 Intersect_BoxRay_Simd8(
     const Vector8& maxDistance,
     Vector8& outDistance)
 {
-    // same as:
-    // const Vector3x8 tmp1 = box.min * ray.invDir - ray.originDivDir;
-    // const Vector3x8 tmp2 = box.max * ray.invDir - ray.originDivDir;
     const Vector3x8 tmp1 = Vector3x8::MulAndSub(box.min, rayInvDir, rayOriginDivDir);
     const Vector3x8 tmp2 = Vector3x8::MulAndSub(box.max, rayInvDir, rayOriginDivDir);
 

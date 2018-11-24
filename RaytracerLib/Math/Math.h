@@ -42,9 +42,15 @@ union Bits64
 
 // Minimum
 template<typename T>
-RT_FORCE_INLINE constexpr T Min(const T a, const T b)
+RT_FORCE_INLINE constexpr const T Min(const T a, const T b)
 {
     return (a < b) ? a : b;
+}
+
+template<typename T, typename ... Types>
+RT_FORCE_INLINE constexpr const T Min(const T a, const T b, const Types ... r)
+{
+    return Min(a < b ? a : b, r ...);
 }
 
 // Maximum.
@@ -52,6 +58,12 @@ template<typename T>
 RT_FORCE_INLINE constexpr T Max(const T a, const T b)
 {
     return (a < b) ? b : a;
+}
+
+template<typename T, typename ... Types>
+RT_FORCE_INLINE constexpr const T Max(const T a, const T b, const Types ... r)
+{
+    return Max(a > b ? a : b, r ...);
 }
 
 // Absolute value.
@@ -109,14 +121,6 @@ RT_FORCE_INLINE constexpr T Lerp(const T a, const T b, const T w)
     return a + w * (b - a);
 }
 
-// Rounds down "x" to nearest multiply of "step"
-RT_FORCE_INLINE float Quantize(float x, float step)
-{
-    float tmp = x / step;
-    tmp = floorf(tmp);
-    return tmp * step;
-}
-
 // Check if a given number is NaN (not a number), according to IEEE 754 standard.
 RT_FORCE_INLINE bool IsNaN(float a)
 {
@@ -143,6 +147,8 @@ RT_FORCE_INLINE bool IsValid(float x)
 template<typename T>
 RT_FORCE_INLINE constexpr bool PowerOfTwo(const T x)
 {
+    static_assert(std::is_unsigned<T>::value, "Unsiged type expected");
+
     return x && !(x & (x - 1));
 }
 

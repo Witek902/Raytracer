@@ -44,7 +44,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE explicit Vector4(const Float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
-    RT_FORCE_INLINE void Set(Float scalar);
 
     RT_FORCE_INLINE static const Vector4 FromInteger(Int32 x);
     RT_FORCE_INLINE static const Vector4 FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w);
