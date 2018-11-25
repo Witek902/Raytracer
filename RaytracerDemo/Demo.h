@@ -77,6 +77,7 @@ private:
     Double mRefreshTime;
 
     Double mAverageRenderDeltaTime;
+    Double mMinimumRenderDeltaTime;
     Double mAccumulatedRenderTime;
     Double mRenderDeltaTime;
     Double mTotalRenderTime;

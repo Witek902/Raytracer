@@ -25,6 +25,8 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return true;
 }
 
+#pragma optimize("", off)
+
 const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingContext& context) const
 {
     Vector4 rgbColor = color;
@@ -32,9 +34,11 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
     // sample environment map
     if (mTexture)
     {
-        const Float theta = FastACos(dir.y);
+        const Float theta = FastACos(Clamp(dir.y, -1.0f, 1.0f));
         const Float phi = FastATan2(dir.z, dir.x);
         const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
+
+        RT_ASSERT(coords.IsValid());
 
         rgbColor *= mTexture->Sample(coords, SamplerDesc());
     }

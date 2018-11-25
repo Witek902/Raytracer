@@ -20,6 +20,7 @@ DemoWindow::DemoWindow()
     , mDeltaTime(0.0)
     , mRefreshTime(0.0)
     , mAverageRenderDeltaTime(0.0)
+    , mMinimumRenderDeltaTime(0.0)
     , mAccumulatedRenderTime(0.0)
     , mRenderDeltaTime(0.0)
     , mTotalRenderTime(0.0)
@@ -67,7 +68,7 @@ bool DemoWindow::Initialize()
 
     mCamera.mDOF.aperture = 0.0f;
 
-    SwitchScene(mRegisteredScenes["Mesh"]);
+    SwitchScene(mRegisteredScenes["Plane"]);
 
     return true;
 }
@@ -157,6 +158,7 @@ void DemoWindow::ResetCounters()
     mFrameCounterForAverage = 0;
     mAccumulatedRenderTime = 0.0;
     mAverageRenderDeltaTime = 0.0;
+    mMinimumRenderDeltaTime = std::numeric_limits<Double>::max();
     mTotalRenderTime = 0.0;
 }
 
@@ -364,6 +366,7 @@ bool DemoWindow::Loop()
         mFrameCounterForAverage++;
         mFrameNumber++;
         mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
+        mMinimumRenderDeltaTime = math::Min(mMinimumRenderDeltaTime, mRenderDeltaTime);
 
         // handle window input
         ProcessMessages();

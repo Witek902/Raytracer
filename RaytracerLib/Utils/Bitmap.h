@@ -98,9 +98,6 @@ public:
     // release memory
     void Release();
 
-    // Convert to tiled texture
-    bool MakeTiled(Uint8 order);
-
     // calculate number of bits per pixel for given format
     static Uint32 BitsPerPixel(Format format);
 
@@ -108,8 +105,11 @@ public:
     static const char* FormatToString(Format format);
 
     // get single pixel
-    // TODO: this probably will be too slow
     math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
+    
+    // get 2x2 pixel block
+    void GetPixelBlock(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, const bool forceLinearSpace,
+        math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const;
 
     // sample the bitmap (including filtering and coordinates wrapping)
     RT_FORCE_NOINLINE math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
@@ -131,7 +131,6 @@ private:
     Uint16 mWidth;
     Uint16 mHeight;
     Format mFormat;
-    Uint8 mTileOrder;
     bool mLinearSpace;
 
     std::string mDebugName;

@@ -26,6 +26,9 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Text("Average render time"); ImGui::NextColumn();
     ImGui::Text("%.2f ms", 1000.0 * mAverageRenderDeltaTime); ImGui::NextColumn();
 
+    ImGui::Text("Minimum render time"); ImGui::NextColumn();
+    ImGui::Text("%.2f ms", 1000.0 * mMinimumRenderDeltaTime); ImGui::NextColumn();
+
     ImGui::Text("Total render time"); ImGui::NextColumn();
     ImGui::Text("%.3f s", mTotalRenderTime); ImGui::NextColumn();
 

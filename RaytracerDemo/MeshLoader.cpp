@@ -297,8 +297,6 @@ MeshPtr CreatePlane(MaterialsList& outMaterials, const Float size, const Float t
     //material->normalMap = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_NRM_HIRES.bmp");
     material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
     //material->normalMap = LoadTexture("TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
-    //material->baseColorMap->MakeTiled(4);
-    //material->normalMap->MakeTiled(4);
 
     material->Compile();
 

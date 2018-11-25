@@ -2,6 +2,7 @@
 #include "Bitmap.h"
 #include "Logger.h"
 #include "Timer.h"
+#include "../Math/Math.h"
 
 namespace rt {
 
@@ -102,11 +103,24 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    const size_t dataSize = GetDataSize(infoHeader.biWidth, infoHeader.biHeight, format);
-    if (fread(mData, dataSize, 1, file) != 1)
+    const Uint32 lineSize = infoHeader.biWidth * BitsPerPixel(mFormat) / 8;
+
+    // Note: one line size in BMP file must be multiple of 4 bytes
+    const Uint32 linePadding = math::RoundUp(lineSize, 4u) - lineSize;
+
+    for (Uint32 i = 0; i < infoHeader.biHeight; ++i)
     {
-        RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
-        return false;
+        if (fread(mData + lineSize * i, lineSize, 1, file) != 1)
+        {
+            RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
+            return false;
+        }
+
+        if (fseek(file, linePadding, SEEK_CUR) != 0)
+        {
+            RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
+            return false;
+        }
     }
 
     return true;

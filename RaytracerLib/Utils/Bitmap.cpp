@@ -92,7 +92,6 @@ void Bitmap::Release()
         mData = nullptr;
     }
 
-    mTileOrder = 0;
     mWidth = 0;
     mHeight = 0;
     mFormat = Format::Unknown;
@@ -128,7 +127,6 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
         memcpy(mData, data, dataSize);
     }
 
-    mTileOrder = 0;
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
     mSize = Vector4((Float)width, (Float)height, 0.0f, 0.0f);
@@ -153,58 +151,6 @@ Bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
     }
 
     memcpy(target.GetData(), source.GetData(), GetDataSize(target.mWidth, target.mHeight, target.mFormat));
-    return true;
-}
-
-bool Bitmap::MakeTiled(Uint8 order)
-{
-    RT_ASSERT(order <= 16);
-
-    const Uint32 bitsPerPixel = BitsPerPixel(mFormat);
-    const Uint32 bytesPerPixel = bitsPerPixel / 8;
-
-    const size_t dataSize = mWidth * mHeight * bitsPerPixel / 8;
-    if (dataSize == 0)
-    {
-        RT_LOG_ERROR("Invalid bitmap format");
-        return false;
-    }
-
-    // align to cache line
-    Uint8* newData = (Uint8*)AlignedMalloc(dataSize + RT_CACHE_LINE_SIZE, RT_CACHE_LINE_SIZE);
-    if (!newData)
-    {
-        RT_LOG_ERROR("Memory allocation failed");
-        return false;
-    }
-
-    const Uint32 tileSize = 1 << order;
-    const Uint32 bytesPerTileRow = bytesPerPixel << order;
-    const Uint32 bytesPerTile = bytesPerPixel << (2 * order);
-    const Uint32 numTilesX = mWidth >> order;
-    const Uint32 numTilesY = mHeight >> order;
-
-    for (Uint32 y = 0; y < numTilesY; ++y)
-    {
-        for (Uint32 x = 0; x < numTilesX; ++x)
-        {
-            for (Uint32 i = 0; i < tileSize; ++i)
-            {
-                const Uint32 textureX = x * tileSize;
-                const Uint32 textureY = y * tileSize + i;
-
-                const Uint8* srcData = mData + bytesPerPixel * (mWidth * textureY + textureX);
-                Uint8* destData = newData + bytesPerTile * ((numTilesX * y) + x) + i * bytesPerTileRow;
-                memcpy(destData, srcData, bytesPerTileRow);
-            }
-        }
-    }
-
-    // swap texture data
-    AlignedFree(mData);
-    mData = newData;
-    mTileOrder = order;
-
     return true;
 }
 
@@ -248,17 +194,7 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
     RT_ASSERT(x < mWidth);
     RT_ASSERT(y < mHeight);
 
-    const Uint32 tileSize = 1 << mTileOrder;
-    const Uint32 tileX = x >> mTileOrder;
-    const Uint32 tileY = y >> mTileOrder;
-    const Uint32 tilesInRow = mWidth >> mTileOrder;
-
-    // calculate position inside tile
-    const Uint32 tileMask = tileSize - 1;
-    x &= tileMask;
-    y &= tileMask;
-
-    const Uint32 offset = tileSize * (tileSize * (tilesInRow * tileY + tileX) + y ) + x;
+    const Uint32 offset = mWidth * y + x;
 
     Vector4 color;
     switch (mFormat)
@@ -343,22 +279,134 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
     return color;
 }
 
+void Bitmap::GetPixelBlock(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, const bool forceLinearSpace,
+    math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const
+{
+    RT_ASSERT(x0 < mWidth);
+    RT_ASSERT(y0 < mHeight);
+    RT_ASSERT(x1 < mWidth);
+    RT_ASSERT(y1 < mHeight);
+
+    const Uint32 offset0 = mWidth * y0 + x0;
+    const Uint32 offset1 = mWidth * y0 + x1;
+    const Uint32 offset2 = mWidth * y1 + x0;
+    const Uint32 offset3 = mWidth * y1 + x1;
+
+    constexpr float byteScale = 1.0f / 255.0f;
+
+    switch (mFormat)
+    {
+        case Format::R8_Uint:
+        {
+            const Uint32 value0 = mData[offset0];
+            const Uint32 value1 = mData[offset1];
+            const Uint32 value2 = mData[offset2];
+            const Uint32 value3 = mData[offset3];
+            outColor0 = Vector4::FromInteger(value0) * byteScale;
+            outColor1 = Vector4::FromInteger(value1) * byteScale;
+            outColor2 = Vector4::FromInteger(value2) * byteScale;
+            outColor3 = Vector4::FromInteger(value3) * byteScale;
+            break;
+        }
+
+        case Format::B8G8R8_Uint:
+        {
+            outColor0 = Vector4::LoadBGR_UNorm(mData + 3u * offset0);
+            outColor1 = Vector4::LoadBGR_UNorm(mData + 3u * offset1);
+            outColor2 = Vector4::LoadBGR_UNorm(mData + 3u * offset2);
+            outColor3 = Vector4::LoadBGR_UNorm(mData + 3u * offset3);
+            break;
+        }
+
+        case Format::B8G8R8A8_Uint:
+        {
+            outColor0 = Vector4::Load4(mData + 4 * offset0).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor1 = Vector4::Load4(mData + 4 * offset1).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor2 = Vector4::Load4(mData + 4 * offset2).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor3 = Vector4::Load4(mData + 4 * offset3).Swizzle<2, 1, 0, 3>() * byteScale;
+            break;
+        }
+
+        case Format::R32G32B32_Float:
+        {
+            const float* source0 = reinterpret_cast<const float*>(mData) + 3u * offset0;
+            const float* source1 = reinterpret_cast<const float*>(mData) + 3u * offset1;
+            const float* source2 = reinterpret_cast<const float*>(mData) + 3u * offset2;
+            const float* source3 = reinterpret_cast<const float*>(mData) + 3u * offset3;
+            outColor0 = Vector4(source0) & VECTOR_MASK_XYZ;
+            outColor1 = Vector4(source1) & VECTOR_MASK_XYZ;
+            outColor2 = Vector4(source2) & VECTOR_MASK_XYZ;
+            outColor3 = Vector4(source3) & VECTOR_MASK_XYZ;
+            break;
+        }
+
+        case Format::R32G32B32A32_Float:
+        {
+            outColor0 = reinterpret_cast<const Vector4*>(mData)[offset0];
+            outColor1 = reinterpret_cast<const Vector4*>(mData)[offset1];
+            outColor2 = reinterpret_cast<const Vector4*>(mData)[offset2];
+            outColor3 = reinterpret_cast<const Vector4*>(mData)[offset3];
+            break;
+        }
+
+        case Format::R16G16B16_Half:
+        {
+            const Half* source0 = reinterpret_cast<const Half*>(mData) + 3 * offset0;
+            const Half* source1 = reinterpret_cast<const Half*>(mData) + 3 * offset1;
+            const Half* source2 = reinterpret_cast<const Half*>(mData) + 3 * offset2;
+            const Half* source3 = reinterpret_cast<const Half*>(mData) + 3 * offset3;
+            outColor0 = Vector4::FromHalves(source0) & VECTOR_MASK_XYZ;
+            outColor1 = Vector4::FromHalves(source1) & VECTOR_MASK_XYZ;
+            outColor2 = Vector4::FromHalves(source2) & VECTOR_MASK_XYZ;
+            outColor3 = Vector4::FromHalves(source3) & VECTOR_MASK_XYZ;
+            break;
+        }
+
+        /*
+        case Format::BC1:
+        {
+            const Uint32 flippedY = mHeight - 1 - y;
+            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
+        }
+
+        case Format::BC4:
+        {
+            const Uint32 flippedY = mHeight - 1 - y;
+            color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
+        }
+
+        case Format::BC5:
+        {
+            const Uint32 flippedY = mHeight - 1 - y;
+            color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            break;
+        }
+        */
+
+        default:
+        {
+            RT_FATAL("Unsupported bitmap format");
+            outColor0 = Vector4::Zero();
+            outColor1 = Vector4::Zero();
+            outColor2 = Vector4::Zero();
+            outColor3 = Vector4::Zero();
+        }
+    }
+
+    if (!mLinearSpace && !forceLinearSpace)
+    {
+        outColor0 *= outColor0;
+        outColor1 *= outColor1;
+        outColor2 *= outColor2;
+        outColor3 *= outColor3;
+    }
+}
+
 Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 {
-    // FPU version
-    /*
-    const Int32 intU = static_cast<Int32>(coords.x);
-    const Int32 intV = static_cast<Int32>(coords.y);
-    coords.x -= (Float)intU;
-    coords.y -= (Float)intV;
-
-    coords.x *= mWidth;
-    coords.y *= mHeight;
-    const Int32 u0 = static_cast<Int32>(coords.x);
-    const Int32 v0 = static_cast<Int32>(coords.y);
-    */
-
-    //_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+    RT_ASSERT(coords.IsValid());
 
     // perform wrapping
 
@@ -375,28 +423,33 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     if (u0 < 0) u0 = 0;
     if (v0 < 0) v0 = 0;
 
-    return GetPixel(u0, v0, sampler.forceLinearSpace);
+    if (sampler.filter == TextureFilterMode::NearestNeighbor)
+    {
+        return GetPixel(u0, v0, sampler.forceLinearSpace);
+    }
+    else if (sampler.filter == TextureFilterMode::Bilinear)
+    {
+        Int32 u1 = u0 + 1;
+        Int32 v1 = v0 + 1;
+        if (u1 >= mWidth) u1 = 0;
+        if (v1 >= mHeight) v1 = 0;
 
-    /*
-    Int32 u1 = u0 + 1;
-    Int32 v1 = v0 + 1;
-    if (u1 >= mWidth) u1 = 0;
-    if (v1 >= mHeight) v1 = 0;
+        Vector4 value00, value01, value10, value11;
+        GetPixelBlock(u0, v0, u1, v1, sampler.forceLinearSpace, value00, value10, value01, value11);
 
-    const Float weightU = coords.x - u0;
-    const Float weightV = coords.y - v0;
+        // bilinear interpolation
+        const Float weightU = coords.x - (Float)u0;
+        const Float weightV = coords.y - (Float)v0;
+        const Vector4 value0 = Vector4::Lerp(value00, value01, weightV);
+        const Vector4 value1 = Vector4::Lerp(value10, value11, weightV);
+        const Vector4 result = Vector4::Lerp(value0, value1, weightU);
 
-    // TODO this is slowa
-    const Vector4 value00 = GetPixel(u0, v0, sampler.forceLinearSpace);
-    const Vector4 value01 = GetPixel(u0, v1, sampler.forceLinearSpace);
-    const Vector4 value10 = GetPixel(u1, v0, sampler.forceLinearSpace);
-    const Vector4 value11 = GetPixel(u1, v1, sampler.forceLinearSpace);
-
-    // bilinear interpolation
-    const Vector4 value0 = Vector4::Lerp(value00, value01, weightV);
-    const Vector4 value1 = Vector4::Lerp(value10, value11, weightV);
-    return Vector4::Lerp(value0, value1, weightU);
-    */
+        RT_ASSERT(result.IsValid());
+        return result;
+    }
+    
+    RT_FATAL("Invalid filter mode");
+    return Vector4::Zero();
 }
 
 } // namespace rt
