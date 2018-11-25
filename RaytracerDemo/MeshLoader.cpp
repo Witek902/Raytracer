@@ -11,7 +11,6 @@
 namespace helpers {
 
 using namespace rt;
-using BitmapPtr = std::unique_ptr<rt::Bitmap>;
 
 struct TriangleIndices
 {
@@ -39,7 +38,7 @@ struct TriangleIndices
     }
 };
 
-rt::Bitmap* LoadTexture(const std::string& baseDir, const std::string& path)
+BitmapPtr LoadTexture(const std::string& baseDir, const std::string& path)
 {
     if (path.empty())
     {
@@ -58,21 +57,21 @@ rt::Bitmap* LoadTexture(const std::string& baseDir, const std::string& path)
 
     if (!bitmapPtr)
     {
-        bitmapPtr = std::make_unique<rt::Bitmap>();
+        bitmapPtr = BitmapPtr(new Bitmap(path.c_str()));
         bitmapPtr->Load(fullPath.c_str());
     }
 
     if (bitmapPtr->GetWidth() > 0 && bitmapPtr->GetHeight() > 0)
     {
-        return bitmapPtr.get();
+        return bitmapPtr;
     }
 
     return nullptr;
 }
 
-std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tinyobj::material_t& sourceMaterial)
+MaterialPtr LoadMaterial(const std::string& baseDir, const tinyobj::material_t& sourceMaterial)
 {
-    auto material = std::make_unique<rt::Material>();
+    auto material = MaterialPtr(new Material);
 
     material->debugName = sourceMaterial.name;
     material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
@@ -86,9 +85,9 @@ std::unique_ptr<rt::Material> LoadMaterial(const std::string& baseDir, const tin
     return material;
 }
 
-const rt::Material* CreateDefaultMaterial(MaterialsList& outMaterials)
+MaterialPtr CreateDefaultMaterial(MaterialsList& outMaterials)
 {
-    auto material = std::make_unique<rt::Material>();
+    auto material = MaterialPtr(new Material);
     material->debugName = "default";
     material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
     material->emission.baseValue = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -96,10 +95,10 @@ const rt::Material* CreateDefaultMaterial(MaterialsList& outMaterials)
     material->Compile();
 
     outMaterials.push_back(std::move(material));
-    return outMaterials.back().get();
+    return outMaterials.back();
 }
 
-std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale)
+MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
 
@@ -129,7 +128,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     std::vector<float> vertexNormals;
     std::vector<float> vertexTangents;
     std::vector<float> vertexTexCoords;
-    std::vector<const rt::Material*> materialPointers;
+    std::vector<MaterialPtr> materialPointers;
 
     Uint32 totalIndices = 0;
     // Loop over shapes
@@ -242,7 +241,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     for (size_t i = 0; i < materials.size(); i++)
     {
         auto material = LoadMaterial(meshBaseDir, materials[i]);
-        materialPointers.push_back(material.get());
+        materialPointers.push_back(material);
         outMaterials.emplace_back(std::move(material));
     }
 
@@ -251,8 +250,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     {
         RT_LOG_WARNING("No materials found in mesh '%s'. Falling back to the default material.", filePath.c_str());
 
-        const rt::Material* defaultMaterial = CreateDefaultMaterial(outMaterials);
-        materialPointers.push_back(defaultMaterial);
+        materialPointers.push_back(CreateDefaultMaterial(outMaterials));
 
         for (Uint32& index : materialIndices)
         {
@@ -263,7 +261,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     RT_LOG_DEBUG("Mesh file '%s' loaded, shapes = %zu, materials = %zu, indices = %u",
                  filePath.c_str(), shapes.size(), materialPointers.size(), totalIndices);
 
-    rt::MeshDesc meshDesc;
+    MeshDesc meshDesc;
     meshDesc.path = filePath;
     meshDesc.vertexBufferDesc.numTriangles = static_cast<Uint32>(vertexIndices.size() / 3);
     meshDesc.vertexBufferDesc.numVertices = static_cast<Uint32>(vertexPositions.size() / 3);
@@ -276,7 +274,7 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     meshDesc.vertexBufferDesc.tangents = vertexTangents.data();
     meshDesc.vertexBufferDesc.texCoords = vertexTexCoords.data();
 
-    std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
+    MeshPtr mesh = MeshPtr(new Mesh);
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {
@@ -286,17 +284,17 @@ std::unique_ptr<rt::Mesh> LoadMesh(const std::string& filePath, MaterialsList& o
     return mesh;
 }
 
-std::unique_ptr<rt::Mesh> CreatePlane(MaterialsList& outMaterials, const Float size, const Float textureScale)
+MeshPtr CreatePlane(MaterialsList& outMaterials, const Float size, const Float textureScale)
 {
-    auto material = std::make_unique<rt::Material>();
+    auto material = MaterialPtr(new Material);
     material->debugName = "floor";
     material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
     material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    material->roughness = 0.8f;
+    material->roughness = 0.5f;
 
-    //material->baseColorMap = LoadTexture("TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_COL_VAR2_6K.bmp");
-    //material->normalMap = LoadTexture(".TEXTURES/Poliigon/WoodPlanksWorn33/", "WoodPlanksWorn33_NRM_6K.bmp");
-    //material->roughnessMap = LoadTexture("TEXTURES/Poliigon/TilesOnyxOpaloBlack001/", "TilesOnyxOpaloBlack001_GLOSS_4K.bmp");
+    //material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_COL_VAR1_HIRES.bmp");
+    //material->roughness.texture = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_GLOSS_HIRES.bmp");
+    //material->normalMap = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_NRM_HIRES.bmp");
     material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
     //material->normalMap = LoadTexture("TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
     //material->baseColorMap->MakeTiled(4);
@@ -304,7 +302,7 @@ std::unique_ptr<rt::Mesh> CreatePlane(MaterialsList& outMaterials, const Float s
 
     material->Compile();
 
-    const rt::Material* materials[] = { material.get() };
+    const MaterialPtr materials[] = { material };
     const Uint32 materialIndices[] = { 0, 0 };
     outMaterials.push_back(std::move(material));
 
@@ -346,7 +344,7 @@ std::unique_ptr<rt::Mesh> CreatePlane(MaterialsList& outMaterials, const Float s
         0.0f, size * textureScale,
     };
 
-    rt::MeshDesc meshDesc;
+    MeshDesc meshDesc;
     meshDesc.path = "plane";
     meshDesc.vertexBufferDesc.numTriangles = 2;
     meshDesc.vertexBufferDesc.numVertices = 4;
@@ -359,7 +357,7 @@ std::unique_ptr<rt::Mesh> CreatePlane(MaterialsList& outMaterials, const Float s
     meshDesc.vertexBufferDesc.tangents = tangents;
     meshDesc.vertexBufferDesc.texCoords = texCoords;
 
-    std::unique_ptr<rt::Mesh> mesh = std::make_unique<rt::Mesh>();
+    MeshPtr mesh = MeshPtr(new Mesh);
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {

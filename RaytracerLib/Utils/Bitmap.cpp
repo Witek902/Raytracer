@@ -11,8 +11,6 @@ namespace rt {
 
 using namespace math;
 
-static_assert(sizeof(Bitmap) <= 64, "Bitmap structure is too big");
-
 Uint32 Bitmap::BitsPerPixel(Format format)
 {
     switch (format)
@@ -62,17 +60,20 @@ size_t Bitmap::GetDataSize(Uint32 width, Uint32 height, Format format)
     return (size_t)dataSize;
 }
 
-Bitmap::Bitmap()
+Bitmap::Bitmap(const char* debugName)
     : mData(nullptr)
     , mWidth(0)
     , mHeight(0)
     , mFormat(Format::Unknown)
     , mLinearSpace(false)
+    , mDebugName(debugName)
 { }
 
 Bitmap::~Bitmap()
 {
     Release();
+
+    RT_LOG_INFO("Releasing bitmap '%s'", mDebugName.c_str());
 }
 
 void Bitmap::Clear()

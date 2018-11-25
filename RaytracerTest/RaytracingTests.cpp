@@ -26,7 +26,7 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<Material> CreateEmissiveMaterial(const Vector4& color)
+MaterialPtr CreateEmissiveMaterial(const Vector4& color)
 {
     auto material = std::make_unique<Material>();
     material->debugName = "emissive";
@@ -37,7 +37,7 @@ std::unique_ptr<Material> CreateEmissiveMaterial(const Vector4& color)
     return material;
 }
 
-std::unique_ptr<Material> CreatePlasticMaterial(const Vector4& baseColor)
+MaterialPtr CreatePlasticMaterial(const Vector4& baseColor)
 {
     auto material = std::make_unique<Material>();
     material->debugName = "plastic";
@@ -50,7 +50,7 @@ std::unique_ptr<Material> CreatePlasticMaterial(const Vector4& baseColor)
 
 //////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<Mesh> CreateBoxMesh(const float size, const Material* material, bool reverseNormal)
+rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool reverseNormal)
 {
     const Uint32 materialIndices[6 * 2] = { 0 };
 
@@ -211,7 +211,7 @@ std::unique_ptr<Mesh> CreateBoxMesh(const float size, const Material* material, 
     meshDesc.vertexBufferDesc.tangents = tangents;
     meshDesc.vertexBufferDesc.texCoords = texCoords;
 
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+    rt::MeshPtr mesh = std::make_shared<Mesh>();
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {

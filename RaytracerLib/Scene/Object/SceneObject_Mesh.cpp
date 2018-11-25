@@ -10,7 +10,7 @@ namespace rt {
 
 using namespace math;
 
-MeshSceneObject::MeshSceneObject(const Mesh* mesh)
+MeshSceneObject::MeshSceneObject(const MeshPtr mesh)
     : mMesh(mesh)
 { }
 
@@ -27,22 +27,22 @@ Box MeshSceneObject::GetBoundingBox() const
 
 void MeshSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    GenericTraverse_Single<Mesh>(context, objectID, mMesh);
+    GenericTraverse_Single<Mesh>(context, objectID, mMesh.get());
 }
 
 bool MeshSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 {
-    return GenericTraverse_Shadow_Single<Mesh>(context, mMesh);
+    return GenericTraverse_Shadow_Single<Mesh>(context, mMesh.get());
 }
 
 void MeshSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
 {
-    GenericTraverse_Simd8<Mesh>(context, objectID, mMesh);
+    GenericTraverse_Simd8<Mesh>(context, objectID, mMesh.get());
 }
 
 void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
 {
-    GenericTraverse_Packet<Mesh>(context, objectID, mMesh);
+    GenericTraverse_Packet<Mesh>(context, objectID, mMesh.get());
 }
 
 void MeshSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const

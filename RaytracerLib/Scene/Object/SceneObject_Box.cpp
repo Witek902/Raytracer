@@ -101,9 +101,8 @@ RT_FORCE_NOINLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
 } // helper
 
 
-BoxSceneObject::BoxSceneObject(const Vector4& size, const Material* material)
-    : mMaterial(material)
-    , mSize(size)
+BoxSceneObject::BoxSceneObject(const Vector4& size)
+    : mSize(size)
     , mInvSize(VECTOR_ONE / mSize)
 { }
 
@@ -198,7 +197,7 @@ void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shadin
         Vector4(0.0f, 0.0f, -1.0f, 0.0f),   Vector4(-1.0f, 0.0f, 0.0f, 0.0f),
     };
 
-    outShadingData.material = mMaterial;
+    outShadingData.material = mDefaultMaterial.get();
 
     const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.position * mInvSize, outShadingData.texCoord);
     outShadingData.normal = normalsAndTangnts[2 * side];

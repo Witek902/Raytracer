@@ -7,12 +7,15 @@
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
+#include "Utils/Logger.h"
 #include "Math/Random.h"
 #include "Math/Utils.h"
 
 namespace rt {
 
 using namespace math;
+
+static const Material gDefaultMaterial;
 
 DispersionParams::DispersionParams()
 {
@@ -30,7 +33,21 @@ Material::Material(const char* debugName)
 {
 }
 
-Material::~Material() = default;
+MaterialPtr Material::Create()
+{
+    return MaterialPtr(new Material);
+}
+
+const Material* Material::GetDefaultMaterial()
+{
+    return &gDefaultMaterial;
+}
+
+Material::~Material()
+{
+    RT_LOG_INFO("Releasing material '%s'", debugName.c_str());
+}
+
 Material::Material(Material&&) = default;
 Material& Material::operator = (Material&&) = default;
 
@@ -74,7 +91,9 @@ const Vector4 Material::GetNormalVector(const Vector4 uv) const
         normal -= VECTOR_ONE;
 
         // reconstruct Z
-        normal.z = Sqrt(1.0f - normal.x * normal.x - normal.y * normal.y);
+        normal.z = Sqrt(Max(0.0f, 1.0f - normal.x * normal.x - normal.y * normal.y));
+
+        normal = Vector4::Lerp(VECTOR_Z, normal, normalMapStrength);
     }
 
     return normal;
@@ -94,7 +113,7 @@ Bool Material::GetMaskValue(const Vector4 uv) const
 void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
 {
     shadingData.materialParams.baseColor = Color::SampleRGB(wavelength, baseColor.Evaluate(shadingData.texCoord));
-    shadingData.materialParams.roughness = roughness.Evaluate(shadingData.texCoord);
+    shadingData.materialParams.roughness = 1.0f - roughness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.metalness = metalness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.IoR = IoR;
 }

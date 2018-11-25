@@ -49,7 +49,7 @@
 
 // aligning macro for objects using SIMD registers
 #if defined(WIN32)
-#define RT_ALIGN(bytes) __declspec(align(bytes))
+#define RT_ALIGN(bytes) alignas(bytes)
 #elif defined(__LINUX__) | defined(__linux__)
 #define RT_ALIGN(bytes) __attribute__((aligned(bytes)))
 #else

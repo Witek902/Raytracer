@@ -32,7 +32,7 @@ template<typename T>
 struct MaterialParameter
 {
     T baseValue;
-    Bitmap* texture = nullptr;
+    BitmapPtr texture = nullptr;
 
     MaterialParameter() = default;
 
@@ -53,6 +53,9 @@ struct MaterialParameter
     };
 };
 
+class Material;
+using MaterialPtr = std::shared_ptr<rt::Material>;
+
 // simple PBR material
 class RAYLIB_API RT_ALIGN(16) Material : public Aligned<16>
 {
@@ -61,6 +64,10 @@ public:
     ~Material();
     Material(Material&&);
     Material& operator = (Material&&);
+
+    static MaterialPtr Create();
+
+    static const Material* GetDefaultMaterial();
 
     std::string debugName;
 
@@ -80,6 +87,9 @@ public:
     // blends between dielectric/metal models
     MaterialParameter<Float> metalness = 0.0f;
 
+    // normal map lerp value
+    float normalMapStrength = 1.0f;
+
     // index of refraction (real and imaginary parts)
     float IoR = 1.5f; // NOTE: not used when material is dispersive
     float K = 4.0f;
@@ -93,8 +103,8 @@ public:
     bool transparent = false;
 
     // textures
-    Bitmap* maskMap = nullptr;
-    Bitmap* normalMap = nullptr;
+    BitmapPtr maskMap = nullptr;
+    BitmapPtr normalMap = nullptr;
 
     // TODO material layers
 

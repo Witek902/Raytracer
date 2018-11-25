@@ -19,7 +19,7 @@ using namespace math;
 namespace
 {
 
-void InitScene_Empty(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Empty(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     RT_UNUSED(scene);
     RT_UNUSED(materials);
@@ -28,7 +28,7 @@ void InitScene_Empty(rt::Scene& scene, DemoWindow::Materials& materials, DemoWin
     camera = CameraSetup();
 }
 
-void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::Meshes&, CameraSetup& camera)
+void InitScene_Background(Scene& scene, DemoWindow::Materials&, DemoWindow::Meshes&, CameraSetup& camera)
 {
     const Vector4 lightColor(1.0f, 1.0f, 1.0f, 0.0f);
 
@@ -47,20 +47,22 @@ void InitScene_Background(rt::Scene& scene, DemoWindow::Materials&, DemoWindow::
     }
 }
 
-void InitScene_Mesh(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Mesh(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
 
-    auto background = std::make_unique<BackgroundLight>(lightColor);
-    if (!gOptions.envMapPath.empty())
     {
-        background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+        auto background = std::make_unique<BackgroundLight>(lightColor);
+        if (!gOptions.envMapPath.empty())
+        {
+            background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+        }
+        scene.SetBackgroundLight(std::move(background));
     }
-    scene.SetBackgroundLight(std::move(background));
 
     {
         auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         meshes.push_back(std::move(mesh));
@@ -74,30 +76,36 @@ void InitScene_Mesh(rt::Scene& scene, DemoWindow::Materials& materials, DemoWind
     }
 }
 
-void InitScene_Plane(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     // floor
     {
         auto mesh = helpers::CreatePlane(materials, 100.0f, 1.0f);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         meshes.push_back(std::move(mesh));
     }
 
     {
+        const Vector4 lightColor(10.0f, 10.0f, 10.0f, 0.0f);
+        const Vector4 lightPosition(0.0f, 1.0f, 0.0f, 0.0f);
+        scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
+    }
+
+    {
         camera = CameraSetup();
-        camera.position = Vector4(0.11f, 10.6f, 2.6f, 0.0f);
+        camera.position = Vector4(0.11f, 0.4f, 2.6f, 0.0f);
         camera.orientation.y = -0.5f;
         camera.orientation.x = -3.0f;
     }
 }
 
-void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
+void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     // floor
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "floor";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -105,41 +113,44 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
         material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(material.get());
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>();
+        instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "diffuse";
         material->baseColor = math::Vector4(0.05f, 0.1f, 0.8f, 0.0f);
         material->roughness = 0.0f;
         material->transparent = false;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(-1.5f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "glossy";
         material->baseColor = math::Vector4(1.0f, 0.7f, 0.2f, 0.0f);
         material->roughness = 0.4f;
         material->metalness = 1.0f;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "specular";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.0f;
@@ -147,14 +158,15 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
         material->transparent = true;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(1.5f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     //{
-    //    auto material = std::make_unique<rt::Material>();
+    //    auto material = Material::Create();
     //    material->debugName = "wall";
     //    material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
     //    material->roughness = 0.05f;
@@ -175,7 +187,7 @@ void InitScene_Simple(rt::Scene& scene, DemoWindow::Materials& materials, DemoWi
     }
 }
 
-void InitScene_Simple_BackgroundLight(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Simple_BackgroundLight(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     InitScene_Simple(scene, materials, meshes, camera);
 
@@ -189,7 +201,7 @@ void InitScene_Simple_BackgroundLight(rt::Scene& scene, DemoWindow::Materials& m
     scene.SetBackgroundLight(std::move(background));
 }
 
-void InitScene_Simple_PointLight(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Simple_PointLight(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     InitScene_Simple(scene, materials, meshes, camera);
 
@@ -198,7 +210,7 @@ void InitScene_Simple_PointLight(rt::Scene& scene, DemoWindow::Materials& materi
     scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
 }
 
-void InitScene_Simple_AreaLight(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Simple_AreaLight(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     InitScene_Simple(scene, materials, meshes, camera);
 
@@ -213,7 +225,7 @@ void InitScene_Simple_AreaLight(rt::Scene& scene, DemoWindow::Materials& materia
     }
 }
 
-void InitScene_Simple_DirectionalLight(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Simple_DirectionalLight(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     InitScene_Simple(scene, materials, meshes, camera);
 
@@ -222,12 +234,12 @@ void InitScene_Simple_DirectionalLight(rt::Scene& scene, DemoWindow::Materials& 
     scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor));
 }
 
-void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_MultipleImportanceSamplingTest(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     // floor
     {
         auto mesh = helpers::CreatePlane(materials, 100.0f, 1.0f);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh.get());
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         meshes.push_back(std::move(mesh));
@@ -263,56 +275,60 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
     // mirrors
     {
         {
-            auto material = std::make_unique<rt::Material>();
+            auto material = Material::Create();
             material->debugName = "rougness_0";
             material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
             material->roughness = 0.0f;
             material->metalness = 1.0f;
             material->Compile();
 
-            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f), material.get());
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f));
+            instance->mDefaultMaterial = material;
             instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             scene.AddObject(std::move(instance));
             materials.push_back(std::move(material));
         }
 
         {
-            auto material = std::make_unique<rt::Material>();
+            auto material = Material::Create();
             material->debugName = "rougness_1";
             material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
             material->roughness = 0.1f;
             material->metalness = 1.0f;
             material->Compile();
 
-            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f), material.get());
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f));
+            instance->mDefaultMaterial = material;
             instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.5f, 0.0f));
             scene.AddObject(std::move(instance));
             materials.push_back(std::move(material));
         }
 
         {
-            auto material = std::make_unique<rt::Material>();
+            auto material = Material::Create();
             material->debugName = "rougness_2";
             material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
             material->roughness = 0.25f;
             material->metalness = 1.0f;
             material->Compile();
 
-            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f), material.get());
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f));
+            instance->mDefaultMaterial = material;
             instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
             scene.AddObject(std::move(instance));
             materials.push_back(std::move(material));
         }
 
         {
-            auto material = std::make_unique<rt::Material>();
+            auto material = Material::Create();
             material->debugName = "rougness_3";
             material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
             material->roughness = 0.5f;
             material->metalness = 1.0f;
             material->Compile();
 
-            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f), material.get());
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(Vector4(10.0f, 0.02f, 0.25f, 0.0f));
+            instance->mDefaultMaterial = material;
             instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 1.5f, 0.0f));
             scene.AddObject(std::move(instance));
             materials.push_back(std::move(material));
@@ -327,31 +343,33 @@ void InitScene_MultipleImportanceSamplingTest(rt::Scene& scene, DemoWindow::Mate
     }
 }
 
-void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
+void InitScene_Furnace_Test(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "mirror";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.9f;
         material->metalness = 1.0f;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(0.0f, -0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "diffuse";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.0f;
         material->metalness = 0.0f;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
@@ -370,31 +388,33 @@ void InitScene_Furnace_Test(rt::Scene& scene, DemoWindow::Materials& materials, 
     }
 }
 
-void InitScene_Specular_Test(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
+void InitScene_Specular_Test(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "mirror";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.9f;
         material->metalness = 1.0f;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(0.0f, -0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
     }
 
     {
-        auto material = std::make_unique<rt::Material>();
+        auto material = Material::Create();
         material->debugName = "diffuse";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.0f;
         material->metalness = 0.0f;
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
@@ -414,11 +434,11 @@ void InitScene_Specular_Test(rt::Scene& scene, DemoWindow::Materials& materials,
     }
 }
 
-void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Stress_MillionObjects(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     RT_UNUSED(meshes);
 
-    auto material = std::make_unique<rt::Material>();
+    auto material = Material::Create();
     material->debugName = "default";
     material->baseColor = math::Vector4(0.2f, 0.5f, 0.8f, 0.0f);
     material->roughness = 0.2f;
@@ -429,7 +449,8 @@ void InitScene_Stress_MillionObjects(rt::Scene& scene, DemoWindow::Materials& ma
     {
         for (Int32 j = 0; j < 1000; ++j)
         {
-            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f, material.get());
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+            instance->mDefaultMaterial = material;
             instance->mTransform.SetTranslation(Vector4((float)i, 0.0f, (float)j, 0.0f));
             scene.AddObject(std::move(instance));
         }

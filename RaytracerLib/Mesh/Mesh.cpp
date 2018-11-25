@@ -26,8 +26,6 @@ namespace rt {
 
 using namespace math;
 
-const static Material gDefaultMaterial;
-
 Mesh::Mesh()
 {
 }
@@ -285,13 +283,12 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
+void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outData) const
  {
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
 
-    constexpr Uint32 invalidMaterialIndex = std::numeric_limits<Uint32>::max();
-    outShadingData.material = indices.materialIndex != invalidMaterialIndex ? mVertexBuffer.GetMaterial(indices.materialIndex) : &gDefaultMaterial;
+    outData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
 
     VertexShadingData vertexShadingData[3];
     mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);
@@ -303,45 +300,44 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     const Vector4 texCoord0(&vertexShadingData[0].texCoord.x);
     const Vector4 texCoord1(&vertexShadingData[1].texCoord.x);
     const Vector4 texCoord2(&vertexShadingData[2].texCoord.x);
-    outShadingData.texCoord = coeff1 * texCoord1;
-    outShadingData.texCoord = Vector4::MulAndAdd(coeff2, texCoord2, outShadingData.texCoord);
-    outShadingData.texCoord = Vector4::MulAndAdd(coeff0, texCoord0, outShadingData.texCoord);
+    outData.texCoord = coeff1 * texCoord1;
+    outData.texCoord = Vector4::MulAndAdd(coeff2, texCoord2, outData.texCoord);
+    outData.texCoord = Vector4::MulAndAdd(coeff0, texCoord0, outData.texCoord);
 
     const Vector4 normal0(&vertexShadingData[0].normal.x);
     const Vector4 normal1(&vertexShadingData[1].normal.x);
     const Vector4 normal2(&vertexShadingData[2].normal.x);
-    outShadingData.normal = coeff1 * normal1;
-    outShadingData.normal = Vector4::MulAndAdd(coeff2, normal2, outShadingData.normal);
-    outShadingData.normal = Vector4::MulAndAdd(coeff0, normal0, outShadingData.normal);
-    outShadingData.normal.FastNormalize3();
+    outData.normal = coeff1 * normal1;
+    outData.normal = Vector4::MulAndAdd(coeff2, normal2, outData.normal);
+    outData.normal = Vector4::MulAndAdd(coeff0, normal0, outData.normal);
+    outData.normal.FastNormalize3();
 
     const Vector4 tangent0(&vertexShadingData[0].tangent.x);
     const Vector4 tangent1(&vertexShadingData[1].tangent.x);
     const Vector4 tangent2(&vertexShadingData[2].tangent.x);
-    outShadingData.tangent = coeff1 * tangent1;
-    outShadingData.tangent = Vector4::MulAndAdd(coeff2, tangent2, outShadingData.tangent);
-    outShadingData.tangent = Vector4::MulAndAdd(coeff0, tangent0, outShadingData.tangent);
-    outShadingData.tangent.FastNormalize3();
+    outData.tangent = coeff1 * tangent1;
+    outData.tangent = Vector4::MulAndAdd(coeff2, tangent2, outData.tangent);
+    outData.tangent = Vector4::MulAndAdd(coeff0, tangent0, outData.tangent);
+    outData.tangent.FastNormalize3();
 
-    outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
-
-    if (outShadingData.material->normalMap)
+    if (outData.material->normalMap)
     {
-        Vector4 localNormal = outShadingData.material->GetNormalVector(outShadingData.texCoord);
-
-        // TODO normal map strength
-        //localNormal = Vector4::Lerp(VECTOR_Z, localNormal, 0.5f);
+        Vector4 localNormal = outData.material->GetNormalVector(outData.texCoord);
 
         // transform normal vector
-        outShadingData.normal = outShadingData.tangent * localNormal.x + outShadingData.bitangent * localNormal.y + outShadingData.normal * localNormal.z;
-        outShadingData.normal.FastNormalize3();
+        {
+            Vector4 newNormal = outData.tangent * localNormal.x;
+            newNormal = Vector4::MulAndAdd(outData.bitangent, localNormal.y, newNormal);
+            newNormal = Vector4::MulAndAdd(outData.normal, localNormal.z, newNormal);
+            outData.normal = newNormal.FastNormalized3();
+        }
 
         // orthogonalize tangent vector
-        outShadingData.tangent -= Vector4::Dot3V(outShadingData.tangent, outShadingData.normal) * outShadingData.normal;
-        outShadingData.tangent.FastNormalize3();
-
-        outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+        outData.tangent = Vector4::NegMulAndAdd(Vector4::Dot3V(outData.tangent, outData.normal), outData.normal, outData.tangent);
+        outData.tangent.FastNormalize3();
     }
+
+    outData.bitangent = Vector4::Cross3(outData.tangent, outData.normal);
 }
 
 const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const

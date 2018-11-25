@@ -5,6 +5,7 @@
 namespace rt {
 
 class Bitmap;
+using BitmapPtr = std::shared_ptr<Bitmap>;
 
 class RAYLIB_API BackgroundLight : public ILight
 {
@@ -16,7 +17,7 @@ public:
     {}
 
     math::Vector4 color;
-    Bitmap* mTexture = nullptr;
+    BitmapPtr mTexture = nullptr;
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;

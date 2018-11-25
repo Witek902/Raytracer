@@ -442,6 +442,11 @@ bool DemoWindow::RenderUI_Settings_Material()
         changed |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
     }
 
+    if (mSelectedMaterial->normalMap)
+    {
+        changed |= ImGui::SliderFloat("Normal map strength", &mSelectedMaterial->normalMapStrength, 0.0f, 5.0f);
+    }
+
     if (changed)
     {
         mSelectedMaterial->Compile();

@@ -15,7 +15,7 @@ class Triangle_Simd8;
 
 class Material;
 
-struct VertexIndices
+struct RT_ALIGN(16) VertexIndices
 {
     Uint32 i0;
     Uint32 i1;
@@ -23,7 +23,7 @@ struct VertexIndices
     Uint32 materialIndex;
 };
 
-struct VertexShadingData
+struct RT_ALIGN(32) VertexShadingData
 {
     math::Float3 normal;
     math::Float3 tangent;
@@ -31,9 +31,7 @@ struct VertexShadingData
 };
 
 
-/**
-* Structure containing packed mesh data (vertices, vertex indices and material indices).
-*/
+// Structure containing packed mesh data (vertices, vertex indices and material indices).
 class VertexBuffer
 {
 public:
@@ -74,7 +72,7 @@ private:
     Uint32 mNumTriangles;
     Uint32 mNumMaterials;
 
-    static void ExtractTriangleData3(const void* dataBuffer, const VertexIndices& indices, math::Triangle& data);
+    std::vector<MaterialPtr> mMaterials;
 };
 
 

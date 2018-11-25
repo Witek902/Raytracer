@@ -32,7 +32,7 @@ struct SamplerDesc
 /**
  * Class representing 2D image/texture.
  */
-class RT_ALIGN(64) RAYLIB_API Bitmap : public Aligned<64>
+class RT_ALIGN(16) RAYLIB_API Bitmap : public Aligned<16>
 {
 public:
     enum class Format : Uint8
@@ -51,7 +51,7 @@ public:
         // TODO monochromatic, compressed, half-float, etc.
     };
 
-    Bitmap();
+    Bitmap(const char* debugName = "<unnamed>");
     ~Bitmap();
     Bitmap(Bitmap&&) = default;
     Bitmap& operator = (Bitmap&&) = default;
@@ -107,16 +107,12 @@ public:
     // get bitmap format description
     static const char* FormatToString(Format format);
 
-    // set single pixel
-    // TODO: this probably will be too slow
-    void SetPixel(Uint32 x, Uint32 y, const math::Vector4& value);
-
     // get single pixel
     // TODO: this probably will be too slow
     math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
 
     // sample the bitmap (including filtering and coordinates wrapping)
-    math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
+    RT_FORCE_NOINLINE math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
 
     // fill with zeros
     void Clear();
@@ -137,7 +133,10 @@ private:
     Format mFormat;
     Uint8 mTileOrder;
     bool mLinearSpace;
+
+    std::string mDebugName;
 };
 
+using BitmapPtr = std::shared_ptr<Bitmap>;
 
 } // namespace rt

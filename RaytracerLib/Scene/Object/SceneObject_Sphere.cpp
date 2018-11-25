@@ -9,9 +9,8 @@ namespace rt {
 using namespace math;
 
 
-SphereSceneObject::SphereSceneObject(const float radius, const Material* material)
-    : mMaterial(material)
-    , mRadius(radius)
+SphereSceneObject::SphereSceneObject(const float radius)
+    : mRadius(radius)
     , mInvRadius(1.0f / radius)
 { }
 
@@ -99,7 +98,7 @@ void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Sha
 {
     RT_UNUSED(hitPoint);
 
-    outShadingData.material = mMaterial;
+    outShadingData.material = mDefaultMaterial.get();
 
     outShadingData.texCoord = Vector4::Zero(); // TODO
     outShadingData.normal = outShadingData.position * mInvRadius;

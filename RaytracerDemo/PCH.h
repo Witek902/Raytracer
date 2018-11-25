@@ -21,7 +21,11 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <inttypes.h>
+#include <stddef.h>
+#include <float.h>
 
 #include "../External/cxxopts.hpp"
 #include "../External/tiny_obj_loader.h"
 #include "../External/imgui/imgui.h"
+#include "../External/rapidjson/rapidjson.h"

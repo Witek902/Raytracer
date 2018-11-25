@@ -318,7 +318,6 @@ bool DemoWindow::Loop()
 
         mDeltaTime = displayTimer.Reset();
 
-        ProcessMessages();
         UpdateCamera();
 
         if (IsPreview() && mViewport)
@@ -365,6 +364,9 @@ bool DemoWindow::Loop()
         mFrameCounterForAverage++;
         mFrameNumber++;
         mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
+
+        // handle window input
+        ProcessMessages();
     }
 
     return true;

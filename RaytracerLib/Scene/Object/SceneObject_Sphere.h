@@ -10,9 +10,7 @@ class Material;
 class RAYLIB_API SphereSceneObject : public ISceneObject
 {
 public:
-    SphereSceneObject(const float radius, const Material* material);
-
-    const Material* mMaterial;
+    SphereSceneObject(const float radius);
 
 private:
     virtual math::Box GetBoundingBox() const override;

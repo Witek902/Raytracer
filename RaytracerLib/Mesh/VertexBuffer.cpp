@@ -10,6 +10,8 @@ namespace rt {
 
 static_assert(sizeof(VertexIndices) == 16, "Invalid size");
 static_assert(sizeof(VertexShadingData) == 32, "Invalid size");
+static_assert(alignof(VertexIndices) == 16, "Invalid alignment");
+static_assert(alignof(VertexShadingData) == 32, "Invalid alignment");
 
 using namespace math;
 
@@ -45,6 +47,8 @@ void VertexBuffer::Clear()
     mVertexIndexBufferOffset = 0;
     mShadingDataBufferOffset = 0;
     mMaterialBufferOffset = 0;
+
+    mMaterials.clear();
 }
 
 bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
@@ -80,8 +84,8 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     const size_t shadingDataBufferSize = sizeof(VertexShadingData) * desc.numVertices;
     const size_t materialBufferSize = sizeof(Material*) * desc.numMaterials;
 
-    mVertexIndexBufferOffset = RoundUp<size_t>(positionsBufferSize, sizeof(VertexIndices));
-    mShadingDataBufferOffset = RoundUp<size_t>(mVertexIndexBufferOffset + indexBufferSize, sizeof(VertexShadingData));
+    mVertexIndexBufferOffset = RoundUp<size_t>(positionsBufferSize, alignof(VertexIndices));
+    mShadingDataBufferOffset = RoundUp<size_t>(mVertexIndexBufferOffset + indexBufferSize, alignof(VertexShadingData));
     mMaterialBufferOffset = mShadingDataBufferOffset + shadingDataBufferSize;
 
     const size_t bufferSizeRequired = mMaterialBufferOffset + materialBufferSize;
@@ -144,9 +148,16 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         }
     }
 
-    if (materialBufferSize > 0)
+    if (desc.numMaterials > 0u)
     {
-        memcpy(mBuffer + mMaterialBufferOffset, desc.materials, materialBufferSize);
+        Material** buffer = reinterpret_cast<Material**>(mBuffer + mMaterialBufferOffset);
+
+        mMaterials.reserve(desc.numMaterials);
+        for (Uint32 i = 0; i < desc.numMaterials; ++i)
+        {
+            buffer[i] = desc.materials[i].get();
+            mMaterials.push_back(desc.materials[i]);
+        }
     }
 
     mNumVertices = desc.numVertices;
@@ -158,7 +169,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
 void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const
 {
-    RT_ASSERT(triangleIndex < mNumTriangles);
+    // RT_ASSERT(triangleIndex < mNumTriangles);
 
     const VertexIndices* buffer = reinterpret_cast<const VertexIndices*>(mBuffer + mVertexIndexBufferOffset);
     indices = buffer[triangleIndex];
@@ -166,24 +177,10 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
 
 const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
 {
-    RT_ASSERT(materialIndex < mNumMaterials);
+    // RT_ASSERT(materialIndex < mNumMaterials);
 
     const Material** materialBufferData = reinterpret_cast<const Material**>(mBuffer + mMaterialBufferOffset);
     return materialBufferData[materialIndex];
-}
-
-void VertexBuffer::ExtractTriangleData3(const void* dataBuffer, const VertexIndices& indices, math::Triangle& data)
-{
-    const Float* typedDataBuffer = reinterpret_cast<const Float*>(dataBuffer);
-    const Float* v0 = typedDataBuffer + 3u * indices.i0;
-    const Float* v1 = typedDataBuffer + 3u * indices.i1;
-    const Float* v2 = typedDataBuffer + 3u * indices.i2;
-
-    // clear W component (there can be garbage)
-    const Vector4 mask = VECTOR_MASK_XYZ;
-    data.v0 = Vector4(v0) & mask;
-    data.v1 = Vector4(v1) & mask;
-    data.v2 = Vector4(v2) & mask;
 }
 
 ProcessedTriangle VertexBuffer::GetTriangle(const Uint32 triangleIndex) const

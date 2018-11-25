@@ -11,7 +11,7 @@ class Material;
 class RAYLIB_API PlaneSceneObject : public ISceneObject
 {
 public:
-    explicit PlaneSceneObject(const Material* material);
+    PlaneSceneObject();
 
 private:
     virtual math::Box GetBoundingBox() const override;
@@ -23,8 +23,6 @@ private:
     virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const override;
 
     virtual void EvaluateShadingData_Single(const HitPoint& intersechitPointtionData, ShadingData& outShadingData) const override;
-
-    const Material* mMaterial;
 };
 
 } // namespace rt

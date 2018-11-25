@@ -36,8 +36,8 @@ struct RT_ALIGN(16) CameraSetup
 class RT_ALIGN(64) DemoWindow : public Window
 {
 public:
-    using Materials = std::vector<std::unique_ptr<rt::Material>>;
-    using Meshes = std::vector<std::unique_ptr<rt::Mesh>>;
+    using Materials = std::vector<rt::MaterialPtr>;
+    using Meshes = std::vector<rt::MeshPtr>;
     using SceneInitCallback = std::function<void(rt::Scene& scene, Materials& materials, Meshes& meshes, CameraSetup& camera)>;
 
     DemoWindow();

@@ -16,6 +16,9 @@ struct SingleTraversalContext;
 struct SimdTraversalContext;
 struct PacketTraversalContext;
 
+class Material;
+using MaterialPtr = std::shared_ptr<rt::Material>;
+
 // Object on a scene
 class RAYLIB_API ISceneObject : public Aligned<16>
 {
@@ -46,6 +49,8 @@ public:
     // local transform delta for motion blur
     math::Vector4 mLinearVelocity = math::Vector4::Zero();
     math::Quaternion mAngularVelocity;
+
+    MaterialPtr mDefaultMaterial;
 };
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;

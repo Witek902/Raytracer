@@ -68,5 +68,6 @@ private:
     std::string mPath;
 };
 
+using MeshPtr = std::shared_ptr<Mesh>;
 
 } // namespace rt

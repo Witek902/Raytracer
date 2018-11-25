@@ -11,7 +11,8 @@ class Ray_Simd8;
 }
 
 class Mesh;
-class Material;
+using MeshPtr = std::shared_ptr<Mesh>;
+
 struct HitPoint;
 struct HitPoint_Simd8;
 struct ShadingData;
@@ -20,9 +21,9 @@ struct RayPacket;
 class RAYLIB_API MeshSceneObject : public ISceneObject
 {
 public:
-    explicit MeshSceneObject(const Mesh* mesh);
+    explicit MeshSceneObject(const MeshPtr mesh);
 
-    const Mesh* mMesh;
+    const MeshPtr mMesh;
 
     // TODO:
     // material modifiers
