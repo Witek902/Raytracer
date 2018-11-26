@@ -13,6 +13,7 @@ struct RT_ALIGN(32) Vector8
 {
     // constructors
     RT_FORCE_INLINE Vector8() = default;
+    RT_FORCE_INLINE Vector8(const Vector8& other);
     RT_FORCE_INLINE static const Vector8 Zero();
     RT_FORCE_INLINE Vector8(const __m256& m);
     RT_FORCE_INLINE explicit Vector8(const Vector4& lo);
@@ -24,6 +25,7 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7);
     RT_FORCE_INLINE Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7);
     RT_FORCE_INLINE Vector8(const Float* src);
+    RT_FORCE_INLINE Vector8& operator = (const Vector8& other);
 
     // Rearrange vector elements (in both lanes, parallel)
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
@@ -46,36 +48,36 @@ struct RT_ALIGN(32) Vector8
         return Vector4(_mm256_extractf128_ps(v, 1));
     }
 
-    /// simple arithmetics
-    RT_FORCE_INLINE const Vector8 operator- () const;
-    RT_FORCE_INLINE const Vector8 operator+ (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator- (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator* (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator/ (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator* (Float b) const;
-    RT_FORCE_INLINE const Vector8 operator/ (Float b) const;
-    RT_FORCE_INLINE Vector8& operator+= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator-= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator*= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator/= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator*= (Float b);
-    RT_FORCE_INLINE Vector8& operator/= (Float b);
+    // simple arithmetics
+    RT_FORCE_INLINE const Vector8 operator - () const;
+    RT_FORCE_INLINE const Vector8 operator + (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator - (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator * (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator / (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator * (Float b) const;
+    RT_FORCE_INLINE const Vector8 operator / (Float b) const;
+    RT_FORCE_INLINE Vector8& operator += (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator -= (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator *= (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator /= (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator *= (Float b);
+    RT_FORCE_INLINE Vector8& operator /= (Float b);
 
-    /// comparison operators (returns true, if all the elements satisfy the equation)
-    RT_FORCE_INLINE bool operator== (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator< (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator<= (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator> (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator>= (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator!= (const Vector8& b) const;
+    // comparison operators (returns true, if all the elements satisfy the equation)
+    RT_FORCE_INLINE bool operator == (const Vector8& b) const;
+    RT_FORCE_INLINE bool operator < (const Vector8& b) const;
+    RT_FORCE_INLINE bool operator <= (const Vector8& b) const;
+    RT_FORCE_INLINE bool operator > (const Vector8& b) const;
+    RT_FORCE_INLINE bool operator >= (const Vector8& b) const;
+    RT_FORCE_INLINE bool operator != (const Vector8& b) const;
 
-    /// bitwise logic operations
-    RT_FORCE_INLINE const Vector8 operator& (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator| (const Vector8& b) const;
-    RT_FORCE_INLINE const Vector8 operator^ (const Vector8& b) const;
-    RT_FORCE_INLINE Vector8& operator&= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator|= (const Vector8& b);
-    RT_FORCE_INLINE Vector8& operator^= (const Vector8& b);
+    // bitwise logic operations
+    RT_FORCE_INLINE const Vector8 operator & (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator | (const Vector8& b) const;
+    RT_FORCE_INLINE const Vector8 operator ^ (const Vector8& b) const;
+    RT_FORCE_INLINE Vector8& operator &= (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator |= (const Vector8& b);
+    RT_FORCE_INLINE Vector8& operator ^= (const Vector8& b);
 
     RT_FORCE_INLINE static const Vector8 Floor(const Vector8& v);
     RT_FORCE_INLINE static const Vector8 Sqrt(const Vector8& v);

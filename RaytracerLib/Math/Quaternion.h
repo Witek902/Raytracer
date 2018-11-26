@@ -17,11 +17,7 @@ struct RT_ALIGN(16) Quaternion final
 {
     // XYZ - vector part, W - scalar part:
     // q = f[3] + i * q[0] + j * q[1] + k * q[2]
-    union
-    {
-        Vector4 q;
-        float f[4];
-    };
+    Vector4 q;
 
     RT_FORCE_INLINE Quaternion() : q(0.0f, 0.0f, 0.0f, 1.0f) { }
     RT_FORCE_INLINE Quaternion(const Quaternion&) = default;

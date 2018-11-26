@@ -19,6 +19,10 @@ VectorInt8::VectorInt8(const __m256& m)
     : f(m)
 {}
 
+VectorInt8::VectorInt8(const VectorInt4& lo, const VectorInt4& hi)
+    : v(_mm256_insertf128_si256(_mm256_castsi128_si256(hi), lo, 1u))
+{}
+
 const VectorInt8 VectorInt8::Cast(const Vector8& v)
 {
     return _mm256_castps_si256(v);
@@ -139,6 +143,20 @@ VectorInt8& VectorInt8::operator -= (Int32 b)
     v = _mm256_sub_epi32(v, _mm256_set1_epi32(b));
     return *this;
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+const VectorInt8 VectorInt8::operator << (Int32 b) const
+{
+    return _mm256_slli_epi32(v, b);
+}
+
+const VectorInt8 VectorInt8::operator >> (Int32 b) const
+{
+    return _mm256_srli_epi32(v, b);
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 const VectorInt8 VectorInt8::Min(const VectorInt8& a, const VectorInt8& b)
 {

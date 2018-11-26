@@ -10,6 +10,10 @@ const Vector8 Vector8::Zero()
     return _mm256_setzero_ps();
 }
 
+Vector8::Vector8(const Vector8& other)
+    : v(other.v)
+{}
+
 Vector8::Vector8(const Vector4& lo)
     : v(_mm256_castps128_ps256(lo))
 {}
@@ -49,6 +53,12 @@ Vector8::Vector8(const Int32 i)
 Vector8::Vector8(const Uint32 u)
     : v(_mm256_castsi256_ps(_mm256_set1_epi32(u)))
 {}
+
+Vector8& Vector8::operator = (const Vector8& other)
+{
+    v = other.v;
+    return *this;
+}
 
 const Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
 {

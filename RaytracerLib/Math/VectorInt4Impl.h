@@ -15,6 +15,10 @@ VectorInt4::VectorInt4(const __m128i& m)
     : v(m)
 {}
 
+VectorInt4::VectorInt4(const VectorInt4& other)
+    : v(other.v)
+{}
+
 const Vector4 VectorInt4::CastToFloat() const
 {
     return _mm_castsi128_ps(v);
@@ -165,10 +169,22 @@ VectorInt4& VectorInt4::operator *= (Int32 b)
 
 //////////////////////////////////////////////////////////////////////////
 
+const VectorInt4 VectorInt4::operator << (Int32 b) const
+{
+    return _mm_slli_epi32(v, b);
+}
+
+const VectorInt4 VectorInt4::operator >> (Int32 b) const
+{
+    return _mm_srli_epi32(v, b);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 const VectorInt4 VectorInt4::SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const
 {
-    const __m128i mask = _mm_or_si128(_mm_cmpeq_epi32(v, reference.v), _mm_cmpgt_epi32(v, reference.v));
-    return VectorInt4(_mm_blendv_epi8(v, target, mask));
+    const __m128i mask = _mm_cmplt_epi32(v, reference.v);
+    return VectorInt4(_mm_blendv_epi8(target, v, mask));
 }
 
 bool VectorInt4::operator == (const VectorInt4& b) const

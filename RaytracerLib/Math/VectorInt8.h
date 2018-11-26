@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math.h"
+#include "VectorInt4.h"
 
 namespace rt {
 namespace math {
@@ -16,6 +17,7 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE VectorInt8() = default;
     RT_FORCE_INLINE static const VectorInt8 Zero();
     RT_FORCE_INLINE VectorInt8(const __m256i& m);
+    RT_FORCE_INLINE VectorInt8(const VectorInt4& lo, const VectorInt4& hi);
     RT_FORCE_INLINE explicit VectorInt8(const __m256& m);
     RT_FORCE_INLINE explicit VectorInt8(const Int32 scalar);
     RT_FORCE_INLINE explicit VectorInt8(const Uint32 scalar);
@@ -26,7 +28,7 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
     RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
 
-    /// bitwise logic operations
+    // bitwise logic operations
     RT_FORCE_INLINE const VectorInt8 operator & (const VectorInt8& b) const;
     RT_FORCE_INLINE const VectorInt8 operator | (const VectorInt8& b) const;
     RT_FORCE_INLINE const VectorInt8 operator ^ (const VectorInt8& b) const;
@@ -46,6 +48,10 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE const VectorInt8 operator - (Int32 b) const;
     RT_FORCE_INLINE VectorInt8& operator += (Int32 b);
     RT_FORCE_INLINE VectorInt8& operator -= (Int32 b);
+
+    // bit shifting
+    RT_FORCE_INLINE const VectorInt8 operator << (Int32 b) const;
+    RT_FORCE_INLINE const VectorInt8 operator >> (Int32 b) const;
 
     /// comparison operators (returns true, if all the elements satisfy the equation)
     RT_FORCE_INLINE bool operator == (const VectorInt8& b) const;

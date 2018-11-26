@@ -1,6 +1,8 @@
 #include "PCH.h"
 #include "Transcendental.h"
 #include "Math.h"
+#include "VectorInt4.h"
+#include "VectorInt8.h"
 
 
 namespace rt {
@@ -54,8 +56,8 @@ Vector4 Sin(Vector4 x)
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
     // range reduction
-    __m128i i = _mm_cvtps_epi32(x * (1.0f / RT_PI));
-    x = Vector4::NegMulAndAdd(Vector4(_mm_cvtepi32_ps(i)), RT_PI, x);
+    const VectorInt4 i = VectorInt4::Convert(x * (1.0f / RT_PI));
+    x = Vector4::NegMulAndAdd(i.ConvertToFloat(), RT_PI, x);
 
     const Vector4 x2 = x * x;
 
@@ -74,8 +76,7 @@ Vector4 Sin(Vector4 x)
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
-    const __m128 signMask = _mm_castsi128_ps(_mm_slli_epi32(i, 31));
-    return _mm_xor_ps(y, signMask);
+    return y ^ (i << 31).CastToFloat();
 }
 
 Vector8 Sin(Vector8 x)
@@ -85,8 +86,8 @@ Vector8 Sin(Vector8 x)
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
     // range reduction
-    __m256i i = _mm256_cvtps_epi32(x * (1.0f / RT_PI));
-    x = Vector8::NegMulAndAdd(Vector8(_mm256_cvtepi32_ps(i)), RT_PI, x);
+    const VectorInt8 i = VectorInt8::Convert(x * (1.0f / RT_PI));
+    x = Vector8::NegMulAndAdd(i.ConvertToFloat(), RT_PI, x);
 
     const Vector8 x2 = x * x;
 
@@ -105,8 +106,7 @@ Vector8 Sin(Vector8 x)
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
-    const __m256 signMask = _mm256_castsi256_ps(_mm256_slli_epi32(i, 31));
-    return _mm256_xor_ps(y, signMask);
+    return y ^ (i << 31).CastToFloat();
 #else
     return Vector8{sinf(x[0]), sinf(x[1]), sinf(x[2]), sinf(x[3]), sinf(x[4]), sinf(x[5]), sinf(x[6]), sinf(x[7])};
 #endif // RT_USE_AVX2

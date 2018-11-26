@@ -30,6 +30,7 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE VectorInt4() = default;
     RT_FORCE_INLINE static const VectorInt4 Zero();
     RT_FORCE_INLINE VectorInt4(const __m128i& m);
+    RT_FORCE_INLINE VectorInt4(const VectorInt4& other);
     RT_FORCE_INLINE explicit VectorInt4(const Int32 scalar);
     RT_FORCE_INLINE explicit VectorInt4(const Uint32 scalar);
     RT_FORCE_INLINE VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
@@ -60,6 +61,10 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE VectorInt4& operator += (Int32 b);
     RT_FORCE_INLINE VectorInt4& operator -= (Int32 b);
     RT_FORCE_INLINE VectorInt4& operator *= (Int32 b);
+
+    // bit shifting
+    RT_FORCE_INLINE const VectorInt4 operator << (Int32 b) const;
+    RT_FORCE_INLINE const VectorInt4 operator >> (Int32 b) const;
 
     // for each component, if it's euqal to 'reference', set the value to 'target'
     RT_FORCE_INLINE const VectorInt4 SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const;

@@ -5,6 +5,7 @@
 #include "Float3.h"
 #include "Vector4.h"
 #include "Vector2x8.h"
+#include "VectorInt4.h"
 #include "VectorInt8.h"
 
 namespace rt {
@@ -70,14 +71,14 @@ public:
     const Vector4 GetFloatNormal2();
 
 private:
-    RT_FORCE_INLINE __m256i GetIntVector8();
-    RT_FORCE_INLINE __m128i GetIntVector4();
+    RT_FORCE_INLINE VectorInt8 GetIntVector8();
+    RT_FORCE_INLINE VectorInt4 GetIntVector4();
 
 #ifdef RT_USE_AVX2
-    __m256i mSeedSimd8[2];
+    VectorInt8 mSeedSimd8[2];
 #endif // RT_USE_AVX2
 
-    __m128i mSeedSimd4[2];
+    VectorInt4 mSeedSimd4[2];
 
     Uint64 mSeed[2];
 };

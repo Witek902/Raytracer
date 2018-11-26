@@ -29,13 +29,10 @@ struct RT_ALIGN(16) Vector4
         };
     };
 
-    RT_FORCE_INLINE Vector4(const __m128& src)
-    {
-        v = src;
-    }
-
     // constructors
     Vector4() = default;
+    RT_FORCE_INLINE Vector4(const Vector4& other);
+    RT_FORCE_INLINE Vector4(const __m128& src);
     RT_FORCE_INLINE static const Vector4 Zero();
     RT_FORCE_INLINE explicit Vector4(const Float s); // splat
     RT_FORCE_INLINE Vector4(const Float x, const Float y, const Float z, const Float w);
@@ -44,6 +41,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE explicit Vector4(const Float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
+    RT_FORCE_INLINE Vector4& operator = (const Vector4& other);
 
     RT_FORCE_INLINE static const Vector4 FromInteger(Int32 x);
     RT_FORCE_INLINE static const Vector4 FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w);
@@ -55,7 +53,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
     RT_FORCE_INLINE Float& operator[] (Uint32 index) { return f[index]; }
 
-    /// simple arithmetics
+    // simple arithmetics
     RT_FORCE_INLINE const Vector4 operator- () const;
     RT_FORCE_INLINE const Vector4 operator+ (const Vector4& b) const;
     RT_FORCE_INLINE const Vector4 operator- (const Vector4& b) const;
@@ -70,7 +68,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4& operator*= (Float b);
     RT_FORCE_INLINE Vector4& operator/= (Float b);
 
-    /// comparison operators (returns true, if all the elements satisfy the equation)
+    // comparison operators (returns true, if all the elements satisfy the equation)
     RT_FORCE_INLINE bool operator== (const Vector4& b) const;
     RT_FORCE_INLINE bool operator< (const Vector4& b) const;
     RT_FORCE_INLINE bool operator<= (const Vector4& b) const;
@@ -78,7 +76,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE bool operator>= (const Vector4& b) const;
     RT_FORCE_INLINE bool operator!= (const Vector4& b) const;
 
-    /// bitwise logic operations
+    // bitwise logic operations
     RT_FORCE_INLINE const Vector4 operator& (const Vector4& b) const;
     RT_FORCE_INLINE const Vector4 operator| (const Vector4& b) const;
     RT_FORCE_INLINE const Vector4 operator^ (const Vector4& b) const;

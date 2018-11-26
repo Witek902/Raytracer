@@ -107,11 +107,17 @@ TEST(MathTest, VectorInt4_VectorSwizzle)
 
 TEST(MathTest, VectorInt4_SetIfEqual)
 {
-    const VectorInt4 v(0, 1, 2, 3);
+    const VectorInt4 v(1, 2, 3, 4);
 
-    EXPECT_EQ(VectorInt4(0, 1, 2, 3), v.SetIfEqual(VectorInt4(9, 9, 9, 9), VectorInt4(8, 8, 8, 8)));
-    EXPECT_EQ(VectorInt4(~0, 1, 2, 3), v.SetIfEqual(VectorInt4(0, 9, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
-    EXPECT_EQ(VectorInt4(0, ~0, 2, 3), v.SetIfEqual(VectorInt4(9, 1, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
-    EXPECT_EQ(VectorInt4(0, 1, ~0, 3), v.SetIfEqual(VectorInt4(9, 9, 2, 9), VectorInt4(~0, ~0, ~0, ~0)));
-    EXPECT_EQ(VectorInt4(0, 1, 2, ~0), v.SetIfEqual(VectorInt4(9, 9, 9, 3), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(~0, 2, 3, 4), v.SetIfGreaterOrEqual(VectorInt4(1, 9, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, ~0, 3, 4), v.SetIfGreaterOrEqual(VectorInt4(9, 2, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, 2, ~0, 4), v.SetIfGreaterOrEqual(VectorInt4(9, 9, 3, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, 2, 3, ~0), v.SetIfGreaterOrEqual(VectorInt4(9, 9, 9, 4), VectorInt4(~0, ~0, ~0, ~0)));
+
+    EXPECT_EQ(VectorInt4(~0, 2, 3, 4), v.SetIfGreaterOrEqual(VectorInt4(0, 9, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, ~0, 3, 4), v.SetIfGreaterOrEqual(VectorInt4(9, 1, 9, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, 2, ~0, 4), v.SetIfGreaterOrEqual(VectorInt4(9, 9, 2, 9), VectorInt4(~0, ~0, ~0, ~0)));
+    EXPECT_EQ(VectorInt4(1, 2, 3, ~0), v.SetIfGreaterOrEqual(VectorInt4(9, 9, 9, 3), VectorInt4(~0, ~0, ~0, ~0)));
+
+    EXPECT_EQ(v, v.SetIfGreaterOrEqual(VectorInt4(2, 3, 4, 5), VectorInt4(~0, ~0, ~0, ~0)));
 }

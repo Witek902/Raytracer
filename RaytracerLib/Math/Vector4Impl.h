@@ -12,30 +12,33 @@ const Vector4 Vector4::Zero()
     return _mm_setzero_ps();
 }
 
+Vector4::Vector4(const Vector4& other)
+    : v(other.v)
+{}
+
+Vector4::Vector4(const __m128& src)
+    : v(src)
+{ }
+
 Vector4::Vector4(const Float s)
-{
-    v = _mm_set1_ps(s);
-}
+    : v(_mm_set1_ps(s))
+{}
 
 Vector4::Vector4(const Float x, const Float y, const Float z, const Float w)
-{
-    v = _mm_set_ps(w, z, y, x);
-}
+    : v(_mm_set_ps(w, z, y, x))
+{}
 
 Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
-{
-    v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
-}
+    : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
+{}
 
 Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
-{
-    v = _mm_castsi128_ps(_mm_set_epi32(w, z, y, x));
-}
+    : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
+{}
 
 Vector4::Vector4(const Float* src)
-{
-    v = _mm_loadu_ps(src);
-}
+    : v(_mm_loadu_ps(src))
+{}
 
 Vector4::Vector4(const Float2& src)
 {
@@ -53,14 +56,20 @@ Vector4::Vector4(const Float3& src)
     v = _mm_movelh_ps(vxy, vz);
 }
 
+Vector4& Vector4::operator = (const Vector4& other)
+{
+    v = other.v;
+    return *this;
+}
+
 const Vector4 Vector4::FromInteger(Int32 x)
 {
-    return Vector4(_mm_cvtepi32_ps(_mm_set1_epi32(x)));
+    return _mm_cvtepi32_ps(_mm_set1_epi32(x));
 }
 
 const Vector4 Vector4::FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w)
 {
-    return Vector4(_mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x)));
+    return _mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x));
 }
 
 const Vector4 Vector4::FromHalves(const Half* src)
@@ -397,7 +406,7 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Float b, const Vecto
 
 const Vector4 Vector4::Floor(const Vector4& v)
 {
-    return Vector4(_mm_floor_ps(v));
+    return _mm_floor_ps(v);
 }
 
 const Vector4 Vector4::Sqrt4(const Vector4& V)
