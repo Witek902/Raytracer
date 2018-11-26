@@ -118,7 +118,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Float3 ToFloat3() const;
 
     RT_FORCE_INLINE static const Vector4 Floor(const Vector4& v);
-    RT_FORCE_INLINE static const Vector4 Sqrt(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Sqrt4(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Reciprocal(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 FastReciprocal(const Vector4& v);
@@ -135,13 +134,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static int GreaterMask(const Vector4& v1, const Vector4& v2);
     RT_FORCE_INLINE static int GreaterEqMask(const Vector4& v1, const Vector4& v2);
     RT_FORCE_INLINE static int NotEqualMask(const Vector4& v1, const Vector4& v2);
-
-    RT_FORCE_INLINE static bool Equal2(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool Less2(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool LessEq2(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool Greater2(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool GreaterEq2(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool NotEqual2(const Vector4& v1, const Vector4& v2);
 
     RT_FORCE_INLINE static bool Equal3(const Vector4& v1, const Vector4& v2);
     RT_FORCE_INLINE static bool Less3(const Vector4& v1, const Vector4& v2);

@@ -272,6 +272,12 @@
     <ClInclude Include="Rendering\PostProcess.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Math\VectorInt4.h">
+      <Filter>Math\VectorInt4</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\VectorInt4Impl.h">
+      <Filter>Math\VectorInt4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -498,6 +504,9 @@
     </Filter>
     <Filter Include="Utils\Bitmap">
       <UniqueIdentifier>{7bffc33c-adf6-48ed-a54c-123587f3ee2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\VectorInt4">
+      <UniqueIdentifier>{6716c006-443a-4f45-932c-63199dd843fd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

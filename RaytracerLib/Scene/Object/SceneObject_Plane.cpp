@@ -8,7 +8,8 @@ namespace rt {
 
 using namespace math;
 
-PlaneSceneObject::PlaneSceneObject()
+PlaneSceneObject::PlaneSceneObject(const math::Vector4 texScale)
+    : mTextureScale(texScale)
 { }
 
 Box PlaneSceneObject::GetBoundingBox() const
@@ -66,7 +67,7 @@ void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
     RT_UNUSED(hitPoint);
 
     outShadingData.material = mDefaultMaterial.get();
-    outShadingData.texCoord = Vector4(outShadingData.position.x, outShadingData.position.z, 0.0f, 0.0f);
+    outShadingData.texCoord = Vector4(outShadingData.position.x, outShadingData.position.z, 0.0f, 0.0f) * mTextureScale;
     outShadingData.normal = VECTOR_Y;
     outShadingData.tangent = VECTOR_X;
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);

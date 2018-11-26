@@ -110,7 +110,7 @@ Vector8& Vector8::operator^= (const Vector8& b)
 
 const Vector8 Vector8::operator- () const
 {
-    return Vector8() - (*this);
+    return Vector8::Zero() - (*this);
 }
 
 const Vector8 Vector8::operator+ (const Vector8& b) const

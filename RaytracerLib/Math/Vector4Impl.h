@@ -395,20 +395,10 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Float b, const Vecto
     return NegMulAndSub(a, Vector4(b), c);
 }
 
-const Vector4 Vector4::Floor(const Vector4& V)
+const Vector4 Vector4::Floor(const Vector4& v)
 {
-    Vector4 vResult = _mm_sub_ps(V, _mm_set1_ps(0.49999f));
-    __m128i vInt = _mm_cvtps_epi32(vResult);
-    vResult = _mm_cvtepi32_ps(vInt);
-    return vResult;
+    return Vector4(_mm_floor_ps(v));
 }
-
-
-const Vector4 Vector4::Sqrt(const Vector4& V)
-{
-    return _mm_sqrt_ss(V);
-}
-
 
 const Vector4 Vector4::Sqrt4(const Vector4& V)
 {
@@ -509,38 +499,6 @@ int Vector4::GreaterEqMask(const Vector4& v1, const Vector4& v2)
 int Vector4::NotEqualMask(const Vector4& v1, const Vector4& v2)
 {
     return _mm_movemask_ps(_mm_cmpneq_ps(v1, v2));
-}
-
-// 2D vector comparison functions =================================================================
-
-bool Vector4::Equal2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpeq_ps(v1, v2)) & 0x3) == 0x3;
-}
-
-bool Vector4::Less2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmplt_ps(v1, v2)) & 0x3) == 0x3;
-}
-
-bool Vector4::LessEq2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmple_ps(v1, v2)) & 0x3) == 0x3;
-}
-
-bool Vector4::Greater2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpgt_ps(v1, v2)) & 0x3) == 0x3;
-}
-
-bool Vector4::GreaterEq2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpge_ps(v1, v2)) & 0x3) == 0x3;
-}
-
-bool Vector4::NotEqual2(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpneq_ps(v1, v2)) & 0x3) == 0x3;
 }
 
 // 3D vector comparison functions =================================================================

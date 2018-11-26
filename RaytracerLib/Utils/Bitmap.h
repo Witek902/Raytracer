@@ -2,7 +2,7 @@
 
 #include "../RayLib.h"
 #include "../Math/Vector4.h"
-#include "../Math/Vector8.h"
+#include "../Math/VectorInt4.h"
 #include "../Utils/AlignmentAllocator.h"
 
 namespace rt {
@@ -108,7 +108,7 @@ public:
     math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
     
     // get 2x2 pixel block
-    void GetPixelBlock(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, const bool forceLinearSpace,
+    void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace,
         math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const;
 
     // sample the bitmap (including filtering and coordinates wrapping)
@@ -126,7 +126,8 @@ private:
     bool LoadDDS(FILE* file, const char* path);
     bool LoadEXR(FILE* file, const char* path);
 
-    math::Vector4 mSize = math::Vector4::Zero();
+    math::Vector4 mFloatSize = math::Vector4::Zero();
+    math::VectorInt4 mSize = math::VectorInt4::Zero();
     Uint8* mData;
     Uint16 mWidth;
     Uint16 mHeight;

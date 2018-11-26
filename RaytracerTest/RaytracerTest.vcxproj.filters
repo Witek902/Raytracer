@@ -37,6 +37,7 @@
     <ClCompile Include="MathTranscendentalTest.cpp" />
     <ClCompile Include="MathTest.cpp" />
     <ClCompile Include="MathVector8Test.cpp" />
+    <ClCompile Include="MathVectorInt4Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

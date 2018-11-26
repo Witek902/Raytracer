@@ -11,7 +11,9 @@ class Material;
 class RAYLIB_API PlaneSceneObject : public ISceneObject
 {
 public:
-    PlaneSceneObject();
+    PlaneSceneObject(const math::Vector4 texScale = math::Vector4(1.0f));
+
+    math::Vector4 mTextureScale;
 
 private:
     virtual math::Box GetBoundingBox() const override;

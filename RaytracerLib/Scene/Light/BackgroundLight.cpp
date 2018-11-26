@@ -35,7 +35,7 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
     if (mTexture)
     {
         const Float theta = FastACos(Clamp(dir.y, -1.0f, 1.0f));
-        const Float phi = FastATan2(dir.z, dir.x);
+        const Float phi = Abs(dir.x) > FLT_EPSILON ? FastATan2(dir.z, dir.x) : 0.0f;
         const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
 
         RT_ASSERT(coords.IsValid());
