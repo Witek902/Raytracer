@@ -361,14 +361,18 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             break;
         }
 
-        /*
         case Format::BC1:
         {
-            const Uint32 flippedY = mHeight - 1 - y;
-            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            const Int32 heightMinusOne = (Int32)mHeight - 1;
+            const VectorInt4 flippedCoords = VectorInt4(heightMinusOne) - coords;
+            outColor0 = DecodeBC1(mData, coords.x, flippedCoords.y, mWidth);
+            outColor1 = DecodeBC1(mData, coords.z, flippedCoords.y, mWidth);
+            outColor2 = DecodeBC1(mData, coords.x, flippedCoords.w, mWidth);
+            outColor3 = DecodeBC1(mData, coords.z, flippedCoords.w, mWidth);
             break;
         }
 
+        /*
         case Format::BC4:
         {
             const Uint32 flippedY = mHeight - 1 - y;
