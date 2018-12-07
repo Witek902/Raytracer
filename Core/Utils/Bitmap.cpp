@@ -416,6 +416,16 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     coords *= mFloatSize;
     intCoords = VectorInt4::Convert(Vector4::Floor(coords));
 
+    if (intCoords.x >= mWidth)
+    {
+        intCoords.x -= mWidth;
+    }
+
+    if (intCoords.y >= mHeight)
+    {
+        intCoords.y -= mHeight;
+    }
+
     Vector4 result;
 
     if (sampler.filter == TextureFilterMode::NearestNeighbor)

@@ -200,7 +200,7 @@ const Color Material::Sample(
     const float NdotV = shadingData.outgoingDirLocalSpace.z;
 
     const BSDF* bsdf = nullptr;
-    Color value;
+    Color value = Color::Zero();
 
     // TODO enclose into "FresnelBSDF"
     if (randomGenerator.GetFloat() < shadingData.materialParams.metalness)

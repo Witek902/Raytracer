@@ -25,7 +25,7 @@ struct SamplerDesc
     math::Vector4 borderColor = math::Vector4::Zero();
     TextureAddressMode addressU = TextureAddressMode::Repeat;
     TextureAddressMode addressV = TextureAddressMode::Repeat;
-    TextureFilterMode filter = TextureFilterMode::Bilinear;
+    TextureFilterMode filter = TextureFilterMode::NearestNeighbor;
     bool forceLinearSpace = false;
 };
 

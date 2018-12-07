@@ -29,3 +29,4 @@
 #include "../External/tiny_obj_loader.h"
 #include "../External/imgui/imgui.h"
 #include "../External/rapidjson/rapidjson.h"
+#include "../External/rapidjson/error/en.h"

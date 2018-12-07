@@ -16,6 +16,7 @@ General
 * Developed for Windows and Linux
 * Multithreaded rendering (_obvious_)
 * Optimized using SSE and AVX intrinsics (especially in performance-critical and low level math code)
+* Parsing scene description from a JSON file
 
 Rendering
 ---------
@@ -44,7 +45,6 @@ Materials
 ---------
 
 * Physically based metal and dielectric model (can be blend using _metalness_ parameter)
-* Oren-Nayar BSDF for diffused reflection
 * Cook-Torrance BSDF for specular reflection with GGX normal distribution
 * Transparency and refraction
 * Chromatic dispersion 
@@ -61,7 +61,6 @@ Textures
 TODO list
 =========
 
-* Parsing scene description from a text file
 * Better light transport algorithm (e.g. Vertex Connection and Merging)
 * Better material model and multilayer materials
 * Procedural textures

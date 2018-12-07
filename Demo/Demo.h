@@ -21,10 +21,7 @@ struct Options
     bool enablePacketTracing = false;
     bool useDebugRenderer = false;
 
-    // TODO JSON scene description
     std::string sceneName;
-    std::string modelPath;
-    std::string envMapPath;
 };
 
 struct RT_ALIGN(16) CameraSetup
@@ -42,7 +39,6 @@ class RT_ALIGN(64) DemoWindow : public Window
 public:
     using Materials = std::vector<rt::MaterialPtr>;
     using Meshes = std::vector<rt::MeshPtr>;
-    using SceneInitCallback = std::function<void(rt::Scene& scene, Materials& materials, Meshes& meshes, CameraSetup& camera)>;
 
     DemoWindow();
     ~DemoWindow();
@@ -67,8 +63,6 @@ private:
     rt::RenderingParams mPreviewRenderingParams;
     rt::PostprocessParams mPostprocessParams;
     CameraSetup mCameraSetup;
-
-    std::map<std::string, SceneInitCallback> mRegisteredScenes;
 
     Materials mMaterials;
     Meshes mMeshes;
@@ -103,8 +97,7 @@ private:
 
     void InitializeUI();
 
-    void SwitchScene(const SceneInitCallback& initFunction);
-    void RegisterTestScenes();
+    void SwitchScene(const std::string& sceneName);
 
     void RenderUI();
     void RenderUI_Stats();

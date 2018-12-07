@@ -151,13 +151,13 @@ bool Quaternion::AlmostEqual(const Quaternion& a, const Quaternion& b, float eps
     return Abs(d) > 1.0f - epsilon;
 }
 
-const Quaternion Quaternion::FromAngles(float pitch, float yaw, float roll)
+const Quaternion Quaternion::FromEulerAngles(const Float3& angles)
 {
     // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 
-    pitch *= 0.5f;
-    yaw *= 0.5f;
-    roll *= 0.5f;
+    const Float pitch = angles.x * 0.5f;
+    const Float yaw = angles.y * 0.5f;
+    const Float roll = angles.z * 0.5f;
 
     Quaternion q;
     float t0 = Cos(yaw);
@@ -178,7 +178,7 @@ const Quaternion Quaternion::FromAngles(float pitch, float yaw, float roll)
     return Quaternion(term0 * term1 * term2 + term3 * term4 * term5);
 }
 
-void Quaternion::ToAngles(float& outPitch, float& outYaw, float& outRoll) const
+const Float3 Quaternion::ToEulerAngles() const
 {
     // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 
@@ -190,9 +190,38 @@ void Quaternion::ToAngles(float& outPitch, float& outYaw, float& outRoll) const
 
     t2 = Clamp(t2, -1.0f, 1.0f);
 
-    outRoll = atan2f(t0, t1);
-    outPitch = asinf(t2);
-    outYaw = atan2f(t3, t4);
+    Float pitch = asinf(t2);
+    Float yaw = atan2f(t3, t4);
+    Float roll = atan2f(t0, t1);
+
+    if (pitch > RT_PI)
+    {
+        pitch -= 2.0f * RT_PI;
+    }
+    if (pitch < -RT_PI)
+    {
+        pitch += 2.0f * RT_PI;
+    }
+
+    if (yaw > RT_PI)
+    {
+        yaw -= 2.0f * RT_PI;
+    }
+    if (yaw < -RT_PI)
+    {
+        yaw += 2.0f * RT_PI;
+    }
+
+    if (roll > RT_PI)
+    {
+        roll -= 2.0f * RT_PI;
+    }
+    if (roll < -RT_PI)
+    {
+        roll += 2.0f * RT_PI;
+    }
+
+    return Float3{ pitch, yaw, roll };
 }
 
 

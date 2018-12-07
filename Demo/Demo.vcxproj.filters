@@ -32,9 +32,6 @@
     <ClCompile Include="Demo_UserInterface.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
-    <ClCompile Include="TestScenes.cpp">
-      <Filter>Demo</Filter>
-    </ClCompile>
     <ClCompile Include="..\External\imgui\imgui_sw.cpp">
       <Filter>External\imgui</Filter>
     </ClCompile>
@@ -42,6 +39,9 @@
       <Filter>External</Filter>
     </ClCompile>
     <ClCompile Include="Windows\Window.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLoader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -73,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="..\External\imgui\imgui_sw.hpp">
       <Filter>External\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLoader.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

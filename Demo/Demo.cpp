@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "Demo.h"
-#include "MeshLoader.h"
+#include "SceneLoader.h"
 
 #include "../Core/Utils/Timer.h"
 #include "../Core/Utils/Logger.h"
@@ -58,7 +58,6 @@ bool DemoWindow::Initialize()
     }
 
     InitializeUI();
-    RegisterTestScenes();
 
     mUseDebugRenderer = gOptions.useDebugRenderer;
     mRenderingParams.numThreads = std::thread::hardware_concurrency();
@@ -70,8 +69,7 @@ bool DemoWindow::Initialize()
 
     mCamera.mDOF.aperture = 0.0f;
 
-    const std::string initialSceneName = gOptions.sceneName.empty() ? "Plane" : gOptions.sceneName;
-    SwitchScene(mRegisteredScenes[initialSceneName]);
+    SwitchScene(gOptions.sceneName);
 
     return true;
 }
@@ -126,13 +124,17 @@ void DemoWindow::InitializeUI()
     imgui_sw::bind_imgui_painting();
 }
 
-void DemoWindow::SwitchScene(const SceneInitCallback& initFunction)
+void DemoWindow::SwitchScene(const std::string& sceneName)
 {
     mScene = std::make_unique<Scene>();
     mMaterials.clear();
     mMeshes.clear();
 
-    initFunction(*mScene, mMaterials, mMeshes, mCameraSetup);
+    helpers::LoadScene(sceneName, *mScene, mCamera);
+
+    mCameraSetup.position = mCamera.mTransform.GetTranslation();
+    mCameraSetup.orientation = mCamera.mTransform.GetRotation().ToEulerAngles();
+    mCameraSetup.fov = mCamera.mFieldOfView / RT_PI * 180.0f;
 
     mScene->BuildBVH();
     ResetCounters();
@@ -255,16 +257,16 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
     if (IsMouseButtonDown(MouseButton::Right))
     {
         const Float sensitivity = 0.0001f * mCameraSetup.fov;
-        mCameraSetup.orientation.x += sensitivity * (Float)deltaX;
-        mCameraSetup.orientation.y -= sensitivity * (Float)deltaY;
+        mCameraSetup.orientation.y += sensitivity * (Float)deltaX;
+        mCameraSetup.orientation.x += sensitivity * (Float)deltaY;
 
         // clamp yaw
-        if (mCameraSetup.orientation.x > RT_PI)   mCameraSetup.orientation.x -= 2.0f * RT_PI;
-        if (mCameraSetup.orientation.x < -RT_PI)  mCameraSetup.orientation.x += 2.0f * RT_PI;
+        if (mCameraSetup.orientation.y > RT_PI)   mCameraSetup.orientation.y -= 2.0f * RT_PI;
+        if (mCameraSetup.orientation.y < -RT_PI)  mCameraSetup.orientation.y += 2.0f * RT_PI;
 
         // clamp pitch
-        if (mCameraSetup.orientation.y > RT_PI * 0.49f)     mCameraSetup.orientation.y = RT_PI * 0.49f;
-        if (mCameraSetup.orientation.y < -RT_PI * 0.49f)    mCameraSetup.orientation.y = -RT_PI * 0.49f;
+        if (mCameraSetup.orientation.x > RT_PI * 0.49f)     mCameraSetup.orientation.x = RT_PI * 0.49f;
+        if (mCameraSetup.orientation.x < -RT_PI * 0.49f)    mCameraSetup.orientation.x = -RT_PI * 0.49f;
     }
 }
 
@@ -391,18 +393,24 @@ void DemoWindow::UpdateCamera()
     const Camera oldCameraSetup = mCamera;
 
     // calculate camera direction from Euler angles
-    const Quaternion cameraOrientation = Quaternion::FromAngles(-mCameraSetup.orientation.y, mCameraSetup.orientation.x, mCameraSetup.orientation.z);
-    const Vector4 direction = cameraOrientation.GetAxisZ();
+    const Quaternion cameraOrientation = Quaternion::FromEulerAngles(mCameraSetup.orientation);
+    const Vector4 frontDir = cameraOrientation.GetAxisZ();
+    const Vector4 rightDir = cameraOrientation.GetAxisX();
+    const Vector4 upDir = cameraOrientation.GetAxisY();
 
     Vector4 movement = math::Vector4::Zero();
     if (IsKeyPressed(KeyCode::W))
-        movement += direction;
+        movement += frontDir;
     if (IsKeyPressed(KeyCode::S))
-        movement -= direction;
-    if (IsKeyPressed(KeyCode::A))
-        movement += Vector4(-direction.z, 0.0f, direction.x, 0.0f);
+        movement -= frontDir;
     if (IsKeyPressed(KeyCode::D))
-        movement -= Vector4(-direction.z, 0.0f, direction.x, 0.0f);
+        movement += rightDir;
+    if (IsKeyPressed(KeyCode::A))
+        movement -= rightDir;
+    if (IsKeyPressed(KeyCode::R))
+        movement += upDir;
+    if (IsKeyPressed(KeyCode::F))
+        movement -= upDir;
 
     mCamera.mLinearVelocity = mCameraSetup.linearVelocity;
 
@@ -437,6 +445,6 @@ void DemoWindow::UpdateCamera()
     }
     else
     {
-        mCamera.SetAngularVelocity(Quaternion::FromAngles(-mCameraSetup.angularVelocity.y, mCameraSetup.angularVelocity.x, mCameraSetup.angularVelocity.z));
+        mCamera.SetAngularVelocity(Quaternion::FromEulerAngles(mCameraSetup.angularVelocity));
     }
 }

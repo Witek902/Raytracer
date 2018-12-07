@@ -14,8 +14,6 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
         ("debug-renderer", "Use debug renderer by default", cxxopts::value<bool>())
         ("p,packet-tracing", "Use ray packet tracing by default", cxxopts::value<bool>())
         ("data", "Data path", cxxopts::value<std::string>())
-        ("m,model", "OBJ model to load", cxxopts::value<std::string>())
-        ("env", "Environment map path", cxxopts::value<std::string>())
         ;
 
     try
@@ -30,12 +28,6 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
 
         if (result.count("data"))
             outOptions.dataPath = result["data"].as<std::string>();
-
-        if (result.count("m"))
-            outOptions.modelPath = result["m"].as<std::string>();
-
-        if (result.count("env"))
-            outOptions.envMapPath = result["env"].as<std::string>();
 
         if (result.count("scene"))
             outOptions.sceneName = result["scene"].as<std::string>();

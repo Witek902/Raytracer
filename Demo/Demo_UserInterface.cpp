@@ -430,13 +430,12 @@ bool DemoWindow::RenderUI_Settings_Object()
     }
 
     {
-        Float3 orientation;
-        mSelectedObject->mTransform.GetRotation().ToAngles(orientation.x, orientation.y, orientation.z);
+        Float3 orientation = mSelectedObject->mTransform.GetRotation().ToEulerAngles();
         orientation *= 180.0f / RT_PI;
         if (ImGui::InputFloat3("Orientation", &orientation.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             orientation *= RT_PI / 180.0f;
-            mSelectedObject->mTransform.SetRotation(Quaternion::FromAngles(orientation.x, orientation.y, orientation.z));
+            mSelectedObject->mTransform.SetRotation(Quaternion::FromEulerAngles(orientation));
             positionChanged = true;
         }
     }
@@ -451,13 +450,12 @@ bool DemoWindow::RenderUI_Settings_Object()
     }
 
     {
-        Float3 angularVelocity;
-        mSelectedObject->mAngularVelocity.ToAngles(angularVelocity.x, angularVelocity.y, angularVelocity.z);
+        Float3 angularVelocity = mSelectedObject->mAngularVelocity.ToEulerAngles();
         angularVelocity *= 180.0f / RT_PI;
         if (ImGui::InputFloat3("Angular Velocity", &angularVelocity.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             angularVelocity *= RT_PI / 180.0f;
-            mSelectedObject->mAngularVelocity = Quaternion::FromAngles(angularVelocity.x, angularVelocity.y, angularVelocity.z);
+            mSelectedObject->mAngularVelocity = Quaternion::FromEulerAngles(angularVelocity);
             positionChanged = true;
         }
     }
@@ -529,27 +527,12 @@ void DemoWindow::RenderUI()
 
     ImGui::NewFrame();
     {
-        static bool showStats = true;
+        static bool showStats = false;
         static bool showDebugging = false;
-        static bool showRenderSettings = true;
+        static bool showRenderSettings = false;
 
         if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("Scene"))
-            {
-                // TODO opening/saving scene
-
-                for (const auto& iter : mRegisteredScenes)
-                {
-                    if (ImGui::MenuItem(iter.first.c_str()))
-                    {
-                        SwitchScene(iter.second);
-                    }
-                }
-
-                ImGui::EndMenu();
-            }
-
             if (ImGui::BeginMenu("Tools"))
             {
                 ImGui::Checkbox("Settings", &showRenderSettings);

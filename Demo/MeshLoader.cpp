@@ -86,7 +86,7 @@ MaterialPtr LoadMaterial(const std::string& baseDir, const tinyobj::material_t& 
     return material;
 }
 
-MaterialPtr CreateDefaultMaterial(MaterialsList& outMaterials)
+MaterialPtr CreateDefaultMaterial(MaterialsMap& outMaterials)
 {
     auto material = MaterialPtr(new Material);
     material->debugName = "default";
@@ -95,11 +95,11 @@ MaterialPtr CreateDefaultMaterial(MaterialsList& outMaterials)
     material->roughness = 0.75f;
     material->Compile();
 
-    outMaterials.push_back(std::move(material));
-    return outMaterials.back();
+    outMaterials[material->debugName] = material;
+    return material;
 }
 
-MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const Float scale)
+MeshPtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const Float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
 
@@ -245,12 +245,11 @@ MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const
 
     // load materials
     materialPointers.reserve(materials.size());
-    outMaterials.reserve(materials.size());
     for (size_t i = 0; i < materials.size(); i++)
     {
         auto material = LoadMaterial(meshBaseDir, materials[i]);
         materialPointers.push_back(material);
-        outMaterials.emplace_back(std::move(material));
+        outMaterials[material->debugName] = material;
     }
 
     // fallback to default material
@@ -281,87 +280,6 @@ MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const
     meshDesc.vertexBufferDesc.normals = vertexNormals.data();
     meshDesc.vertexBufferDesc.tangents = vertexTangents.data();
     meshDesc.vertexBufferDesc.texCoords = vertexTexCoords.data();
-
-    MeshPtr mesh = MeshPtr(new Mesh);
-    bool result = mesh->Initialize(meshDesc);
-    if (!result)
-    {
-        return nullptr;
-    }
-
-    return mesh;
-}
-
-MeshPtr CreatePlane(MaterialsList& outMaterials, const Float size, const Float textureScale)
-{
-    auto material = MaterialPtr(new Material);
-    material->debugName = "floor";
-    material->baseColor = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-    material->emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    material->roughness = 0.5f;
-
-    //material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_COL_VAR1_HIRES.bmp");
-    //material->roughness.texture = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_GLOSS_HIRES.bmp");
-    //material->normalMap = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_NRM_HIRES.bmp");
-    material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
-    //material->normalMap = LoadTexture("TEXTURES/Tiles05/6K/", "Tiles05_NRM_6K.bmp");
-
-    material->Compile();
-
-    const MaterialPtr materials[] = { material };
-    const Uint32 materialIndices[] = { 0, 0 };
-    outMaterials.push_back(std::move(material));
-
-    const Uint32 indices[] =
-    {
-        0, 1, 2,
-        0, 2, 3,
-    };
-
-    const Float vertices[] =
-    {
-        -size,  0.0f, -size,
-         size,  0.0f, -size,
-         size,  0.0f,  size,
-        -size,  0.0f,  size,
-    };
-
-    const Float normals[] =
-    {
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-    };
-
-    const Float tangents[] =
-    {
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-    };
-
-    const Float texCoords[] =
-    {
-        0.0f, 0.0f,
-        size * textureScale, 0.0f,
-        size * textureScale, size * textureScale,
-        0.0f, size * textureScale,
-    };
-
-    MeshDesc meshDesc;
-    meshDesc.path = "plane";
-    meshDesc.vertexBufferDesc.numTriangles = 2;
-    meshDesc.vertexBufferDesc.numVertices = 4;
-    meshDesc.vertexBufferDesc.numMaterials = 1;
-    meshDesc.vertexBufferDesc.materials = materials;
-    meshDesc.vertexBufferDesc.materialIndexBuffer = materialIndices;
-    meshDesc.vertexBufferDesc.vertexIndexBuffer = indices;
-    meshDesc.vertexBufferDesc.positions = vertices;
-    meshDesc.vertexBufferDesc.normals = normals;
-    meshDesc.vertexBufferDesc.tangents = tangents;
-    meshDesc.vertexBufferDesc.texCoords = texCoords;
 
     MeshPtr mesh = MeshPtr(new Mesh);
     bool result = mesh->Initialize(meshDesc);
