@@ -47,6 +47,8 @@ Options gOptions;
 
 int main(int argc, char* argv[])
 {
+    rt::math::SetFlushDenormalsToZero();
+
     if (!ParseOptions(argc, argv, gOptions))
     {
         return 1;
@@ -69,6 +71,8 @@ int main(int argc, char* argv[])
     }
 
     RT_LOG_INFO("Closing.");
+
+    RT_ASSERT(rt::math::GetFlushDenormalsToZero(), "Something disabled flushing denormal float to zero");
 
 #if defined(_DEBUG) && defined(WIN32)
     _CrtDumpMemoryLeaks();

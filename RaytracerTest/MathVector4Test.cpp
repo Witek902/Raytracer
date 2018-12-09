@@ -236,69 +236,6 @@ TEST(MathTest, Vector4_VectorNotEqual)
 
 //////////////////////////////////////////////////////////////////////////
 
-TEST(MathTest, Vector4_VectorLess3)
-{
-    EXPECT_TRUE(Vector4::Less3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::Less3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 0.0f)));
-    EXPECT_FALSE(Vector4::Less3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 20.0f, 30.0f, 0.0f)));
-    EXPECT_FALSE(Vector4::Less3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 2.0f, 30.0f, 0.0f)));
-    EXPECT_FALSE(Vector4::Less3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 3.0f, 0.0f)));
-}
-
-TEST(MathTest, Vector4_VectorGreater3)
-{
-    EXPECT_TRUE(Vector4::Greater3(Vector4(10.0f, 20.0f, 30.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::Greater3(Vector4(10.0f, 20.0f, 30.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 40.0f)));
-    EXPECT_FALSE(Vector4::Greater3(Vector4(1.0f, 20.0f, 30.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 40.0f)));
-    EXPECT_FALSE(Vector4::Greater3(Vector4(10.0f, 2.0f, 30.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 40.0f)));
-    EXPECT_FALSE(Vector4::Greater3(Vector4(10.0f, 20.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 40.0f)));
-}
-
-TEST(MathTest, Vector4_VectorLessEq3)
-{
-    EXPECT_TRUE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 40.0f)));
-    EXPECT_TRUE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 0.0f)));
-    EXPECT_FALSE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(0.0f, 20.0f, 30.0f, 40.0f)));
-    EXPECT_FALSE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 0.0f, 30.0f, 40.0f)));
-    EXPECT_FALSE(Vector4::LessEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 0.0f, 40.0f)));
-}
-
-TEST(MathTest, Vector4_VectorGreaterEq3)
-{
-    EXPECT_TRUE(Vector4::GreaterEq3(Vector4(10.0f, 2.0f, 30.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::GreaterEq3(Vector4(10.0f, 20.0f, 30.0f, 40.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::GreaterEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::GreaterEq3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 111.0f)));
-    EXPECT_FALSE(Vector4::GreaterEq3(Vector4(0.0f, 20.0f, 30.0f, 40.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::GreaterEq3(Vector4(10.0f, 0.0f, 30.0f, 40.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::GreaterEq3(Vector4(10.0f, 20.0f, 0.0f, 40.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-}
-
-
-TEST(MathTest, Vector4_VectorEqual3)
-{
-    EXPECT_TRUE(Vector4::Equal3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_TRUE(Vector4::Equal3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 111.0f)));
-    EXPECT_FALSE(Vector4::Equal3(Vector4(111.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::Equal3(Vector4(1.0f, 222.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::Equal3(Vector4(1.0f, 2.0f, 333.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-}
-
-TEST(MathTest, Vector4_VectorNotEqual3)
-{
-    EXPECT_TRUE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 40.0f)));
-    EXPECT_TRUE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(10.0f, 20.0f, 30.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 333.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 222.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(111.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 4.0f)));
-    EXPECT_FALSE(Vector4::NotEqual3(Vector4(1.0f, 2.0f, 3.0f, 4.0f), Vector4(1.0f, 2.0f, 3.0f, 444.0f)));
-}
-
-//////////////////////////////////////////////////////////////////////////
-
 TEST(MathTest, Vector4_VectorSwizzle)
 {
     const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);

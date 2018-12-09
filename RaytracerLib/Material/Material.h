@@ -111,7 +111,7 @@ public:
     void Compile();
 
     const math::Vector4 GetNormalVector(const math::Vector4 uv) const;
-    Bool GetMaskValue(const math::Vector4 uv) const;
+    bool GetMaskValue(const math::Vector4 uv) const;
 
     void EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const;
 

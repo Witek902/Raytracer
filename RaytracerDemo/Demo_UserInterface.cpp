@@ -86,27 +86,74 @@ void DemoWindow::RenderUI_Debugging_Path()
 {
     for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
     {
+        ImGui::Separator();
         ImGui::Text("Ray #%zu", i);
 
+        ImGui::Columns(2);
+
         const rt::PathDebugData::HitPointData data = mPathDebugData.data[i];
-        ImGui::Text("  RayOrigin: [%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z);
-        ImGui::Text("  RayDir:    [%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z);
+
+        ImGui::Text("RayOrigin"); ImGui::NextColumn();
+        ImGui::Text("[%f, %f, %f]", data.rayOrigin.x, data.rayDir.y, data.rayOrigin.z); ImGui::NextColumn();
+
+        ImGui::Text("RayDir"); ImGui::NextColumn();
+        ImGui::Text("[%f, %f, %f]", data.rayDir.x, data.rayDir.y, data.rayDir.z); ImGui::NextColumn();
 
         if (data.hitPoint.distance != FLT_MAX)
         {
-            ImGui::Text("  Distance:    %f", data.hitPoint.distance);
-            ImGui::Text("  Object ID:   %u", data.hitPoint.objectId);
-            ImGui::Text("  Tri ID:      %u", data.hitPoint.triangleId);
-            ImGui::Text("  Tri UV:      [%f, %f]", data.hitPoint.u, data.hitPoint.v);
-            ImGui::Text("  Position:    [%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z);
-            ImGui::Text("  Normal:      [%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z);
-            //ImGui::Text("  Tangent:   [%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z);
-            //ImGui::Text("  Tex coord: [%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y);
-            ImGui::Text("  Material:    %s", data.shadingData.material->debugName.c_str());
-            ImGui::Text("  Throughput:  [%f, %f, %f, %f, %f, %f, %f, %f]",
+            ImGui::Text("Distance"); ImGui::NextColumn();
+            ImGui::Text("%f", data.hitPoint.distance); ImGui::NextColumn();
+
+            ImGui::Text("Object ID"); ImGui::NextColumn();
+            ImGui::Text("%u", data.hitPoint.objectId); ImGui::NextColumn();
+
+            ImGui::Text("Sub Obj ID"); ImGui::NextColumn();
+            ImGui::Text("%u", data.hitPoint.subObjectId); ImGui::NextColumn();
+
+            ImGui::Text("Tri UV"); ImGui::NextColumn();
+            ImGui::Text("[%f, %f]", data.hitPoint.u, data.hitPoint.v); ImGui::NextColumn();
+
+            ImGui::Text("Position"); ImGui::NextColumn();
+            ImGui::Text("[%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z); ImGui::NextColumn();
+
+            ImGui::Text("Normal"); ImGui::NextColumn();
+            ImGui::Text("[%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z); ImGui::NextColumn();
+
+            //ImGui::Text("Tangent"); ImGui::NextColumn();
+            //ImGui::Text("[%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z); ImGui::NextColumn();
+
+            //ImGui::Text("Tex coord"); ImGui::NextColumn();
+            //ImGui::Text("[%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y); ImGui::NextColumn();
+
+            ImGui::Text("Material"); ImGui::NextColumn();
+            ImGui::Text(data.shadingData.material->debugName.c_str()); ImGui::NextColumn();
+
+            ImGui::Text("Throughput"); ImGui::NextColumn();
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+            ImGui::Text("[%f, %f, %f, %f, %f, %f, %f, %f]",
                 data.throughput.value[0], data.throughput.value[1], data.throughput.value[2], data.throughput.value[3],
                 data.throughput.value[4], data.throughput.value[5], data.throughput.value[6], data.throughput.value[7]);
+#else
+            ImGui::Text("[%f, %f, %f]",
+                data.throughput.value[0], data.throughput.value[1], data.throughput.value[2]);
+#endif // RT_ENABLE_SPECTRAL_RENDERING
+            ImGui::NextColumn();
+
+            const char* bsdfEventStr = "Null";
+            switch (data.bsdfEvent)
+            {
+            case BSDF::DiffuseReflectionEvent: bsdfEventStr = "Diffuse Reflection"; break;
+            case BSDF::DiffuseTransmissionEvent: bsdfEventStr = "Diffuse Transmission"; break;
+            case BSDF::GlossyReflectionEvent: bsdfEventStr = "Glossy Reflection"; break;
+            case BSDF::GlossyRefractionEvent: bsdfEventStr = "Glossy Refraction"; break;
+            case BSDF::SpecularReflectionEvent: bsdfEventStr = "Specular Reflection"; break;
+            case BSDF::SpecularRefractionEvent: bsdfEventStr = "Specular Refraction"; break;
+            }
+            ImGui::Text("BSDF Event"); ImGui::NextColumn();
+            ImGui::Text(bsdfEventStr); ImGui::NextColumn();
         }
+
+        ImGui::Columns(1);
     }
 
     const char* terminationReasonStr = "None";

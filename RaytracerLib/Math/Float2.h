@@ -26,6 +26,8 @@ struct Float2
     RT_INLINE constexpr Float2(float x, float y);
     RT_INLINE constexpr explicit Float2(const float* src);
 
+    RT_INLINE bool IsValid() const;
+
     /// element access
     RT_INLINE float Get(Uint32 index) const;
     RT_INLINE float& Get(Uint32 index);

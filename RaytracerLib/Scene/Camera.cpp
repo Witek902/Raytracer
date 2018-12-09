@@ -17,6 +17,10 @@ Camera::Camera()
 
 void Camera::SetPerspective(const math::Transform& transform, Float aspectRatio, Float FoV)
 {
+    RT_ASSERT(transform.IsValid());
+    RT_ASSERT(IsValid(aspectRatio) && aspectRatio > 0.0f);
+    RT_ASSERT(IsValid(FoV) && aspectRatio > 0.0f && FoV < RT_PI);
+
     mTransform = transform;
     mAspectRatio = aspectRatio;
     mFieldOfView = FoV;
@@ -27,6 +31,8 @@ void Camera::SetAngularVelocity(const math::Quaternion& quat)
 {
     mAngularVelocity = quat.Normalized();
     mAngularVelocityIsZero = Quaternion::AlmostEqual(mAngularVelocity, Quaternion::Identity());
+
+    RT_ASSERT(mAngularVelocity.IsValid());
 }
 
 Transform Camera::SampleTransform(const float time) const

@@ -146,7 +146,6 @@
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)..\External;$(ProjectDir)</AdditionalIncludeDirectories>
@@ -175,7 +174,6 @@
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)..\External;$(ProjectDir)</AdditionalIncludeDirectories>

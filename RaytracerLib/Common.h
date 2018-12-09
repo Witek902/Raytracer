@@ -104,7 +104,6 @@ using Uint16 = unsigned short;
 using Int16 = signed short;
 using Uint8 = unsigned char;
 using Int8 = signed char;
-using Bool = bool;
 using Float = float;
 using Double = double;
 

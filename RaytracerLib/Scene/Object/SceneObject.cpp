@@ -29,7 +29,7 @@ Transform ISceneObject::ComputeTransform(const float t) const
 
 Transform ISceneObject::ComputeInverseTransform(const float t) const
 {
-    return ComputeTransform(t).Inverted();
+    return ComputeTransform(t).Invert();
 }
 
 

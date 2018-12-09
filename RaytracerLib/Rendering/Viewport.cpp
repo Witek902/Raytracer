@@ -101,6 +101,8 @@ bool Viewport::SetPostprocessParams(const PostprocessParams& params)
 
 bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
 {
+    RT_ASSERT(GetFlushDenormalsToZero(), "Flushing denormal float to zero is disabled");
+
     const Uint32 width = GetWidth();
     const Uint32 height = GetHeight();
     if (width == 0 || height == 0)

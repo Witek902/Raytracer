@@ -51,7 +51,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE operator __m128() const { return v; }
     RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
     RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
-    RT_FORCE_INLINE Float& operator[] (Uint32 index) { return f[index]; }
 
     // simple arithmetics
     RT_FORCE_INLINE const Vector4 operator- () const;
@@ -133,13 +132,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static int GreaterEqMask(const Vector4& v1, const Vector4& v2);
     RT_FORCE_INLINE static int NotEqualMask(const Vector4& v1, const Vector4& v2);
 
-    RT_FORCE_INLINE static bool Equal3(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool Less3(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool LessEq3(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool Greater3(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool GreaterEq3(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static bool NotEqual3(const Vector4& v1, const Vector4& v2);
-
     // Build mask of sign bits.
     RT_FORCE_INLINE int GetSignMask() const;
 
@@ -187,6 +179,9 @@ struct RT_ALIGN(16) Vector4
 
     // Length of a 4D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length4V() const;
+
+    // Square length of a 4D vector (scalar result)
+    RT_FORCE_INLINE Float SqrLength4() const;
 
     // Normalize as 3D vector.
     RT_FORCE_INLINE Vector4& Normalize3();

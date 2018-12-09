@@ -34,6 +34,11 @@ void Scene::AddLight(LightPtr object)
 
 void Scene::AddObject(SceneObjectPtr object)
 {
+    RT_ASSERT(object->mTransform.GetTranslation().IsValid());
+    RT_ASSERT(object->mTransform.GetRotation().IsValid());
+    RT_ASSERT(object->mLinearVelocity.IsValid());
+    RT_ASSERT(object->mAngularVelocity.IsValid());
+
     mObjects.push_back(std::move(object));
 }
 

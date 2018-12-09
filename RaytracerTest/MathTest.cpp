@@ -199,3 +199,11 @@ TEST(Math, IsInfinity_Float)
     EXPECT_FALSE(IsInfinity(123.0f));
     EXPECT_FALSE(IsInfinity(-123.0f));
 }
+
+TEST(Math, Denormal_Float)
+{
+    volatile float value = 1.0e-20f;
+    const float denormValue = value * value;
+
+    EXPECT_EQ(0.0f, denormValue);
+}

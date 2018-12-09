@@ -510,38 +510,6 @@ int Vector4::NotEqualMask(const Vector4& v1, const Vector4& v2)
     return _mm_movemask_ps(_mm_cmpneq_ps(v1, v2));
 }
 
-// 3D vector comparison functions =================================================================
-
-bool Vector4::Equal3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpeq_ps(v1, v2)) & 0x7) == 0x7;
-}
-
-bool Vector4::Less3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmplt_ps(v1, v2)) & 0x7) == 0x7;
-}
-
-bool Vector4::LessEq3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmple_ps(v1, v2)) & 0x7) == 0x7;
-}
-
-bool Vector4::Greater3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpgt_ps(v1, v2)) & 0x7) == 0x7;
-}
-
-bool Vector4::GreaterEq3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpge_ps(v1, v2)) & 0x7) == 0x7;
-}
-
-bool Vector4::NotEqual3(const Vector4& v1, const Vector4& v2)
-{
-    return (_mm_movemask_ps(_mm_cmpneq_ps(v1, v2)) & 0x7) == 0x7;
-}
-
 // 4D vector comparison functions =================================================================
 
 bool Vector4::operator== (const Vector4& b) const
@@ -689,6 +657,11 @@ const Vector4 Vector4::Length4V() const
 {
     const __m128 vDot = Dot4V(v, v);
     return _mm_sqrt_ps(vDot);
+}
+
+Float Vector4::SqrLength4() const
+{
+    return Dot4(*this, *this);
 }
 
 Vector4& Vector4::Normalize4()

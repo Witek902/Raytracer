@@ -22,7 +22,7 @@ enum class TraversalMode : Uint8
 
 struct AdaptiveRenderingSettings
 {
-    Bool enable = false;
+    bool enable = false;
     Uint32 numInitialPasses = 10;
     Uint32 minBlockSize = 4;
     Uint32 maxBlockSize = 256;

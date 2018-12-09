@@ -80,11 +80,18 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
 {
     // floor
     {
-        auto mesh = helpers::CreatePlane(materials, 100.0f, 1.0f);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+        auto material = Material::Create();
+        material->debugName = "floor";
+        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+        material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+        material->roughness = 0.8f;
+        material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+        material->Compile();
+
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>();
+        instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
-        meshes.push_back(std::move(mesh));
+        materials.push_back(std::move(material));
     }
 
     {
@@ -101,7 +108,7 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
     }
 }
 
-void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
+void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
     // floor
     {
@@ -163,6 +170,14 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
         instance->mTransform.SetTranslation(Vector4(1.5f, 0.5f, 0.0f, 0.0f));
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
+    }
+
+    {
+        auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
+        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
+        instance->mTransform.SetTranslation(Vector4(0.0f, 0.75f, -2.0f, 0.0f));
+        scene.AddObject(std::move(instance));
+        meshes.push_back(std::move(mesh));
     }
 
     //{

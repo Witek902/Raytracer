@@ -95,7 +95,7 @@ private:
     rt::PathDebugData mPathDebugData;
     rt::Material* mSelectedMaterial;
     rt::ISceneObject* mSelectedObject;
-    Bool mFocalDistancePicking = false;
+    bool mFocalDistancePicking = false;
 
     void InitializeUI();
 

@@ -125,6 +125,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
     bool lastSpecular = true;
     float lastPdfW = 1.0f;
+    BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
 
     for (;;)
     {
@@ -160,7 +161,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
 
         // we hit a light directly
-        if (hitPoint.triangleId == RT_LIGHT_OBJECT)
+        if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
             // HACK
             const LightSceneObject* lightSceneObj = static_cast<const LightSceneObject*>(mScene.GetObjects()[hitPoint.objectId].get());
@@ -228,8 +229,8 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
         // sample BSDF
         float pdf = 0.0f;
-        BSDF::EventType sampledEvent = BSDF::NullEvent;
-        throughput *= shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, sampledEvent);
+        lastSampledBsdfEvent = BSDF::NullEvent;
+        throughput *= shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, lastSampledBsdfEvent);
 
         // ray is not visible anymore
         if (throughput.AlmostZero())
@@ -238,7 +239,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             break;
         }
 
-        if (sampledEvent == BSDF::NullEvent)
+        if (lastSampledBsdfEvent == BSDF::NullEvent)
         {
             pathTerminationReason = PathTerminationReason::NoSampledEvent;
             break;
@@ -246,7 +247,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
         RT_ASSERT(pdf > 0.0f);
 
-        lastSpecular = (sampledEvent & BSDF::SpecularEvent) != 0;
+        lastSpecular = (lastSampledBsdfEvent & BSDF::SpecularEvent) != 0;
         lastPdfW = pdf;
         throughput *= 1.0f / pdf;
 
@@ -260,6 +261,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             data.hitPoint = hitPoint;
             data.shadingData = shadingData;
             data.throughput = throughput;
+            data.bsdfEvent = lastSampledBsdfEvent;
             context.pathDebugData->data.push_back(data);
         }
 
@@ -278,6 +280,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         data.hitPoint = hitPoint;
         data.shadingData = shadingData;
         data.throughput = throughput;
+        data.bsdfEvent = lastSampledBsdfEvent;
         context.pathDebugData->data.push_back(data);
         context.pathDebugData->terminationReason = pathTerminationReason;
     }

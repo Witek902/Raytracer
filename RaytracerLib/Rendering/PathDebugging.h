@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShadingData.h"
+#include "../Material/BSDF/BSDF.h"
 
 #include <vector>
 
@@ -45,6 +46,8 @@ struct PathDebugData
         math::Vector4 color;
 
         RaySource raySource;
+
+        BSDF::EventType bsdfEvent;
     };
 
     PathTerminationReason terminationReason = PathTerminationReason::None;

@@ -29,7 +29,7 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 
 const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingContext& context) const
 {
-    Vector4 rgbColor = color;
+    Vector4 rgbColor = mColor;
 
     // sample environment map
     if (mTexture)

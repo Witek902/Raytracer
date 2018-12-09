@@ -40,6 +40,11 @@ float& Float2::Get(Uint32 index)
     return (&x)[index];
 }
 
+bool Float2::IsValid() const
+{
+    return math::IsValid(x) && math::IsValid(y);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 template<Uint32 ix, Uint32 iy>

@@ -76,9 +76,10 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         }
         case DebugRenderingMode::TriangleID:
         {
-            const Uint32 hash = Hash(hitPoint.objectId + hitPoint.triangleId);
-            const float hue = (float)hash / (float)UINT32_MAX;
-            resultColor = HSVtoRGB(hue, 0.95f, 1.0f);
+            const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
+            const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
+            const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+            resultColor = HSVtoRGB(hue, saturation, 1.0f);
             break;
         }
 

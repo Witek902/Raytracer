@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Common.h"
+#include "../RayLib.h"
 
 #include <math.h>
 #include <xmmintrin.h>
@@ -20,6 +20,11 @@
 
 namespace rt {
 namespace math {
+
+
+// set/check flushing denormalized floats to zero
+RAYLIB_API void SetFlushDenormalsToZero(bool enable = true);
+RAYLIB_API bool GetFlushDenormalsToZero();
 
 // half (16-bit) floating point type
 using Half = Uint16;
@@ -171,6 +176,17 @@ RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
     a *= 0x27d4eb2d;
     a ^= (a >> 15);
     return a;
+}
+
+// MurmurHash3
+RT_FORCE_INLINE constexpr Uint64 Hash(Uint64 h)
+{
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53L;
+    h ^= h >> 33;
+    return h;
 }
 
 // bit population count

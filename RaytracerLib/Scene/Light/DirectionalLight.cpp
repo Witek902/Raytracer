@@ -6,6 +6,14 @@ namespace rt {
 
 using namespace math;
 
+DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color)
+    : ILight(color)
+    , mDirection(direction.Normalized3())
+{
+    RT_ASSERT(mDirection.IsValid());
+    RT_ASSERT(Abs(mDirection.SqrLength3() - 1.0f) < 0.001f);
+}
+
 const Box DirectionalLight::GetBoundingBox() const
 {
     return Box::Empty();
@@ -22,11 +30,11 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) cons
 
 const Color DirectionalLight::Illuminate(IlluminateParam& param) const
 {
-    param.outDirectionToLight = -direction;
+    param.outDirectionToLight = -mDirection;
     param.outDistance = 1.0f;
     param.outDirectPdfW = 1.0f;
 
-    return Color::SampleRGB(param.context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, mColor);
 }
 
 const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const

@@ -27,7 +27,7 @@ void PlaneSceneObject::Traverse_Single(const SingleTraversalContext& context, co
         {
             context.hitPoint.distance = t;
             context.hitPoint.objectId = objectID;
-            context.hitPoint.triangleId = 0;
+            context.hitPoint.subObjectId = 0;
         }
     }
 }

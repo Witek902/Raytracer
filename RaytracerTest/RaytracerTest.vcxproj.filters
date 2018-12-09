@@ -28,9 +28,6 @@
     <ClCompile Include="..\External\googletest\src\gtest.cc">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\External\googletest\src\gtest_main.cc">
-      <Filter>External</Filter>
-    </ClCompile>
     <ClCompile Include="ColorTest.cpp" />
     <ClCompile Include="RaytracingTests.cpp" />
     <ClCompile Include="MathVector4Test.cpp" />
@@ -38,6 +35,7 @@
     <ClCompile Include="MathTest.cpp" />
     <ClCompile Include="MathVector8Test.cpp" />
     <ClCompile Include="MathVectorInt4Test.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

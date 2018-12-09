@@ -5,6 +5,15 @@
 namespace rt {
 namespace math {
 
+bool Quaternion::IsValid() const
+{
+    if (q.IsNaN() || q.IsInfinite())
+        return false;
+    
+    // check if normalized
+    return Abs(q.SqrLength4() - 1.0f) < 0.001f;
+}
+
 Quaternion Quaternion::FromAxisAndAngle(const Vector4& axis, float angle)
 {
     angle *= 0.5f;

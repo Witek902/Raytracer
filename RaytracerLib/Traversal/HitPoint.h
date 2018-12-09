@@ -13,16 +13,15 @@ namespace rt {
 // Ray-scene intersection data (non-SIMD)
 struct HitPoint
 {
+    Uint32 objectId;
+    Uint32 subObjectId;
     float distance;
     float u;
     float v;
-    Uint32 triangleId;
-    Uint32 objectId;
 
     RT_FORCE_INLINE HitPoint()
-        : distance(FLT_MAX)
-        , triangleId(RT_INVALID_OBJECT)
-        , objectId(RT_INVALID_OBJECT)
+        : objectId(RT_INVALID_OBJECT)
+        , distance(FLT_MAX)
     {}
 };
 
@@ -32,12 +31,11 @@ struct RT_ALIGN(32) HitPoint_Simd8
     math::Vector8 distance;
     math::Vector8 u;
     math::Vector8 v;
-    math::VectorInt8 triangleId;
     math::VectorInt8 objectId;
+    math::VectorInt8 subObjectId;
 
     RT_FORCE_INLINE HitPoint_Simd8()
         : distance(math::VECTOR8_MAX)
-        , triangleId(RT_INVALID_OBJECT)
         , objectId(RT_INVALID_OBJECT)
     {}
 
@@ -50,8 +48,8 @@ struct RT_ALIGN(32) HitPoint_Simd8
         result.distance = distance[i];
         result.u = u[i];
         result.v = v[i];
-        result.triangleId = triangleId[i];
         result.objectId = objectId[i];
+        result.subObjectId = subObjectId[i];
         return result;
     }
 };

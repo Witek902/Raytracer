@@ -99,6 +99,16 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         return false;
     }
 
+    // validate vertices
+    {
+        const Float3* positions = (const Float3*)desc.positions;
+
+        for (Uint32 i = 0; i < desc.numVertices; ++i)
+        {
+            RT_ASSERT(positions[i].IsValid(), "Corrupted vertex position");
+        }
+    }
+
     // preprocess triangles
     {
         mPreprocessedTriangles = (ProcessedTriangle*)AlignedMalloc(preprocessedTrianglesBufferSize, RT_CACHE_LINE_SIZE);
@@ -128,10 +138,17 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         VertexIndices* buffer = reinterpret_cast<VertexIndices*>(mBuffer + mVertexIndexBufferOffset);
         for (Uint32 i = 0; i < desc.numTriangles; ++i)
         {
-            buffer[i].i0 = desc.vertexIndexBuffer[3 * i];
-            buffer[i].i1 = desc.vertexIndexBuffer[3 * i + 1];
-            buffer[i].i2 = desc.vertexIndexBuffer[3 * i + 2];
-            buffer[i].materialIndex = desc.materialIndexBuffer[i];
+            VertexIndices& indices = buffer[i];
+
+            indices.i0 = desc.vertexIndexBuffer[3 * i];
+            indices.i1 = desc.vertexIndexBuffer[3 * i + 1];
+            indices.i2 = desc.vertexIndexBuffer[3 * i + 2];
+            indices.materialIndex = desc.materialIndexBuffer[i];
+
+            RT_ASSERT(indices.i0 < desc.numVertices, "Vertex index out of bounds");
+            RT_ASSERT(indices.i1 < desc.numVertices, "Vertex index out of bounds");
+            RT_ASSERT(indices.i2 < desc.numVertices, "Vertex index out of bounds");
+            RT_ASSERT(indices.materialIndex < desc.numMaterials, "Material index out of bounds");
         }
     }
 
@@ -145,6 +162,10 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
             buffer[i].normal = desc.normals ? Float3(desc.normals + 3 * i) : Float3();
             buffer[i].tangent = desc.tangents ? Float3(desc.tangents + 3 * i) : Float3();
             buffer[i].texCoord = desc.texCoords ? Float2(desc.texCoords + 2 * i) : Float2();
+
+            RT_ASSERT(buffer[i].normal.IsValid(), "Corrupted normal vector");
+            RT_ASSERT(buffer[i].tangent.IsValid(), "Corrupted tangent vector");
+            RT_ASSERT(buffer[i].texCoord.IsValid(), "Corrupted texture coordinates");
         }
     }
 

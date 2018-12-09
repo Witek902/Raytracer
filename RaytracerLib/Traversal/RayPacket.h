@@ -97,7 +97,7 @@ struct RT_ALIGN(64) RayStreamHitData
     Float distance[MaxRayPacketSize];
     Float u[MaxRayPacketSize];
     Float v[MaxRayPacketSize];
-    Uint32 triangleId[MaxRayPacketSize];
+    Uint32 subObjectId[MaxRayPacketSize];
     Uint32 objectId[MaxRayPacketSize];
 };
 */

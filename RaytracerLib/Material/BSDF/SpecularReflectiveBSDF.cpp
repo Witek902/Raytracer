@@ -8,11 +8,6 @@ using namespace math;
 
 bool SpecularReflectiveBSDF::Sample(SamplingContext& ctx) const
 {
-    if (ctx.outgoingDir.z < CosEpsilon)
-    {
-        return false;
-    }
-
     ctx.outColor = Color::One();
     ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, VECTOR_Z);
     ctx.outPdf = 1.0f;

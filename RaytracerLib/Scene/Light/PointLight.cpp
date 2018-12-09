@@ -7,9 +7,16 @@ namespace rt {
 
 using namespace math;
 
+PointLight::PointLight(const math::Vector4& position, const math::Vector4& color)
+    : ILight(color)
+    , mPosition(position)
+{
+    RT_ASSERT(mPosition.IsValid());
+}
+
 const Box PointLight::GetBoundingBox() const
 {
-    return Box(position, position);
+    return Box(mPosition, mPosition);
 }
 
 bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
@@ -23,14 +30,14 @@ bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 
 const Color PointLight::Illuminate(IlluminateParam& param) const
 {
-    param.outDirectionToLight = position - param.shadingData.position;
+    param.outDirectionToLight = mPosition - param.shadingData.position;
     const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
     param.outDirectPdfW = sqrDistance;
     param.outDistance = std::sqrt(sqrDistance);
     param.outDirectionToLight /= param.outDistance;
 
-    return Color::SampleRGB(param.context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, mColor);
 }
 
 const Color PointLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const

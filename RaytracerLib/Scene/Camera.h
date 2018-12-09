@@ -86,7 +86,7 @@ public:
     // camera lens distortion (0.0 - no distortion)
     Float barrelDistortionConstFactor;
     Float barrelDistortionVariableFactor;
-    Bool enableBarellDistortion;
+    bool enableBarellDistortion;
 
 private:
     Float mTanHalfFoV;

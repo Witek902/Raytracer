@@ -37,7 +37,6 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE operator __m128i() const { return v; }
 
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
-    RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
 
     // bitwise logic operations
     RT_FORCE_INLINE const VectorInt4 operator & (const VectorInt4& b) const;

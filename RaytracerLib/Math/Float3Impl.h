@@ -45,6 +45,11 @@ Float3::operator Float2() const
     return Float2(x, y);
 }
 
+bool Float3::IsValid() const
+{
+    return math::IsValid(x) && math::IsValid(y) && math::IsValid(z);
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 template<Uint32 ix, Uint32 iy, Uint32 iz>

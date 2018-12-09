@@ -13,10 +13,9 @@ public:
     BackgroundLight() = default;
 
     BackgroundLight(const math::Vector4& color)
-        : color(color)
+        : ILight(color)
     {}
 
-    math::Vector4 color;
     BitmapPtr mTexture = nullptr;
 
     virtual const math::Box GetBoundingBox() const override;

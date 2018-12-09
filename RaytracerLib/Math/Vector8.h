@@ -34,7 +34,8 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE operator __m256() const { return v; }
     RT_FORCE_INLINE operator __m256i() const { return reinterpret_cast<const __m256i*>(&v)[0]; }
     RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
-    RT_FORCE_INLINE Float& operator[] (Uint32 index) { return f[index]; }
+
+    RT_FORCE_INLINE void SetElement(Uint32 index, Float value) { f[index] = value; }
 
     // extract lower lanes
     RT_FORCE_INLINE Vector4 Low() const

@@ -97,7 +97,7 @@ void Bitmap::Release()
     mFormat = Format::Unknown;
 }
 
-Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, bool linearSpace)
+bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, bool linearSpace)
 {
     const size_t dataSize = GetDataSize(width, height, format);
     if (dataSize == 0)
@@ -137,7 +137,7 @@ Bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
     return true;
 }
 
-Bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
+bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
 {
     if (target.mWidth != source.mWidth || target.mHeight != source.mHeight)
     {
@@ -155,7 +155,7 @@ Bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
     return true;
 }
 
-Bool Bitmap::Load(const char* path)
+bool Bitmap::Load(const char* path)
 {
     Timer timer;
 

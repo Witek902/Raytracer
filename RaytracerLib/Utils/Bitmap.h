@@ -79,14 +79,14 @@ public:
     static size_t GetDataSize(Uint32 width, Uint32 height, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
-    Bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
+    bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
 
     // copy texture data
     // NOTE: both textures must have the same format and size
-    static Bool Copy(Bitmap& target, const Bitmap& source);
+    static bool Copy(Bitmap& target, const Bitmap& source);
 
     // load from file
-    Bool Load(const char* path);
+    bool Load(const char* path);
 
     // save to BMP file
     bool SaveBMP(const char* path, bool flipVertically) const;

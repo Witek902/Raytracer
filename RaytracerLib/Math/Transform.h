@@ -40,6 +40,8 @@ public:
     RT_FORCE_INLINE void SetTranslation(const Vector4& translation) { mTranslation = translation; }
     RT_FORCE_INLINE void SetRotation(const Quaternion& rotation) { mRotation = rotation; }
 
+    RT_FORCE_INLINE bool IsValid() const { return mTranslation.IsValid() && mRotation.IsValid(); }
+
     /**
      * Transform composition.
      * The order is the same as for quaternions composition:

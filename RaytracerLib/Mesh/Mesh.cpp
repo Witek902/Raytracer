@@ -127,17 +127,17 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 triangleIndex = node.childIndex + i;
-
         const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
 
-        if (Intersect_TriangleRay(context.ray, Vector4(tri.v0), Vector4(tri.edge1), Vector4(tri.edge2), u, v, distance))
+        if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
             HitPoint& hitPoint = context.hitPoint;
-            const bool sameSurface = hitPoint.triangleId == triangleIndex && hitPoint.objectId == objectID;
+
+            const bool sameSurface = hitPoint.objectId == objectID && hitPoint.subObjectId == triangleIndex;
             if (distance < hitPoint.distance && !sameSurface)
             {
                 hitPoint.distance = distance;
-                hitPoint.triangleId = triangleIndex;
+                hitPoint.subObjectId = triangleIndex;
                 hitPoint.objectId = objectID;
                 hitPoint.u = u;
                 hitPoint.v = v;
@@ -162,7 +162,7 @@ bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, co
     {
         const Uint32 triangleIndex = node.childIndex + i;
         const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
-        if (Intersect_TriangleRay(context.ray, Vector4(tri.v0), Vector4(tri.edge1), Vector4(tri.edge2), u, v, distance))
+        if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
             HitPoint& hitPoint = context.hitPoint;
             if (distance < hitPoint.distance)
@@ -210,7 +210,7 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
             hitPoint.u = Vector8::SelectBySign(hitPoint.u, u, mask);
             hitPoint.v = Vector8::SelectBySign(hitPoint.v, v, mask);
             hitPoint.distance = Vector8::SelectBySign(hitPoint.distance, distance, mask);
-            hitPoint.triangleId = VectorInt8::SelectBySign(hitPoint.triangleId, triangleIndexVec, VectorInt8::Cast(mask));
+            hitPoint.subObjectId = VectorInt8::SelectBySign(hitPoint.subObjectId, triangleIndexVec, VectorInt8::Cast(mask));
             hitPoint.objectId = VectorInt8::SelectBySign(hitPoint.objectId, objectIndexVec, VectorInt8::Cast(mask));
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
@@ -265,11 +265,11 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
                         const Uint32 subOffset = rayOffset % 8; // offset within hit point group
                         HitPoint_Simd8& hitPoint = context.hitPoint[rayOffset / 8];
 
-                        hitPoint.u[subOffset] = u[k];
-                        hitPoint.v[subOffset] = v[k];
-                        hitPoint.distance[subOffset] = distance[k];
-                        hitPoint.triangleId[subOffset] = triangleIndex;
-                        hitPoint.objectId[subOffset] = objectID;
+                        hitPoint.u.SetElement(subOffset, u[k]);
+                        hitPoint.v.SetElement(subOffset, v[k]);
+                        hitPoint.distance.SetElement(subOffset, distance[k]);
+                        hitPoint.subObjectId.SetElement(subOffset, triangleIndex);
+                        hitPoint.objectId.SetElement(subOffset, objectID);
                     }
                 }
 
@@ -286,7 +286,7 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outData) const
  {
     VertexIndices indices;
-    mVertexBuffer.GetVertexIndices(hitPoint.triangleId, indices); // TODO cache this in MeshIntersectionData?
+    mVertexBuffer.GetVertexIndices(hitPoint.subObjectId, indices); // TODO cache this in MeshIntersectionData?
 
     outData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
 

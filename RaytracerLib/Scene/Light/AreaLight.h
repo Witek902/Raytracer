@@ -22,8 +22,6 @@ private:
     math::Vector4 edge1;
     math::Vector4 normal;
 
-    math::Vector4 color;
-
     Float invArea; // inverted surface area
 
     bool isTriangle = false;

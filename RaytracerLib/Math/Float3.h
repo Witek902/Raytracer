@@ -31,6 +31,8 @@ struct Float3
     // cast to Float2 (Z component is discarded)
     RT_INLINE operator Float2() const;
 
+    RT_INLINE bool IsValid() const;
+
     /// element access
     RT_INLINE float Get(Uint32 index) const;
     RT_INLINE float& Get(Uint32 index);

@@ -28,7 +28,7 @@ public:
         float outDirectPdfW = 0.0f;
     };
 
-    ILight() = default;
+    ILight(const math::Vector4 color);
     virtual ~ILight() = default;
 
     // get light's surface bounding box
@@ -64,6 +64,11 @@ public:
     // Returns true if the light cannot be hit by camera ray directly.
     // E.g. directional light or point light.
     virtual bool IsDelta() const = 0;
+
+protected:
+
+    // TODO color spectrum
+    math::Vector4 mColor;
 
 private:
     // light object cannot be copied

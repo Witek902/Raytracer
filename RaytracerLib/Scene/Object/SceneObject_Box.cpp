@@ -128,11 +128,11 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
         {       
             const Vector4 cubePoint = ray.GetAtDistance(nearDist) * mInvSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
-            if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
+            if (hitPoint.objectId != objectID || hitPoint.subObjectId != side)
             {
                 hitPoint.distance = nearDist;
                 hitPoint.objectId = objectID;
-                hitPoint.triangleId = side;
+                hitPoint.subObjectId = side;
                 return;
             }
         }
@@ -141,11 +141,11 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
         {
             const Vector4 cubePoint = ray.GetAtDistance(farDist) * mInvSize;
             const Uint32 side = helper::GetCubeSide(cubePoint);
-            if (hitPoint.objectId != objectID || hitPoint.triangleId != side)
+            if (hitPoint.objectId != objectID || hitPoint.subObjectId != side)
             {
                 hitPoint.distance = farDist;
                 hitPoint.objectId = objectID;
-                hitPoint.triangleId = side;
+                hitPoint.subObjectId = side;
                 return;
             }
         }

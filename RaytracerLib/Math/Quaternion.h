@@ -27,6 +27,9 @@ struct RT_ALIGN(16) Quaternion final
     RT_FORCE_INLINE operator const Vector4&() const { return q; }
     RT_FORCE_INLINE operator Vector4&() { return q; }
 
+    // check if quaternion is normalized and its values are valid
+    bool IsValid() const;
+
     /**
      * Get transformed X, Y, Z axes.
      */

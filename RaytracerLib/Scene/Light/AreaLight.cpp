@@ -9,11 +9,15 @@ namespace rt {
 using namespace math;
 
 AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edge1, const Vector4& color)
-    : p0(p0)
+    : ILight(color)
+    , p0(p0)
     , edge0(edge0)
     , edge1(edge1)
-    , color(color)
 {
+    RT_ASSERT(p0.IsValid());
+    RT_ASSERT(edge0.IsValid());
+    RT_ASSERT(edge1.IsValid());
+
     const Vector4 cross = Vector4::Cross3(edge1, edge0);
     normal = cross.Normalized3();
 
@@ -80,7 +84,7 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
 
     param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
 
-    return Color::SampleRGB(param.context.wavelength, color);
+    return Color::SampleRGB(param.context.wavelength, mColor);
 }
 
 const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
@@ -98,7 +102,7 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
         *outDirectPdfA = invArea;
     }
 
-    return Color::SampleRGB(context.wavelength, color);
+    return Color::SampleRGB(context.wavelength, mColor);
 }
 
 bool AreaLight::IsFinite() const

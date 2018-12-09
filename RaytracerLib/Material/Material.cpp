@@ -53,6 +53,14 @@ Material& Material::operator = (Material&&) = default;
 
 void Material::Compile()
 {
+    RT_ASSERT(emission.baseValue.IsValid());
+    RT_ASSERT(baseColor.baseValue.IsValid());
+    RT_ASSERT(IsValid(roughness.baseValue));
+    RT_ASSERT(IsValid(metalness.baseValue));
+    RT_ASSERT(IsValid(normalMapStrength) && normalMapStrength >= 0.0f);
+    RT_ASSERT(IsValid(IoR) && IoR >= 0.0f);
+    RT_ASSERT(IsValid(K) && K >= 0.0f);
+
     emission.baseValue = Vector4::Max(Vector4::Zero(), emission.baseValue);
     baseColor.baseValue = Vector4::Max(Vector4::Zero(), Vector4::Min(VECTOR_ONE, baseColor.baseValue));
 
@@ -99,7 +107,7 @@ const Vector4 Material::GetNormalVector(const Vector4 uv) const
     return normal;
 }
 
-Bool Material::GetMaskValue(const Vector4 uv) const
+bool Material::GetMaskValue(const Vector4 uv) const
 {
     if (maskMap)
     {
@@ -113,7 +121,7 @@ Bool Material::GetMaskValue(const Vector4 uv) const
 void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
 {
     shadingData.materialParams.baseColor = Color::SampleRGB(wavelength, baseColor.Evaluate(shadingData.texCoord));
-    shadingData.materialParams.roughness = 1.0f - roughness.Evaluate(shadingData.texCoord);
+    shadingData.materialParams.roughness = roughness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.metalness = metalness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.IoR = IoR;
 }

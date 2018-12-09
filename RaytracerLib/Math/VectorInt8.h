@@ -26,7 +26,8 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE operator __m256i() const { return v; }
     RT_FORCE_INLINE operator __m256() const { return _mm256_castsi256_ps(v); }
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
-    RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
+
+    RT_FORCE_INLINE void SetElement(Uint32 index, Int32 value) { i[index] = value; }
 
     // bitwise logic operations
     RT_FORCE_INLINE const VectorInt8 operator & (const VectorInt8& b) const;

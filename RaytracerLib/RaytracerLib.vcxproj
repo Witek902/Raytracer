@@ -155,7 +155,6 @@
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
@@ -189,7 +188,6 @@
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
