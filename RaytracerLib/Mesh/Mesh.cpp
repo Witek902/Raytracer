@@ -133,8 +133,7 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
         {
             HitPoint& hitPoint = context.hitPoint;
 
-            const bool sameSurface = hitPoint.objectId == objectID && hitPoint.subObjectId == triangleIndex;
-            if (distance < hitPoint.distance && !sameSurface)
+            if (distance < hitPoint.distance)
             {
                 hitPoint.distance = distance;
                 hitPoint.subObjectId = triangleIndex;

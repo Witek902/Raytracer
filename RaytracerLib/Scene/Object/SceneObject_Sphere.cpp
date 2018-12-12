@@ -33,7 +33,7 @@ void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, c
         const double sqrtDet = sqrt(det);
 
         const float nearDist = (float)(v - sqrtDet);
-        if (nearDist > 0.0f && nearDist < context.hitPoint.distance && (objectID != context.hitPoint.objectId || context.hitPoint.subObjectId != 0))
+        if (nearDist > 0.0f && nearDist < context.hitPoint.distance)
         {
             context.hitPoint.distance = nearDist;
             context.hitPoint.objectId = objectID;
@@ -42,11 +42,11 @@ void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, c
         }
 
         const float farDist = (float)(v + sqrtDet);
-        if (farDist > 0.0f && farDist < context.hitPoint.distance && (objectID != context.hitPoint.objectId || context.hitPoint.subObjectId != 0))
+        if (farDist > 0.0f && farDist < context.hitPoint.distance)
         {
             context.hitPoint.distance = farDist;
             context.hitPoint.objectId = objectID;
-            context.hitPoint.subObjectId = 1;
+            context.hitPoint.subObjectId = 0;
             return;
         }
     }
