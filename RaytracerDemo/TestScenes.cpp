@@ -49,9 +49,8 @@ void InitScene_Background(Scene& scene, DemoWindow::Materials&, DemoWindow::Mesh
 
 void InitScene_Mesh(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
 {
-    const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
-
     {
+        const Vector4 lightColor(2.0f, 2.0f, 2.0f, 0.0f);
         auto background = std::make_unique<BackgroundLight>(lightColor);
         if (!gOptions.envMapPath.empty())
         {
@@ -105,6 +104,73 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
         camera.position = Vector4(0.11f, 0.4f, 2.6f, 0.0f);
         camera.orientation.y = -0.5f;
         camera.orientation.x = -3.0f;
+    }
+}
+
+void InitScene_Materials(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+{
+    // floor
+    {
+        auto material = Material::Create();
+        material->debugName = "floor";
+        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+        material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+        material->roughness = 0.8f;
+        material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+        material->Compile();
+
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(Vector4(0.5f));
+        instance->mDefaultMaterial = material;
+        scene.AddObject(std::move(instance));
+        materials.push_back(std::move(material));
+    }
+
+    const Uint32 numRows = 8;
+
+    for (Uint32 i = 0; i <= numRows; ++i)
+    {
+        for (Uint32 j = 0; j <= numRows; ++j)
+        {
+            auto material = Material::Create();
+            material->debugName = "mat_roughness" + std::to_string(i) + "_metalness" + std::to_string(j);
+            material->baseColor = math::Vector4(0.9f, 0.1f, 0.1f, 0.0f);
+            material->roughness = (Float)i / (Float)numRows;
+            material->metalness = (Float)j / (Float)numRows;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.4f);
+            instance->mDefaultMaterial = material;
+            instance->mTransform.SetTranslation(Vector4(1.0f * (Float)i, 0.4f, 1.0f * (Float)j, 0.0f));
+            scene.AddObject(std::move(instance));
+            materials.push_back(std::move(material));
+        }
+    }
+
+    {
+        const float size = 1.0f;
+
+        const Vector4 lightColor = Vector4(20.0f, 20.0f, 20.0f, 0.0f) / (size * size);
+        const Vector4 lightPosition(12.0f, 12.0f, 12.0f, 0.0f);
+        const Vector4 lightEdge0(-size, 2.0f * size, -size, 0.0f);
+        const Vector4 lightEdge1(-2.0f * size, 0.0f, 2.0f * size, 0.0f);
+        scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
+    }
+
+    {
+        const Vector4 lightColor(0.5f, 0.5f, 0.5f, 0.0f);
+        auto background = std::make_unique<BackgroundLight>(lightColor);
+        if (!gOptions.envMapPath.empty())
+        {
+            background->mTexture = helpers::LoadTexture(gOptions.dataPath, gOptions.envMapPath);
+        }
+        scene.SetBackgroundLight(std::move(background));
+    }
+
+    {
+        camera = CameraSetup();
+        camera.position = Vector4(0.11f, 1.6f, 2.6f, 0.0f);
+        camera.orientation.y = -0.3f;
+        camera.orientation.x = -3.11f;
     }
 }
 
@@ -498,6 +564,7 @@ void DemoWindow::RegisterTestScenes()
     mRegisteredScenes["Empty"] = InitScene_Empty;
     mRegisteredScenes["Background"] = InitScene_Background;
     mRegisteredScenes["Plane"] = InitScene_Plane;
+    mRegisteredScenes["Materials"] = InitScene_Materials;
     mRegisteredScenes["Furnace Test"] = InitScene_Furnace_Test;
     mRegisteredScenes["Specular Test"] = InitScene_Specular_Test;
     mRegisteredScenes["Mesh"] = InitScene_Mesh;
