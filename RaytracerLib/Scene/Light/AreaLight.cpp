@@ -3,6 +3,7 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
+#include "../../Utils/Bitmap.h"
 
 namespace rt {
 
@@ -17,6 +18,9 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     RT_ASSERT(p0.IsValid());
     RT_ASSERT(edge0.IsValid());
     RT_ASSERT(edge1.IsValid());
+
+    edgeLengthInv0 = 1.0f / edge0.Length3();
+    edgeLengthInv1 = 1.0f / edge1.Length3();
 
     const Vector4 cross = Vector4::Cross3(edge1, edge0);
     normal = cross.Normalized3();
@@ -67,6 +71,14 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
 {
     const Float2 uv = isTriangle ? param.context.randomGenerator.GetTriangle() : param.context.randomGenerator.GetFloat2();
 
+    Vector4 rgbColor = mColor;
+
+    // sample texture map
+    if (mTexture)
+    {
+        rgbColor *= mTexture->Sample(Vector4(uv), SamplerDesc());
+    }
+
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
@@ -84,13 +96,11 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
 
     param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
 
-    return Color::SampleRGB(param.context.wavelength, mColor);
+    return Color::SampleRGB(param.context.wavelength, rgbColor);
 }
 
 const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
-    RT_UNUSED(hitPoint);
-
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
     {
@@ -102,7 +112,19 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
         *outDirectPdfA = invArea;
     }
 
-    return Color::SampleRGB(context.wavelength, mColor);
+    Vector4 rgbColor = mColor;
+
+    if (mTexture)
+    {
+        const Vector4 lightSpaceHitPoint = hitPoint - p0;
+        const Float u = Vector4::Dot3(lightSpaceHitPoint, edge0 * edgeLengthInv0) * edgeLengthInv0;
+        const Float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
+        const Vector4 textureCoords(u, v, 0.0f, 0.0f);
+
+        rgbColor *= mTexture->Sample(textureCoords, SamplerDesc());
+    }
+
+    return Color::SampleRGB(context.wavelength, rgbColor);
 }
 
 bool AreaLight::IsFinite() const

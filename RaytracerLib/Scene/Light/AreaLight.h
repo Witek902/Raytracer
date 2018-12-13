@@ -4,6 +4,9 @@
 
 namespace rt {
 
+class Bitmap;
+using BitmapPtr = std::shared_ptr<Bitmap>;
+
 class RAYLIB_API AreaLight : public ILight
 {
 public:
@@ -16,6 +19,8 @@ public:
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final;
 
+    BitmapPtr mTexture = nullptr;
+
 private:
     math::Vector4 p0;
     math::Vector4 edge0;
@@ -23,6 +28,8 @@ private:
     math::Vector4 normal;
 
     Float invArea; // inverted surface area
+    Float edgeLengthInv0;
+    Float edgeLengthInv1;
 
     bool isTriangle = false;
 };
