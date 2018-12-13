@@ -1,7 +1,10 @@
 # Raytracer
 A side project which aims to build an efficient photorealistic software renderer.
 
-![Sample Render](https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/1.jpg "Sample Render")
+<p float="left">
+    <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/1.jpg">
+    <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/2.jpg">
+</p>
 
 Features
 ========
