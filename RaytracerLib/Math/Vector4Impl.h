@@ -180,12 +180,12 @@ Float3 Vector4::ToFloat3() const
     return Float3{ x, y, z };
 }
 
-template<bool flipX, bool flipY, bool flipZ, bool flipW>
+template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
 const Vector4 Vector4::ChangeSign() const
 {
     if (!(flipX || flipY || flipZ || flipW))
     {
-        // no negation
+        // no operation
         return *this;
     }
 
@@ -194,6 +194,21 @@ const Vector4 Vector4::ChangeSign() const
 
     // flip sign bits
     return _mm_xor_ps(v, mask);
+}
+
+template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
+RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
+{
+    if (maskX && maskY && maskZ && maskW)
+    {
+        // special case - mask everything
+        return Zero();
+    }
+
+    // generate bit negation mask
+    const Vector4 mask = { maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
+
+    return mask;
 }
 
 // Elements rearrangement =========================================================================

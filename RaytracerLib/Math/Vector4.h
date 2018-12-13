@@ -88,9 +88,13 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE const Vector4 SplatZ() const;
     RT_FORCE_INLINE const Vector4 SplatW() const;
 
-    // Rearrange vector elements.
-    template<bool flipX = false, bool flipY = false, bool flipZ = false, bool flipW = false>
+    // Change sign of selected elements
+    template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
     RT_FORCE_INLINE const Vector4 ChangeSign() const;
+
+    // Prepare mask vector
+    template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
+    RT_FORCE_INLINE static const Vector4 MakeMask();
 
     // Rearrange vector elements.
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
@@ -265,6 +269,7 @@ RT_GLOBAL_CONST Vector4 VECTOR_MASK_Y = { 0u, 0xFFFFFFFFu, 0u, 0u };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_Z = { 0u, 0u, 0xFFFFFFFFu, 0u };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_W = { 0u, 0u, 0u, 0xFFFFFFFFu };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_XY = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0u, 0u };
+RT_GLOBAL_CONST Vector4 VECTOR_MASK_XZ = { 0xFFFFFFFFu, 0u, 0xFFFFFFFFu, 0u };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZ = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0u };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZW = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu };
 

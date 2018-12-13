@@ -102,10 +102,12 @@ void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Sha
 
     outShadingData.texCoord = Vector4::Zero(); // TODO
     outShadingData.normal = outShadingData.position * mInvRadius;
-    outShadingData.tangent = Vector4::Cross3(outShadingData.normal, VECTOR_Y);
+
+    // equivalent of: Vector4::Cross3(outShadingData.normal, VECTOR_Y);
+    outShadingData.tangent = (outShadingData.normal.Swizzle<2,0,0,0>() & Vector4::MakeMask<1,0,1,0>()).ChangeSign<1,0,0,0>();
+
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
 
-    outShadingData.normal.FastNormalize3();
     outShadingData.tangent.FastNormalize3();
     outShadingData.bitangent.FastNormalize3();
 }
