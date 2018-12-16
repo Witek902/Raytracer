@@ -87,7 +87,8 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
         material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>();
+        const Float2 size(1.0f, 1.0f);
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(size);
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
@@ -119,7 +120,7 @@ void InitScene_Materials(Scene& scene, DemoWindow::Materials& materials, DemoWin
         material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(Vector4(0.5f));
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(Float2(FLT_MAX), Float2(0.5f));
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));

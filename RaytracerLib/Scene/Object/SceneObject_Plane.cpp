@@ -8,16 +8,18 @@ namespace rt {
 
 using namespace math;
 
-PlaneSceneObject::PlaneSceneObject(const math::Vector4 texScale)
-    : mTextureScale(texScale)
+PlaneSceneObject::PlaneSceneObject(const Float2 size, const Float2 texScale)
+    : mSize(size)
+    , mTextureScale(texScale)
 { }
 
 Box PlaneSceneObject::GetBoundingBox() const
 {
+    // TODO
     return Box::Full();
 }
 
-void PlaneSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
+bool PlaneSceneObject::Traverse_Single_Internal(const SingleTraversalContext& context, float& outDist) const
 {
     if (Abs(context.ray.dir.y) > RT_EPSILON)
     {
@@ -25,27 +27,34 @@ void PlaneSceneObject::Traverse_Single(const SingleTraversalContext& context, co
 
         if (t > 0.0f && t < context.hitPoint.distance)
         {
-            context.hitPoint.distance = t;
-            context.hitPoint.objectId = objectID;
-            context.hitPoint.subObjectId = 0;
+            const Vector4 pos = context.ray.GetAtDistance(t);
+
+            // TODO (Vector4::Abs(pos) < Vector4(mSize.x, 0.0f, mSize.y, 0.0f)).Check<1,0,1,0>()
+            if (Vector4::Abs(pos) < Vector4(mSize.x, 1.0f, mSize.y, 1.0f))
+            {
+                outDist = t;
+                return true;
+            }
         }
+    }
+
+    return false;
+}
+
+void PlaneSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
+{
+    float t;
+    if (Traverse_Single_Internal(context, t))
+    {
+        context.hitPoint.distance = t;
+        context.hitPoint.objectId = objectID;
+        context.hitPoint.subObjectId = 0;
     }
 }
 
 bool PlaneSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 {
-    if (Abs(context.ray.dir.y) > RT_EPSILON)
-    {
-        const float t = -context.ray.origin.y * context.ray.invDir.y;
-
-        if (t > 0.0f && t < context.hitPoint.distance)
-        {
-            context.hitPoint.distance = t;
-            return true;
-        }
-    }
-
-    return false;
+    return Traverse_Single_Internal(context, context.hitPoint.distance);
 }
 
 void PlaneSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
@@ -67,10 +76,10 @@ void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
     RT_UNUSED(hitPoint);
 
     outShadingData.material = mDefaultMaterial.get();
-    outShadingData.texCoord = Vector4(outShadingData.position.x, outShadingData.position.z, 0.0f, 0.0f) * mTextureScale;
-    outShadingData.normal = VECTOR_Y;
+    outShadingData.texCoord = Vector4(outShadingData.position.x, outShadingData.position.z, 0.0f, 0.0f) * Vector4(mTextureScale);
     outShadingData.tangent = VECTOR_X;
-    outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+    outShadingData.normal = VECTOR_Y;
+    outShadingData.bitangent = VECTOR_Z;
 }
 
 

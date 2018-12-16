@@ -11,12 +11,12 @@ class Material;
 class RAYLIB_API PlaneSceneObject : public ISceneObject
 {
 public:
-    PlaneSceneObject(const math::Vector4 texScale = math::Vector4(1.0f));
-
-    math::Vector4 mTextureScale;
+    PlaneSceneObject(const math::Float2 size = math::Float2(FLT_MAX), const math::Float2 texScale = math::Float2(1.0f));
 
 private:
     virtual math::Box GetBoundingBox() const override;
+
+    bool Traverse_Single_Internal(const SingleTraversalContext& context, float& outDist) const;
 
     virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const override;
     virtual void Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const override;
@@ -25,6 +25,9 @@ private:
     virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const override;
 
     virtual void EvaluateShadingData_Single(const HitPoint& intersechitPointtionData, ShadingData& outShadingData) const override;
+
+    math::Float2 mSize;
+    math::Float2 mTextureScale;
 };
 
 } // namespace rt
