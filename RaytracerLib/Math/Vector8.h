@@ -38,13 +38,13 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE void SetElement(Uint32 index, Float value) { f[index] = value; }
 
     // extract lower lanes
-    RT_FORCE_INLINE Vector4 Low() const
+    RT_FORCE_INLINE const Vector4 Low() const
     {
         return Vector4(_mm256_extractf128_ps(v, 0));
     }
 
     // extract higher lanes
-    RT_FORCE_INLINE Vector4 High() const
+    RT_FORCE_INLINE const Vector4 High() const
     {
         return Vector4(_mm256_extractf128_ps(v, 1));
     }

@@ -278,6 +278,9 @@
     <ClInclude Include="Math\VectorInt4Impl.h">
       <Filter>Math\VectorInt4</Filter>
     </ClInclude>
+    <ClInclude Include="Math\VectorBool4.h">
+      <Filter>Math\Vector4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

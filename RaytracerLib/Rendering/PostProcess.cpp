@@ -6,7 +6,7 @@ namespace rt {
 bool PostprocessParams::operator == (const PostprocessParams& other) const
 {
     return
-        colorFilter == other.colorFilter &&
+        (colorFilter == other.colorFilter).All() &&
         exposure == other.exposure &&
         ditheringStrength == other.ditheringStrength;    
 }

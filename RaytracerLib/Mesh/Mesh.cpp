@@ -127,7 +127,7 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 triangleIndex = node.childIndex + i;
-        const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
+        const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
 
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
@@ -160,7 +160,7 @@ bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, co
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 triangleIndex = node.childIndex + i;
-        const ProcessedTriangle tri = mVertexBuffer.GetTriangle(triangleIndex);
+        const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
             HitPoint& hitPoint = context.hitPoint;

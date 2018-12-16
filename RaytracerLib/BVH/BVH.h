@@ -31,8 +31,8 @@ public:
         RT_FORCE_INLINE math::Box GetBox() const
         {
             return math::Box(
-                math::Vector4(&min.x) & math::VECTOR_MASK_XYZ,
-                math::Vector4(&max.x) & math::VECTOR_MASK_XYZ
+                math::Vector4(&min.x) & math::Vector4::MakeMask<1,1,1,0>(),
+                math::Vector4(&max.x) & math::Vector4::MakeMask<1,1,1,0>()
             );
         }
 

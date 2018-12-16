@@ -224,7 +224,7 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
         case Format::R32G32B32_Float:
         {
             const float* source = reinterpret_cast<const float*>(mData) + 3 * offset;
-            color = Vector4(source) & VECTOR_MASK_XYZ;
+            color = Vector4(source) & Vector4::MakeMask<1,1,1,0>();
             break;
         }
 
@@ -240,7 +240,7 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
         case Format::R16G16B16_Half:
         {
             const Half* source = reinterpret_cast<const Half*>(mData) + 3 * offset;
-            color = Vector4::FromHalves(source) & VECTOR_MASK_XYZ;
+            color = Vector4::FromHalves(source) & Vector4::MakeMask<1,1,1,0>();
             break;
         }
 
@@ -310,32 +310,32 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
 
         case Format::B8G8R8_Uint:
         {
-            outColor0 = Vector4::LoadBGR_UNorm(mData + 3u * offsets.x);
-            outColor1 = Vector4::LoadBGR_UNorm(mData + 3u * offsets.y);
-            outColor2 = Vector4::LoadBGR_UNorm(mData + 3u * offsets.z);
-            outColor3 = Vector4::LoadBGR_UNorm(mData + 3u * offsets.w);
+            outColor0 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.x);
+            outColor1 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.y);
+            outColor2 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.z);
+            outColor3 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.w);
             break;
         }
 
         case Format::B8G8R8A8_Uint:
         {
-            outColor0 = Vector4::Load4(mData + 4 * offsets.x).Swizzle<2, 1, 0, 3>() * byteScale;
-            outColor1 = Vector4::Load4(mData + 4 * offsets.y).Swizzle<2, 1, 0, 3>() * byteScale;
-            outColor2 = Vector4::Load4(mData + 4 * offsets.z).Swizzle<2, 1, 0, 3>() * byteScale;
-            outColor3 = Vector4::Load4(mData + 4 * offsets.w).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor0 = Vector4::Load4(mData + 4 * (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor1 = Vector4::Load4(mData + 4 * (Uint32)offsets.y).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor2 = Vector4::Load4(mData + 4 * (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * byteScale;
+            outColor3 = Vector4::Load4(mData + 4 * (Uint32)offsets.w).Swizzle<2, 1, 0, 3>() * byteScale;
             break;
         }
 
         case Format::R32G32B32_Float:
         {
-            const float* source0 = reinterpret_cast<const float*>(mData) + 3u * offsets.x;
-            const float* source1 = reinterpret_cast<const float*>(mData) + 3u * offsets.y;
-            const float* source2 = reinterpret_cast<const float*>(mData) + 3u * offsets.z;
-            const float* source3 = reinterpret_cast<const float*>(mData) + 3u * offsets.w;
-            outColor0 = Vector4(source0) & VECTOR_MASK_XYZ;
-            outColor1 = Vector4(source1) & VECTOR_MASK_XYZ;
-            outColor2 = Vector4(source2) & VECTOR_MASK_XYZ;
-            outColor3 = Vector4(source3) & VECTOR_MASK_XYZ;
+            const float* source0 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.x;
+            const float* source1 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.y;
+            const float* source2 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.z;
+            const float* source3 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.w;
+            outColor0 = Vector4(source0) & Vector4::MakeMask<1,1,1,0>();
+            outColor1 = Vector4(source1) & Vector4::MakeMask<1,1,1,0>();
+            outColor2 = Vector4(source2) & Vector4::MakeMask<1,1,1,0>();
+            outColor3 = Vector4(source3) & Vector4::MakeMask<1,1,1,0>();
             break;
         }
 
@@ -350,14 +350,14 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
 
         case Format::R16G16B16_Half:
         {
-            const Half* source0 = reinterpret_cast<const Half*>(mData) + 3 * offsets.x;
-            const Half* source1 = reinterpret_cast<const Half*>(mData) + 3 * offsets.y;
-            const Half* source2 = reinterpret_cast<const Half*>(mData) + 3 * offsets.z;
-            const Half* source3 = reinterpret_cast<const Half*>(mData) + 3 * offsets.w;
-            outColor0 = Vector4::FromHalves(source0) & VECTOR_MASK_XYZ;
-            outColor1 = Vector4::FromHalves(source1) & VECTOR_MASK_XYZ;
-            outColor2 = Vector4::FromHalves(source2) & VECTOR_MASK_XYZ;
-            outColor3 = Vector4::FromHalves(source3) & VECTOR_MASK_XYZ;
+            const Half* source0 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.x;
+            const Half* source1 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.y;
+            const Half* source2 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.z;
+            const Half* source3 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.w;
+            outColor0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1,1,1,0>();
+            outColor1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1,1,1,0>();
+            outColor2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1,1,1,0>();
+            outColor3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1,1,1,0>();
             break;
         }
 

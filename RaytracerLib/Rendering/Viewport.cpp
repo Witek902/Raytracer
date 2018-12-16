@@ -214,7 +214,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 RT_ASSERT(sampleColor.IsValid());
 
                 sampleColor = Vector4::Max(sampleColor, Vector4::Zero()); // TODO fix this
-                RT_ASSERT(sampleColor >= Vector4::Zero());
+                RT_ASSERT((sampleColor >= Vector4::Zero()).All());
 
                 // TODO get rid of this
                 sampleColor *= sampleScale;

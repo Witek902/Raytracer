@@ -13,14 +13,12 @@ const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
     }
 
     const float k = 1.0f - eta * eta * (1.0f - NdotV * NdotV);
-
-    //assert(k >= 0.0f);
-    if (k < 0.0f)
+    if (k <= 0.0f)
     {
         return Vector4::Zero();
     }
 
-    Vector4 transmitted = i * eta - (eta * NdotV + math::Sqrt(k)) * VECTOR_Z;
+    Vector4 transmitted = Vector4::NegMulAndAdd(Vector4(eta * NdotV + sqrtf(k)), VECTOR_Z, i * eta);
     RT_ASSERT(math::Abs(1.0f - transmitted.Length3()) < 0.01f);
 
     if (NdotV > 0.0f)

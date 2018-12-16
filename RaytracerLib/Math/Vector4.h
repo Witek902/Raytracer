@@ -4,12 +4,13 @@
 
 #include "Float2.h"
 #include "Float3.h"
+#include "VectorBool4.h"
 
 namespace rt {
 namespace math {
 
 /**
- * 4-element SIMD vector.
+ * 4-element SIMD vector
  */
 struct RT_ALIGN(16) Vector4
 {
@@ -68,12 +69,12 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4& operator/= (Float b);
 
     // comparison operators (returns true, if all the elements satisfy the equation)
-    RT_FORCE_INLINE bool operator== (const Vector4& b) const;
-    RT_FORCE_INLINE bool operator< (const Vector4& b) const;
-    RT_FORCE_INLINE bool operator<= (const Vector4& b) const;
-    RT_FORCE_INLINE bool operator> (const Vector4& b) const;
-    RT_FORCE_INLINE bool operator>= (const Vector4& b) const;
-    RT_FORCE_INLINE bool operator!= (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator == (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator < (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator <= (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator > (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator >= (const Vector4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator != (const Vector4& b) const;
 
     // bitwise logic operations
     RT_FORCE_INLINE const Vector4 operator& (const Vector4& b) const;
@@ -96,20 +97,20 @@ struct RT_ALIGN(16) Vector4
     template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
     RT_FORCE_INLINE static const Vector4 MakeMask();
 
-    // Rearrange vector elements.
+    // Rearrange vector elements
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
     RT_FORCE_INLINE const Vector4 Swizzle() const;
 
-    // Convert 4 uint8 to a Vector4.
+    // Convert 4 uint8 to a Vector4
     RT_FORCE_INLINE static const Vector4 Load4(const Uint8* src);
 
-    // Convert 3 uint8 to a Vector4 and scale to 0...1 range.
+    // Convert 3 uint8 to a Vector4 and scale to 0...1 range
     RT_FORCE_INLINE static const Vector4 LoadBGR_UNorm(const Uint8* src);
 
-    // Convert to 3 uint8 values.
+    // Convert to 3 uint8 values
     RT_FORCE_INLINE void StoreBGR_NonTemporal(Uint8* dest) const;
 
-    // Convert a Vector4 to 4 unsigned chars.
+    // Convert a Vector4 to 4 unsigned chars
     RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
 
     RT_FORCE_INLINE void Store(Float* dest) const;
@@ -129,17 +130,10 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Abs(const Vector4& v);
     RT_FORCE_INLINE const Vector4 Clamped(const Vector4& min, const Vector4& max) const;
 
-    RT_FORCE_INLINE static int EqualMask(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static int LessMask(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static int LessEqMask(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static int GreaterMask(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static int GreaterEqMask(const Vector4& v1, const Vector4& v2);
-    RT_FORCE_INLINE static int NotEqualMask(const Vector4& v1, const Vector4& v2);
-
-    // Build mask of sign bits.
+    // Build mask of sign bits
     RT_FORCE_INLINE int GetSignMask() const;
 
-    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
+    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise
     RT_FORCE_INLINE static const Vector4 SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel);
 
     // Calculate 2D dot product (scalar result)
@@ -160,7 +154,7 @@ struct RT_ALIGN(16) Vector4
     // Calculate 4D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot4V(const Vector4& v1, const Vector4& v2);
 
-    // Calculate 3D cross product.
+    // Calculate 3D cross product
     RT_FORCE_INLINE static const Vector4 Cross3(const Vector4& v1, const Vector4& v2);
 
     // Length of a 2D vector (scalar result)
@@ -187,37 +181,37 @@ struct RT_ALIGN(16) Vector4
     // Square length of a 4D vector (scalar result)
     RT_FORCE_INLINE Float SqrLength4() const;
 
-    // Normalize as 3D vector.
+    // Normalize as 3D vector
     RT_FORCE_INLINE Vector4& Normalize3();
     RT_FORCE_INLINE Vector4& FastNormalize3();
 
-    // Normalize as 4D vector.
+    // Normalize as 4D vector
     RT_FORCE_INLINE Vector4& Normalize4();
 
-    // Return normalized 3D vector.
+    // Return normalized 3D vector
     RT_FORCE_INLINE const Vector4 Normalized3() const;
     RT_FORCE_INLINE const Vector4 FastNormalized3() const;
 
-    // Return normalized 4D vector.
+    // Return normalized 4D vector
     RT_FORCE_INLINE const Vector4 Normalized4() const;
 
-    // Reflect a 3D vector.
+    // Reflect a 3D vector
     RT_FORCE_INLINE static const Vector4 Reflect3(const Vector4& i, const Vector4& n);
 
-    // Refract a 3D vector assumig Z+ is normal vector.
+    // Refract a 3D vector assumig Z+ is normal vector
     static const Vector4 RefractZ(const Vector4& i, float eta);
 
-    // Check if two vectors are (almost) equal.
+    // Check if two vectors are (almost) equal
     RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON);
 
     // Check if the vector is equal to zero
-    RT_FORCE_INLINE bool IsZero() const;
+    RT_FORCE_INLINE const VectorBool4 IsZero() const;
 
     // Check if any component is NaN
-    RT_FORCE_INLINE bool IsNaN() const;
+    RT_FORCE_INLINE const VectorBool4 IsNaN() const;
 
     // Check if any component is an infinity
-    RT_FORCE_INLINE bool IsInfinite() const;
+    RT_FORCE_INLINE const VectorBool4 IsInfinite() const;
 
     // Check if is not NaN or infinity
     RT_FORCE_INLINE bool IsValid() const;
@@ -238,10 +232,10 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
-    // Calculate horizontal minimum. Result is splatted across all elements.
+    // Calculate horizontal minimum. Result is splatted across all elements
     RT_FORCE_INLINE const Vector4 HorizontalMin() const;
 
-    // Calculate horizontal maximum. Result is splatted across all elements.
+    // Calculate horizontal maximum. Result is splatted across all elements
     RT_FORCE_INLINE const Vector4 HorizontalMax() const;
 
     // transpose 3x3 matrix
@@ -264,17 +258,7 @@ RT_GLOBAL_CONST Vector4 VECTOR_ONE3 = { 1.0f, 1.0f, 1.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE2 = { 1.0f, 1.0f, 0.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_MINUS_ONE = { -1.0f, -1.0f, -1.0f, -1.0f };
 
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_X = { 0xFFFFFFFFu, 0u, 0u, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_Y = { 0u, 0xFFFFFFFFu, 0u, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_Z = { 0u, 0u, 0xFFFFFFFFu, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_W = { 0u, 0u, 0u, 0xFFFFFFFFu };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_XY = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0u, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_XZ = { 0xFFFFFFFFu, 0u, 0xFFFFFFFFu, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZ = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0u };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_XYZW = { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu };
-
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_ABS = { 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu };
-RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN = { 0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN_W = { 0u, 0u, 0u, 0x80000000u };
 
 RT_GLOBAL_CONST Vector4 VECTOR_INV_255 = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };

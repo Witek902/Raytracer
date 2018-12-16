@@ -204,7 +204,7 @@ const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
     return materialBufferData[materialIndex];
 }
 
-ProcessedTriangle VertexBuffer::GetTriangle(const Uint32 triangleIndex) const
+const math::ProcessedTriangle& VertexBuffer::GetTriangle(const Uint32 triangleIndex) const
 {
     return mPreprocessedTriangles[triangleIndex];
 }

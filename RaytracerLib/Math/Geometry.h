@@ -44,7 +44,7 @@ RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& out
     // (bits 0, 1)     (bit 2, 3)
     // The check below is a little bit redundant (we perform 4 comparisons), so
     // all 4 comparisons must return success (that's why we check if mask is 0xF).
-    return _mm_movemask_ps(_mm_cmpge_ps(lmax, lmin)) == 0xF;
+    return (lmax >= lmin).All();
 }
 
 RT_FORCE_INLINE bool Intersect_BoxRay_TwoSided(const Ray& ray, const Box& box, float& outNearDist, float& outFarDist)
@@ -117,7 +117,7 @@ RT_FORCE_INLINE bool Intersect_TriangleRay(
     // The intersection occurs if (u > 0 && v > 0 && t > 0 && u + v <= 1),
     // so when performing SSE comparison 3 upper components must return true,
     // and last false, which yields to 0xE bit mask.
-    return (_mm_movemask_ps(_mm_cmpgt_ps(tmp1, tmp2)) == 0xE);
+    return (tmp1 > tmp2).GetMask() == 0xE;
 }
 
 

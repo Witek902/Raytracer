@@ -23,8 +23,8 @@
 
 
 // TODO #define RT_USE_SSE
-// TODO #define RT_USE_AVX
 
+#define RT_USE_AVX
 #define RT_USE_FMA
 #define RT_USE_AVX2
 #define RT_USE_FP16C

@@ -128,7 +128,7 @@ struct Color
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
         return value.IsValid() && Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
 #else
-        return value.IsValid() && (Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType::Zero()) & 0x7);
+        return value.IsValid() && (value >= Wavelength::ValueType::Zero()).All();
 #endif
     }
 

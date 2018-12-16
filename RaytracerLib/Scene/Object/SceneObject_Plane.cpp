@@ -29,8 +29,8 @@ bool PlaneSceneObject::Traverse_Single_Internal(const SingleTraversalContext& co
         {
             const Vector4 pos = context.ray.GetAtDistance(t);
 
-            // TODO (Vector4::Abs(pos) < Vector4(mSize.x, 0.0f, mSize.y, 0.0f)).Check<1,0,1,0>()
-            if (Vector4::Abs(pos) < Vector4(mSize.x, 1.0f, mSize.y, 1.0f))
+            const Vector4 texCoords = pos.Swizzle<0,2,0,0>();
+            if ((Vector4::Abs(texCoords) < Vector4(mSize)).GetMask() == 0x3)
             {
                 outDist = t;
                 return true;

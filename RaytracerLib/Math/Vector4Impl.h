@@ -199,11 +199,8 @@ const Vector4 Vector4::ChangeSign() const
 template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
 RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
 {
-    if (maskX && maskY && maskZ && maskW)
-    {
-        // special case - mask everything
-        return Zero();
-    }
+    static_assert(!(maskX == 0 && maskY == 0 && maskZ == 0 && maskW == 0), "Useless mask");
+    static_assert(!(maskX && maskY && maskZ && maskW), "Useless mask");
 
     // generate bit negation mask
     const Vector4 mask = { maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
@@ -226,22 +223,22 @@ const Vector4 Vector4::Swizzle() const
 
 const Vector4 Vector4::SplatX() const
 {
-    return _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+    return Swizzle<0, 0, 0, 0>();
 }
 
 const Vector4 Vector4::SplatY() const
 {
-    return _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1));
+    return Swizzle<1, 1, 1, 1>();
 }
 
 const Vector4 Vector4::SplatZ() const
 {
-    return _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2));
+    return Swizzle<2, 2, 2, 2>();
 }
 
 const Vector4 Vector4::SplatW() const
 {
-    return _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 3, 3, 3));
+    return Swizzle<3, 3, 3, 3>();
 }
 
 const Vector4 Vector4::SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel)
@@ -493,71 +490,35 @@ const Vector4 Vector4::HorizontalMax() const
     return temp;
 }
 
-// Comparison functions ===========================================================================
-
-int Vector4::EqualMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator == (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmpeq_ps(v1, v2));
+    return _mm_cmpeq_ps(v, b.v);
 }
 
-int Vector4::LessMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator < (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmplt_ps(v1, v2));
+    return _mm_cmplt_ps(v, b.v);
 }
 
-int Vector4::LessEqMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator <= (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmple_ps(v1, v2));
+    return _mm_cmple_ps(v, b.v);
 }
 
-int Vector4::GreaterMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator > (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmpgt_ps(v1, v2));
+    return _mm_cmpgt_ps(v, b.v);
 }
 
-int Vector4::GreaterEqMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator >= (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmpge_ps(v1, v2));
+    return _mm_cmpge_ps(v, b.v);
 }
 
-int Vector4::NotEqualMask(const Vector4& v1, const Vector4& v2)
+const VectorBool4 Vector4::operator != (const Vector4& b) const
 {
-    return _mm_movemask_ps(_mm_cmpneq_ps(v1, v2));
+    return _mm_cmpneq_ps(v, b.v);
 }
-
-// 4D vector comparison functions =================================================================
-
-bool Vector4::operator== (const Vector4& b) const
-{
-    return EqualMask(*this, b) == 0xF;
-}
-
-bool Vector4::operator< (const Vector4& b) const
-{
-    return LessMask(*this, b) == 0xF;
-}
-
-bool Vector4::operator<= (const Vector4& b) const
-{
-    return LessEqMask(*this, b) == 0xF;
-}
-
-bool Vector4::operator> (const Vector4& b) const
-{
-    return GreaterMask(*this, b) == 0xF;
-}
-
-bool Vector4::operator>= (const Vector4& b) const
-{
-    return GreaterEqMask(*this, b) == 0xF;
-}
-
-bool Vector4::operator!= (const Vector4& b) const
-{
-    return NotEqualMask(*this, b) == 0xF;
-}
-
-// Geometry functions =============================================================================
 
 const Vector4 Vector4::Dot2V(const Vector4& v1, const Vector4& v2)
 {
@@ -703,34 +664,32 @@ const Vector4 Vector4::Reflect3(const Vector4& i, const Vector4& n)
 
 bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon)
 {
-    return Abs(v1 - v2) < Vector4(epsilon);
+    return (Abs(v1 - v2) < Vector4(epsilon)).All();
 }
 
-bool Vector4::IsZero() const
+const VectorBool4 Vector4::IsZero() const
 {
-    return _mm_movemask_ps(_mm_cmpeq_ps(v, Vector4::Zero())) == 0xF;
+    return *this == Vector4::Zero();
 }
 
 // Check if any component is NaN
-bool Vector4::IsNaN() const
+const VectorBool4 Vector4::IsNaN() const
 {
     // Test against itself. NaN is always not equal
-    const __m128 temp = _mm_cmpneq_ps(v, v);
-    return _mm_movemask_ps(temp) != 0;
+    return _mm_cmpneq_ps(v, v);
 }
 
-bool Vector4::IsInfinite() const
+const VectorBool4 Vector4::IsInfinite() const
 {
     // Mask off the sign bit
     __m128 temp = _mm_and_ps(v, VECTOR_MASK_ABS);
     // Compare to infinity
-    temp = _mm_cmpeq_ps(temp, VECTOR_INF);
-    return _mm_movemask_ps(temp) != 0;
+    return _mm_cmpeq_ps(temp, VECTOR_INF);
 }
 
 bool Vector4::IsValid() const
 {
-    return !IsNaN() && !IsInfinite();
+    return IsNaN().None() && IsInfinite().None();
 }
 
 void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)

@@ -257,6 +257,7 @@
     <ClInclude Include="Math\Vector8.h" />
     <ClInclude Include="Math\Vector8Impl.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
+    <ClInclude Include="Math\VectorBool4.h" />
     <ClInclude Include="Math\VectorInt4.h" />
     <ClInclude Include="Math\VectorInt4Impl.h" />
     <ClInclude Include="Math\VectorInt8.h" />

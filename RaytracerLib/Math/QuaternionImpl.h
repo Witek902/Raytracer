@@ -3,19 +3,19 @@
 namespace rt {
 namespace math {
 
-Quaternion Quaternion::Identity()
+const Quaternion Quaternion::Identity()
 {
     return Quaternion(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
-Quaternion Quaternion::Conjugate() const
+const Quaternion Quaternion::Conjugate() const
 {
     Quaternion result;
     result.q = q.ChangeSign<true, true, true, false>();
     return result;
 }
 
-Quaternion Quaternion::Normalized() const
+const Quaternion Quaternion::Normalized() const
 {
     return Quaternion(q.Normalized4());
 }
@@ -32,7 +32,7 @@ Quaternion& Quaternion::operator *= (const Quaternion& q2)
     return *this;
 }
 
-Vector4 Quaternion::GetAxisX() const
+const Vector4 Quaternion::GetAxisX() const
 {
     return Vector4(
         1.0f - 2.0f * (q.y * q.y + q.z * q.z),
@@ -42,7 +42,7 @@ Vector4 Quaternion::GetAxisX() const
     );
 }
 
-Vector4 Quaternion::GetAxisY() const
+const Vector4 Quaternion::GetAxisY() const
 {
     return Vector4(
         2.0f * (q.x * q.y - q.w * q.z),
@@ -52,7 +52,7 @@ Vector4 Quaternion::GetAxisY() const
     );
 }
 
-Vector4 Quaternion::GetAxisZ() const
+const Vector4 Quaternion::GetAxisZ() const
 {
     return Vector4(
         2.0f * (q.x * q.z + q.w * q.y),

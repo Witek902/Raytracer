@@ -51,7 +51,7 @@ public:
     const Material* GetMaterial(const Uint32 materialIndex) const;
 
     // extract preprocessed triangle data (for one triangle)
-    math::ProcessedTriangle GetTriangle(const Uint32 triangleIndex) const;
+    const math::ProcessedTriangle& GetTriangle(const Uint32 triangleIndex) const;
     void GetTriangle(const Uint32 triangleIndex, math::Triangle_Simd8& outTriangle) const;
 
     void GetShadingData(const VertexIndices& indices, VertexShadingData& a, VertexShadingData& b, VertexShadingData& c) const;

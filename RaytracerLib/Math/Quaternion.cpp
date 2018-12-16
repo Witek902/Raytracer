@@ -7,14 +7,14 @@ namespace math {
 
 bool Quaternion::IsValid() const
 {
-    if (q.IsNaN() || q.IsInfinite())
+    if (q.IsNaN().Any() || q.IsInfinite().Any())
         return false;
-    
+
     // check if normalized
     return Abs(q.SqrLength4() - 1.0f) < 0.001f;
 }
 
-Quaternion Quaternion::FromAxisAndAngle(const Vector4& axis, float angle)
+const Quaternion Quaternion::FromAxisAndAngle(const Vector4& axis, float angle)
 {
     angle *= 0.5f;
     Quaternion q = Quaternion(axis * Sin(angle));
@@ -22,25 +22,25 @@ Quaternion Quaternion::FromAxisAndAngle(const Vector4& axis, float angle)
     return q;
 }
 
-Quaternion Quaternion::RotationX(float angle)
+const Quaternion Quaternion::RotationX(float angle)
 {
     angle *= 0.5f;
     return Quaternion(Sin(angle), 0.0f, 0.0f, Cos(angle));
 }
 
-Quaternion Quaternion::RotationY(float angle)
+const Quaternion Quaternion::RotationY(float angle)
 {
     angle *= 0.5f;
     return Quaternion(0.0f, Sin(angle), 0.0f, Cos(angle));
 }
 
-Quaternion Quaternion::RotationZ(float angle)
+const Quaternion Quaternion::RotationZ(float angle)
 {
     angle *= 0.5f;
     return Quaternion(0.0f, 0.0f, Sin(angle), Cos(angle));
 }
 
-Quaternion Quaternion::operator * (const Quaternion& b) const
+const Quaternion Quaternion::operator * (const Quaternion& b) const
 {
     const Vector4 a0120 = q.Swizzle<0, 1, 2, 0>();
     const Vector4 b3330 = b.q.Swizzle<3, 3, 3, 0>();
@@ -61,7 +61,7 @@ Quaternion Quaternion::operator * (const Quaternion& b) const
     return Quaternion(t03 + t12.ChangeSign<false, false, false, true>());
 }
 
-Quaternion Quaternion::Inverted() const
+const Quaternion Quaternion::Inverted() const
 {
     Quaternion result = Conjugate();
     result.q.Normalize4();
@@ -76,7 +76,7 @@ Quaternion& Quaternion::Invert()
     return *this;
 }
 
-Vector4 Quaternion::TransformVector(const Vector4& v) const
+const Vector4 Quaternion::TransformVector(const Vector4& v) const
 {
     // based on identity:
     //
@@ -88,7 +88,7 @@ Vector4 Quaternion::TransformVector(const Vector4& v) const
     return Vector4::MulAndAdd(t, q.w, v) + Vector4::Cross3(q, t);
 }
 
-Vector3x8 Quaternion::TransformVector(const Vector3x8& v) const
+const Vector3x8 Quaternion::TransformVector(const Vector3x8& v) const
 {
     const Vector3x8 q8(q);
     Vector3x8 t = Vector3x8::Cross(q8, v);
@@ -116,7 +116,8 @@ void Quaternion::ToAxis(Vector4& outAxis, float& outAngle) const
 
     outAxis.w = 0.0f;
 }
-Quaternion Quaternion::Interpolate(const Quaternion& q0, const Quaternion& q1, float t)
+
+const Quaternion Quaternion::Interpolate(const Quaternion& q0, const Quaternion& q1, float t)
 {
     float cosOmega = Vector4::Dot4(q0, q1);
     Vector4 new_q1 = q1;
@@ -150,7 +151,7 @@ bool Quaternion::AlmostEqual(const Quaternion& a, const Quaternion& b, float eps
     return Abs(d) > 1.0f - epsilon;
 }
 
-Quaternion Quaternion::FromAngles(float pitch, float yaw, float roll)
+const Quaternion Quaternion::FromAngles(float pitch, float yaw, float roll)
 {
     // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 

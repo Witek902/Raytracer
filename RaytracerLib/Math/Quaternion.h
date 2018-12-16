@@ -33,61 +33,61 @@ struct RT_ALIGN(16) Quaternion final
     /**
      * Get transformed X, Y, Z axes.
      */
-    RT_FORCE_INLINE Vector4 GetAxisX() const;
-    RT_FORCE_INLINE Vector4 GetAxisY() const;
-    RT_FORCE_INLINE Vector4 GetAxisZ() const;
+    RT_FORCE_INLINE const Vector4 GetAxisX() const;
+    RT_FORCE_INLINE const Vector4 GetAxisY() const;
+    RT_FORCE_INLINE const Vector4 GetAxisZ() const;
 
     /**
      * Create null rotation quaternion.
      */
-    RT_FORCE_INLINE static Quaternion Identity();
+    RT_FORCE_INLINE static const Quaternion Identity();
 
     /**
      * Create quaternion form axis and angle.
      * @note    Returned quaternion is be normalized.
      */
-    RAYLIB_API static Quaternion FromAxisAndAngle(const Vector4& axis, float angle);
+    RAYLIB_API static const Quaternion FromAxisAndAngle(const Vector4& axis, float angle);
 
     /**
      * Create quaternion representing rotation around X axis.
      * @note    Returned quaternion is be normalized.
      */
-    RAYLIB_API static Quaternion RotationX(float angle);
+    RAYLIB_API static const Quaternion RotationX(float angle);
 
     /**
      * Create quaternion representing rotation around Y axis.
      * @note    Returned quaternion is be normalized.
      */
-    RAYLIB_API static Quaternion RotationY(float angle);
+    RAYLIB_API static const Quaternion RotationY(float angle);
 
     /**
      * Create quaternion representing rotation around Z axis.
      * @note    Returned quaternion is be normalized.
      */
-    RAYLIB_API static Quaternion RotationZ(float angle);
+    RAYLIB_API static const Quaternion RotationZ(float angle);
 
     /**
      * Quaternion multiplication.
      */
-    RAYLIB_API Quaternion operator * (const Quaternion& q2) const;
+    RAYLIB_API const Quaternion operator * (const Quaternion& q2) const;
     RT_FORCE_INLINE Quaternion& operator *= (const Quaternion& q2);
 
     /**
      * Turn to unit quaternion (length = 1.0f).
      */
     RT_FORCE_INLINE Quaternion& Normalize();
-    RT_FORCE_INLINE Quaternion Normalized() const;
+    RT_FORCE_INLINE const Quaternion Normalized() const;
 
     /**
      * Return conjugate of quaternion
      * Equals to Inverted() if quaternion is normalized.
      */
-    RT_FORCE_INLINE Quaternion Conjugate() const;
+    RT_FORCE_INLINE const Quaternion Conjugate() const;
 
     /**
      * Calculate inverse of quaternion.
      */
-    RAYLIB_API Quaternion Inverted() const;
+    RAYLIB_API const Quaternion Inverted() const;
 
     /**
      * Invert this quaternion.
@@ -97,8 +97,8 @@ struct RT_ALIGN(16) Quaternion final
     /**
      * Rotate a 3D vector with a quaternion.
      */
-    RAYLIB_API Vector4 TransformVector(const Vector4& v) const;
-    RAYLIB_API Vector3x8 TransformVector(const Vector3x8& v) const;
+    RAYLIB_API const Vector4 TransformVector(const Vector4& v) const;
+    RAYLIB_API const Vector3x8 TransformVector(const Vector3x8& v) const;
 
     /**
      * Extract rotation axis and angle from a quaternion.
@@ -114,7 +114,7 @@ struct RT_ALIGN(16) Quaternion final
      * @param t     Interpolation factor.
      * @return Interpolated quaternion (equal to q0 when t=0.0f and equal to q1 when t=1.0f).
      */
-    RAYLIB_API static Quaternion Interpolate(const Quaternion& q0, const Quaternion& q1, float t);
+    RAYLIB_API static const Quaternion Interpolate(const Quaternion& q0, const Quaternion& q1, float t);
 
     /**
      * Check if two quaternions are almost equal.
@@ -127,7 +127,7 @@ struct RT_ALIGN(16) Quaternion final
      * @param   yaw     Rotation in Y axis (in radians).
      * @param   roll    Rotation in Z axis (in radians).
      */
-    RAYLIB_API static Quaternion FromAngles(float pitch, float yaw, float roll);
+    RAYLIB_API static const Quaternion FromAngles(float pitch, float yaw, float roll);
 
     /**
      * Convert quaternion to Euler angles.
