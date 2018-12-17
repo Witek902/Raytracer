@@ -4,6 +4,7 @@
 #include "BSDF/SpecularReflectiveBSDF.h"
 #include "BSDF/SpecularTransmissiveBSDF.h"
 #include "BSDF/OrenNayarBSDF.h"
+#include "BSDF/LambertianBSDF.h"
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
@@ -70,7 +71,7 @@ void Material::Compile()
     }
     else
     {
-        mDiffuseBSDF = std::make_unique<OrenNayarBSDF>();
+        mDiffuseBSDF = std::make_unique<LambertianBSDF>();
     }
 
     if (roughness.baseValue >= 0.01f)

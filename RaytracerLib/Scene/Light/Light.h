@@ -41,6 +41,9 @@ public:
     // Returns probability of sampling the returned direction.
     virtual const Color Illuminate(IlluminateParam& param) const = 0;
 
+    // get normal vector at intersection point
+    virtual const math::Vector4 GetNormal(const math::Vector4& hitPoint) const;
+
     /*
     // Emit random light photon from the light
     virtual math::Vector4 Emit(
@@ -55,7 +58,7 @@ public:
         RenderingContext& context,
         const math::Vector4& rayDirection,
         const math::Vector4& hitPoint,
-        Float* outDirectPdfA = nullptr) const = 0;
+        Float* outDirectPdfA = nullptr) const;
 
     // Returs true if the light has finite extent.
     // E.g. point or area light.

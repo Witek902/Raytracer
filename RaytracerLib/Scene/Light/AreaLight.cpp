@@ -85,7 +85,7 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
     param.outDirectionToLight = lightPoint - param.shadingData.position;
     const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
-    param.outDistance = Sqrt(sqrDistance);
+    param.outDistance = sqrtf(sqrDistance);
     param.outDirectionToLight /= param.outDistance;
 
     const float cosNormalDir = Vector4::Dot3(normal, -param.outDirectionToLight);
@@ -125,6 +125,11 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
     }
 
     return Color::SampleRGB(context.wavelength, rgbColor);
+}
+
+const Vector4 AreaLight::GetNormal(const Vector4&) const
+{
+    return normal;
 }
 
 bool AreaLight::IsFinite() const

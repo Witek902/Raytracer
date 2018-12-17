@@ -26,7 +26,7 @@ const Color LambertianBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
 
-    if (NdotV > CosEpsilon || NdotL > CosEpsilon)
+    if (NdotV > CosEpsilon && NdotL > CosEpsilon)
     {
         if (outDirectPdfW)
         {

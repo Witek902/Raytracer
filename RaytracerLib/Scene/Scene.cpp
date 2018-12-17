@@ -274,6 +274,8 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
+    RT_ASSERT(!outShadingData.normal.IsZero().All());
+
     // transform shading data from local space to world space
     const Transform transform = object->ComputeTransform(time);
     outShadingData.position = worldPosition;

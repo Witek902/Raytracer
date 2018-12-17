@@ -37,17 +37,6 @@ const Color DirectionalLight::Illuminate(IlluminateParam& param) const
     return Color::SampleRGB(param.context.wavelength, mColor);
 }
 
-const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
-{
-    RT_UNUSED(rayDirection);
-    RT_UNUSED(hitPoint);
-    RT_UNUSED(context);
-    RT_UNUSED(outDirectPdfA);
-
-    RT_FATAL("Cannot hit directinal");
-    return Color();
-}
-
 bool DirectionalLight::IsFinite() const
 {
     return false;

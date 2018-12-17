@@ -40,17 +40,6 @@ const Color PointLight::Illuminate(IlluminateParam& param) const
     return Color::SampleRGB(param.context.wavelength, mColor);
 }
 
-const Color PointLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
-{
-    RT_UNUSED(rayDirection);
-    RT_UNUSED(hitPoint);
-    RT_UNUSED(context);
-    RT_UNUSED(outDirectPdfA);
-
-    RT_FATAL("Cannot hit point light");
-    return Color();
-}
-
 bool PointLight::IsFinite() const
 {
     return true;

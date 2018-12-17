@@ -28,9 +28,9 @@ RT_FORCE_INLINE static constexpr Float CombineMis(const Float samplePdf, const F
 //     return aPdfW * Abs(aCosThere) / Sqr(aDist);
 // }
 
-RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float aPdfA, const Float aDist, const Float aCosThere)
+RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float pdfA, const Float distance, const Float cosThere)
 {
-    return aPdfA * Sqr(aDist) / Abs(aCosThere);
+    return pdfA * Sqr(distance) / Abs(cosThere);
 }
 
 PathTracer::PathTracer(const Scene& scene)
@@ -177,7 +177,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
                 float misWeight = 1.0f;
                 if (mSampleLights && depth > 0 && !lastSpecular)
                 {
-                    const float cosTheta = Abs(Vector4::Dot3(ray.dir, shadingData.normal));
+                    const float cosTheta = Vector4::Dot3(-ray.dir, shadingData.normal);
                     const float directPdfW = PdfAtoW(directPdfA, hitPoint.distance, cosTheta);
                     misWeight = CombineMis(lastPdfW, directPdfW);
                 }

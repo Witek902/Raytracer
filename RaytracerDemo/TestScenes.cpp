@@ -81,13 +81,13 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
     {
         auto material = Material::Create();
         material->debugName = "floor";
-        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+        material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
         material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
         material->roughness = 0.8f;
-        material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
+        //material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        const Float2 size(1.0f, 1.0f);
+        const Float2 size(FLT_MAX);
         SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(size);
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
@@ -95,16 +95,35 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
     }
 
     {
-        const Vector4 lightColor(10.0f, 10.0f, 10.0f, 0.0f);
-        const Vector4 lightPosition(0.0f, 1.0f, 0.0f, 0.0f);
-        scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
+        auto material = Material::Create();
+        material->debugName = "glossy";
+        material->baseColor = math::Vector4(1.0f, 0.7f, 0.2f, 0.0f);
+        material->roughness = 0.4f;
+        material->metalness = 1.0f;
+        material->Compile();
+
+        SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
+        instance->mDefaultMaterial = material;
+        instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
+        scene.AddObject(std::move(instance));
+        materials.push_back(std::move(material));
+    }
+
+    {
+        const float size = 10.0f;
+
+        const Vector4 lightColor = Vector4(200.0f, 200.0f, 200.0f, 0.0f) / (size * size);
+        const Vector4 lightPosition(-size, 5.0f, -size, 0.0f);
+        const Vector4 lightEdge0(0.0f, 0.0f, size* 2.0f, 0.0f);
+        const Vector4 lightEdge1(size * 2.0f, 0.0f, 0.0f, 0.0f);
+        scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
     }
 
     {
         camera = CameraSetup();
-        camera.position = Vector4(0.11f, 0.4f, 2.6f, 0.0f);
-        camera.orientation.y = -0.5f;
-        camera.orientation.x = -3.0f;
+        camera.position = Vector4(-2.6f, 1.6f, 2.5f, 0.0f);
+        camera.orientation.x = 2.75f;
+        camera.orientation.y = -0.45f;
     }
 }
 
