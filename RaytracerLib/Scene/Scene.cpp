@@ -91,7 +91,8 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
     Ray transformedRay;
     transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
     transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-    transformedRay.invDir = Vector4::FastReciprocal(transformedRay.dir);
+    transformedRay.invDir = Vector4::Reciprocal(transformedRay.dir);
+    transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
     SingleTraversalContext objectContext =
     {
@@ -113,7 +114,8 @@ bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context,
     Ray transformedRay;
     transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
     transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-    transformedRay.invDir = Vector4::FastReciprocal(transformedRay.dir);
+    transformedRay.invDir = Vector4::Reciprocal(transformedRay.dir);
+    transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
     SingleTraversalContext objectContext =
     {

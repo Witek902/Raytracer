@@ -15,8 +15,8 @@ PlaneSceneObject::PlaneSceneObject(const Float2 size, const Float2 texScale)
 
 Box PlaneSceneObject::GetBoundingBox() const
 {
-    // TODO
-    return Box::Full();
+    const Box localBox(Vector4(-mSize.x, 0.0f, -mSize.y, 0.0f), Vector4(mSize.x, 0.0f, mSize.y, 0.0f));
+    return mTransform.TransformBox(localBox); // TODO motion blur
 }
 
 bool PlaneSceneObject::Traverse_Single_Internal(const SingleTraversalContext& context, float& outDist) const

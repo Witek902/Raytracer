@@ -12,6 +12,14 @@ const Vector4 Vector4::Zero()
     return _mm_setzero_ps();
 }
 
+#ifdef _DEBUG
+Vector4::Vector4()
+    : v(_mm_set1_ps(std::numeric_limits<float>::signaling_NaN()))
+{}
+#else
+Vector4::Vector4() = default;
+#endif // _DEBUG
+
 Vector4::Vector4(const Vector4& other)
     : v(other.v)
 {}

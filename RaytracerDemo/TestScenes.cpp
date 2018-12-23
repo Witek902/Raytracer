@@ -206,7 +206,7 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
         material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>();
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(math::Float2(20.0f, 20.0f));
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
@@ -258,6 +258,22 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
         materials.push_back(std::move(material));
     }
 
+    // box
+    {
+        auto material = Material::Create();
+        material->debugName = "mirror";
+        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+        material->roughness = 0.0f;
+        material->metalness = 1.0f;
+        material->Compile();
+
+        SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(0.5f, 0.5f, 0.5f, 0.0f));
+        instance->mDefaultMaterial = material;
+        instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 2.0f, 0.0f));
+        scene.AddObject(std::move(instance));
+        materials.push_back(std::move(material));
+    }
+
     {
         auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
         SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
@@ -282,7 +298,7 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
 
     {
         camera = CameraSetup();
-        camera.position = Vector4(0.11f, 1.6f, 2.6f, 0.0f);
+        camera.position = Vector4(0.11f, 1.6f, 3.6f, 0.0f);
         camera.orientation.y = -0.3f;
         camera.orientation.x = -3.11f;
     }

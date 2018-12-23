@@ -40,56 +40,54 @@ RT_FORCE_NOINLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
     const int isXPositive = p.x > 0 ? 1 : 0;
     const int isYPositive = p.y > 0 ? 1 : 0;
     const int isZPositive = p.z > 0 ? 1 : 0;
-    float maxAxis = 0.0f, uc = 0.0f, vc = 0.0f;
 
-    int side = 0;
+    float maxAxis, uc, vc;
+    int side;
 
-    if (isXPositive && abs.x >= abs.y && abs.x >= abs.z) // +X
+    if (abs.x >= abs.y && abs.x >= abs.z)
     {
+        if (isXPositive) // +X
+        {
+            uc = -p.z;
+        }
+        else // -X
+        {
+            uc = p.z;
+        }
+
+        side = isXPositive;
         maxAxis = abs.x;
-        uc = -p.z;
         vc = p.y;
-        side = 0;
     }
-
-    if (!isXPositive && abs.x >= abs.y && abs.x >= abs.z) // -X
+    else if (abs.y >= abs.x && abs.y >= abs.z)
     {
-        maxAxis = abs.x;
-        uc = p.z;
-        vc = p.y;
-        side = 1;
-    }
+        if (isYPositive) // +Y
+        {
+            vc = -p.z;
+        }
+        else // -Y
+        {
+            vc = p.z;
+        }
 
-    if (isYPositive && abs.y >= abs.x && abs.y >= abs.z) // +Y
-    {
+        side = isYPositive + 2;
         maxAxis = abs.y;
         uc = p.x;
-        vc = -p.z;
-        side = 2;
     }
-
-    if (!isYPositive && abs.y >= abs.x && abs.y >= abs.z) // -Y
+    else
     {
-        maxAxis = abs.y;
-        uc = p.x;
-        vc = p.z;
-        side = 3;
-    }
+        if (isZPositive) // +Z
+        {
+            uc = p.x;
+        }
+        else // -Z
+        {
+            uc = -p.x;
+        }
 
-    if (isZPositive && abs.z >= abs.x && abs.z >= abs.y) // +Z
-    {
+        side = isZPositive + 4;
         maxAxis = abs.z;
-        uc = p.x;
         vc = p.y;
-        side = 4;
-    }
-
-    if (!isZPositive && abs.z >= abs.x && abs.z >= abs.y) // -Z
-    {
-        maxAxis = abs.z;
-        uc = -p.x;
-        vc = p.y;
-        side = 5;
     }
 
     // Convert range from -1 to 1 to 0 to 1
@@ -189,12 +187,12 @@ void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shadin
 
     const Vector4 normalsAndTangnts[] =
     {
-        Vector4(+1.0f, 0.0f, 0.0f, 0.0f),   Vector4(0.0f, 0.0f, -1.0f, 0.0f),
         Vector4(-1.0f, 0.0f, 0.0f, 0.0f),   Vector4(0.0f, 0.0f, +1.0f, 0.0f),
-        Vector4(0.0f, +1.0f, 0.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
+        Vector4(+1.0f, 0.0f, 0.0f, 0.0f),   Vector4(0.0f, 0.0f, -1.0f, 0.0f),
         Vector4(0.0f, -1.0f, 0.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
-        Vector4(0.0f, 0.0f, +1.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
+        Vector4(0.0f, +1.0f, 0.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
         Vector4(0.0f, 0.0f, -1.0f, 0.0f),   Vector4(-1.0f, 0.0f, 0.0f, 0.0f),
+        Vector4(0.0f, 0.0f, +1.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
     };
 
     outShadingData.material = mDefaultMaterial.get();

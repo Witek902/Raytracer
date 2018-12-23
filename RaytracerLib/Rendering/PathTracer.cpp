@@ -116,7 +116,6 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
     Ray ray = primaryRay;
 
     ShadingData shadingData;
-    Vector4 incomingDirWorldSpace;
 
     Color resultColor = Color::Zero();
     Color throughput = Color::One();
@@ -228,9 +227,20 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         }
 
         // sample BSDF
-        float pdf = 0.0f;
+        float pdf;
+        Vector4 incomingDirWorldSpace;
         lastSampledBsdfEvent = BSDF::NullEvent;
-        throughput *= shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, lastSampledBsdfEvent);
+        const Color bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, lastSampledBsdfEvent); 
+
+        if (lastSampledBsdfEvent == BSDF::NullEvent)
+        {
+            pathTerminationReason = PathTerminationReason::NoSampledEvent;
+            break;
+        }   
+
+        RT_ASSERT(bsdfValue.IsValid());
+        RT_ASSERT(pdf > 0.0f);
+        throughput *= bsdfValue;
 
         // ray is not visible anymore
         if (throughput.AlmostZero())
@@ -238,14 +248,6 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             pathTerminationReason = PathTerminationReason::Throughput;
             break;
         }
-
-        if (lastSampledBsdfEvent == BSDF::NullEvent)
-        {
-            pathTerminationReason = PathTerminationReason::NoSampledEvent;
-            break;
-        }
-
-        RT_ASSERT(pdf > 0.0f);
 
         lastSpecular = (lastSampledBsdfEvent & BSDF::SpecularEvent) != 0;
         lastPdfW = pdf;

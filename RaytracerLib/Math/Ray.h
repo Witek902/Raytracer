@@ -16,6 +16,7 @@ public:
     Vector4 origin;
     Vector4 dir;
     Vector4 invDir;
+    Vector4 originDivDir;
 
     RT_FORCE_INLINE Ray() = default;
 
@@ -23,6 +24,7 @@ public:
         : origin(origin)
         , dir(direction.Normalized3())
         , invDir(Vector4::Reciprocal(dir))
+        , originDivDir(origin * invDir)
     {
     }
 

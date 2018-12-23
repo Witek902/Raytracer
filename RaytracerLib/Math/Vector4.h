@@ -31,7 +31,7 @@ struct RT_ALIGN(16) Vector4
     };
 
     // constructors
-    Vector4() = default;
+    RT_FORCE_INLINE Vector4();
     RT_FORCE_INLINE Vector4(const Vector4& other);
     RT_FORCE_INLINE Vector4(const __m128& src);
     RT_FORCE_INLINE static const Vector4 Zero();

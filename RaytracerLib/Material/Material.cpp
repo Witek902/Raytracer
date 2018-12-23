@@ -246,6 +246,7 @@ const Color Material::Sample(
     RT_ASSERT(samplingContext.outPdf > 0.0f);
     RT_ASSERT(samplingContext.outIncomingDir.IsValid());
     RT_ASSERT(samplingContext.outColor.IsValid());
+    RT_ASSERT(value.IsValid());
 
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(samplingContext.outIncomingDir);
