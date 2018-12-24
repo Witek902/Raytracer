@@ -85,7 +85,7 @@ void InitScene_Mesh(Scene& scene, DemoWindow::Materials& materials, DemoWindow::
     }
 }
 
-void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     // floor
     {
@@ -137,7 +137,7 @@ void InitScene_Plane(Scene& scene, DemoWindow::Materials& materials, DemoWindow:
     }
 }
 
-void InitScene_Materials(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+void InitScene_Materials(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes&, CameraSetup& camera)
 {
     // floor
     {

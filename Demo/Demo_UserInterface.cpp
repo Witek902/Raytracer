@@ -126,7 +126,7 @@ void DemoWindow::RenderUI_Debugging_Path()
             //ImGui::Text("[%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y); ImGui::NextColumn();
 
             ImGui::Text("Material"); ImGui::NextColumn();
-            ImGui::Text(data.shadingData.material->debugName.c_str()); ImGui::NextColumn();
+            ImGui::Text("%s", data.shadingData.material->debugName.c_str()); ImGui::NextColumn();
 
             ImGui::Text("Throughput"); ImGui::NextColumn();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
@@ -150,7 +150,7 @@ void DemoWindow::RenderUI_Debugging_Path()
             case BSDF::SpecularRefractionEvent: bsdfEventStr = "Specular Refraction"; break;
             }
             ImGui::Text("BSDF Event"); ImGui::NextColumn();
-            ImGui::Text(bsdfEventStr); ImGui::NextColumn();
+            ImGui::Text("%s", bsdfEventStr); ImGui::NextColumn();
         }
 
         ImGui::Columns(1);
