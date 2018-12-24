@@ -1,0 +1,82 @@
+#include "PCH.h"
+#include "Demo.h"
+
+#include "../External/cxxopts.hpp"
+#include "../Core/Utils/Logger.h"
+
+bool ParseOptions(int argc, char** argv, Options& outOptions)
+{
+    cxxopts::Options options("Raytracer Demo", "CPU raytracer by Michal Witanowski");
+    options.add_options()
+        ("w,width", "Window width", cxxopts::value<Uint32>())
+        ("h,height", "Window width", cxxopts::value<Uint32>())
+        ("d,data", "Data path", cxxopts::value<std::string>())
+        ("m,model", "OBJ model to load", cxxopts::value<std::string>())
+        ("e,env", "Environment map path", cxxopts::value<std::string>())
+        ;
+
+    try
+    {
+        auto result = options.parse(argc, argv);
+
+        if (result.count("w"))
+            outOptions.windowWidth = result["w"].as<Uint32>();
+
+        if (result.count("h"))
+            outOptions.windowHeight = result["h"].as<Uint32>();
+
+        if (result.count("d"))
+            outOptions.dataPath = result["d"].as<std::string>();
+
+        if (result.count("m"))
+            outOptions.modelPath = result["m"].as<std::string>();
+
+        if (result.count("e"))
+            outOptions.envMapPath = result["e"].as<std::string>();
+    }
+    catch (cxxopts::OptionParseException& e)
+    {
+        RT_LOG_ERROR("Failed to parse commandline: %hs", e.what());
+        return false;
+    }
+
+    return true;
+}
+
+Options gOptions;
+
+int main(int argc, char* argv[])
+{
+    rt::math::SetFlushDenormalsToZero();
+
+    if (!ParseOptions(argc, argv, gOptions))
+    {
+        return 1;
+    }
+
+    {
+        DemoWindow demo;
+
+        if (!demo.Initialize())
+        {
+            return 2;
+        }
+
+        RT_LOG_INFO("Initialized.");
+
+        if (!demo.Loop())
+        {
+            return 3;
+        }
+    }
+
+    RT_LOG_INFO("Closing.");
+
+    RT_ASSERT(rt::math::GetFlushDenormalsToZero(), "Something disabled flushing denormal float to zero");
+
+#if defined(_DEBUG) && defined(WIN32)
+    _CrtDumpMemoryLeaks();
+#endif // _DEBUG
+
+    return 0;
+}

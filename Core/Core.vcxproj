@@ -1,0 +1,374 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3C8B7001-E7F9-49E7-B49A-B766D5D7FC8D}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Core</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WIN64;RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\External\tinyexr\tinyexr.h" />
+    <ClInclude Include="BVH\BVH.h" />
+    <ClInclude Include="BVH\BVHBuilder.h" />
+    <ClInclude Include="Color\Color.h" />
+    <ClInclude Include="Color\ColorHelpers.h" />
+    <ClInclude Include="Color\LdrColor.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="Material\BSDF\BSDF.h" />
+    <ClInclude Include="Material\BSDF\GlossyReflectiveBSDF.h" />
+    <ClInclude Include="Material\BSDF\LambertianBSDF.h" />
+    <ClInclude Include="Material\BSDF\Microfacet.h" />
+    <ClInclude Include="Material\BSDF\OrenNayarBSDF.h" />
+    <ClInclude Include="Material\BSDF\SpecularReflectiveBSDF.h" />
+    <ClInclude Include="Material\BSDF\SpecularTransmissiveBSDF.h" />
+    <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="Math\Box.h" />
+    <ClInclude Include="Math\Constants.h" />
+    <ClInclude Include="Math\Float2.h" />
+    <ClInclude Include="Math\Float2Impl.h" />
+    <ClInclude Include="Math\Float3.h" />
+    <ClInclude Include="Math\Float3Impl.h" />
+    <ClInclude Include="Math\Geometry.h" />
+    <ClInclude Include="Math\Half.h" />
+    <ClInclude Include="Math\Math.h" />
+    <ClInclude Include="Math\Quaternion.h" />
+    <ClInclude Include="Math\QuaternionImpl.h" />
+    <ClInclude Include="Math\Random.h" />
+    <ClInclude Include="Math\Ray.h" />
+    <ClInclude Include="Math\Rectangle.h" />
+    <ClInclude Include="Math\Simd4Box.h" />
+    <ClInclude Include="Math\Simd4Geometry.h" />
+    <ClInclude Include="Math\Simd4Ray.h" />
+    <ClInclude Include="Math\Simd4Triangle.h" />
+    <ClInclude Include="Math\Simd4Vector3.h" />
+    <ClInclude Include="Math\Simd8Box.h" />
+    <ClInclude Include="Math\Simd8Geometry.h" />
+    <ClInclude Include="Math\Simd8Ray.h" />
+    <ClInclude Include="Math\Simd8Triangle.h" />
+    <ClInclude Include="Math\Transform.h" />
+    <ClInclude Include="Math\Utils.h" />
+    <ClInclude Include="Math\Vector2x8.h" />
+    <ClInclude Include="Math\Vector3x8.h" />
+    <ClInclude Include="Math\Sphere.h" />
+    <ClInclude Include="Math\Transcendental.h" />
+    <ClInclude Include="Math\Triangle.h" />
+    <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Math\Vector8.h" />
+    <ClInclude Include="Math\Vector8Impl.h" />
+    <ClInclude Include="Math\Vector4Impl.h" />
+    <ClInclude Include="Math\VectorBool4.h" />
+    <ClInclude Include="Math\VectorInt4.h" />
+    <ClInclude Include="Math\VectorInt4Impl.h" />
+    <ClInclude Include="Math\VectorInt8.h" />
+    <ClInclude Include="Math\VectorInt8Impl.h" />
+    <ClInclude Include="Mesh\Mesh.h" />
+    <ClInclude Include="Mesh\VertexBuffer.h" />
+    <ClInclude Include="Mesh\VertexBufferDesc.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="RayLib.h" />
+    <ClInclude Include="Rendering\Counters.h" />
+    <ClInclude Include="Rendering\Context.h" />
+    <ClInclude Include="Rendering\DebugRenderer.h" />
+    <ClInclude Include="Rendering\PathDebugging.h" />
+    <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\PostProcess.h" />
+    <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\ShadingData.h" />
+    <ClInclude Include="Rendering\Viewport.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Light\AreaLight.h" />
+    <ClInclude Include="Scene\Light\BackgroundLight.h" />
+    <ClInclude Include="Scene\Light\DirectionalLight.h" />
+    <ClInclude Include="Scene\Light\Light.h" />
+    <ClInclude Include="Scene\Light\PointLight.h" />
+    <ClInclude Include="Scene\Object\SceneObject.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Box.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Light.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Mesh.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Plane.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Sphere.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Traversal\HitPoint.h" />
+    <ClInclude Include="Traversal\RayPacket.h" />
+    <ClInclude Include="Traversal\RayStream.h" />
+    <ClInclude Include="Traversal\TraversalContext.h" />
+    <ClInclude Include="Traversal\Traversal_Packet.h" />
+    <ClInclude Include="Traversal\Traversal_Simd.h" />
+    <ClInclude Include="Traversal\Traversal_Single.h" />
+    <ClInclude Include="Utils\AlignmentAllocator.h" />
+    <ClInclude Include="Utils\Bitmap.h" />
+    <ClInclude Include="Utils\BlockCompression.h" />
+    <ClInclude Include="Utils\iacaMarks.h" />
+    <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\Timer.h" />
+    <ClInclude Include="Utils\ThreadPool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\External\tinyexr\tinyexr.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="BVH\BVH.cpp" />
+    <ClCompile Include="BVH\BVHBuilder.cpp" />
+    <ClCompile Include="Color\Color.cpp" />
+    <ClCompile Include="Material\BSDF\BSDF.cpp" />
+    <ClCompile Include="Material\BSDF\GlossyReflectiveBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\LambertianBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\OrenNayarBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\SpecularReflectiveBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\SpecularTransmissiveBSDF.cpp" />
+    <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="Math\Math.cpp" />
+    <ClCompile Include="Math\Quaternion.cpp" />
+    <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\Transcendental.cpp" />
+    <ClCompile Include="Math\Transform.cpp" />
+    <ClCompile Include="Math\Utils.cpp" />
+    <ClCompile Include="Math\Vector4.cpp" />
+    <ClCompile Include="Mesh\Mesh.cpp" />
+    <ClCompile Include="Mesh\VertexBuffer.cpp" />
+    <ClCompile Include="PCH.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Rendering\DebugRenderer.cpp" />
+    <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\PostProcess.cpp" />
+    <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\Viewport.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Light\AreaLight.cpp" />
+    <ClCompile Include="Scene\Light\BackgroundLight.cpp" />
+    <ClCompile Include="Scene\Light\DirectionalLight.cpp" />
+    <ClCompile Include="Scene\Light\Light.cpp" />
+    <ClCompile Include="Scene\Light\PointLight.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Box.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Light.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Plane.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Traversal\RayPacket.cpp" />
+    <ClCompile Include="Traversal\RayStream.cpp" />
+    <ClCompile Include="Traversal\Traversal_Packet.cpp" />
+    <ClCompile Include="Utils\Bitmap.cpp" />
+    <ClCompile Include="Utils\BitmapBMP.cpp" />
+    <ClCompile Include="Utils\BitmapDDS.cpp" />
+    <ClCompile Include="Utils\BitmapEXR.cpp" />
+    <ClCompile Include="Utils\BlockCompression.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\Timer.cpp" />
+    <ClCompile Include="Utils\ThreadPool.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
