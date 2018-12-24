@@ -63,15 +63,25 @@ void InitScene_Mesh(Scene& scene, DemoWindow::Materials& materials, DemoWindow::
         auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
         SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
         instance->mTransform.SetTranslation(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+        instance->mDefaultMaterial = helpers::CreateDefaultMaterial(materials);
         scene.AddObject(std::move(instance));
         meshes.push_back(std::move(mesh));
     }
 
+    // bunny
+    //{
+    //    camera = CameraSetup();
+    //    camera.position = Vector4(-0.14f, -0.02f, 1.17f, 0.0f);
+    //    camera.orientation.y = -0.11f;
+    //    camera.orientation.x = -3.08f;
+    //}
+
+    // sponza
     {
         camera = CameraSetup();
-        camera.position = Vector4(0.0f, 0.2f, 3.0f, 0.0f);
-        camera.orientation.y = 0.05f;
-        camera.orientation.x = 3.0f;
+        camera.position = Vector4(1015.0f, 604.0f, 37.0f, 0.0f);
+        camera.orientation.y = -0.14f;
+        camera.orientation.x = -1.6f;
     }
 }
 

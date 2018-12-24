@@ -11,14 +11,20 @@
 #include "Rendering/Counters.h"
 #include "Rendering/Context.h"
 
+#define RT_NO_RAY_REORDERING
+
 namespace rt {
 
 struct RenderingContext;
 
-RT_FORCE_NOINLINE void RemoveMissedGroups(RenderingContext& context, Uint32& numGroups);
+// remove groups where all rays missed a bounding box
+RT_FORCE_NOINLINE Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups);
+
+// reorder rays to restore coherency
+RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, Uint32 numRays);
 
 // test all alive groups in a packet agains a BVH node
-Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context);
+RT_FORCE_NOINLINE Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context);
 
 template <typename ObjectType>
 void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object)
@@ -76,7 +82,16 @@ void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 
         // remove missed groups from the list
         if (raysHit < frame.numActiveRays)
         {
-            RemoveMissedGroups(context.context, numGroups);
+            numGroups = RemoveMissedGroups(context.context, numGroups);
+
+#ifndef RT_NO_RAY_REORDERING
+            // reorder rays to restore coherency
+            if ((numGroups > 1) && ((4 * numGroups) >= raysHit)) // 50% utilization
+            {
+                ReorderRays(context.context, numGroups);
+                numGroups = (raysHit + 7) / 8;
+            }
+#endif // RT_NO_RAY_REORDERING
         }
 
         // TODO switching to Simd traversal if only one group left

@@ -120,8 +120,8 @@ RT_INLINE const Vector8 Intersect_TriangleRay_Simd8(
     outDist = t;
 
     // u > 0 && v > 0 && t > 0 && u + v < 1 && t < maxDist
-    const Vector8 condA = _mm256_andnot_ps(u, _mm256_cmp_ps(u + v, one, _CMP_LE_OQ));
-    const Vector8 condB = _mm256_andnot_ps(t, _mm256_cmp_ps(t, maxDistance, _CMP_LE_OQ));
+    const Vector8 condA = _mm256_andnot_ps(u, _mm256_cmp_ps(t, maxDistance, _CMP_LE_OQ));
+    const Vector8 condB = _mm256_andnot_ps(t, _mm256_cmp_ps(u + v, one, _CMP_LE_OQ));
     return _mm256_andnot_ps(v, _mm256_and_ps(condA, condB));
 }
 

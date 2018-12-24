@@ -101,12 +101,6 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
     Vector3x8 origin(transform.GetTranslation());
     Vector2x8 offsetedCoords = coords * 2.0f - Vector2x8::One();
 
-    const Vector4 forwardInternal = transform.GetRotation().GetAxisZ();
-    const Vector4 rightInternal = transform.GetRotation().GetAxisX();
-    const Vector4 upInternal = transform.GetRotation().GetAxisY();
-    const Vector4 upScaled = upInternal * mTanHalfFoV;
-    const Vector4 rightScaled = rightInternal * (mTanHalfFoV * mAspectRatio);
-
     // barrel distortion
     if (enableBarellDistortion)
     {
@@ -115,19 +109,28 @@ Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& c
         offsetedCoords += offsetedCoords * radius;
     }
 
+    const Vector3x8 screenSpaceRayDir =
+    {
+        offsetedCoords.x * (mTanHalfFoV * mAspectRatio),
+        offsetedCoords.y * mTanHalfFoV,
+        Vector8(1.0f)
+    };
+
     // calculate ray direction (ideal, without DoF)
-    Vector3x8 direction = Vector3x8::MulAndAdd(Vector3x8(rightScaled), offsetedCoords.x, Vector3x8(forwardInternal));
-    direction = Vector3x8::MulAndAdd(Vector3x8(upScaled), offsetedCoords.y, direction);
+    Vector3x8 direction = transform.GetRotation().TransformVector(screenSpaceRayDir);
 
     // depth of field
     if (mDOF.aperture > 0.001f)
     {
-        const Vector3x8 focusPoint = origin + direction * mDOF.focalPlaneDistance;
+        const Vector3x8 focusPoint = Vector3x8::MulAndAdd(direction, Vector8(mDOF.focalPlaneDistance), origin);
+
+        const Vector4 right = transform.GetRotation().GetAxisX();
+        const Vector4 up = transform.GetRotation().GetAxisY();
 
         // TODO different bokeh shapes, texture, etc.
         const Vector2x8 randomPointOnCircle = context.randomGenerator.GetCircle_Simd8() * mDOF.aperture;
-        origin = Vector3x8::MulAndAdd(Vector3x8(rightInternal), randomPointOnCircle.x, origin);
-        origin = Vector3x8::MulAndAdd(Vector3x8(upInternal), randomPointOnCircle.y, origin);
+        origin = Vector3x8::MulAndAdd(Vector3x8(randomPointOnCircle.x), Vector3x8(right), origin);
+        origin = Vector3x8::MulAndAdd(Vector3x8(randomPointOnCircle.y), Vector3x8(up), origin);
 
         direction = focusPoint - origin;
     }

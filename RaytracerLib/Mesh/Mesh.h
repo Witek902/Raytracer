@@ -52,7 +52,7 @@ public:
     bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;
 
     // Calculate input data for shading routine
-    void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const;
+    void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData, const Material* defaultMaterial) const;
 
 private:
 

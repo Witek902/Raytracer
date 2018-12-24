@@ -24,7 +24,12 @@ public:
 
     RT_FORCE_INLINE Vector3x8(const Vector8& x, const Vector8& y, const Vector8& z)
         : x(x), y(y), z(z)
-    { }
+    {}
+
+    // splat value to all the components
+    RT_FORCE_INLINE explicit Vector3x8(const Vector8& s)
+        : x(s), y(s), z(s)
+    {}
 
     // splat single 3D vector
     RT_FORCE_INLINE explicit Vector3x8(const Vector4& v)
@@ -37,24 +42,20 @@ public:
 
     // splat single scalar to all components an elements
     RT_FORCE_INLINE explicit Vector3x8(const float f)
-    {
-        x = y = z = _mm256_set1_ps(f);
-    }
+        : x(f) , y(f) , z(f)
+    {}
 
     // splat single 3D vector
     RT_FORCE_INLINE explicit Vector3x8(const Float3& v)
-    {
-        x = _mm256_broadcast_ss(&v.x);
-        y = _mm256_broadcast_ss(&v.y);
-        z = _mm256_broadcast_ss(&v.z);
-    }
+        : x(v.x), y(v.y), z(v.z)
+    {}
 
     // construct from two Vector3_Simd4
     RT_FORCE_INLINE Vector3x8(const Vector3_Simd4& lo, const Vector3_Simd4& hi)
         : x(lo.x, hi.x)
         , y(lo.y, hi.y)
         , z(lo.z, hi.z)
-    { }
+    {}
 
     // build from eight 3D vectors
     RT_FORCE_INLINE Vector3x8(const Vector4& v0, const Vector4& v1, const Vector4& v2, const Vector4& v3,
@@ -335,6 +336,17 @@ public:
             Vector8::NegMulAndAdd(a.x, b.z, a.z * b.x),
             Vector8::NegMulAndAdd(a.y, b.x, a.x * b.y)
         };
+    }
+
+    RT_FORCE_INLINE const Vector8 SqrLength() const
+    {
+        return Dot(*this, *this);
+    }
+
+    RT_FORCE_INLINE const Vector3x8 Normalized() const
+    {
+        const Vector8 invLength = Vector8::Reciprocal(Vector8::Sqrt(SqrLength()));
+        return (*this) * invLength;
     }
 
     //////////////////////////////////////////////////////////////////////////

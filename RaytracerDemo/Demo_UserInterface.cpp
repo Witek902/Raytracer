@@ -314,7 +314,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
     int tileOrder = static_cast<int>(mRenderingParams.tileSize);
 
-    const char* traversalModeItems[] = { "Single", "SIMD", "Packet" };
+    const char* traversalModeItems[] = { "Single", "Packet" };
     resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
 
     ImGui::SliderInt("Tile size", (int*)&tileOrder, 1, 1024);

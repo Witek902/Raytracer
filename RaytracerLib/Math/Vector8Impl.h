@@ -54,6 +54,11 @@ Vector8::Vector8(const Uint32 u)
     : v(_mm256_castsi256_ps(_mm256_set1_epi32(u)))
 {}
 
+const Vector8 Vector8::FromInteger(Int32 x)
+{
+    return _mm256_cvtepi32_ps(_mm256_set1_epi32(x));
+}
+
 Vector8& Vector8::operator = (const Vector8& other)
 {
     v = other.v;

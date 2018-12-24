@@ -93,7 +93,7 @@ const Vector3x8 Quaternion::TransformVector(const Vector3x8& v) const
     const Vector3x8 q8(q);
     Vector3x8 t = Vector3x8::Cross(q8, v);
     t = t + t;
-    return v + t * q.w + Vector3x8::Cross(q8, t);
+    return Vector3x8::MulAndAdd(t, Vector8(q.w), v) + Vector3x8::Cross(q8, t);
 }
 
 void Quaternion::ToAxis(Vector4& outAxis, float& outAngle) const

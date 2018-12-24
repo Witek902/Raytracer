@@ -148,7 +148,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
             RT_ASSERT(indices.i0 < desc.numVertices, "Vertex index out of bounds");
             RT_ASSERT(indices.i1 < desc.numVertices, "Vertex index out of bounds");
             RT_ASSERT(indices.i2 < desc.numVertices, "Vertex index out of bounds");
-            RT_ASSERT(indices.materialIndex < desc.numMaterials, "Material index out of bounds");
+            RT_ASSERT(indices.materialIndex < desc.numMaterials || indices.materialIndex == UINT32_MAX, "Material index out of bounds");
         }
     }
 

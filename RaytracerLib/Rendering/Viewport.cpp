@@ -172,6 +172,21 @@ RT_FORCE_INLINE void Store_NonTemporal(Uint32* target, const Uint32 value)
     _mm_stream_si32(reinterpret_cast<int*>(target), value);
 }
 
+void Viewport::Internal_AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor)
+{
+    Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
+    Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
+
+    const size_t pixelIndex = GetWidth() * y + x;
+    sumPixels[pixelIndex] += sampleColor.ToFloat3();
+    mPassesPerPixel[pixelIndex] = mProgress.passesFinished + 1;
+
+    if (mProgress.passesFinished % 2 == 0)
+    {
+        secondarySumPixels[pixelIndex] += sampleColor.ToFloat3();
+    }
+}
+
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
 {
     RT_ASSERT(tile.minX < tile.maxX);
@@ -184,19 +199,14 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     const Uint32 samplesPerPixel = renderingContext.params->samplesPerPixel;
     const Float sampleScale = 1.0f / (Float)samplesPerPixel;
 
-    const bool verticalFlip = true;
-
-    const Uint32 currentPass = mProgress.passesFinished + 1;
-    Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
-    Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
-
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 y = tile.minY; y < tile.maxY; ++y)
         {
+            const Uint32 realY = GetHeight() - 1u - y;
+
             for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
-                const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
                 Vector4 sampleColor = Vector4::Zero();
@@ -212,110 +222,83 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 }
 
                 RT_ASSERT(sampleColor.IsValid());
-
-                sampleColor = Vector4::Max(sampleColor, Vector4::Zero()); // TODO fix this
                 RT_ASSERT((sampleColor >= Vector4::Zero()).All());
 
                 // TODO get rid of this
                 sampleColor *= sampleScale;
 
-                const size_t pixelIndex = GetWidth() * y + x;
-                sumPixels[pixelIndex] += sampleColor.ToFloat3();
-
-                Store_NonTemporal(&mPassesPerPixel[pixelIndex], currentPass);
-
-                if (mProgress.passesFinished % 2 == 0)
-                {
-                    secondarySumPixels[pixelIndex] += sampleColor.ToFloat3();
-                }
-            }
-        }
-
-        //for (Uint32 i = 0; i < tileSize * tileSize; ++i)
-        //{
-        //    // fill the tile using Morton Curve for better cache locality
-        //    Uint32 localX, localY;
-        //    DecodeMorton(i, localX, localY);
-        //    const Uint32 x = x0 + localX;
-        //    const Uint32 y = y0 + localY;
-        //    if (x >= maxX || y >= maxY) continue;
-        //
-        //}
-    }
-
-    // TODO
-    /*
-    else if (context.params->traversalMode == TraversalMode::Simd)
-    {
-        for (Uint32 y = y0; y < maxY; ++y)
-        {
-            const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
-
-            for (Uint32 x = x0; x < maxX; ++x)
-            {
-                // TODO multisampling
-
-                // generate primary SIMD rays
-                Vector2x8 coords(Vector4::FromIntegers(x, realY));
-                coords.x += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
-                coords.y += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
-                coords.x *= invSize[0];
-                coords.y *= invSize[1];
-
-                Ray_Simd8 simdRay = camera.GenerateRay_Simd8(coords, context);
-
-                Color colors[8];
-                scene.TraceRay_Simd8(simdRay, context, colors);
-
-                Color color;
-                for (Uint16 i = 0; i < 8; ++i)
-                {
-                    color += colors[i];
-                }
-                color *= 1.0f / 8.0f;
-
-                const Vector4 cieXYZ = color.Resolve(context.wavelength);
-                sumPixels[renderTargetWidth * y + x] += cieXYZ;
+                Internal_AccumulateColor(x, y, sampleColor);
             }
         }
     }
-    else if (context.params->traversalMode == TraversalMode::Packet)
+    else if (renderingContext.params->traversalMode == TraversalMode::Packet)
     {
-        RayPacket& primaryPacket = context.rayPackets[0];
+        renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
+        renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
+
+        RayPacket& primaryPacket = renderingContext.rayPacket;
         primaryPacket.Clear();
 
-        // prepare packet
-        for (Uint32 y = y0; y < maxY; ++y)
+        // TODO multisampling
+        // TODO handle case where tile size does not fit ray group size
+        RT_ASSERT((tile.maxY - tile.minY) % 2 == 0);
+        RT_ASSERT((tile.maxX - tile.minX) % 4 == 0);
+        /*
+        for (Uint32 y = tile.minY; y < tile.maxY; ++y)
         {
-            const Uint32 realY = verticalFlip ? (GetHeight() - 1u - y) : y;
+            const Uint32 realY = GetHeight() - 1u - y;
 
-            for (Uint32 x = x0; x < maxX; ++x)
+            for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
-                // TODO multisampling
+                const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                // generate primary SIMD rays
-                Vector2x8 coords(Vector4::FromIntegers(x, realY));
-                coords.x += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
-                coords.y += (context.randomGenerator.GetVector8() - VECTOR8_HALVES) * context.params->antiAliasingSpread;
-                coords.x *= invSize[0];
-                coords.y *= invSize[1];
+                for (Uint32 s = 0; s < samplesPerPixel; ++s)
+                {
+                    // generate primary ray
+                    const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
 
-                const ImageLocationInfo location = { (Uint16)x, (Uint16)y };
-                Ray_Simd8 simdRay = camera.GenerateRay_Simd8(coords, context);
-                const Vector3x8 weight = Vector3x8(1.0f / 8.0f);
+                    const ImageLocationInfo location = { (Uint16)x, (Uint16)y };
+                    primaryPacket.PushRay(ray, Vector4(sampleScale), location);
+                }
+            }
+        }
+        */
 
-                primaryPacket.PushRays(simdRay, weight, location);
+        constexpr Uint32 rayGroupSizeX = 4;
+        constexpr Uint32 rayGroupSizeY = 2;
+
+        for (Uint32 y = tile.minY; y < tile.maxY; y += rayGroupSizeY)
+        {
+            const Uint32 realY = GetHeight() - 1u - y;
+
+            for (Uint32 x = tile.minX; x < tile.maxX; x += rayGroupSizeX)
+            {
+                // generate ray group with following layout:
+                //  0 1 2 3
+                //  4 5 6 7
+                Vector2x8 coords{ Vector8::FromInteger(x), Vector8::FromInteger(realY) };
+                coords.x += Vector8(0.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 2.0f, 3.0f);
+                coords.y -= Vector8(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+                coords.x += Vector8(tileContext.sampleOffset.x);
+                coords.y += Vector8(tileContext.sampleOffset.y);
+                coords.x *= invSize.x;
+                coords.y *= invSize.y;
+
+                const ImageLocationInfo locations[] =
+                {
+                    { x + 0, y + 0 }, { x + 1, y + 0 }, { x + 2, y + 0 }, { x + 3, y + 0 },
+                    { x + 0, y + 1 }, { x + 1, y + 1 }, { x + 2, y + 1 }, { x + 3, y + 1 },
+                };
+
+                const Ray_Simd8 simdRay = tileContext.camera.GenerateRay_Simd8(coords, renderingContext);
+                primaryPacket.PushRays(simdRay, Vector3x8(1.0f), locations);
             }
         }
 
-        LocalCounters counters;
-        HitPoint_Packet& hitPoints = context.hitPoints;
-        context.localCounters.Reset();
-        scene.Traverse_Packet({ primaryPacket, hitPoints, context });
-        context.counters.Append(context.localCounters);
-        scene.Shade_Packet(primaryPacket, hitPoints, context, mAccumulated);
+        renderingContext.localCounters.Reset();
+        tileContext.renderer.Raytrace_Packet(primaryPacket, renderingContext, *this);
+        renderingContext.counters.Append(renderingContext.localCounters);
     }
-    */
 
     renderingContext.counters.numPrimaryRays += tileSize * tileSize * renderingContext.params->samplesPerPixel;
 }

@@ -16,7 +16,6 @@ struct PathDebugData;
 enum class TraversalMode : Uint8
 {
     Single = 0,
-    Simd,
     Packet,
 };
 
@@ -69,8 +68,7 @@ struct RT_ALIGN(64) RenderingContext : public Aligned<64>
 {
     Wavelength wavelength;
 
-    // two packets because of buffering
-    RayPacket rayPackets[2];
+    RayPacket rayPacket;
 
     HitPoint_Packet hitPoints;
 

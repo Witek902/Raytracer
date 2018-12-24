@@ -34,7 +34,7 @@ const Vector8 VectorInt8::CastToFloat() const
 }
 
 VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7)
-    : v(_mm256_set_epi32(e0, e1, e2, e3, e4, e5, e6, e7))
+    : v(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0))
 {}
 
 VectorInt8::VectorInt8(const Int32 i)

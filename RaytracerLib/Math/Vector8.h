@@ -26,6 +26,7 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7);
     RT_FORCE_INLINE Vector8(const Float* src);
     RT_FORCE_INLINE Vector8& operator = (const Vector8& other);
+    RT_FORCE_INLINE static const Vector8 FromInteger(Int32 x);
 
     // Rearrange vector elements (in both lanes, parallel)
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
@@ -34,8 +35,7 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE operator __m256() const { return v; }
     RT_FORCE_INLINE operator __m256i() const { return reinterpret_cast<const __m256i*>(&v)[0]; }
     RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
-
-    RT_FORCE_INLINE void SetElement(Uint32 index, Float value) { f[index] = value; }
+    RT_FORCE_INLINE Float& operator[] (Uint32 index) { return f[index]; }
 
     // extract lower lanes
     RT_FORCE_INLINE const Vector4 Low() const

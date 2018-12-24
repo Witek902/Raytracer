@@ -17,7 +17,7 @@ namespace rt {
 class BVH
 {
 public:
-    static constexpr Uint32 MaxDepth = 64;
+    static constexpr Uint32 MaxDepth = 128;
 
     struct RT_ALIGN(32) Node
     {

@@ -39,6 +39,7 @@ public:
     DebugRenderer(const Scene& scene);
 
     virtual const Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const override;
+    virtual void Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const override;
 
     DebugRenderingMode mRenderingMode;
 };

@@ -6,6 +6,8 @@
 #include "Material/Material.h"
 #include "Color/ColorHelpers.h"
 #include "Traversal/TraversalContext.h"
+#include "Traversal/RayPacket.h"
+#include "Rendering/Viewport.h"
 
 namespace rt {
 
@@ -19,7 +21,7 @@ static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::BaseColor)
+    , mRenderingMode(DebugRenderingMode::TriangleID)
 {
 }
 
@@ -40,6 +42,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
     }
 
     Vector4 resultColor;
+
     switch (mRenderingMode)
     {
         // Geometry
@@ -144,9 +147,56 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
             break;
         }
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+        default:
+            RT_FATAL("Invalid debug rendering mode");
     }
 
     return Color::SampleRGB(context.wavelength, resultColor);
+}
+
+void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const
+{
+    HitPoint_Packet& hitPoints = context.hitPoints;
+    mScene.Traverse_Packet({ packet, hitPoints, context });
+
+    const Uint32 numGroups = packet.GetNumGroups();
+    for (Uint32 i = 0; i < numGroups; ++i)
+    {
+        Vector4 weights[RayPacket::RaysPerGroup];
+        packet.rayWeights[i].Unpack(weights);
+
+        Vector4 rayOrigins[8];
+        Vector4 rayDirs[8];
+
+        packet.groups[i].rays.origin.Unpack(rayOrigins);
+        packet.groups[i].rays.dir.Unpack(rayDirs);
+
+        for (Uint32 j = 0; j < RayPacket::RaysPerGroup; ++j)
+        {
+            const ImageLocationInfo& imageLocation = packet.imageLocations[RayPacket::RaysPerGroup * i + j];
+
+            const HitPoint hitPoint = hitPoints[i].Get(j);
+            //ShadingData shadingData;
+            //mScene.ExtractShadingData(rayOrigins[j], rayDirs[j], hitPoint, context.time, shadingData);
+
+            Vector4 color;
+            if (hitPoint.distance == FLT_MAX)
+            {
+                color = Vector4::Zero();
+            }
+            else
+            {
+                //color = ScaleBipolarRange(shadingData.normal);
+                const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
+                const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
+                const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+                color = weights[j] * HSVtoRGB(hue, saturation, 1.0f);
+            }
+
+            viewport.Internal_AccumulateColor(imageLocation.x, imageLocation.y, color);
+        }
+    }
 }
 
 } // namespace rt

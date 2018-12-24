@@ -72,11 +72,6 @@ public:
 
     bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;
 
-    // perform ray packet shading:
-    // 1. apply calculated color to render target
-    // 2. generate secondary rays
-    RT_FORCE_NOINLINE void Shade_Packet(const RayPacket& packet, const HitPoint_Packet& hitPoints, RenderingContext& context, Bitmap& renderTarget) const;
-
 private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;

@@ -47,7 +47,7 @@ void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, con
 
 void MeshSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
-    mMesh->EvaluateShadingData_Single(hitPoint, outShadingData);
+    mMesh->EvaluateShadingData_Single(hitPoint, outShadingData, mDefaultMaterial.get());
 }
 
 

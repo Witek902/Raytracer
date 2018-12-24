@@ -7,8 +7,10 @@
 
 namespace rt {
 
+class Viewport;
 class Scene;
 struct RenderingContext;
+struct RayPacket;
 
 // abstract scene rendering interface
 class RAYLIB_API IRenderer
@@ -22,6 +24,8 @@ public:
     // TODO cancelation of ongoing rendering
 
     virtual const Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const = 0;
+
+    virtual void Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const;
 
 protected:
     const Scene& mScene;

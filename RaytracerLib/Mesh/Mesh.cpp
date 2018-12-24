@@ -221,8 +221,6 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
 
 void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
 {
-    RT_UNUSED(context);
-
     const VectorInt8 objectIndexVec(objectID);
 
     Vector8 distance, u, v;
@@ -246,7 +244,6 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
             const Vector8 mask = Intersect_TriangleRay_Simd8(rayGroup.rays.dir, rayGroup.rays.origin, tri, rayGroup.maxDistances, u, v, distance);
             const Uint32 intMask = mask.GetSignMask();
 
-            // TODO triangle & object filtering
             if (intMask)
             {
                 rayGroup.maxDistances = Vector8::SelectBySign(rayGroup.maxDistances, distance, mask);
@@ -264,11 +261,11 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
                         const Uint32 subOffset = rayOffset % 8; // offset within hit point group
                         HitPoint_Simd8& hitPoint = context.hitPoint[rayOffset / 8];
 
-                        hitPoint.u.SetElement(subOffset, u[k]);
-                        hitPoint.v.SetElement(subOffset, v[k]);
-                        hitPoint.distance.SetElement(subOffset, distance[k]);
-                        hitPoint.subObjectId.SetElement(subOffset, triangleIndex);
-                        hitPoint.objectId.SetElement(subOffset, objectID);
+                        hitPoint.u[subOffset] = u[k];
+                        hitPoint.v[subOffset] = v[k];
+                        hitPoint.distance[subOffset] = distance[k];
+                        hitPoint.subObjectId[subOffset] = triangleIndex;
+                        hitPoint.objectId[subOffset] = objectID;
                     }
                 }
 
@@ -282,12 +279,19 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outData) const
+void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outData, const Material* defaultMaterial) const
  {
     VertexIndices indices;
     mVertexBuffer.GetVertexIndices(hitPoint.subObjectId, indices); // TODO cache this in MeshIntersectionData?
 
-    outData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
+    if (indices.materialIndex == UINT32_MAX)
+    {
+        outData.material = defaultMaterial;
+    }
+    else
+    {
+        outData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
+    }
 
     VertexShadingData vertexShadingData[3];
     mVertexBuffer.GetShadingData(indices, vertexShadingData[0], vertexShadingData[1], vertexShadingData[2]);

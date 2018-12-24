@@ -3,6 +3,7 @@
 #include "../Math/Ray.h"
 #include "../Math/Simd4Ray.h"
 #include "../Math/Simd8Ray.h"
+#include "../Math/VectorInt8.h"
 #include "../BVH/BVH.h"
 
 
@@ -12,17 +13,23 @@ namespace rt {
 // TODO experiment with this value
 static const Uint32 MaxRayPacketSize = 4096;
 
-struct ImageLocationInfo
+struct RT_ALIGN(4) ImageLocationInfo
 {
     Uint16 x;
     Uint16 y;
+
+    ImageLocationInfo() = default;
+    RT_FORCE_INLINE ImageLocationInfo(Uint32 x, Uint32 y)
+        : x((Uint16)x)
+        , y((Uint16)y)
+    { }
 };
 
 struct RT_ALIGN(32) RayGroup
 {
     math::Ray_Simd8 rays;
     math::Vector8 maxDistances;
-    Uint32 rayOffsets[8];
+    math::VectorInt8 rayOffsets;
 };
 
 // packet of coherent rays (8-SIMD version)
@@ -34,8 +41,7 @@ struct RT_ALIGN(32) RayPacket
     RayGroup groups[MaxNumGroups];
 
     // rays influence on the image (e.g. 1.0 for primary rays)
-    // TODO: 3 half-floats should be fine
-    math::Vector3x8 weights[MaxNumGroups];
+    math::Vector3x8 rayWeights[MaxNumGroups];
 
     // corresponding image pixels
     ImageLocationInfo imageLocations[MaxRayPacketSize];
@@ -49,27 +55,54 @@ struct RT_ALIGN(32) RayPacket
 
     RT_FORCE_INLINE Uint32 GetNumGroups() const
     {
-        return (numRays + 7) / 8;
+        return (numRays + RaysPerGroup - 1) / RaysPerGroup;
     }
 
-    RT_FORCE_INLINE void PushRays(const math::Ray_Simd8& rays, const math::Vector3x8& weight, const ImageLocationInfo& location)
+    RT_FORCE_INLINE void PushRay(const math::Ray& ray, const math::Vector4& weight, const ImageLocationInfo& location)
     {
         RT_ASSERT(numRays < MaxRayPacketSize);
+
+        const Uint32 groupIndex = numRays / RaysPerGroup;
+        const Uint32 rayIndex = numRays % RaysPerGroup;
+
+        RayGroup& group = groups[groupIndex];
+        group.rays.dir.x[rayIndex] = ray.dir.x;
+        group.rays.dir.y[rayIndex] = ray.dir.y;
+        group.rays.dir.z[rayIndex] = ray.dir.z;
+        group.rays.origin.x[rayIndex] = ray.origin.x;
+        group.rays.origin.y[rayIndex] = ray.origin.y;
+        group.rays.origin.z[rayIndex] = ray.origin.z;
+        group.rays.invDir.x[rayIndex] = ray.invDir.x;
+        group.rays.invDir.y[rayIndex] = ray.invDir.y;
+        group.rays.invDir.z[rayIndex] = ray.invDir.z;
+        group.maxDistances[rayIndex] = FLT_MAX;
+        group.rayOffsets[rayIndex] = numRays;
+
+        rayWeights[groupIndex].x[rayIndex] = weight.x;
+        rayWeights[groupIndex].y[rayIndex] = weight.y;
+        rayWeights[groupIndex].z[rayIndex] = weight.z;
+
+        imageLocations[numRays] = location;
+
+        numRays++;
+    }
+
+    // TODO use non-temporal stores?
+    RT_FORCE_INLINE void PushRays(const math::Ray_Simd8& rays, const math::Vector3x8& weights, const ImageLocationInfo* locations)
+    {
+        RT_ASSERT((numRays < MaxRayPacketSize) && (numRays % RaysPerGroup == 0));
 
         RayGroup& group = groups[numRays / RaysPerGroup];
         group.rays = rays;
         group.maxDistances = math::VECTOR8_MAX;
+        group.rayOffsets = math::VectorInt8(numRays) + math::VectorInt8(0, 1, 2, 3, 4, 5, 6, 7);
 
-        weights[numRays / RaysPerGroup] = weight;
+        rayWeights[numRays / RaysPerGroup] = weights;
 
-        for (Uint32 i = 0; i < RaysPerGroup; ++i)
-        {
-            const Uint32 rayOffset = numRays + i;
-            group.rayOffsets[i] = rayOffset;
-            imageLocations[rayOffset] = location;
-        }
+        // Note: this should be replaced with a single MOVUPS instruction
+        memcpy(imageLocations + numRays, locations, sizeof(ImageLocationInfo) * 8);
 
-        numRays += 8;
+        numRays += RaysPerGroup;
     }
 
     RT_FORCE_INLINE void Clear()
