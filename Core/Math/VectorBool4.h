@@ -34,7 +34,7 @@ struct RT_ALIGN(16) VectorBool4
     {
         return _mm_movemask_ps(v) == 0xF;
     }
-    
+
     RT_FORCE_INLINE bool None() const
     {
         return _mm_movemask_ps(v) == 0;

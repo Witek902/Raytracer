@@ -180,6 +180,7 @@ bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, co
     return false;
 }
 
+/*
 void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     const VectorInt8 objectIndexVec(objectID);
@@ -218,11 +219,10 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
         }
     }
 }
+*/
 
 void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
 {
-    const VectorInt8 objectIndexVec(objectID);
-
     Vector8 distance, u, v;
     Triangle_Simd8 tri;
 
@@ -241,38 +241,13 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
         {
             RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
 
-            const Vector8 mask = Intersect_TriangleRay_Simd8(rayGroup.rays.dir, rayGroup.rays.origin, tri, rayGroup.maxDistances, u, v, distance);
-            const Uint32 intMask = mask.GetSignMask();
+            const VectorBool8 mask = Intersect_TriangleRay_Simd8(rayGroup.rays[1].dir, rayGroup.rays[1].origin, tri, rayGroup.maxDistances, u, v, distance);
 
-            if (intMask)
-            {
-                rayGroup.maxDistances = Vector8::SelectBySign(rayGroup.maxDistances, distance, mask);
-                // TODO write object & triangle ID
-                //rayGroup.objectIndex = Vector8::SelectBySign(rayGroup.objectIndex, objectIndexVec, mask);
-                //rayGroup.triangleIndex = Vector8::SelectBySign(rayGroup.triangleIndex, triangleIndexVec, mask);
-
-                // write back the intersection result
-                for (Uint32 k = 0; k < 8; ++k)
-                {
-                    // TODO this is not very optimal...
-                    if ((intMask >> k) & 1)
-                    {
-                        const Uint32 rayOffset = rayGroup.rayOffsets[k];
-                        const Uint32 subOffset = rayOffset % 8; // offset within hit point group
-                        HitPoint_Simd8& hitPoint = context.hitPoint[rayOffset / 8];
-
-                        hitPoint.u[subOffset] = u[k];
-                        hitPoint.v[subOffset] = v[k];
-                        hitPoint.distance[subOffset] = distance[k];
-                        hitPoint.subObjectId[subOffset] = triangleIndex;
-                        hitPoint.objectId[subOffset] = objectID;
-                    }
-                }
+            context.StoreIntersection(rayGroup, distance, mask, objectID, triangleIndex);
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
-                context.context.localCounters.numPassedRayTriangleTests += PopCount(intMask);
+            context.context.localCounters.numPassedRayTriangleTests += PopCount(mask.GetMask());
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
-            }
         }
     }
 }

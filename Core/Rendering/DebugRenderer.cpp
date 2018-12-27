@@ -21,7 +21,7 @@ static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::Normals)
+    , mRenderingMode(DebugRenderingMode::TriangleID)
 {
 }
 
@@ -32,13 +32,16 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
     mScene.Traverse_Single({ ray, hitPoint, context });
     context.counters.Append(context.localCounters);
 
-    ShadingData shadingData;
-    mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
-
     if (hitPoint.distance == FLT_MAX)
     {
         // ray hit background
         return Color::Zero();
+    }
+
+    ShadingData shadingData;
+    if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
+    {
+        mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
     }
 
     Vector4 resultColor;
@@ -52,6 +55,15 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
             resultColor = Vector4(logDepth);
             break;
         }
+        case DebugRenderingMode::TriangleID:
+        {
+            const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
+            const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
+            const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+            resultColor = HSVtoRGB(hue, saturation, 1.0f);
+            break;
+        }
+
         case DebugRenderingMode::Normals:
         {
             resultColor = ScaleBipolarRange(shadingData.normal);
@@ -75,14 +87,6 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         case DebugRenderingMode::TexCoords:
         {
             resultColor = Vector4(fmodf(shadingData.texCoord[0], 1.0f), fmodf(shadingData.texCoord[1], 1.0f), 0.0f, 0.0f);
-            break;
-        }
-        case DebugRenderingMode::TriangleID:
-        {
-            const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
-            const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
-            const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
-            resultColor = HSVtoRGB(hue, saturation, 1.0f);
             break;
         }
 
@@ -157,8 +161,9 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
 
 void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const
 {
-    HitPoint_Packet& hitPoints = context.hitPoints;
-    mScene.Traverse_Packet({ packet, hitPoints, context });
+    mScene.Traverse_Packet({ packet, context });
+
+    ShadingData shadingData;
 
     const Uint32 numGroups = packet.GetNumGroups();
     for (Uint32 i = 0; i < numGroups; ++i)
@@ -166,34 +171,54 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context
         Vector4 weights[RayPacket::RaysPerGroup];
         packet.rayWeights[i].Unpack(weights);
 
-        Vector4 rayOrigins[8];
-        Vector4 rayDirs[8];
-
-        packet.groups[i].rays.origin.Unpack(rayOrigins);
-        packet.groups[i].rays.dir.Unpack(rayDirs);
+        Vector4 rayOrigins[RayPacket::RaysPerGroup];
+        Vector4 rayDirs[RayPacket::RaysPerGroup];
+        packet.groups[i].rays[0].origin.Unpack(rayOrigins);
+        packet.groups[i].rays[0].dir.Unpack(rayDirs);
 
         for (Uint32 j = 0; j < RayPacket::RaysPerGroup; ++j)
         {
+            const HitPoint& hitPoint = context.hitPoints[RayPacket::RaysPerGroup * i + j];
+
+            Vector4 color = Vector4::Zero();
+
+            if (hitPoint.distance != FLT_MAX)
+            {
+                if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
+                {
+                    mScene.ExtractShadingData(rayOrigins[j], rayDirs[j], hitPoint, context.time, shadingData);
+                }
+
+                switch (mRenderingMode)
+                {
+                    case DebugRenderingMode::Depth:
+                    {
+                        const float logDepth = std::max<float>(0.0f, (log2f(hitPoint.distance) + 5.0f) / 10.0f);
+                        color = Vector4(logDepth);
+                        break;
+                    }
+                    case DebugRenderingMode::Normals:
+                    {
+                        color = ScaleBipolarRange(shadingData.normal);
+                        break;
+                    }
+                    case DebugRenderingMode::Position:
+                    {
+                        color = ScaleBipolarRange(shadingData.position);
+                        break;
+                    }
+                    case DebugRenderingMode::TriangleID:
+                    {
+                        const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
+                        const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
+                        const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+                        color = weights[j] * HSVtoRGB(hue, saturation, 1.0f);
+                        break;
+                    }
+                }
+            }
+
             const ImageLocationInfo& imageLocation = packet.imageLocations[RayPacket::RaysPerGroup * i + j];
-
-            const HitPoint hitPoint = hitPoints[i].Get(j);
-            //ShadingData shadingData;
-            //mScene.ExtractShadingData(rayOrigins[j], rayDirs[j], hitPoint, context.time, shadingData);
-
-            Vector4 color;
-            if (hitPoint.distance == FLT_MAX)
-            {
-                color = Vector4::Zero();
-            }
-            else
-            {
-                //color = ScaleBipolarRange(shadingData.normal);
-                const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
-                const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
-                const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
-                color = weights[j] * HSVtoRGB(hue, saturation, 1.0f);
-            }
-
             viewport.Internal_AccumulateColor(imageLocation.x, imageLocation.y, color);
         }
     }

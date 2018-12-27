@@ -1,5 +1,7 @@
 #pragma once
 
+#include "HitPoint.h"
+
 namespace rt {
 
 namespace math {
@@ -7,7 +9,6 @@ class Ray;
 class Ray_Simd8;
 }
 
-struct HitPoint;
 struct RenderingContext;
 
 struct SingleTraversalContext
@@ -27,8 +28,9 @@ struct SimdTraversalContext
 struct PacketTraversalContext
 {
     RayPacket& ray;
-    HitPoint_Packet& hitPoint;
     RenderingContext& context;
+
+    void StoreIntersection(RayGroup& rayGroup, const math::Vector8& t, const math::VectorBool8& mask, Uint32 objectID, Uint32 subObjectID = 0) const;
 };
 
 } // namespace rt

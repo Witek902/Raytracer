@@ -59,7 +59,7 @@ static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uin
 
             if (const Int32 intMaskAB = intMaskA & intMaskB)
             {
-                const Int32 intOrderMask = math::Vector8::LessMask(distanceA, distanceB);
+                const Int32 intOrderMask = (distanceA < distanceB).GetMask();
                 const Int32 orderMaskA = intOrderMask & intMaskAB;
                 const Int32 orderMaskB = (~intOrderMask) & intMaskAB;
 

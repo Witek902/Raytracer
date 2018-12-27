@@ -65,14 +65,14 @@ Vector8& Vector8::operator = (const Vector8& other)
     return *this;
 }
 
-const Vector8 Vector8::SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel)
+const Vector8 Vector8::Select(const Vector8& a, const Vector8& b, const VectorBool8& sel)
 {
-    return _mm256_blendv_ps(a, b, sel);
+    return _mm256_blendv_ps(a, b, sel.v);
 }
 
 bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon)
 {
-    return Abs(v1 - v2) < Vector8(epsilon);
+    return (Abs(v1 - v2) < Vector8(epsilon)).All();
 }
 
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
@@ -379,64 +379,34 @@ void Vector8::Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, V
 
 // Comparison functions ===========================================================================
 
-Int32 Vector8::EqualMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator == (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_EQ_OQ));
+    return _mm256_cmp_ps(v, b.v, _CMP_EQ_OQ);
 }
 
-Int32 Vector8::LessMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator < (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_LT_OQ));
+    return _mm256_cmp_ps(v, b.v, _CMP_LT_OQ);
 }
 
-Int32 Vector8::LessEqMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator <= (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_LE_OQ));
+    return _mm256_cmp_ps(v, b.v, _CMP_LE_OQ);
 }
 
-Int32 Vector8::GreaterMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator > (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_GT_OQ));
+    return _mm256_cmp_ps(v, b.v, _CMP_GT_OQ);
 }
 
-Int32 Vector8::GreaterEqMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator >= (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_GE_OQ));
+    return _mm256_cmp_ps(v, b.v, _CMP_GE_OQ);
 }
 
-Int32 Vector8::NotEqualMask(const Vector8& v1, const Vector8& v2)
+const VectorBool8 Vector8::operator != (const Vector8& b) const
 {
-    return _mm256_movemask_ps(_mm256_cmp_ps(v1, v2, _CMP_NEQ_OQ));
-}
-
-bool Vector8::operator== (const Vector8& b) const
-{
-    return EqualMask(*this, b) == 0xFF;
-}
-
-bool Vector8::operator< (const Vector8& b) const
-{
-    return LessMask(*this, b) == 0xFF;
-}
-
-bool Vector8::operator<= (const Vector8& b) const
-{
-    return LessEqMask(*this, b) == 0xFF;
-}
-
-bool Vector8::operator> (const Vector8& b) const
-{
-    return GreaterMask(*this, b) == 0xFF;
-}
-
-bool Vector8::operator>= (const Vector8& b) const
-{
-    return GreaterEqMask(*this, b) == 0xFF;
-}
-
-bool Vector8::operator!= (const Vector8& b) const
-{
-    return NotEqualMask(*this, b) == 0xFF;
+    return _mm256_cmp_ps(v, b.v, _CMP_NEQ_OQ);
 }
 
 bool Vector8::IsZero() const

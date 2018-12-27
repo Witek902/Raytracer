@@ -54,7 +54,7 @@ struct RenderingParams
     Uint16 tileSize = 16;
 
     // select mode of ray traversal
-    TraversalMode traversalMode = TraversalMode::Single;
+    TraversalMode traversalMode = TraversalMode::Packet;
 
     // adaptive rendering settings
     AdaptiveRenderingSettings adaptiveSettings;
@@ -70,7 +70,7 @@ struct RT_ALIGN(64) RenderingContext : public Aligned<64>
 
     RayPacket rayPacket;
 
-    HitPoint_Packet hitPoints;
+    HitPoint hitPoints[MaxRayPacketSize];
 
     // TODO separate stacks for scene and mesh
     Uint8 activeRaysMask[RayPacket::MaxNumGroups];

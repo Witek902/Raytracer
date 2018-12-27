@@ -27,7 +27,7 @@ struct RT_ALIGN(4) ImageLocationInfo
 
 struct RT_ALIGN(32) RayGroup
 {
-    math::Ray_Simd8 rays;
+    math::Ray_Simd8 rays[2];
     math::Vector8 maxDistances;
     math::VectorInt8 rayOffsets;
 };
@@ -66,15 +66,15 @@ struct RT_ALIGN(32) RayPacket
         const Uint32 rayIndex = numRays % RaysPerGroup;
 
         RayGroup& group = groups[groupIndex];
-        group.rays.dir.x[rayIndex] = ray.dir.x;
-        group.rays.dir.y[rayIndex] = ray.dir.y;
-        group.rays.dir.z[rayIndex] = ray.dir.z;
-        group.rays.origin.x[rayIndex] = ray.origin.x;
-        group.rays.origin.y[rayIndex] = ray.origin.y;
-        group.rays.origin.z[rayIndex] = ray.origin.z;
-        group.rays.invDir.x[rayIndex] = ray.invDir.x;
-        group.rays.invDir.y[rayIndex] = ray.invDir.y;
-        group.rays.invDir.z[rayIndex] = ray.invDir.z;
+        group.rays[0].dir.x[rayIndex] = ray.dir.x;
+        group.rays[0].dir.y[rayIndex] = ray.dir.y;
+        group.rays[0].dir.z[rayIndex] = ray.dir.z;
+        group.rays[0].origin.x[rayIndex] = ray.origin.x;
+        group.rays[0].origin.y[rayIndex] = ray.origin.y;
+        group.rays[0].origin.z[rayIndex] = ray.origin.z;
+        group.rays[0].invDir.x[rayIndex] = ray.invDir.x;
+        group.rays[0].invDir.y[rayIndex] = ray.invDir.y;
+        group.rays[0].invDir.z[rayIndex] = ray.invDir.z;
         group.maxDistances[rayIndex] = FLT_MAX;
         group.rayOffsets[rayIndex] = numRays;
 
@@ -93,7 +93,7 @@ struct RT_ALIGN(32) RayPacket
         RT_ASSERT((numRays < MaxRayPacketSize) && (numRays % RaysPerGroup == 0));
 
         RayGroup& group = groups[numRays / RaysPerGroup];
-        group.rays = rays;
+        group.rays[0] = rays;
         group.maxDistances = math::VECTOR8_MAX;
         group.rayOffsets = math::VectorInt8(numRays) + math::VectorInt8(0, 1, 2, 3, 4, 5, 6, 7);
 

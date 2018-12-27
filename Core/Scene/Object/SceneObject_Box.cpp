@@ -1,7 +1,9 @@
 #include "PCH.h"
 #include "SceneObject_Box.h"
 #include "Math/Geometry.h"
+#include "Math/Simd8Geometry.h"
 #include "Rendering/ShadingData.h"
+#include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
@@ -10,29 +12,6 @@ using namespace math;
 
 namespace helper
 {
-
-RT_FORCE_NOINLINE Int32 GetCubeSide(const Vector4& p)
-{
-    const Vector4 abs = Vector4::Abs(p);
-    const int isXPositive = p.x > 0.0f ? 1 : 0;
-    const int isYPositive = p.y > 0.0f ? 1 : 0;
-    const int isZPositive = p.z > 0.0f ? 1 : 0;
-
-    if (isXPositive && abs.x >= abs.y && abs.x >= abs.z) // +X
-        return 0;
-    else if (!isXPositive && abs.x >= abs.y && abs.x >= abs.z) // -X
-        return 1;
-    if (isYPositive && abs.y >= abs.x && abs.y >= abs.z) // +Y
-        return 2;
-    if (!isYPositive && abs.y >= abs.x && abs.y >= abs.z) // -Y
-        return 3;
-    if (isZPositive && abs.z >= abs.x && abs.z >= abs.y) // +Z
-        return 4;
-    if (!isZPositive && abs.z >= abs.x && abs.z >= abs.y) // -Z
-        return 5;
-
-    return 0;
-}
 
 RT_FORCE_NOINLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
 {
@@ -119,31 +98,26 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
     float nearDist, farDist;
     if (Intersect_BoxRay_TwoSided(context.ray, box, nearDist, farDist))
     {
-        const Ray& ray = context.ray;
         HitPoint& hitPoint = context.hitPoint;
 
         if (nearDist > 0.0f && nearDist < hitPoint.distance)
         {       
-            const Vector4 cubePoint = ray.GetAtDistance(nearDist) * mInvSize;
-            const Uint32 side = helper::GetCubeSide(cubePoint);
             //if (hitPoint.filterObjectId != objectID || hitPoint.filterSubObjectId != side)
             {
                 hitPoint.distance = nearDist;
                 hitPoint.objectId = objectID;
-                hitPoint.subObjectId = side;
+                hitPoint.subObjectId = 0;
                 return;
             }
         }
 
         if (farDist > 0.0f && farDist < hitPoint.distance)
         {
-            const Vector4 cubePoint = ray.GetAtDistance(farDist) * mInvSize;
-            const Uint32 side = helper::GetCubeSide(cubePoint);
             //if (hitPoint.filterObjectId != objectID || hitPoint.filterSubObjectId != side)
             {
                 hitPoint.distance = farDist;
                 hitPoint.objectId = objectID;
-                hitPoint.subObjectId = side;
+                hitPoint.subObjectId = 0;
                 return;
             }
         }
@@ -167,18 +141,22 @@ bool BoxSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& contex
     return false;
 }
 
-void BoxSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
+void BoxSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
-    RT_UNUSED(objectID);
-    (void)context;
-    // TODO
-}
+    for (Uint32 i = 0; i < numActiveGroups; ++i)
+    {
+        RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[i]];
+        const Ray_Simd8& ray = rayGroup.rays[1];
 
-void BoxSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
-{
-    RT_UNUSED(objectID);
-    (void)context;
-    // TODO
+        const Box_Simd8 box(Box(-mSize, mSize));
+
+        Vector8 nearDist, farDist;
+        const VectorBool8 mask = Intersect_BoxRay_TwoSided_Simd8(ray.invDir, ray.origin * ray.invDir, box, rayGroup.maxDistances, nearDist, farDist);
+
+        const Vector8 t = Vector8::Select(nearDist, farDist, nearDist < Vector8::Zero());
+
+        context.StoreIntersection(rayGroup, t, mask, objectID);
+    }
 }
 
 void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const

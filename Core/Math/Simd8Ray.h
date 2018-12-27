@@ -47,7 +47,7 @@ public:
     }
 
     RT_FORCE_INLINE Ray_Simd8(const Vector3x8& origin, const Vector3x8& dir)
-        : dir(dir)
+        : dir(dir.Normalized())
         , origin(origin)
     {
         invDir = Vector3x8::FastReciprocal(dir);

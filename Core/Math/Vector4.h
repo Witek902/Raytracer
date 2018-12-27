@@ -133,8 +133,8 @@ struct RT_ALIGN(16) Vector4
     // Build mask of sign bits
     RT_FORCE_INLINE int GetSignMask() const;
 
-    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise
-    RT_FORCE_INLINE static const Vector4 SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel);
+    // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
+    RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b, const VectorBool4& sel);
 
     // Calculate 2D dot product (scalar result)
     RT_FORCE_INLINE static Float Dot2(const Vector4& v1, const Vector4& v2);

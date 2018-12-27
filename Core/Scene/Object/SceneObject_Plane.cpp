@@ -2,6 +2,7 @@
 #include "SceneObject_Plane.h"
 #include "Math/Geometry.h"
 #include "Rendering/ShadingData.h"
+#include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
@@ -57,18 +58,26 @@ bool PlaneSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& cont
     return Traverse_Single_Internal(context, context.hitPoint.distance);
 }
 
-void PlaneSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
+void PlaneSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
-    RT_UNUSED(objectID);
-    (void)context;
-    // TODO
-}
+    for (Uint32 i = 0; i < numActiveGroups; ++i)
+    {
+        RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[i]];
 
-void PlaneSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
-{
-    RT_UNUSED(objectID);
-    (void)context;
-    // TODO
+        const Vector8 t = -rayGroup.rays[1].origin.y * rayGroup.rays[1].invDir.y;
+        VectorBool8 mask = (t > Vector8::Zero()) & (t < rayGroup.maxDistances);
+
+        if (mask.None())
+        {
+            continue;
+        }
+
+        const Vector8 x = Vector8::MulAndAdd(rayGroup.rays[1].dir.x, t, rayGroup.rays[1].origin.x);
+        const Vector8 z = Vector8::MulAndAdd(rayGroup.rays[1].dir.z, t, rayGroup.rays[1].origin.z);
+        mask = mask & (Vector8::Abs(x) < Vector8(mSize.x)) & (Vector8::Abs(z) < Vector8(mSize.y));
+
+        context.StoreIntersection(rayGroup, t, mask, objectID);
+    }
 }
 
 void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
@@ -76,7 +85,7 @@ void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
     RT_UNUSED(hitPoint);
 
     outShadingData.material = mDefaultMaterial.get();
-    outShadingData.texCoord = Vector4(outShadingData.position.x, outShadingData.position.z, 0.0f, 0.0f) * Vector4(mTextureScale);
+    outShadingData.texCoord = (outShadingData.position.Swizzle<0,2,0,0>() & Vector4::MakeMask<1,1,0,0>()) * Vector4(mTextureScale);
     outShadingData.tangent = VECTOR_X;
     outShadingData.normal = VECTOR_Y;
     outShadingData.bitangent = VECTOR_Z;

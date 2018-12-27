@@ -38,19 +38,11 @@ bool LightSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& cont
     return false;
 }
 
-void LightSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
+void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
     RT_UNUSED(context);
     RT_UNUSED(objectID);
-
-    // TODO
-}
-
-void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
-{
-    RT_UNUSED(context);
-    RT_UNUSED(objectID);
-
+    RT_UNUSED(numActiveGroups);
     // TODO
 }
 

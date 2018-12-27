@@ -56,22 +56,22 @@ Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups)
 }
 
 // TODO this is ugly AF, but actually works
-static void SwapRays(RenderingContext& context, Uint32 a, Uint32 b)
+static void SwapRays(RenderingContext& context, Uint32 a, Uint32 b, Uint32 traversalDepth)
 {
-    RayGroup& groupA = context.rayPacket.groups[context.activeGroupsIndices[a / 8]];
-    RayGroup& groupB = context.rayPacket.groups[context.activeGroupsIndices[b / 8]];
+    RayGroup& groupA = context.rayPacket.groups[context.activeGroupsIndices[a / RayPacket::RaysPerGroup]];
+    RayGroup& groupB = context.rayPacket.groups[context.activeGroupsIndices[b / RayPacket::RaysPerGroup]];
 
-    std::swap(groupA.rays.dir.x[a % 8], groupB.rays.dir.x[b % 8]);
-    std::swap(groupA.rays.dir.y[a % 8], groupB.rays.dir.y[b % 8]);
-    std::swap(groupA.rays.dir.z[a % 8], groupB.rays.dir.z[b % 8]);
+    std::swap(groupA.rays[traversalDepth].dir.x[a % 8], groupB.rays[traversalDepth].dir.x[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].dir.y[a % 8], groupB.rays[traversalDepth].dir.y[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].dir.z[a % 8], groupB.rays[traversalDepth].dir.z[b % RayPacket::RaysPerGroup]);
 
-    std::swap(groupA.rays.origin.x[a % 8], groupB.rays.origin.x[b % 8]);
-    std::swap(groupA.rays.origin.y[a % 8], groupB.rays.origin.y[b % 8]);
-    std::swap(groupA.rays.origin.z[a % 8], groupB.rays.origin.z[b % 8]);
+    std::swap(groupA.rays[traversalDepth].origin.x[a % 8], groupB.rays[traversalDepth].origin.x[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].origin.y[a % 8], groupB.rays[traversalDepth].origin.y[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].origin.z[a % 8], groupB.rays[traversalDepth].origin.z[b % RayPacket::RaysPerGroup]);
 
-    std::swap(groupA.rays.invDir.x[a % 8], groupB.rays.invDir.x[b % 8]);
-    std::swap(groupA.rays.invDir.y[a % 8], groupB.rays.invDir.y[b % 8]);
-    std::swap(groupA.rays.invDir.z[a % 8], groupB.rays.invDir.z[b % 8]);
+    std::swap(groupA.rays[traversalDepth].invDir.x[a % 8], groupB.rays[traversalDepth].invDir.x[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].invDir.y[a % 8], groupB.rays[traversalDepth].invDir.y[b % RayPacket::RaysPerGroup]);
+    std::swap(groupA.rays[traversalDepth].invDir.z[a % 8], groupB.rays[traversalDepth].invDir.z[b % RayPacket::RaysPerGroup]);
 
     std::swap(groupA.maxDistances[a % 8], groupB.maxDistances[b % 8]);
 
@@ -86,14 +86,14 @@ static void SwapBits(Uint8& a, Uint8& b, Uint32 indexA, Uint32 indexB)
     b ^= (-bitA ^ b) & (1UL << indexB);
 }
 
-void ReorderRays(RenderingContext& context, Uint32 numGroups)
+void ReorderRays(RenderingContext& context, Uint32 numGroups, Uint32 traversalDepth)
 {
-    Uint32 numRays = numGroups * 8;
+    Uint32 numRays = numGroups * RayPacket::RaysPerGroup;
     Uint32 i = 0;
     while (i < numRays)
     {
-        const Uint32 groupIndex = i / 8;
-        const Uint32 rayIndex = i % 8;
+        const Uint32 groupIndex = i / RayPacket::RaysPerGroup;
+        const Uint32 rayIndex = i % RayPacket::RaysPerGroup;
 
         if (context.activeRaysMask[groupIndex] & (1 << rayIndex))
         {
@@ -102,13 +102,13 @@ void ReorderRays(RenderingContext& context, Uint32 numGroups)
         else
         {
             numRays--;
-            SwapRays(context, i, numRays);
+            SwapRays(context, i, numRays, traversalDepth);
             SwapBits(context.activeRaysMask[i / 8], context.activeRaysMask[numRays / 8], i % 8, numRays % 8);
         }
     }
 }
 
-Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context)
+Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context, Uint32 traversalDepth)
 {
     Vector8 distance;
 
@@ -125,15 +125,15 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const RayGroup& rayGroupC = packet.groups[context.activeGroupsIndices[i + 2]];
         const RayGroup& rayGroupD = packet.groups[context.activeGroupsIndices[i + 3]];
 
-        const Vector3x8 rayOriginDivDirA = rayGroupA.rays.origin * rayGroupA.rays.invDir;
-        const Vector3x8 rayOriginDivDirB = rayGroupB.rays.origin * rayGroupB.rays.invDir;
-        const Vector3x8 rayOriginDivDirC = rayGroupC.rays.origin * rayGroupC.rays.invDir;
-        const Vector3x8 rayOriginDivDirD = rayGroupD.rays.origin * rayGroupD.rays.invDir;
+        const Vector3x8 rayOriginDivDirA = rayGroupA.rays[traversalDepth].origin * rayGroupA.rays[traversalDepth].invDir;
+        const Vector3x8 rayOriginDivDirB = rayGroupB.rays[traversalDepth].origin * rayGroupB.rays[traversalDepth].invDir;
+        const Vector3x8 rayOriginDivDirC = rayGroupC.rays[traversalDepth].origin * rayGroupC.rays[traversalDepth].invDir;
+        const Vector3x8 rayOriginDivDirD = rayGroupD.rays[traversalDepth].origin * rayGroupD.rays[traversalDepth].invDir;
         
-        const Vector8 maskA = Intersect_BoxRay_Simd8(rayGroupA.rays.invDir, rayOriginDivDirA, box, rayGroupA.maxDistances, distance);
-        const Vector8 maskB = Intersect_BoxRay_Simd8(rayGroupB.rays.invDir, rayOriginDivDirB, box, rayGroupB.maxDistances, distance);
-        const Vector8 maskC = Intersect_BoxRay_Simd8(rayGroupC.rays.invDir, rayOriginDivDirC, box, rayGroupC.maxDistances, distance);
-        const Vector8 maskD = Intersect_BoxRay_Simd8(rayGroupD.rays.invDir, rayOriginDivDirD, box, rayGroupD.maxDistances, distance);
+        const Vector8 maskA = Intersect_BoxRay_Simd8(rayGroupA.rays[traversalDepth].invDir, rayOriginDivDirA, box, rayGroupA.maxDistances, distance);
+        const Vector8 maskB = Intersect_BoxRay_Simd8(rayGroupB.rays[traversalDepth].invDir, rayOriginDivDirB, box, rayGroupB.maxDistances, distance);
+        const Vector8 maskC = Intersect_BoxRay_Simd8(rayGroupC.rays[traversalDepth].invDir, rayOriginDivDirC, box, rayGroupC.maxDistances, distance);
+        const Vector8 maskD = Intersect_BoxRay_Simd8(rayGroupD.rays[traversalDepth].invDir, rayOriginDivDirD, box, rayGroupD.maxDistances, distance);
 
         const Uint32 intMaskA = maskA.GetSignMask();
         const Uint32 intMaskB = maskB.GetSignMask();
@@ -150,9 +150,9 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
     for (; i < numGroups; ++i)
     {
         const RayGroup& rayGroup = packet.groups[context.activeGroupsIndices[i]];
-        const Vector3x8 rayOriginDivDir = rayGroup.rays.origin * rayGroup.rays.invDir;
+        const Vector3x8 rayOriginDivDir = rayGroup.rays[traversalDepth].origin * rayGroup.rays[traversalDepth].invDir;
 
-        const Vector8 mask = Intersect_BoxRay_Simd8(rayGroup.rays.invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
+        const Vector8 mask = Intersect_BoxRay_Simd8(rayGroup.rays[traversalDepth].invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
         const Uint32 intMask = mask.GetSignMask();
         context.activeRaysMask[i] = (Uint8)intMask;
         raysHit += PopCount(intMask);

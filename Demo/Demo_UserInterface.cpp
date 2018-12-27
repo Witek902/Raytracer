@@ -293,11 +293,11 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
         const char* renderingModeItems[] =
         {
+            "TriangleID", "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords",
             "Material Base Color",
             "Material Emission Color",
             "Material Roughness",
             "Material Metalness",
-            "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords", "TriangleID",
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
             "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
 #endif // RT_ENABLE_INTERSECTION_COUNTERS

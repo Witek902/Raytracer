@@ -13,8 +13,18 @@ namespace rt {
 // Ray-scene intersection data (non-SIMD)
 struct HitPoint
 {
-    Uint32 objectId;
-    Uint32 subObjectId;
+    union
+    {
+        struct
+        {
+            Uint32 objectId;
+            Uint32 subObjectId;
+        };
+
+        Uint64 combinedObjectId;
+    };
+
+
     float distance;
     float u;
     float v;
@@ -53,7 +63,5 @@ struct RT_ALIGN(32) HitPoint_Simd8
         return result;
     }
 };
-
-using HitPoint_Packet = HitPoint_Simd8[MaxRayPacketSize / 8];
 
 } // namespace rt

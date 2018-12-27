@@ -21,20 +21,14 @@ struct RenderingContext;
 RT_FORCE_NOINLINE Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups);
 
 // reorder rays to restore coherency
-RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, Uint32 numRays);
+RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, Uint32 numRays, Uint32 traversalDepth);
 
 // test all alive groups in a packet agains a BVH node
-RT_FORCE_NOINLINE Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context);
+RT_FORCE_NOINLINE Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context, Uint32 traversalDepth);
 
-template <typename ObjectType>
-void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object)
+template <typename ObjectType, Uint32 traversalDepth>
+void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object, Uint32 numActiveGroups)
 {
-    // TODO this should be done when building a packet
-    for (Uint32 i = 0; i < context.ray.GetNumGroups(); ++i)
-    {
-        context.context.activeGroupsIndices[i] = (Uint16)i;
-    }
-
     // all nodes
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
 
@@ -50,14 +44,14 @@ void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 
     // push root
     Uint32 stackSize = 1;
     stack[0].node = nodes;
-    stack[0].numActiveGroups = context.ray.GetNumGroups();
+    stack[0].numActiveGroups = numActiveGroups;
     stack[0].numActiveRays = context.ray.numRays; // all rays are active at the beginning
 
     // TODO packets should be octant-sorted
     Uint32 rayOctant = 0;
-    rayOctant = context.ray.groups[0].rays.dir.x[0] < 0.0f ? 1 : 0;
-    rayOctant |= context.ray.groups[0].rays.dir.y[0] < 0.0f ? 2 : 0;
-    rayOctant |= context.ray.groups[0].rays.dir.z[0] < 0.0f ? 4 : 0;
+    rayOctant = context.ray.groups[0].rays[traversalDepth].dir.x[0] < 0.0f ? 1 : 0;
+    rayOctant |= context.ray.groups[0].rays[traversalDepth].dir.y[0] < 0.0f ? 2 : 0;
+    rayOctant |= context.ray.groups[0].rays[traversalDepth].dir.z[0] < 0.0f ? 4 : 0;
 
     // BVH traversal
     while (stackSize > 0)
@@ -66,7 +60,7 @@ void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 
         const StackFrame& frame = stack[--stackSize];
 
         Uint32 numGroups = frame.numActiveGroups;
-        Uint32 raysHit = TestRayPacket(context.ray, numGroups, *frame.node, context.context);
+        Uint32 raysHit = TestRayPacket(context.ray, numGroups, *frame.node, context.context, traversalDepth);
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
         context.context.localCounters.numRayBoxTests += 8 * numGroups;

@@ -152,7 +152,7 @@ bool Scene::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, c
     return false;
 }
 
-void Scene::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const
 {
     RT_UNUSED(objectID);
 
@@ -160,40 +160,19 @@ void Scene::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint3
     {
         const Uint32 objectIndex = node.childIndex + i;
         const ISceneObject* object = mObjects[objectIndex].get();
-
         const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
         // transform ray to local-space
-        Ray_Simd8 transformedRay = context.ray;
-        transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
-        transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-        transformedRay.invDir = Vector3x8::FastReciprocal(transformedRay.dir);
-
-        // TODO remove
-        //const Vector8 previousDistance = outHitPoint.distance;
-
-        SimdTraversalContext objectContext =
+        for (Uint32 j = 0; j < numActiveGroups; ++j)
         {
-            transformedRay,
-            context.hitPoint,
-            context.context
-        };
+            RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
+            rayGroup.rays[1].origin = invTransform.TransformPoint(rayGroup.rays[0].origin);
+            rayGroup.rays[1].dir = invTransform.TransformVector(rayGroup.rays[0].dir);
+            rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
+        }
 
-        object->Traverse_Simd8(objectContext, objectIndex);
-
-        // TODO remove
-        //const __m256 compareMask = _mm256_cmp_ps(outHitPoint.distance, previousDistance, _CMP_NEQ_OQ);
-        //outHitPoint.objectId = _mm256_blendv_ps(outHitPoint.objectId, Vector8(objectIndex), compareMask);
+        object->Traverse_Packet(context, objectIndex, numActiveGroups);
     }
-}
-
-void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const
-{
-    (void)numActiveGroups;
-    (void)node;
-    (void)context;
-    (void)objectID;
-    // TODO
 }
 
 void Scene::Traverse_Single(const SingleTraversalContext& context) const
@@ -236,13 +215,17 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
 {
     size_t numObjects = mObjects.size();
 
-    // clear hit-points
-    // TODO temporary - distances should be written to RayGroups
     const Uint32 numRayGroups = context.ray.GetNumGroups();
     for (Uint32 i = 0; i < numRayGroups; ++i)
     {
-        context.hitPoint[i].distance = VECTOR8_MAX;
-        context.hitPoint[i].objectId = VectorInt8(UINT32_MAX);
+        context.ray.groups[i].maxDistances = VECTOR8_MAX;
+        context.context.activeGroupsIndices[i] = (Uint16)i;
+    }
+
+    for (Uint32 i = 0; i < context.ray.numRays; ++i)
+    {
+        context.context.hitPoints[i].distance = FLT_MAX;
+        context.context.hitPoints[i].objectId = UINT32_MAX;
     }
 
     if (numObjects == 0) // scene is empty
@@ -251,13 +234,22 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        // TODO transform ray
+        const ISceneObject* object = mObjects.front().get();
+        const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
-        mObjects.front()->Traverse_Packet(context, 0);
+        for (Uint32 j = 0; j < numRayGroups; ++j)
+        {
+            RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
+            rayGroup.rays[1].origin = invTransform.TransformPoint(rayGroup.rays[0].origin);
+            rayGroup.rays[1].dir = invTransform.TransformVector(rayGroup.rays[0].dir);
+            rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
+        }
+
+        mObjects.front()->Traverse_Packet(context, 0, numRayGroups);
     }
     else // full BVH traversal
     {
-        GenericTraverse_Packet(context, 0, this);
+        GenericTraverse_Packet<Scene, 0>(context, 0, this, numRayGroups);
     }
 }
 

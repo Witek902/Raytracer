@@ -13,7 +13,6 @@ namespace rt {
 struct HitPoint;
 struct ShadingData;
 struct SingleTraversalContext;
-struct SimdTraversalContext;
 struct PacketTraversalContext;
 
 class Material;
@@ -27,8 +26,7 @@ public:
 
     // traverse the object and return hit points
     virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
-    virtual void Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const = 0;
-    virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const = 0;
+    virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
 
     // check shadow ray occlusion
     virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const = 0;

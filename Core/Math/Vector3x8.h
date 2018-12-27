@@ -131,6 +131,11 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
 
+    RT_FORCE_INLINE const Vector3x8 operator - () const
+    {
+        return { -x, -y, -z };
+    }
+
     RT_FORCE_INLINE const Vector3x8 operator + (const Vector3x8& rhs) const
     {
         return { x + rhs.x, y + rhs.y, z + rhs.z };

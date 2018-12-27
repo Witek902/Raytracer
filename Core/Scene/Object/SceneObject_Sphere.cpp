@@ -2,6 +2,7 @@
 #include "SceneObject_Sphere.h"
 #include "Math/Geometry.h"
 #include "Rendering/ShadingData.h"
+#include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
@@ -24,9 +25,8 @@ Box SphereSceneObject::GetBoundingBox() const
 
 void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    const Vector4 d = -context.ray.origin;
-    const double v = Vector4::Dot3(context.ray.dir, d);
-    const double det = (double)(mRadius * mRadius) - (double)Vector4::Dot3(d, d) + v * v;
+    const double v = Vector4::Dot3(context.ray.dir, -context.ray.origin);
+    const double det = (double)(mRadius * mRadius) - (double)context.ray.origin.SqrLength3() + v * v;
 
     if (det > 0.0)
     {
@@ -80,18 +80,31 @@ bool SphereSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& con
     return false;
 }
 
-void SphereSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
+void SphereSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
-    RT_UNUSED(objectID);
-    RT_UNUSED(context);
-    // TODO
-}
+    for (Uint32 i = 0; i < numActiveGroups; ++i)
+    {
+        RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[i]];
+        const Ray_Simd8& ray = rayGroup.rays[1];
 
-void SphereSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
-{
-    RT_UNUSED(objectID);
-    RT_UNUSED(context);
-    // TODO
+        const Vector8 v = Vector3x8::Dot(ray.dir, -ray.origin);
+        const Vector8 det = Vector8(mRadius * mRadius) - Vector3x8::Dot(ray.origin, ray.origin) + v * v;
+
+        const VectorBool8 detSign = det > Vector8::Zero();
+        if (detSign.None())
+        {
+            continue;
+        }
+
+        const Vector8 sqrtDet = Vector8::Sqrt(det);
+        const Vector8 nearDist = v - sqrtDet;
+        const Vector8 farDist = v + sqrtDet;
+        const Vector8 t = Vector8::Select(nearDist, farDist, nearDist < Vector8::Zero());
+
+        const VectorBool8 distMask = detSign & (t > Vector8::Zero()) & (t < rayGroup.maxDistances);
+
+        context.StoreIntersection(rayGroup, t, distMask, objectID);
+    }
 }
 
 void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const

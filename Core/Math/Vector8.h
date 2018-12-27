@@ -2,6 +2,7 @@
 
 #include "Math.h"
 #include "Vector4.h"
+#include "VectorBool8.h"
 
 namespace rt {
 namespace math {
@@ -65,12 +66,12 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8& operator /= (Float b);
 
     // comparison operators (returns true, if all the elements satisfy the equation)
-    RT_FORCE_INLINE bool operator == (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator < (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator <= (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator > (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator >= (const Vector8& b) const;
-    RT_FORCE_INLINE bool operator != (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator == (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator < (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator <= (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator > (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator >= (const Vector8& b) const;
+    RT_FORCE_INLINE const VectorBool8 operator != (const Vector8& b) const;
 
     // bitwise logic operations
     RT_FORCE_INLINE const Vector8 operator & (const Vector8& b) const;
@@ -91,18 +92,11 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE static const Vector8 Abs(const Vector8& v);
     RT_FORCE_INLINE const Vector8 Clamped(const Vector8& min, const Vector8& max) const;
 
-    RT_FORCE_INLINE static Int32 EqualMask(const Vector8& v1, const Vector8& v2);
-    RT_FORCE_INLINE static Int32 LessMask(const Vector8& v1, const Vector8& v2);
-    RT_FORCE_INLINE static Int32 LessEqMask(const Vector8& v1, const Vector8& v2);
-    RT_FORCE_INLINE static Int32 GreaterMask(const Vector8& v1, const Vector8& v2);
-    RT_FORCE_INLINE static Int32 GreaterEqMask(const Vector8& v1, const Vector8& v2);
-    RT_FORCE_INLINE static Int32 NotEqualMask(const Vector8& v1, const Vector8& v2);
-
     // Build mask of sign bits.
     RT_FORCE_INLINE Int32 GetSignMask() const;
 
     // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
-    RT_FORCE_INLINE static const Vector8 SelectBySign(const Vector8& a, const Vector8& b, const Vector8& sel);
+    RT_FORCE_INLINE static const Vector8 Select(const Vector8& a, const Vector8& b, const VectorBool8& sel);
 
     // Check if the vector is equal to zero
     RT_FORCE_INLINE bool IsZero() const;

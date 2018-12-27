@@ -10,9 +10,12 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
     options.add_options()
         ("w,width", "Window width", cxxopts::value<Uint32>())
         ("h,height", "Window width", cxxopts::value<Uint32>())
-        ("d,data", "Data path", cxxopts::value<std::string>())
+        ("s,scene", "Initial scene", cxxopts::value<std::string>())
+        ("debug-renderer", "Use debug renderer by default", cxxopts::value<bool>())
+        ("p,packet-tracing", "Use ray packet tracing by default", cxxopts::value<bool>())
+        ("data", "Data path", cxxopts::value<std::string>())
         ("m,model", "OBJ model to load", cxxopts::value<std::string>())
-        ("e,env", "Environment map path", cxxopts::value<std::string>())
+        ("env", "Environment map path", cxxopts::value<std::string>())
         ;
 
     try
@@ -25,14 +28,21 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
         if (result.count("h"))
             outOptions.windowHeight = result["h"].as<Uint32>();
 
-        if (result.count("d"))
-            outOptions.dataPath = result["d"].as<std::string>();
+        if (result.count("data"))
+            outOptions.dataPath = result["data"].as<std::string>();
 
         if (result.count("m"))
             outOptions.modelPath = result["m"].as<std::string>();
 
-        if (result.count("e"))
-            outOptions.envMapPath = result["e"].as<std::string>();
+        if (result.count("env"))
+            outOptions.envMapPath = result["env"].as<std::string>();
+
+        if (result.count("scene"))
+            outOptions.sceneName = result["scene"].as<std::string>();
+
+        outOptions.useDebugRenderer = result["debug-renderer"].count() > 0;
+
+        outOptions.enablePacketTracing = result["p"].count() > 0;
     }
     catch (cxxopts::OptionParseException& e)
     {

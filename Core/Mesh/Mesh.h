@@ -17,7 +17,6 @@ namespace rt {
 
 struct ShadingData;
 struct SingleTraversalContext;
-struct SimdTraversalContext;
 struct PacketTraversalContext;
 
 struct MeshDesc
@@ -44,7 +43,6 @@ public:
 
     // Intersect ray(s) with BVH leaf
     void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
-    void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const;
 
     // Intersect shadow ray(s) with BVH leaf

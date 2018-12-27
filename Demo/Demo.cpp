@@ -60,7 +60,9 @@ bool DemoWindow::Initialize()
     InitializeUI();
     RegisterTestScenes();
 
+    mUseDebugRenderer = gOptions.useDebugRenderer;
     mRenderingParams.numThreads = std::thread::hardware_concurrency();
+    mRenderingParams.traversalMode = gOptions.enablePacketTracing ? TraversalMode::Packet : TraversalMode::Single;
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
@@ -68,7 +70,8 @@ bool DemoWindow::Initialize()
 
     mCamera.mDOF.aperture = 0.0f;
 
-    SwitchScene(mRegisteredScenes["Plane"]);
+    const std::string initialSceneName = gOptions.sceneName.empty() ? "Plane" : gOptions.sceneName;
+    SwitchScene(mRegisteredScenes[initialSceneName]);
 
     return true;
 }

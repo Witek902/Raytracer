@@ -260,6 +260,7 @@
     <ClInclude Include="Math\Vector8Impl.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
     <ClInclude Include="Math\VectorBool4.h" />
+    <ClInclude Include="Math\VectorBool8.h" />
     <ClInclude Include="Math\VectorInt4.h" />
     <ClInclude Include="Math\VectorInt4Impl.h" />
     <ClInclude Include="Math\VectorInt8.h" />
@@ -358,6 +359,7 @@
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Traversal\RayPacket.cpp" />
     <ClCompile Include="Traversal\RayStream.cpp" />
+    <ClCompile Include="Traversal\TraversalContext.cpp" />
     <ClCompile Include="Traversal\Traversal_Packet.cpp" />
     <ClCompile Include="Utils\Bitmap.cpp" />
     <ClCompile Include="Utils\BitmapBMP.cpp" />

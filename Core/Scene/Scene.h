@@ -20,7 +20,6 @@ struct RenderingContext;
 struct HitPoint;
 struct ShadingData;
 struct SingleTraversalContext;
-struct SimdTraversalContext;
 struct PacketTraversalContext;
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;
@@ -67,7 +66,6 @@ public:
     void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, Color* outColors) const;
 
     void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
-    void Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const;
 
     bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;

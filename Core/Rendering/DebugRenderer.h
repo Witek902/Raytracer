@@ -6,21 +6,20 @@ namespace rt {
 
 enum class DebugRenderingMode : Uint8
 {
-    // material
-    BaseColor,                  // visualize base color of the first intersection
-    Emission,                   // visualize emission color
-    Roughness,                  // visualize "rougness" parameter
-    Metalness,                  // visualize "metalness" parameter
-
     // geometry
+    TriangleID,                 // draw every triangle with random color
     Depth,                      // visualize depth
     Position,                   // visualize world-space position
     Normals,                    // visualize normal vectors (in world space)
     Tangents,
     Bitangents,
-    TexCoords,
-    TriangleID,                 // draw every triangle with random color
+    TexCoords,   
 
+    // material
+    BaseColor,                  // visualize base color of the first intersection
+    Emission,                   // visualize emission color
+    Roughness,                  // visualize "rougness" parameter
+    Metalness,                  // visualize "metalness" parameter
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     // stats

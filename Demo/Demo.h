@@ -18,7 +18,11 @@ struct Options
     Uint32 windowHeight = 720;
     std::string dataPath;
 
+    bool enablePacketTracing = false;
+    bool useDebugRenderer = false;
+
     // TODO JSON scene description
+    std::string sceneName;
     std::string modelPath;
     std::string envMapPath;
 };

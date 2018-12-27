@@ -281,6 +281,9 @@
     <ClInclude Include="Math\VectorBool4.h">
       <Filter>Math\Vector4</Filter>
     </ClInclude>
+    <ClInclude Include="Math\VectorBool8.h">
+      <Filter>Math\Vector8</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -430,6 +433,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\PostProcess.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Traversal\TraversalContext.cpp">
+      <Filter>Traversal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

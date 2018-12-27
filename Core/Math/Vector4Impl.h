@@ -249,9 +249,9 @@ const Vector4 Vector4::SplatW() const
     return Swizzle<3, 3, 3, 3>();
 }
 
-const Vector4 Vector4::SelectBySign(const Vector4& a, const Vector4& b, const Vector4& sel)
+const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBool4& sel)
 {
-    return _mm_blendv_ps(a, b, sel);
+    return _mm_blendv_ps(a, b, sel.v);
 }
 
 // Logical operations =============================================================================

@@ -35,14 +35,9 @@ bool MeshSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& conte
     return GenericTraverse_Shadow_Single<Mesh>(context, mMesh.get());
 }
 
-void MeshSceneObject::Traverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID) const
+void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
-    GenericTraverse_Simd8<Mesh>(context, objectID, mMesh.get());
-}
-
-void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID) const
-{
-    GenericTraverse_Packet<Mesh>(context, objectID, mMesh.get());
+    GenericTraverse_Packet<Mesh, 1>(context, objectID, mMesh.get(), numActiveGroups);
 }
 
 void MeshSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
