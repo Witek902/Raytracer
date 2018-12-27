@@ -22,6 +22,9 @@
 #endif // _MSC_VER
 
 
+// TODO assertions should be disabled in "Final" build
+#define RT_ENABLE_ASSERTS
+
 // TODO #define RT_USE_SSE
 
 #define RT_USE_AVX
@@ -80,7 +83,8 @@
 #error "Target system not supported!"
 #endif // defined(WIN32)
 
-// TODO assertions should be disabled in "Final" build
+
+#ifdef RT_ENABLE_ASSERTS
 #define RT_ASSERT(expression, ...) \
 do { \
     if (!(expression)) \
@@ -88,6 +92,9 @@ do { \
         RT_FATAL(__VA_ARGS__); \
     } \
 } while (0)
+#else
+#define RT_ASSERT(expression, ...)
+#endif // RT_ENABLE_ASSERTS
 
 
 #if defined(__LINUX__) | defined(__linux__)

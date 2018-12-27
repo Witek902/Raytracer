@@ -317,15 +317,6 @@ Int32 Vector8::GetSignMask() const
     return _mm256_movemask_ps(v);
 }
 
-const Vector8 Vector8::HorizontalMin() const
-{
-    __m256 temp;
-    temp = _mm256_min_ps(v, _mm256_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1)));
-    temp = _mm256_min_ps(temp, _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 0, 3, 2)));
-    temp = _mm256_min_ps(temp, _mm256_permute2f128_ps(temp, temp, 1));
-    return temp;
-}
-
 const Vector8 Vector8::HorizontalMax() const
 {
     __m256 temp;

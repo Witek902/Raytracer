@@ -313,7 +313,7 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     outData.normal = coeff1 * normal1;
     outData.normal = Vector4::MulAndAdd(coeff2, normal2, outData.normal);
     outData.normal = Vector4::MulAndAdd(coeff0, normal0, outData.normal);
-    outData.normal.FastNormalize3();
+    outData.normal.Normalize3();
 
     const Vector4 tangent0(&vertexShadingData[0].tangent.x);
     const Vector4 tangent1(&vertexShadingData[1].tangent.x);
@@ -334,12 +334,14 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
             newNormal = Vector4::MulAndAdd(outData.normal, localNormal.z, newNormal);
             outData.normal = newNormal.FastNormalized3();
         }
-
-        // orthogonalize tangent vector
-        outData.tangent = Vector4::NegMulAndAdd(Vector4::Dot3V(outData.tangent, outData.normal), outData.normal, outData.tangent);
-        outData.tangent.FastNormalize3();
     }
 
+    // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
+    // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
+    // and normal mapping is disabled
+    outData.tangent = Vector4::Orthogonalize(outData.tangent, outData.normal).Normalized3();
+
+    // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
     outData.bitangent = Vector4::Cross3(outData.tangent, outData.normal);
 }
 

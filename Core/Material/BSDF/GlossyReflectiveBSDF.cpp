@@ -60,10 +60,6 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
     // fallback to specular event
     if (roughness < 0.01f)
     {
-        if (outDirectPdfW)
-        {
-            *outDirectPdfW = 0.0f;
-        }
         return Color::Zero();
     }
 
@@ -75,7 +71,7 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
 
     // clip the function
-    if (NdotV < CosEpsilon || NdotL < CosEpsilon)
+    if (NdotV < CosEpsilon || NdotL < CosEpsilon || VdotH < CosEpsilon)
     {
         return Color::Zero();
     }

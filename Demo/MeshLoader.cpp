@@ -11,6 +11,7 @@
 namespace helpers {
 
 using namespace rt;
+using namespace math;
 
 struct TriangleIndices
 {
@@ -74,8 +75,8 @@ MaterialPtr LoadMaterial(const std::string& baseDir, const tinyobj::material_t& 
     auto material = MaterialPtr(new Material);
 
     material->debugName = sourceMaterial.name;
-    material->baseColor = math::Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
-    material->emission.baseValue = math::Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
+    material->baseColor = Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
+    material->emission.baseValue = Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
     material->baseColor.texture = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
     material->normalMap = LoadTexture(baseDir, sourceMaterial.normal_texname);
     material->maskMap = LoadTexture(baseDir, sourceMaterial.alpha_texname);
@@ -89,8 +90,8 @@ MaterialPtr CreateDefaultMaterial(MaterialsList& outMaterials)
 {
     auto material = MaterialPtr(new Material);
     material->debugName = "default";
-    material->baseColor = math::Vector4(0.8f, 0.8f, 0.8f, 0.0f);
-    material->emission.baseValue = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->baseColor = Vector4(0.8f, 0.8f, 0.8f, 0.0f);
+    material->emission.baseValue = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.75f;
     material->Compile();
 
@@ -158,10 +159,10 @@ MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const
             bool hasTexCoords = idx[0].texcoord_index != -1 && idx[1].texcoord_index != -1 && idx[2].texcoord_index != -1;
 
             // Loop over vertices in the face.
-            math::Vector4 verts[3];
+            Vector4 verts[3];
             for (size_t i = 0; i < 3; i++)
             {
-                verts[i] = math::Vector4(
+                verts[i] = Vector4(
                     attrib.vertices[3 * idx[i].vertex_index + 0],
                     attrib.vertices[3 * idx[i].vertex_index + 1],
                     attrib.vertices[3 * idx[i].vertex_index + 2],
@@ -172,24 +173,26 @@ MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const
                 vertexPositions.push_back(scale * verts[i][2]);
             }
 
-            math::Vector4 normals[3];
+            Vector4 normals[3];
+            Vector4 tangents[3];
+
             if (hasNormals)
             {
                 // OBJ has normals
                 for (size_t i = 0; i < 3; i++)
                 {
-                    normals[i] = math::Vector4(
+                    normals[i] = Vector4(
                         attrib.normals[3 * idx[i].normal_index + 0],
                         attrib.normals[3 * idx[i].normal_index + 1],
                         attrib.normals[3 * idx[i].normal_index + 2],
                         0.0f);
+                    normals[i].Normalize3();
                 }
             }
             else
             {
                 // calculate per-face normal
-                math::Vector4 normal = math::Vector4::Cross3(verts[1] - verts[0], verts[2] - verts[0]);
-                normal.Normalize3();
+                Vector4 normal = Vector4::Cross3(verts[1] - verts[0], verts[2] - verts[0]).Normalized3();
 
                 normals[0] = normal;
                 normals[1] = normal;
@@ -198,19 +201,24 @@ MeshPtr LoadMesh(const std::string& filePath, MaterialsList& outMaterials, const
 
             for (size_t i = 0; i < 3; i++)
             {
-                vertexNormals.push_back(normals[i][0]);
-                vertexNormals.push_back(normals[i][1]);
-                vertexNormals.push_back(normals[i][2]);
+                vertexNormals.push_back(normals[i].x);
+                vertexNormals.push_back(normals[i].y);
+                vertexNormals.push_back(normals[i].z);
             }
 
             // calculate tangent vector
             // TODO use tex coord !!!
-            const math::Vector4 tangent = (verts[2] - verts[0]).Normalized3();
+            const Vector4 edge0 = (verts[2] - verts[0]).Normalized3();
             for (size_t i = 0; i < 3; i++)
             {
-                vertexTangents.push_back(tangent[0]);
-                vertexTangents.push_back(tangent[1]);
-                vertexTangents.push_back(tangent[2]);
+                tangents[i] = Vector4::Orthogonalize(edge0, normals[i]).Normalized3();
+            }
+
+            for (size_t i = 0; i < 3; i++)
+            {
+                vertexTangents.push_back(tangents[i].x);
+                vertexTangents.push_back(tangents[i].y);
+                vertexTangents.push_back(tangents[i].z);
             }
 
             if (hasTexCoords)
@@ -288,8 +296,8 @@ MeshPtr CreatePlane(MaterialsList& outMaterials, const Float size, const Float t
 {
     auto material = MaterialPtr(new Material);
     material->debugName = "floor";
-    material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-    material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->baseColor = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+    material->emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.5f;
 
     //material->baseColor.texture = LoadTexture(gOptions.dataPath + "TEXTURES/Poliigon/ConcretePlatesStuddedFilled001/BMP/", "ConcretePlatesStuddedFilled001_COL_VAR1_HIRES.bmp");

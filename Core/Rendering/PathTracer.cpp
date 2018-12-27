@@ -49,16 +49,21 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
         return Color::Zero();
     }
 
+    RT_ASSERT(radiance.IsValid());
     RT_ASSERT(IsValid(illuminateParam.outDirectPdfW));
     RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
 
     // calculate BSDF contribution
     float bsdfPdfW;
     const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
+    RT_ASSERT(factor.IsValid());
+
     if (factor.AlmostZero())
     {
         return Color::Zero();
     }
+
+    RT_ASSERT(bsdfPdfW > 0.0f && IsValid(bsdfPdfW));
 
     // cast shadow ray
     {
@@ -85,7 +90,6 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
         weight = CombineMis(illuminateParam.outDirectPdfW, bsdfPdfW);
     }
 
-    //const float NdotL = Abs(Vector4::Dot3(dirToLight, shadingData.normal));
     return (radiance * factor) * (weight / illuminateParam.outDirectPdfW);
 }
 
@@ -140,9 +144,12 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             {
                 float directPdfW;
                 const Color lightContribution = light->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
+                RT_ASSERT(lightContribution.IsValid());
 
                 if (!lightContribution.AlmostZero())
                 {
+                    RT_ASSERT(directPdfW > 0.0f && IsValid(directPdfW));
+
                     float misWeight = 1.0f;
                     if (mSampleLights && depth > 0 && !lastSpecular)
                     {
@@ -170,9 +177,12 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
             float directPdfA;
             const Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
+            RT_ASSERT(lightContribution.IsValid());
 
             if (!lightContribution.AlmostZero())
             {
+                RT_ASSERT(directPdfA > 0.0f && IsValid(directPdfA));
+
                 float misWeight = 1.0f;
                 if (mSampleLights && depth > 0 && !lastSpecular)
                 {
@@ -199,7 +209,9 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
 
         // accumulate emission color
         const Color emissionColor = Color::SampleRGB(context.wavelength, shadingData.material->emission.Evaluate(shadingData.texCoord));
+        RT_ASSERT(emissionColor.IsValid());
         resultColor += throughput * emissionColor;
+        RT_ASSERT(resultColor.IsValid());
 
         if (mSampleLights)
         {
@@ -230,13 +242,13 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         float pdf;
         Vector4 incomingDirWorldSpace;
         lastSampledBsdfEvent = BSDF::NullEvent;
-        const Color bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, lastSampledBsdfEvent); 
+        const Color bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, lastSampledBsdfEvent);
 
         if (lastSampledBsdfEvent == BSDF::NullEvent)
         {
             pathTerminationReason = PathTerminationReason::NoSampledEvent;
             break;
-        }   
+        }
 
         RT_ASSERT(bsdfValue.IsValid());
         RT_ASSERT(pdf > 0.0f);

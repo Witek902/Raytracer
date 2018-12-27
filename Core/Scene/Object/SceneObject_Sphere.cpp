@@ -108,6 +108,7 @@ void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Sha
 
     outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
 
+    outShadingData.normal.FastNormalize3();
     outShadingData.tangent.FastNormalize3();
     outShadingData.bitangent.FastNormalize3();
 }

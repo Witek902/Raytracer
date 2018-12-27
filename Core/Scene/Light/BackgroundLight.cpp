@@ -38,7 +38,10 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
 
         RT_ASSERT(coords.IsValid());
 
-        rgbColor *= mTexture->Sample(coords, SamplerDesc());
+        const Vector4 textureColor = mTexture->Sample(coords, SamplerDesc());
+        RT_ASSERT((textureColor >= Vector4::Zero()).All());
+
+        rgbColor *= textureColor;
     }
 
     return Color::SampleRGB(context.wavelength, rgbColor);
@@ -46,7 +49,7 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
 
 const Color BackgroundLight::Illuminate(IlluminateParam& param) const
 {
-    const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();  
+    const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
     param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
     param.outDirectPdfW = RT_INV_PI / 2.0f; // hemisphere area
     param.outDistance = g_backgroundLightDistance;
@@ -57,7 +60,7 @@ const Color BackgroundLight::Illuminate(IlluminateParam& param) const
 const Color BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(hitPoint);
-    
+
     if (outDirectPdfA)
     {
         *outDirectPdfA = RT_INV_PI / 2.0f; // hemisphere area

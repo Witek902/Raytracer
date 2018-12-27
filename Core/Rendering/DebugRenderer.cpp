@@ -16,12 +16,12 @@ using namespace math;
 // convert [-1..1] range to [0..1]
 static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
 {
-    return Vector4::MulAndAdd(x, VECTOR_HALVES, VECTOR_HALVES);
+    return Vector4::Max(Vector4::Zero(), Vector4::MulAndAdd(x, VECTOR_HALVES, VECTOR_HALVES));
 }
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::TriangleID)
+    , mRenderingMode(DebugRenderingMode::Normals)
 {
 }
 

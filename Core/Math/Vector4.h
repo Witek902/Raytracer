@@ -232,14 +232,14 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
 
-    // Calculate horizontal minimum. Result is splatted across all elements
-    RT_FORCE_INLINE const Vector4 HorizontalMin() const;
-
     // Calculate horizontal maximum. Result is splatted across all elements
     RT_FORCE_INLINE const Vector4 HorizontalMax() const;
 
     // transpose 3x3 matrix
     RT_FORCE_INLINE static void Transpose3(Vector4& a, Vector4& b, Vector4& c);
+
+    // make vector "v" orthogonal to "reference" vector
+    RT_FORCE_INLINE static const Vector4 Orthogonalize(const Vector4& v, const Vector4& reference);
 };
 
 // like Vector4::operator * (Float)

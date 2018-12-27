@@ -172,11 +172,13 @@ const Color Material::Evaluate(
         const float specularWeight = totalInternalReflection ? 1.0f : F;
         const float diffuseWeight = 1.0f - specularWeight;
 
-        float specularPdf;
+        float specularPdf = 0.0f;
         dielectricValue = specularWeight * mSpecularBSDF->Evaluate(samplingContext, &specularPdf);
+        RT_ASSERT(specularPdf >= 0.0f && IsValid(specularPdf));
 
-        float diffusePdf;
+        float diffusePdf = 0.0f;
         dielectricValue += diffuseWeight * shadingData.materialParams.baseColor * mDiffuseBSDF->Evaluate(samplingContext, &diffusePdf);
+        RT_ASSERT(diffusePdf >= 0.0f && IsValid(diffusePdf));
 
         if (outPdfW)
         {

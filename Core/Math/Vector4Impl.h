@@ -482,14 +482,6 @@ int Vector4::GetSignMask() const
     return _mm_movemask_ps(v);
 }
 
-const Vector4 Vector4::HorizontalMin() const
-{
-    __m128 temp;
-    temp = _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1)));
-    temp = _mm_min_ps(temp, _mm_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 0, 3, 2)));
-    return temp;
-}
-
 const Vector4 Vector4::HorizontalMax() const
 {
     __m128 temp;
@@ -709,6 +701,12 @@ void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)
     a = _mm_movelh_ps(t0, t1);
     b = _mm_movehl_ps(t1, t0);
     c = _mm_movelh_ps(t2, t3);
+}
+
+const Vector4 Vector4::Orthogonalize(const Vector4& v, const Vector4& reference)
+{
+    // Gram–Schmidt process
+    return Vector4::NegMulAndAdd(Vector4::Dot3V(v, reference), reference, v);
 }
 
 } // namespace math

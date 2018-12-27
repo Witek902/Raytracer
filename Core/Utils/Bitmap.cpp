@@ -416,9 +416,11 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     coords *= mFloatSize;
     intCoords = VectorInt4::Convert(Vector4::Floor(coords));
 
+    Vector4 result;
+
     if (sampler.filter == TextureFilterMode::NearestNeighbor)
     {
-        return GetPixel(intCoords.x, intCoords.y, sampler.forceLinearSpace);
+        result = GetPixel(intCoords.x, intCoords.y, sampler.forceLinearSpace);
     }
     else if (sampler.filter == TextureFilterMode::Bilinear)
     {
@@ -435,13 +437,17 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
         const Vector4 weights = coords - intCoords.ConvertToFloat();
         const Vector4 value0 = Vector4::Lerp(value00, value01, weights.SplatY());
         const Vector4 value1 = Vector4::Lerp(value10, value11, weights.SplatY());
-        const Vector4 result = Vector4::Lerp(value0, value1, weights.SplatX());
-
-        return result;
+        result = Vector4::Lerp(value0, value1, weights.SplatX());
+    }
+    else
+    {
+        RT_FATAL("Invalid filter mode");
+        result = Vector4::Zero();
     }
 
-    RT_FATAL("Invalid filter mode");
-    return Vector4::Zero();
+    RT_ASSERT(result.IsValid());
+
+    return result;
 }
 
 } // namespace rt

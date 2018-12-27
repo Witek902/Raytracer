@@ -101,11 +101,9 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
     // validate vertices
     {
-        const Float3* positions = (const Float3*)desc.positions;
-
         for (Uint32 i = 0; i < desc.numVertices; ++i)
         {
-            RT_ASSERT(positions[i].IsValid(), "Corrupted vertex position");
+            RT_ASSERT(((const Float3*)desc.positions)[i].IsValid(), "Corrupted vertex position");
         }
     }
 
@@ -166,6 +164,9 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
             RT_ASSERT(buffer[i].normal.IsValid(), "Corrupted normal vector");
             RT_ASSERT(buffer[i].tangent.IsValid(), "Corrupted tangent vector");
             RT_ASSERT(buffer[i].texCoord.IsValid(), "Corrupted texture coordinates");
+            RT_ASSERT(Abs(1.0f - buffer[i].normal.Length()) < 0.0001f, "Normal vector is not normalized");
+            RT_ASSERT(Abs(1.0f - buffer[i].tangent.Length()) < 0.0001f, "Tangent vector is not normalized");
+            RT_ASSERT(Abs(Float3::Dot(buffer[i].normal, buffer[i].tangent)) < 0.0001f, "Normal and tangent vectors are not orthogonal");
         }
     }
 
