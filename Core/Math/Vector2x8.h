@@ -16,13 +16,18 @@ public:
     Vector8 x;
     Vector8 y;
 
-    Vector2x8() = default;
-    Vector2x8(const Vector2x8&) = default;
-    Vector2x8& operator = (const Vector2x8&) = default;
+    RT_FORCE_INLINE Vector2x8() = default;
+    RT_FORCE_INLINE Vector2x8(const Vector2x8&) = default;
+    RT_FORCE_INLINE Vector2x8& operator = (const Vector2x8&) = default;
 
     RT_FORCE_INLINE static const Vector2x8 Zero()
     {
         return { Vector8::Zero(), Vector8::Zero() };
+    }
+
+    RT_FORCE_INLINE static const Vector2x8 One()
+    {
+        return { Vector8(1.0f), Vector8(1.0f) };
     }
 
     RT_FORCE_INLINE Vector2x8(const Vector8& x, const Vector8& y)
@@ -78,15 +83,6 @@ public:
         const __m256 tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
         x = _mm256_permute2f128_ps(tt0, tt4, 0x20);
         y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
-    }
-
-    RT_FORCE_INLINE static const Vector2x8 One()
-    {
-        return
-        {
-            Vector8(1.0f),
-            Vector8(1.0f),
-        };
     }
 
     //////////////////////////////////////////////////////////////////////////

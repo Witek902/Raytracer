@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Math/Ray.h"
-#include "../Math/Simd4Ray.h"
 #include "../Math/Simd8Ray.h"
 #include "../Math/VectorInt8.h"
 #include "../BVH/BVH.h"

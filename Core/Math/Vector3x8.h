@@ -2,8 +2,6 @@
 
 #include "Math.h"
 #include "Vector8.h"
-#include "Simd4Vector3.h"
-
 
 namespace rt {
 namespace math {
@@ -18,9 +16,19 @@ public:
     Vector8 y;
     Vector8 z;
 
-    Vector3x8() = default;
-    Vector3x8(const Vector3x8&) = default;
-    Vector3x8& operator = (const Vector3x8&) = default;
+    RT_FORCE_INLINE Vector3x8() = default;
+    RT_FORCE_INLINE Vector3x8(const Vector3x8&) = default;
+    RT_FORCE_INLINE Vector3x8& operator = (const Vector3x8&) = default;
+
+    RT_FORCE_INLINE static const Vector3x8 Zero()
+    {
+        return { Vector8::Zero(), Vector8::Zero(), Vector8::Zero() };
+    }
+
+    RT_FORCE_INLINE static const Vector3x8 One()
+    {
+        return { Vector8(1.0f), Vector8(1.0f), Vector8(1.0f) };
+    }
 
     RT_FORCE_INLINE Vector3x8(const Vector8& x, const Vector8& y, const Vector8& z)
         : x(x), y(y), z(z)
@@ -48,13 +56,6 @@ public:
     // splat single 3D vector
     RT_FORCE_INLINE explicit Vector3x8(const Float3& v)
         : x(v.x), y(v.y), z(v.z)
-    {}
-
-    // construct from two Vector3_Simd4
-    RT_FORCE_INLINE Vector3x8(const Vector3_Simd4& lo, const Vector3_Simd4& hi)
-        : x(lo.x, hi.x)
-        , y(lo.y, hi.y)
-        , z(lo.z, hi.z)
     {}
 
     // build from eight 3D vectors

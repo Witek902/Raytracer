@@ -50,8 +50,8 @@ bool Float2::IsValid() const
 template<Uint32 ix, Uint32 iy>
 const Float2 Float2::Swizzle() const
 {
-    static_assert(ix < 4, "Invalid X element index");
-    static_assert(iy < 4, "Invalid Y element index");
+    static_assert(ix < 2, "Invalid X element index");
+    static_assert(iy < 2, "Invalid Y element index");
 
     return Float2((&x)[ix], (&x)[iy]);
 }

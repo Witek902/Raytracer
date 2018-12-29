@@ -55,9 +55,9 @@ bool Float3::IsValid() const
 template<Uint32 ix, Uint32 iy, Uint32 iz>
 const Float3 Float3::Swizzle() const
 {
-    static_assert(ix < 4, "Invalid X element index");
-    static_assert(iy < 4, "Invalid Y element index");
-    static_assert(iz < 4, "Invalid Z element index");
+    static_assert(ix < 3, "Invalid X element index");
+    static_assert(iy < 3, "Invalid Y element index");
+    static_assert(iz < 3, "Invalid Z element index");
 
     return Float3((&x)[ix], (&x)[iy], (&x)[iz]);
 }

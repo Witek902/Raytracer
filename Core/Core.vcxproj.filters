@@ -19,18 +19,6 @@
     <ClInclude Include="Math\Vector8Impl.h">
       <Filter>Math\Vector8</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Simd4Box.h">
-      <Filter>Math\Simd4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd4Ray.h">
-      <Filter>Math\Simd4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd4Vector3.h">
-      <Filter>Math\Simd4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd4Geometry.h">
-      <Filter>Math\Simd4</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Simd8Box.h">
       <Filter>Math\Simd8</Filter>
     </ClInclude>
@@ -39,9 +27,6 @@
     </ClInclude>
     <ClInclude Include="Math\Simd8Ray.h">
       <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd4Triangle.h">
-      <Filter>Math\Simd4</Filter>
     </ClInclude>
     <ClInclude Include="Math\Simd8Triangle.h">
       <Filter>Math\Simd8</Filter>
@@ -447,9 +432,6 @@
     </Filter>
     <Filter Include="Math\Vector8">
       <UniqueIdentifier>{05892366-6576-4cbb-a9cd-8f6410c3d22c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Math\Simd4">
-      <UniqueIdentifier>{6b832453-a245-4a7e-a6f8-ad4f97e2e9a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Math\Simd8">
       <UniqueIdentifier>{8a237b31-13d5-4cf3-b173-db01263dfca0}</UniqueIdentifier>

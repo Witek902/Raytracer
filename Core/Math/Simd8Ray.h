@@ -2,7 +2,6 @@
 
 #include "Vector3x8.h"
 #include "Ray.h"
-#include "Simd4Ray.h"
 
 namespace rt {
 namespace math {
@@ -26,14 +25,6 @@ public:
         : dir(ray.dir)
         , origin(ray.origin)
         , invDir(ray.invDir)
-    {
-    }
-
-    // from two SIMD-4 rays
-    RT_FORCE_INLINE explicit Ray_Simd8(const Ray_Simd4& rayLo, const Ray_Simd4& rayHi)
-        : dir(rayLo.dir, rayHi.dir)
-        , origin(rayLo.origin, rayHi.origin)
-        , invDir(rayLo.invDir, rayHi.invDir)
     {
     }
 

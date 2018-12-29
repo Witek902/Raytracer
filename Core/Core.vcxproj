@@ -239,11 +239,6 @@
     <ClInclude Include="Math\Random.h" />
     <ClInclude Include="Math\Ray.h" />
     <ClInclude Include="Math\Rectangle.h" />
-    <ClInclude Include="Math\Simd4Box.h" />
-    <ClInclude Include="Math\Simd4Geometry.h" />
-    <ClInclude Include="Math\Simd4Ray.h" />
-    <ClInclude Include="Math\Simd4Triangle.h" />
-    <ClInclude Include="Math\Simd4Vector3.h" />
     <ClInclude Include="Math\Simd8Box.h" />
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
