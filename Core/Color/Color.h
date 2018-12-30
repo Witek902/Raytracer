@@ -69,7 +69,7 @@ struct Color
     RT_FORCE_INLINE static const Color SingleWavelengthFallback()
     {
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-        return Color{ math::Vector8(8.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
+        return Color{ math::Vector8((Float)Wavelength::NumComponents, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
 #else
         return Color{ math::VECTOR_ONE };
 #endif
@@ -125,11 +125,7 @@ struct Color
 
     RT_FORCE_INLINE bool IsValid() const
     {
-#ifdef RT_ENABLE_SPECTRAL_RENDERING
-        return value.IsValid() && Wavelength::ValueType::GreaterEqMask(value, Wavelength::ValueType()) == 0xFF;
-#else
         return value.IsValid() && (value >= Wavelength::ValueType::Zero()).All();
-#endif
     }
 
     RT_FORCE_INLINE static const Color Lerp(const Color& a, const Color& b, const float factor)

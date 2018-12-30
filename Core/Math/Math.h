@@ -107,6 +107,23 @@ RT_FORCE_INLINE float CopySign(const float x, const float y)
     return xInt.f;
 }
 
+template<typename T>
+RT_FORCE_INLINE T Signum(const T x)
+{
+    if (x > T(0))
+    {
+        return T(1);
+    }
+    else if (x < T(0))
+    {
+        return T(-1);
+    }
+    else
+    {
+        return T(0);
+    }
+}
+
 // Clamp to range.
 template<typename T>
 RT_FORCE_INLINE constexpr T Clamp(const T x, const T min, const T max)

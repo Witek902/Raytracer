@@ -198,8 +198,8 @@ struct RT_ALIGN(16) Vector4
     // Reflect a 3D vector
     RT_FORCE_INLINE static const Vector4 Reflect3(const Vector4& i, const Vector4& n);
 
-    // Refract a 3D vector assumig Z+ is normal vector
-    static const Vector4 RefractZ(const Vector4& i, float eta);
+    // Refract a 3D vector
+    static const Vector4 Refract3(const Vector4& i, const Vector4& n, float eta);
 
     // Check if two vectors are (almost) equal
     RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON);

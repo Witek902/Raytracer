@@ -3,30 +3,34 @@
     [
         {
             "name": "diffuse",
-            "baseColor": [0.8, 0.8, 0.8],
+            "baseColor": [1.0, 1.0, 1.0],
             "metalness": 0.0,
             "roughness": 0.8
         },
         {
             "name": "rough_0",
+            "bsdf": "metal",
             "baseColor": [1.0, 1.0, 1.0],
             "metalness": 1.0,
             "roughness": 0.0
         },
         {
             "name": "rough_1",
+            "bsdf": "roughMetal",
             "baseColor": [1.0, 1.0, 1.0],
             "metalness": 1.0,
             "roughness": 0.1
         },
         {
             "name": "rough_2",
+            "bsdf": "roughMetal",
             "baseColor": [1.0, 1.0, 1.0],
             "metalness": 1.0,
             "roughness": 0.25
         },
         {
             "name": "rough_3",
+            "bsdf": "roughMetal",
             "baseColor": [1.0, 1.0, 1.0],
             "metalness": 1.0,
             "roughness": 0.5

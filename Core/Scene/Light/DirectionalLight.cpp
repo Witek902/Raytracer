@@ -31,7 +31,7 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) cons
 const Color DirectionalLight::Illuminate(IlluminateParam& param) const
 {
     param.outDirectionToLight = -mDirection;
-    param.outDistance = 1.0f;
+    param.outDistance = FLT_MAX;
     param.outDirectPdfW = 1.0f;
 
     return Color::SampleRGB(param.context.wavelength, mColor);

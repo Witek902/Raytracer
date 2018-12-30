@@ -81,7 +81,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
         }
         case DebugRenderingMode::Position:
         {
-            resultColor = ScaleBipolarRange(shadingData.position);
+            resultColor = Vector4::Max(Vector4::Zero(), shadingData.position);
             break;
         }
         case DebugRenderingMode::TexCoords:

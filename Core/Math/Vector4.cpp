@@ -4,9 +4,9 @@
 namespace rt {
 namespace math {
 
-const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
+const Vector4 Vector4::Refract3(const Vector4& i, const Vector4& n, float eta)
 {
-    float NdotV = i.z;
+    float NdotV = Vector4::Dot3(i, n);
     if (NdotV < 0.0f)
     {
         eta = 1.0f / eta;
@@ -18,7 +18,7 @@ const Vector4 Vector4::RefractZ(const Vector4& i, float eta)
         return Vector4::Zero();
     }
 
-    Vector4 transmitted = Vector4::NegMulAndAdd(Vector4(eta * NdotV + sqrtf(k)), VECTOR_Z, i * eta);
+    Vector4 transmitted = Vector4::NegMulAndAdd(Vector4(eta * NdotV + sqrtf(k)), n, i * eta);
     RT_ASSERT(math::Abs(1.0f - transmitted.Length3()) < 0.01f);
 
     if (NdotV > 0.0f)

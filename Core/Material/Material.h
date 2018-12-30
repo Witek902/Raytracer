@@ -22,8 +22,8 @@ class Bitmap;
 // coefficients of Sellmeier dispersion equation
 struct RAYLIB_API DispersionParams
 {
-    float B[3];
-    float C[3];
+    float C;
+    float D;
 
     DispersionParams();
 };
@@ -65,6 +65,8 @@ public:
     Material(Material&&);
     Material& operator = (Material&&);
 
+    static const char* DefaultBsdfName;
+
     static MaterialPtr Create();
 
     static const Material* GetDefaultMaterial();
@@ -81,9 +83,10 @@ public:
     MaterialParameter<math::Vector4> baseColor = math::Vector4(0.7f, 0.7f, 0.7f, 0.0f);
 
     // 0.0 - smooth, perfect mirror
-    // 1.0 - rough, maximum dispersion
+    // 1.0 - rough, maximum diffusion
     MaterialParameter<Float> roughness = 0.1f;
 
+    // TODO move to "Principled BSDF"
     // blends between dielectric/metal models
     MaterialParameter<Float> metalness = 0.0f;
 
@@ -100,13 +103,15 @@ public:
     // When enabled, index of refraction depends on wavelength according to Sellmeier equation
     bool isDispersive = false;
 
-    bool transparent = false;
-
     // textures
     BitmapPtr maskMap = nullptr;
     BitmapPtr normalMap = nullptr;
 
     // TODO material layers
+
+    void SetBsdf(const std::string& bsdfName);
+
+    const BSDF* GetBSDF() const { return mBSDF.get(); }
 
     void Compile();
 
@@ -135,9 +140,7 @@ private:
     Material(const Material&) = delete;
     Material& operator = (const Material&) = delete;
 
-    std::unique_ptr<BSDF> mDiffuseBSDF;
-    std::unique_ptr<BSDF> mSpecularBSDF;
-    std::unique_ptr<BSDF> mTransparencyBSDF;
+    std::unique_ptr<BSDF> mBSDF;
 };
 
 } // namespace rt

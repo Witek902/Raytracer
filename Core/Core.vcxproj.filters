@@ -203,21 +203,6 @@
     <ClInclude Include="Material\BSDF\BSDF.h">
       <Filter>Material\BSDF</Filter>
     </ClInclude>
-    <ClInclude Include="Material\BSDF\LambertianBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\OrenNayarBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\SpecularReflectiveBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\SpecularTransmissiveBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\GlossyReflectiveBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
     <ClInclude Include="Material\BSDF\Microfacet.h">
       <Filter>Material\BSDF</Filter>
     </ClInclude>
@@ -268,6 +253,24 @@
     </ClInclude>
     <ClInclude Include="Math\VectorBool8.h">
       <Filter>Math\Vector8</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\DielectricBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\RoughMetalBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\MetalBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\RoughDielectricBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\DiffuseBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Material\BSDF\RoughDiffuseBSDF.h">
+      <Filter>Material\BSDF</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -368,21 +371,6 @@
     <ClCompile Include="Material\BSDF\BSDF.cpp">
       <Filter>Material\BSDF</Filter>
     </ClCompile>
-    <ClCompile Include="Material\BSDF\LambertianBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\OrenNayarBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\SpecularReflectiveBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\SpecularTransmissiveBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\GlossyReflectiveBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
     <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp">
       <Filter>Scene\Object</Filter>
     </ClCompile>
@@ -421,6 +409,24 @@
     </ClCompile>
     <ClCompile Include="Traversal\TraversalContext.cpp">
       <Filter>Traversal</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\DielectricBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\RoughMetalBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\MetalBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\RoughDielectricBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\DiffuseBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

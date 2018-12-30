@@ -1,32 +1,30 @@
 #include "PCH.h"
 #include "Material.h"
-#include "BSDF/GlossyReflectiveBSDF.h"
-#include "BSDF/SpecularReflectiveBSDF.h"
-#include "BSDF/SpecularTransmissiveBSDF.h"
-#include "BSDF/OrenNayarBSDF.h"
-#include "BSDF/LambertianBSDF.h"
+
+#include "BSDF/DiffuseBSDF.h"
+#include "BSDF/RoughDiffuseBSDF.h"
+#include "BSDF/DielectricBSDF.h"
+#include "BSDF/RoughDielectricBSDF.h"
+#include "BSDF/MetalBSDF.h"
+#include "BSDF/RoughMetalBSDF.h"
+
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
 #include "Utils/Logger.h"
 #include "Math/Random.h"
-#include "Math/Utils.h"
 
 namespace rt {
 
 using namespace math;
 
-static const Material gDefaultMaterial;
+const char* Material::DefaultBsdfName = "diffuse";
 
 DispersionParams::DispersionParams()
 {
     // BK7 glass
-    B[0] = 1.03961212f;
-    B[1] = 0.231792344f;
-    B[2] = 1.01046945f;
-    C[0] = 6.00069867e-3f;
-    C[1] = 2.00179144e-2f;
-    C[2] = 1.03560653e+2f;
+    C = 0.00420f;
+    D = 0.0f;
 }
 
 Material::Material(const char* debugName)
@@ -39,9 +37,50 @@ MaterialPtr Material::Create()
     return MaterialPtr(new Material);
 }
 
+void Material::SetBsdf(const std::string& bsdfName)
+{
+    if (bsdfName == "diffuse")
+    {
+        mBSDF = std::make_unique<DiffuseBSDF>();
+    }
+    else if (bsdfName == "roughDiffuse")
+    {
+        mBSDF = std::make_unique<RoughDiffuseBSDF>();
+    }
+    else if (bsdfName == "dielectric")
+    {
+        mBSDF = std::make_unique<DielectricBSDF>();
+    }
+    else if (bsdfName == "roughDielectric")
+    {
+        mBSDF = std::make_unique<RoughDielectricBSDF>();
+    }
+    else if (bsdfName == "metal")
+    {
+        mBSDF = std::make_unique<MetalBSDF>();
+    }
+    else if (bsdfName == "roughMetal")
+    {
+        mBSDF = std::make_unique<RoughMetalBSDF>();
+    }
+    else
+    {
+        RT_LOG_ERROR("Unknown BSDF name: '%s'", bsdfName.c_str());
+    }
+}
+
+static std::unique_ptr<Material> CreateDefaultMaterial()
+{
+    std::unique_ptr<Material> material = std::make_unique<Material>("default");
+    material->SetBsdf(Material::DefaultBsdfName);
+    material->Compile();
+    return material;
+}
+
 const Material* Material::GetDefaultMaterial()
 {
-    return &gDefaultMaterial;
+    static std::unique_ptr<Material> sDefaultMaterial = CreateDefaultMaterial();
+    return sDefaultMaterial.get();
 }
 
 Material::~Material()
@@ -64,24 +103,6 @@ void Material::Compile()
 
     emission.baseValue = Vector4::Max(Vector4::Zero(), emission.baseValue);
     baseColor.baseValue = Vector4::Max(Vector4::Zero(), Vector4::Min(VECTOR_ONE, baseColor.baseValue));
-
-    if (transparent)
-    {
-        mDiffuseBSDF = std::make_unique<SpecularTransmissiveBSDF>();
-    }
-    else
-    {
-        mDiffuseBSDF = std::make_unique<LambertianBSDF>();
-    }
-
-    if (roughness.baseValue >= 0.01f)
-    {
-        mSpecularBSDF = std::make_unique<GlossyReflectiveBSDF>();
-    }
-    else
-    {
-        mSpecularBSDF = std::make_unique<SpecularReflectiveBSDF>();
-    }
 }
 
 const Vector4 Material::GetNormalVector(const Vector4 uv) const
@@ -133,23 +154,11 @@ const Color Material::Evaluate(
     const Vector4& incomingDirWorldSpace,
     Float* outPdfW) const
 {
+    RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
+
     const Vector4 incomingDirLocalSpace = shadingData.WorldToLocal(incomingDirWorldSpace);
-    const float NdotV = shadingData.outgoingDirLocalSpace.z;
 
-    if (NdotV < FLT_EPSILON || incomingDirLocalSpace.z > FLT_EPSILON)
-    {
-        return Color::Zero();
-    }
-
-    if (outPdfW)
-    {
-        *outPdfW = 0.0f;
-    }
-
-    Color metalValue = Color::Zero();
-    Color dielectricValue = Color::Zero();
-
-    const BSDF::EvaluationContext samplingContext =
+    const BSDF::EvaluationContext evalContext =
     {
         *this,
         shadingData.materialParams,
@@ -158,35 +167,7 @@ const Color Material::Evaluate(
         incomingDirLocalSpace
     };
 
-    if (shadingData.materialParams.metalness > 0.0f)
-    {
-        metalValue = shadingData.materialParams.baseColor;
-        metalValue *= mSpecularBSDF->Evaluate(samplingContext, outPdfW);
-        metalValue *= FresnelMetal(NdotV, IoR, K);
-    }
-
-    if (shadingData.materialParams.metalness < 1.0f)
-    {
-        bool totalInternalReflection = false;
-        const float F = FresnelDielectric(NdotV, IoR, totalInternalReflection);
-        const float specularWeight = totalInternalReflection ? 1.0f : F;
-        const float diffuseWeight = 1.0f - specularWeight;
-
-        float specularPdf = 0.0f;
-        dielectricValue = specularWeight * mSpecularBSDF->Evaluate(samplingContext, &specularPdf);
-        RT_ASSERT(specularPdf >= 0.0f && IsValid(specularPdf));
-
-        float diffusePdf = 0.0f;
-        dielectricValue += diffuseWeight * shadingData.materialParams.baseColor * mDiffuseBSDF->Evaluate(samplingContext, &diffusePdf);
-        RT_ASSERT(diffusePdf >= 0.0f && IsValid(diffusePdf));
-
-        if (outPdfW)
-        {
-            *outPdfW = specularWeight * specularPdf + diffuseWeight * diffusePdf;
-        }
-    }
-
-    return Color::Lerp(dielectricValue, metalValue, shadingData.materialParams.metalness);
+    return mBSDF->Evaluate(evalContext, outPdfW);
 }
 
 const Color Material::Sample(
@@ -197,37 +178,7 @@ const Color Material::Sample(
     Float& outPdfW,
     BSDF::EventType& outSampledEvent) const
 {
-    const float NdotV = shadingData.outgoingDirLocalSpace.z;
-
-    const BSDF* bsdf = nullptr;
-    Color value = Color::Zero();
-
-    // TODO enclose into "FresnelBSDF"
-    if (randomGenerator.GetFloat() < shadingData.materialParams.metalness)
-    {
-        if (NdotV > 0.0f)
-        {
-            value = shadingData.materialParams.baseColor;
-            value *= FresnelMetal(NdotV, IoR, K);
-        }
-        bsdf = mSpecularBSDF.get();
-    }
-    else
-    {
-        bool totalInternalReflection = false;
-        const float F = FresnelDielectric(NdotV, IoR, totalInternalReflection);
-
-        if (randomGenerator.GetFloat() < F || totalInternalReflection) // glossy reflection
-        {
-            value = Color::One();
-            bsdf = mSpecularBSDF.get();
-        }
-        else // diffuse reflection / refraction
-        {
-            value = shadingData.materialParams.baseColor;
-            bsdf = mDiffuseBSDF.get();
-        }
-    }
+    RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
 
     BSDF::SamplingContext samplingContext =
     {
@@ -239,23 +190,23 @@ const Color Material::Sample(
     };
 
     // BSDF sampling (in local space)
-    if (!bsdf->Sample(samplingContext))
+    if (!mBSDF->Sample(samplingContext))
     {
+        outSampledEvent = BSDF::NullEvent;
         return Color();
     }
 
     RT_ASSERT(IsValid(samplingContext.outPdf));
-    RT_ASSERT(samplingContext.outPdf > 0.0f);
+    RT_ASSERT(samplingContext.outPdf >= 0.0f);
     RT_ASSERT(samplingContext.outIncomingDir.IsValid());
     RT_ASSERT(samplingContext.outColor.IsValid());
-    RT_ASSERT(value.IsValid());
 
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(samplingContext.outIncomingDir);
     outPdfW = samplingContext.outPdf;
     outSampledEvent = samplingContext.outEventType;
 
-    return samplingContext.outColor * value;
+    return samplingContext.outColor;
 }
 
 ///

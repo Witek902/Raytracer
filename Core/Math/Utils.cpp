@@ -6,7 +6,7 @@ namespace rt {
 namespace math {
 
 
-float FresnelDielectric(float NdV, float eta, bool& totalInternalReflection)
+float FresnelDielectric(float NdV, float eta)
 {
     if (NdV > 0.0f)
     {
@@ -18,14 +18,13 @@ float FresnelDielectric(float NdV, float eta, bool& totalInternalReflection)
 
     if (g < 1.0f)
     {
-        totalInternalReflection = false;
         g = Sqrt(1.0f - g);
         const float A = (g - c) / (g + c);
         const float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
         return 0.5f * A * A * (1.0f + B * B);
     }
 
-    totalInternalReflection = true;
+    // total internal reflection
     return 1.0f;
 }
 

@@ -9,6 +9,11 @@
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 
+// enable MIS weights coloring:
+// green - BSDF sampling
+// red   - light sampling
+// #define RT_VISUALIZE_MIS_CONTRIBUTIONS
+
 namespace rt {
 
 using namespace math;
@@ -23,11 +28,6 @@ RT_FORCE_INLINE static constexpr Float CombineMis(const Float samplePdf, const F
     return Mis(samplePdf) / (Mis(samplePdf) + Mis(otherPdf));
 }
 
-// RT_FORCE_INLINE static constexpr Float PdfWtoA(const Float aPdfW, const Float aDist, const Float aCosThere)
-// {
-//     return aPdfW * Abs(aCosThere) / Sqr(aDist);
-// }
-
 RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float pdfA, const Float distance, const Float cosThere)
 {
     return pdfA * Sqr(distance) / Abs(cosThere);
@@ -35,6 +35,7 @@ RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float pdfA, const Float dis
 
 PathTracer::PathTracer(const Scene& scene)
     : IRenderer(scene)
+    , mSampleLights(true)
 {
 }
 
@@ -110,6 +111,10 @@ const Color PathTracer::SampleLights(const ShadingData& shadingData, RenderingCo
         accumulatedColor += SampleLight(light, shadingData, context);
     }
 
+#ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
+    accumulatedColor *= Color::SampleRGB(context.wavelength, Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+#endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
+
     return accumulatedColor;
 }
 
@@ -143,7 +148,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             if (const BackgroundLight* light = mScene.GetBackgroundLight())
             {
                 float directPdfW;
-                const Color lightContribution = light->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
+                Color lightContribution = light->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
                 RT_ASSERT(lightContribution.IsValid());
 
                 if (!lightContribution.AlmostZero())
@@ -155,6 +160,10 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
                     {
                         misWeight = CombineMis(lastPdfW, directPdfW);
                     }
+
+#ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
+                    lightContribution *= Color::SampleRGB(context.wavelength, Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+#endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
 
                     resultColor += throughput * lightContribution * misWeight;
                 }
@@ -176,7 +185,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             const Vector4 hitPos = ray.GetAtDistance(hitPoint.distance);
 
             float directPdfA;
-            const Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
+            Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
             RT_ASSERT(lightContribution.IsValid());
 
             if (!lightContribution.AlmostZero())
@@ -190,6 +199,10 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
                     const float directPdfW = PdfAtoW(directPdfA, hitPoint.distance, cosTheta);
                     misWeight = CombineMis(lastPdfW, directPdfW);
                 }
+
+#ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
+                lightContribution *= Color::SampleRGB(context.wavelength, Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+#endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
 
                 resultColor += throughput * lightContribution * misWeight;
             }
@@ -251,7 +264,6 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         }
 
         RT_ASSERT(bsdfValue.IsValid());
-        RT_ASSERT(pdf > 0.0f);
         throughput *= bsdfValue;
 
         // ray is not visible anymore
@@ -261,9 +273,9 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
             break;
         }
 
+        RT_ASSERT(pdf >= 0.0f);
         lastSpecular = (lastSampledBsdfEvent & BSDF::SpecularEvent) != 0;
         lastPdfW = pdf;
-        throughput *= 1.0f / pdf;
 
         // TODO check for NaNs
 

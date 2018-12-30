@@ -1,34 +1,39 @@
 #include "PCH.h"
 #include "Microfacet.h"
-#include "GlossyReflectiveBSDF.h"
+#include "RoughMetalBSDF.h"
+#include "MetalBSDF.h"
+#include "../Material.h"
 #include "Math/Random.h"
+#include "Math/Utils.h"
 
 namespace rt {
 
 using namespace math;
 
-bool GlossyReflectiveBSDF::Sample(SamplingContext& ctx) const
+const char* RoughMetalBSDF::GetName() const
 {
-    if (ctx.outgoingDir.z < CosEpsilon)
+    return "roughMetal";
+}
+
+bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
+{
+    const Float roughness = ctx.materialParam.roughness;
+
+    // fallback to specular event
+    if (roughness < SpecularEventRoughnessTreshold)
+    {
+        MetalBSDF smoothBsdf;
+        return smoothBsdf.Sample(ctx);
+    }
+
+    const float NdotV = ctx.outgoingDir.z;
+    if (NdotV < CosEpsilon)
     {
         return false;
     }
 
-    const Float roughness = ctx.materialParam.roughness;
-
-    // fallback to specular event
-    if (roughness < 0.01f)
-    {
-        ctx.outColor = Color::One();
-        ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, VECTOR_Z);
-        ctx.outPdf = 1.0f;
-        ctx.outEventType = SpecularReflectionEvent;
-        return true;
-    }
-
-    const Microfacet microfacet(roughness * roughness);
-
     // microfacet normal (aka. half vector)
+    const Microfacet microfacet(roughness * roughness);
     const Vector4 m = microfacet.Sample(ctx.randomGenerator);
 
     // compute reflected direction
@@ -37,8 +42,7 @@ bool GlossyReflectiveBSDF::Sample(SamplingContext& ctx) const
     {
         return false;
     }
-
-    const float NdotV = ctx.outgoingDir.z;
+    
     const float NdotL = ctx.outIncomingDir.z;
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
 
@@ -46,25 +50,32 @@ bool GlossyReflectiveBSDF::Sample(SamplingContext& ctx) const
     const float D = microfacet.D(m);
     const float G = microfacet.G(NdotV, NdotL);
 
+    // TODO
+    // This is completely wrong!
+    // IoR depends on the wavelength and this is the source of metal color.
+    // Metal always reflect 100% pure white at grazing angle.
+    const float F = FresnelMetal(VdotH, ctx.material.IoR, ctx.material.K);
+
     ctx.outPdf = pdf / (4.0f * VdotH);
-    ctx.outColor = Color(G * D / (4.0f * NdotV));
+    ctx.outColor = ctx.materialParam.baseColor * Color(VdotH * F * G * D / (pdf * NdotV));
     ctx.outEventType = GlossyReflectionEvent;
 
     return true;
 }
 
-const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const Color RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
     // fallback to specular event
-    if (roughness < 0.01f)
+    if (roughness < SpecularEventRoughnessTreshold)
     {
-        return Color::Zero();
+        MetalBSDF smoothBsdf;
+        return smoothBsdf.Evaluate(ctx, outDirectPdfW);
     }
 
     // microfacet normal
-    const Vector4 m = (ctx.outgoingDir - ctx.incomingDir).FastNormalized3();
+    const Vector4 m = (ctx.outgoingDir - ctx.incomingDir).Normalized3();
 
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -79,13 +90,14 @@ const Color GlossyReflectiveBSDF::Evaluate(const EvaluationContext& ctx, Float* 
     const Microfacet microfacet(roughness * roughness);
     const float D = microfacet.D(m);
     const float G = microfacet.G(NdotV, NdotL);
+    const float F = FresnelMetal(VdotH, ctx.material.IoR, ctx.material.K);
 
     if (outDirectPdfW)
     {
         *outDirectPdfW = microfacet.Pdf(m) / (4.0f * VdotH);
     }
 
-    return Color(G * D / (4.0f * NdotV));
+    return ctx.materialParam.baseColor * Color(F * G * D / (4.0f * NdotV));
 }
 
 } // namespace rt

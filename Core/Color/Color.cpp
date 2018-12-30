@@ -284,6 +284,7 @@ const Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbVal
     result = SampleSpectrum(rgbToSpectrum_White, rgbToSpectrumNumSamples, wavelength) * coeffA;
     result += SampleSpectrum(sourceB, rgbToSpectrumNumSamples, wavelength) * coeffB;
     result += SampleSpectrum(sourceC, rgbToSpectrumNumSamples, wavelength) * coeffC;
+    result.value = Wavelength::ValueType::Max(result.value, Wavelength::ValueType::Zero());
     return result * 0.86445f;
 }
 

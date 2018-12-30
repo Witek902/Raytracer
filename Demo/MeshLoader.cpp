@@ -74,12 +74,14 @@ MaterialPtr LoadMaterial(const std::string& baseDir, const tinyobj::material_t& 
 {
     auto material = MaterialPtr(new Material);
 
+    material->SetBsdf(Material::DefaultBsdfName); // TODO
     material->debugName = sourceMaterial.name;
     material->baseColor = Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
     material->emission.baseValue = Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
     material->baseColor.texture = LoadTexture(baseDir, sourceMaterial.diffuse_texname);
     material->normalMap = LoadTexture(baseDir, sourceMaterial.normal_texname);
     material->maskMap = LoadTexture(baseDir, sourceMaterial.alpha_texname);
+    material->roughness = 0.8f;
 
     material->Compile();
 
@@ -93,6 +95,7 @@ MaterialPtr CreateDefaultMaterial(MaterialsMap& outMaterials)
     material->baseColor = Vector4(0.8f, 0.8f, 0.8f, 0.0f);
     material->emission.baseValue = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.75f;
+    material->SetBsdf(Material::DefaultBsdfName);
     material->Compile();
 
     outMaterials[material->debugName] = material;

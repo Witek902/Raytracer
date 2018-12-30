@@ -16,7 +16,7 @@ public:
     virtual const Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const override;
 
     // a.k.a. next event estimation (NEE)
-    bool mSampleLights = true;
+    bool mSampleLights;
 
 private:
     // importance sample light sources

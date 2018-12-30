@@ -4,10 +4,11 @@
 
 namespace rt {
 
-// Cook-Torrance glossy BRDF
-class GlossyReflectiveBSDF : public BSDF
+// Rough transparent dielectic BSDF (e.g. ground glass).
+class RoughDielectricBSDF : public BSDF
 {
 public:
+    virtual const char* GetName() const override;
     virtual bool Sample(SamplingContext& ctx) const override;
     virtual const Color Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const override;
 };

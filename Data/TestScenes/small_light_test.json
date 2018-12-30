@@ -3,18 +3,14 @@
     [
         {
             "name": "top",
-            "bsdf": "roughDiffuse",
-            "baseColor": [1.0, 1.0, 1.0],
-            "roughness": 0.75
+            "bsdf": "diffuse",
+            "baseColor": [1.0, 1.0, 1.0]
         },
         {
             "name": "bottom",
-            "bsdf": "metal",
+            "bsdf": "roughDiffuse",
             "baseColor": [1.0, 1.0, 1.0],
-            "IoR": 1.0972,
-            "K": 6.7942,
-            "metalness": 1.0,
-            "roughness": 0.0
+            "roughness": 0.75
         }
     ],
     "objects":
@@ -35,8 +31,11 @@
     "lights":
     [
         {
-            "type": "background",
-            "color": [1.0, 1.0, 1.0]
+            "type": "area",
+            "color": [50.0, 50.0, 50.0],
+            "position": [10.0, -0.5, -0.5],
+            "edge0": [0.0, 1.0, 0.0],
+            "edge1": [0.0, 0.0, 1.0]
         }
     ],
     "camera":

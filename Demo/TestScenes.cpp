@@ -212,11 +212,11 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
         material->debugName = "floor";
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->emission = math::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-        material->roughness = 0.8f;
+        material->roughness = 0.4f;
         material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath + "TEXTURES/", "default.bmp");
         material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(math::Float2(20.0f, 20.0f));
+        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>(math::Float2(20.0f, 20.0f), math::Float2(0.5f));
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
         materials.push_back(std::move(material));
@@ -240,8 +240,9 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
     {
         auto material = Material::Create();
         material->debugName = "glossy";
-        material->baseColor = math::Vector4(1.0f, 0.7f, 0.2f, 0.0f);
-        material->roughness = 0.4f;
+        material->baseColor = math::Vector4(1.0f, 0.7f, 0.3f, 0.0f);
+        material->roughness = 0.1f;
+        //material->roughness2 = 0.4f;
         material->metalness = 1.0f;
         material->Compile();
 
@@ -268,29 +269,66 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
         materials.push_back(std::move(material));
     }
 
+    /*
     // box
     {
-        auto material = Material::Create();
-        material->debugName = "mirror";
-        material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
-        material->roughness = 0.0f;
-        material->metalness = 1.0f;
-        material->Compile();
+        {
+            auto material = Material::Create();
+            material->debugName = "mirror";
+            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+            material->roughness = 0.0f;
+            material->metalness = 0.0f;
+            material->transparent = true;
+            material->Compile();
 
-        SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(0.5f, 0.5f, 0.5f, 0.0f));
-        instance->mDefaultMaterial = material;
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 2.0f, 0.0f));
-        scene.AddObject(std::move(instance));
-        materials.push_back(std::move(material));
-    }
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(0.5f, 0.5f, 0.05f, 0.0f));
+            instance->mDefaultMaterial = material;
+            instance->mTransform.SetTranslation(Vector4(-1.5f, 0.501f, 1.0f, 0.0f));
+            scene.AddObject(std::move(instance));
+            materials.push_back(std::move(material));
+        }
 
-    {
-        auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
-        SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
-        instance->mTransform.SetTranslation(Vector4(0.0f, 0.75f, -2.0f, 0.0f));
-        scene.AddObject(std::move(instance));
-        meshes.push_back(std::move(mesh));
+        {
+            auto material = Material::Create();
+            material->debugName = "mirror";
+            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+            material->roughness = 0.1f;
+            material->metalness = 0.0f;
+            material->transparent = true;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(0.5f, 0.5f, 0.05f, 0.0f));
+            instance->mDefaultMaterial = material;
+            instance->mTransform.SetTranslation(Vector4(0.0f, 0.501f, 1.0f, 0.0f));
+            scene.AddObject(std::move(instance));
+            materials.push_back(std::move(material));
+        }
+
+        {
+            auto material = Material::Create();
+            material->debugName = "mirror";
+            material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+            material->roughness = 0.2f;
+            material->metalness = 0.0f;
+            material->transparent = true;
+            material->Compile();
+
+            SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(0.5f, 10.5f, 0.05f, 0.0f));
+            instance->mDefaultMaterial = material;
+            instance->mTransform.SetTranslation(Vector4(1.5f, 0.501f, 1.0f, 0.0f));
+            scene.AddObject(std::move(instance));
+            materials.push_back(std::move(material));
+        }
     }
+    */
+
+    //{
+    //    auto mesh = helpers::LoadMesh(gOptions.dataPath + "/" + gOptions.modelPath, materials);
+    //    SceneObjectPtr instance = std::make_unique<MeshSceneObject>(mesh);
+    //    instance->mTransform.SetTranslation(Vector4(0.0f, 0.75f, -2.0f, 0.0f));
+    //    scene.AddObject(std::move(instance));
+    //    meshes.push_back(std::move(mesh));
+    //}
 
     //{
     //    auto material = Material::Create();
@@ -308,7 +346,7 @@ void InitScene_Simple(Scene& scene, DemoWindow::Materials& materials, DemoWindow
 
     {
         camera = CameraSetup();
-        camera.position = Vector4(0.11f, 1.6f, 3.6f, 0.0f);
+        camera.position = Vector4(0.11f, 1.6f, 2.6f, 0.0f);
         camera.orientation.y = -0.3f;
         camera.orientation.x = -3.11f;
     }
@@ -493,6 +531,7 @@ void InitScene_Furnace_Test(Scene& scene, DemoWindow::Materials& materials, Demo
         material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
         material->roughness = 0.0f;
         material->metalness = 0.0f;
+        material->transparent = true;
         material->Compile();
 
         SceneObjectPtr instance = std::make_unique<SphereSceneObject>(0.5f);
@@ -603,6 +642,35 @@ void InitScene_Stress_MillionObjects(Scene& scene, DemoWindow::Materials& materi
     }
 }
 
+
+void InitScene_PointLight_And_FrostedGlass(Scene& scene, DemoWindow::Materials& materials, DemoWindow::Meshes& meshes, CameraSetup& camera)
+{
+    auto material = Material::Create();
+    material->debugName = "glass";
+    material->baseColor = math::Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+    material->roughness = 0.2f;
+    material->metalness = 0.0f;
+    material->transparent = true;
+    material->Compile();
+
+    SceneObjectPtr instance = std::make_unique<BoxSceneObject>(math::Vector4(1.0f, 0.1f, 1.0f, 0.0f));
+    instance->mDefaultMaterial = material;
+    instance->mTransform.SetTranslation(Vector4(0.0f, 0.5f, 0.0f, 0.0f));
+    scene.AddObject(std::move(instance));
+    materials.push_back(std::move(material));
+
+    const Vector4 lightColor(10.0f, 10.0f, 10.0f, 0.0f);
+    const Vector4 lightPosition(0.0f, 0.0f, 0.0f, 0.0f);
+    scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
+
+    {
+        camera = CameraSetup();
+        camera.position = Vector4(0.0f, 0.7f, 0.0f, 0.0f);
+        camera.orientation.y = -1.4f;
+        camera.orientation.x = -3.11f;
+    }
+}
+
 } // namespace
 
 void DemoWindow::RegisterTestScenes()
@@ -619,5 +687,6 @@ void DemoWindow::RegisterTestScenes()
     mRegisteredScenes["Simple + Area Light"] = InitScene_Simple_AreaLight;
     mRegisteredScenes["Simple + Directional Light"] = InitScene_Simple_DirectionalLight;
     mRegisteredScenes["MIS Test"] = InitScene_MultipleImportanceSamplingTest;
+    mRegisteredScenes["Point Light and Frosted Glass"] = InitScene_PointLight_And_FrostedGlass;
     mRegisteredScenes["Stress (million spheres)"] = InitScene_Stress_MillionObjects;
 }

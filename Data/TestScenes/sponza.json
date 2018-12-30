@@ -12,8 +12,7 @@
     [
         {
             "type": "mesh",
-            "path": "MODELS/bunny.obj",
-            "transform": { "translation": [0.0, -0.7, 0.0] },
+            "path": "MODELS/crytek-sponza/sponza.obj",
             "material": "plastic"
         }
     ],
@@ -21,17 +20,21 @@
     [
         {
             "type": "background",
-            "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/HdrOutdoorCityParkingLotEveningClear001/2K/HdrOutdoorCityParkingLotEveningClear001_HDR_2K.exr"
+            "color": [1.0, 1.5, 2.0]
+        },
+        {
+            "type": "directional",
+            "color": [20.0, 19.0, 18.0],
+            "direction": [0.1, -1.0, 0.2]
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [0.0, 0.0, 3.0],
-            "orientation": [0.01, 3.14, 0.0]
+            "translation": [979.0, 613.0, 99.0],
+            "orientation": [0.117, -1.75, 0.0]
         },
-        "fieldOfView": 40.0
+        "fieldOfView": 48.0
     }
 }

@@ -367,7 +367,7 @@ bool DemoWindow::RenderUI_Settings_Camera()
     if (ImGui::TreeNode("Lens"))
     {
         resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
-        resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 0.1f);
+        resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 10.0f, "%.3f", 5.0f);
         {
             ImGui::Columns(2, nullptr, false);
             resetFrame |= ImGui::SliderFloat("Focal distance", &mCamera.mDOF.focalPlaneDistance, 0.1f, 1000.0f, "%.3f", 2.0f);
@@ -472,7 +472,33 @@ bool DemoWindow::RenderUI_Settings_Material()
 {
     bool changed = false;
 
-    changed |= ImGui::Checkbox("Transparent", &mSelectedMaterial->transparent);
+    const char* bsdfs[] =
+    {
+        "diffuse",
+        "roughDiffuse",
+        "dielectric",
+        "metal",
+        "roughMetal",
+        "roughDielectric",
+    };
+
+    const int numBsdfs = 6;
+    int currentBsdfIndex = 0;
+    for (int i = 0; i < numBsdfs; ++i)
+    {
+        if (0 == strcmp(bsdfs[i], mSelectedMaterial->GetBSDF()->GetName()))
+        {
+            currentBsdfIndex = i;
+            break;
+        }
+    }
+
+    if (ImGui::Combo("BSDF", &currentBsdfIndex, bsdfs, numBsdfs))
+    {
+        mSelectedMaterial->SetBsdf(bsdfs[currentBsdfIndex]);
+        changed = true;
+    }
+
     changed |= ImGui::ColorEdit3("Emission color", &mSelectedMaterial->emission.baseValue.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
     changed |= ImGui::ColorEdit3("Base color", &mSelectedMaterial->baseColor.baseValue.x, ImGuiColorEditFlags_Float);
     changed |= ImGui::SliderFloat("Roughness", &mSelectedMaterial->roughness.baseValue, 0.0f, 1.0f);
@@ -481,19 +507,16 @@ bool DemoWindow::RenderUI_Settings_Material()
 
     if (mSelectedMaterial->isDispersive)
     {
-        changed |= ImGui::InputFloat3("B", mSelectedMaterial->dispersionParams.B);
-        changed |= ImGui::InputFloat3("C", mSelectedMaterial->dispersionParams.C);
+        changed |= ImGui::SliderFloat("C", &mSelectedMaterial->dispersionParams.C, 0.0f, 1.0f);
+        changed |= ImGui::SliderFloat("D", &mSelectedMaterial->dispersionParams.D, 0.0f, 10.0f);
     }
 
-    if (mSelectedMaterial->metalness.baseValue > 0.0f || !mSelectedMaterial->isDispersive)
     {
-        changed |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 0.0f, 6.0f);
+        const float iorRange = 5.0f;
+        changed |= ImGui::SliderFloat("Refractive index", &mSelectedMaterial->IoR, 1.0f / iorRange, iorRange);
     }
 
-    if (mSelectedMaterial->metalness.baseValue > 0.0f)
-    {
-        changed |= ImGui::SliderFloat("Extinction coefficient", &mSelectedMaterial->K, 0.0f, 10.0f);
-    }
+    changed |= ImGui::SliderFloat("Extinction coeff. (K)", &mSelectedMaterial->K, 0.0f, 10.0f);
 
     if (mSelectedMaterial->normalMap)
     {
@@ -527,9 +550,9 @@ void DemoWindow::RenderUI()
 
     ImGui::NewFrame();
     {
-        static bool showStats = false;
+        static bool showStats = true;
         static bool showDebugging = false;
-        static bool showRenderSettings = false;
+        static bool showRenderSettings = true;
 
         if (ImGui::BeginMainMenuBar())
         {

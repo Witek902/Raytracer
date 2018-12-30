@@ -1,13 +1,17 @@
 #include "PCH.h"
-#include "OrenNayarBSDF.h"
+#include "RoughDiffuseBSDF.h"
 #include "Math/Random.h"
 
 namespace rt {
 
 using namespace math;
 
+const char* RoughDiffuseBSDF::GetName() const
+{
+    return "roughDiffuse";
+}
 
-float OrenNayarBSDF::Evaluate_Internal(const float NdotL, const float NdotV, const float LdotV, const float roughness)
+float RoughDiffuseBSDF::Evaluate_Internal(const float NdotL, const float NdotV, const float LdotV, const float roughness)
 {
     // based on http://mimosa-pudica.net/improved-oren-nayar.html
     const float s2 = roughness * roughness;
@@ -16,10 +20,10 @@ float OrenNayarBSDF::Evaluate_Internal(const float NdotL, const float NdotV, con
     const float s = LdotV - NdotL * NdotV;
     const float stinv = s > 0.0f ? s / Max(NdotL, NdotV) : 0.0f;
 
-    return Max(RT_INV_PI * NdotL * (A + B * stinv), 0.0f);
+    return Max(A + B * stinv, 0.0f);
 }
 
-bool OrenNayarBSDF::Sample(SamplingContext& ctx) const
+bool RoughDiffuseBSDF::Sample(SamplingContext& ctx) const
 {
     const float NdotV = ctx.outgoingDir.z;
     if (NdotV < CosEpsilon)
@@ -34,18 +38,18 @@ bool OrenNayarBSDF::Sample(SamplingContext& ctx) const
     const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
     ctx.outPdf = NdotL * RT_INV_PI;
-    ctx.outColor = Color(value);
+    ctx.outColor = ctx.materialParam.baseColor * value;
     ctx.outEventType = DiffuseReflectionEvent;
 
     return true;
 }
 
-const Color OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
+const Color RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
 
-    if (NdotV > CosEpsilon || NdotL > CosEpsilon)
+    if (NdotV > CosEpsilon && NdotL > CosEpsilon)
     {
         if (outDirectPdfW)
         {
@@ -54,9 +58,9 @@ const Color OrenNayarBSDF::Evaluate(const EvaluationContext& ctx, float* outDire
         }
 
         const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.incomingDir));
-        const float value = Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
+        const float value = NdotL * RT_INV_PI * Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
-        return Color(value);
+        return ctx.materialParam.baseColor * value;
     }
 
     return Color::Zero();

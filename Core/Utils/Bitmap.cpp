@@ -412,9 +412,8 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
     VectorInt4 intCoords = VectorInt4::Convert(Vector4::Floor(coords));
 
     // perform wrapping
-    coords -= intCoords.ConvertToFloat();
-    coords *= mFloatSize;
-    intCoords = VectorInt4::Convert(Vector4::Floor(coords));
+    Vector4 scaledCoords = (coords - intCoords.ConvertToFloat()) * mFloatSize;
+    intCoords = VectorInt4::Convert(Vector4::Floor(scaledCoords));
 
     if (intCoords.x >= mWidth)
     {
@@ -444,7 +443,7 @@ Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
         GetPixelBlock(intCoords, sampler.forceLinearSpace, value00, value10, value01, value11);
 
         // bilinear interpolation
-        const Vector4 weights = coords - intCoords.ConvertToFloat();
+        const Vector4 weights = scaledCoords - intCoords.ConvertToFloat();
         const Vector4 value0 = Vector4::Lerp(value00, value01, weights.SplatY());
         const Vector4 value1 = Vector4::Lerp(value10, value11, weights.SplatY());
         result = Vector4::Lerp(value0, value1, weights.SplatX());

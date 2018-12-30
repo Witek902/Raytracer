@@ -18,6 +18,7 @@ namespace math
 // Abstract class for Bidirectional Scattering Density Function
 // Handles both reflection and transmission
 // NOTE: all the calculations are performed in local-space of the hit point on a surface: X is tangent, Z is normal
+// NOTE: it's not called "BRDF", because it handles transmission as well
 class BSDF : public Aligned<16>
 {
 public:
@@ -41,7 +42,13 @@ public:
         AnyEvent                    = ReflectiveEvent | TransmissiveEvent,
     };
 
+    // If incoming/outgoing direction is at extremely grazing angle, the BSDF will early-return zero value
+    // in order to avoid potential divisions by zero.
     static constexpr Float CosEpsilon = 1.0e-5f;
+
+    // If the roughness value of an material is below this treshold we fallback to perfectly specular event.
+    // If we didn't do this, we would end up with an extremely high values of sampling PDF.
+    static constexpr Float SpecularEventRoughnessTreshold = 0.005f;
 
     virtual ~BSDF() = default;
 
@@ -70,12 +77,15 @@ public:
         const math::Vector4 incomingDir;
     };
 
+    // get debug name
+    virtual const char* GetName() const = 0;
+
     // Importance sample the BSDF
     // Generates incoming light direction for given outgoing ray direction.
     // Returns ray weight (NdotL multiplied) as well as sampling probability of the generated direction.
     virtual bool Sample(SamplingContext& ctx) const = 0;
 
-    // Evaluate BRDF
+    // Evaluate BSDF
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
     virtual const Color Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;

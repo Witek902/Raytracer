@@ -248,10 +248,16 @@ static MaterialPtr ParseMaterial(const rapidjson::Value& value)
         return nullptr;
     }
 
+    std::string bsdfName = Material::DefaultBsdfName;
+    if (value.HasMember("bsdf"))
+    {
+        bsdfName = value["bsdf"].GetString();
+    }
+
     MaterialPtr material = Material::Create();
     material->debugName = std::move(name);
+    material->SetBsdf(bsdfName);
 
-    if (!TryParseBool(value, "transparent", true, material->transparent)) return nullptr;
     if (!TryParseBool(value, "dispersive", true, material->isDispersive)) return nullptr;
 
     if (!TryParseVector3(value, "baseColor", true, material->baseColor.baseValue)) return nullptr;
