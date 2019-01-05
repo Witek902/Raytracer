@@ -48,7 +48,7 @@ struct RenderingParams
     Uint32 maxRayDepth = 50;
 
     // ray depth at which Russian Roulette algorithm kicks in
-    Uint32 minRussianRouletteDepth = 2;
+    Uint32 minRussianRouletteDepth = 1;
 
     // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
     Uint16 tileSize = 16;

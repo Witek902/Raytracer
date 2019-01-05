@@ -37,6 +37,9 @@ void DemoWindow::RenderUI_Stats()
     ImGui::Text("Passes finished"); ImGui::NextColumn();
     ImGui::Text("%u", progress.passesFinished); ImGui::NextColumn();
 
+    ImGui::Text("Error"); ImGui::NextColumn();
+    ImGui::Text("%.3f dB", 10.0f * log10f(progress.averageError)); ImGui::NextColumn();
+
     ImGui::Text("Progress"); ImGui::NextColumn();
     ImGui::Text("%.2f%%", 100.0f * progress.converged); ImGui::NextColumn();
 

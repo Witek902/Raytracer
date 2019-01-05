@@ -24,6 +24,7 @@ struct RenderingProgress
     Uint32 activePixels = 0;
     Uint32 activeBlocks = 0;
     Float converged = 0.0f;
+    Float averageError = std::numeric_limits<Float>::infinity();
 };
 
 class RT_ALIGN(64) RAYLIB_API Viewport : public Aligned<64>
@@ -72,6 +73,9 @@ private:
     };
 
     void BuildInitialBlocksList();
+
+    // compute average error (variance) in the image
+    void ComputeError();
 
     // calculate estimated error (variance) of a given block
     Float ComputeBlockError(const Block& block) const;

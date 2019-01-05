@@ -73,6 +73,9 @@ void Viewport::Reset()
 
 bool Viewport::SetRenderingParams(const RenderingParams& params)
 {
+    RT_ASSERT(params.antiAliasingSpread >= 0.0f);
+    RT_ASSERT(params.motionBlurStrength >= 0.0f && params.motionBlurStrength <= 1.0f);
+
     if (mParams.numThreads != params.numThreads)
     {
         mThreadPool.SetNumThreads(params.numThreads);
@@ -80,8 +83,6 @@ bool Viewport::SetRenderingParams(const RenderingParams& params)
     }
 
     mParams = params;
-
-    // TODO validation
 
     return true;
 }
@@ -97,6 +98,12 @@ bool Viewport::SetPostprocessParams(const PostprocessParams& params)
     // TODO validation
 
     return true;
+}
+
+void Viewport::ComputeError()
+{
+    const Block fullImageBlock(0, GetWidth(), 0, GetHeight());
+    mProgress.averageError = ComputeBlockError(fullImageBlock);
 }
 
 bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
@@ -151,10 +158,17 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
 
     mProgress.passesFinished++;
 
-    if (mParams.adaptiveSettings.enable && (mProgress.passesFinished > 0) && (mProgress.passesFinished % 2 == 0))
+    if ((mProgress.passesFinished > 0) && (mProgress.passesFinished % 2 == 0))
     {
-        UpdateBlocksList();
-        GenerateRenderingTiles();
+        if (mParams.adaptiveSettings.enable)
+        {
+            UpdateBlocksList();
+            GenerateRenderingTiles();
+        }
+        else
+        {
+            ComputeError();
+        }
     }
 
     // accumulate counters
@@ -207,6 +221,8 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
             for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
+                //const Vector4 sampleOffset = renderingContext.randomGenerator.GetFloatNormal2() * renderingContext.params->antiAliasingSpread;
+
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
                 Vector4 sampleColor = Vector4::Zero();
