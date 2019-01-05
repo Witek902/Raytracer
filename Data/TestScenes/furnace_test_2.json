@@ -1,0 +1,63 @@
+{
+    "materials":
+    [
+        {
+            "name": "mat",
+            "bsdf": "metal",
+            "baseColor": [0.5, 0.5, 0.5],
+            "emissionColor": [0.5, 0.5, 0.5],
+            "IoR": 0.0,
+            "K": 10.0
+        }
+    ],
+    "objects":
+    [
+        {
+            "type": "box",
+            "size": [1.0, 1.0, 0.01],
+            "transform": { "translation": [0.0, 0.0, -1.0] },
+            "material": "mat"
+        },
+        {
+            "type": "box",
+            "size": [1.0, 1.0, 0.01],
+            "transform": { "translation": [0.0, 0.0, 1.0] },
+            "material": "mat"
+        },
+
+        {
+            "type": "box",
+            "size": [0.01, 1.0, 1.0],
+            "transform": { "translation": [-1.0, 0.0, 0.0] },
+            "material": "mat"
+        },
+        {
+            "type": "box",
+            "size": [0.01, 1.0, 1.0],
+            "transform": { "translation": [1.0, 0.0, 0.0] },
+            "material": "mat"
+        },
+
+        {
+            "type": "box",
+            "size": [1.0, 0.01, 1.0],
+            "transform": { "translation": [0.0, -1.0, 0.0] },
+            "material": "mat"
+        },
+        {
+            "type": "box",
+            "size": [1.0, 0.01, 1.0],
+            "transform": { "translation": [0.0, 1.0, 0.0] },
+            "material": "mat"
+        }
+    ],
+    "camera":
+    {
+        "transform":
+        {
+            "translation": [-0.9, 0.0, 0.0],
+            "orientation": [0.0, 3.14, 0.0]
+        },
+        "fieldOfView": 90.0
+    }
+}
