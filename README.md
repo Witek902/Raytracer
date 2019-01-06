@@ -5,6 +5,7 @@ A side project which aims to build an efficient photorealistic software renderer
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/1.jpg">
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/2.jpg">
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/sponza.jpg">
+    <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/rough_glass.jpg">
 </p>
 
 Features
