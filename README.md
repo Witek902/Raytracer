@@ -15,7 +15,6 @@ General
 
 * Written in C++14
 * Developed for Windows and Linux
-* Multithreaded rendering (_obvious_)
 * Optimized using SSE and AVX intrinsics (especially in performance-critical and low level math code)
 * Parsing scene description from a JSON file
 
@@ -24,8 +23,9 @@ Rendering
 
 * Adaptive sampling (using more samples in noisy image areas)
 * Spectral rendering using _hero wavelength_ method (_Note: disabled with a macro by default_)
+* Debug rendering mode (for visualizing depth, normal vectors, material parameters, etc.)
 * Camera simulation:
-  * Depth of Field (circle, hexagonal or square bokeh)
+  * Depth of Field (circle or polygonal bokeh)
   * Barrel distortion
   * Motion blur
   
@@ -35,6 +35,7 @@ Geometry
 * Bounding Volume Hierarchy (BVH) used for scene and mesh traversal (two levels of BVH)
 * Scene object types: Triangle meshes, Sphere, Box, Plane
 * Full per-object motion blur (translational and rotational)
+* Both single-ray and AVX-optimized stream packet traversal
 
 Lighting
 --------
@@ -45,10 +46,9 @@ Lighting
 Materials
 ---------
 
-* Physically based metal and dielectric model (can be blend using _metalness_ parameter)
+* Physically based BSDFs: (_rough_)diffuse, (_rough_)metal, (_rough_)dielectric, plastic
 * Cook-Torrance BSDF for specular reflection with GGX normal distribution
 * Transparency and refraction
-* Chromatic dispersion 
 * Normal mapping support
 
 Textures
@@ -63,7 +63,7 @@ TODO list
 =========
 
 * Better light transport algorithm (e.g. Vertex Connection and Merging)
-* Better material model and multilayer materials
+* Better material model and multilayer materials (e.g. introduce Disney-like "principled" material)
 * Procedural textures
 * Volumetric rendering
 * Optimize traversal and shading with SSE/AVX

@@ -129,7 +129,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <OmitFramePointers>false</OmitFramePointers>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
@@ -152,7 +151,6 @@
       <PreprocessorDefinitions>RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -166,6 +164,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,7 +184,6 @@
       <PreprocessorDefinitions>WIN32;RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -199,6 +197,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -221,6 +220,7 @@
     <ClInclude Include="Material\BSDF\DielectricBSDF.h" />
     <ClInclude Include="Material\BSDF\DiffuseBSDF.h" />
     <ClInclude Include="Material\BSDF\MetalBSDF.h" />
+    <ClInclude Include="Material\BSDF\PlasticBSDF.h" />
     <ClInclude Include="Material\BSDF\RoughDielectricBSDF.h" />
     <ClInclude Include="Material\BSDF\RoughMetalBSDF.h" />
     <ClInclude Include="Material\BSDF\Microfacet.h" />
@@ -317,6 +317,7 @@
     <ClCompile Include="Material\BSDF\DielectricBSDF.cpp" />
     <ClCompile Include="Material\BSDF\DiffuseBSDF.cpp" />
     <ClCompile Include="Material\BSDF\MetalBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\PlasticBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughDielectricBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughMetalBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp" />

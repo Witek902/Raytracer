@@ -272,6 +272,9 @@
     <ClInclude Include="Material\BSDF\RoughDiffuseBSDF.h">
       <Filter>Material\BSDF</Filter>
     </ClInclude>
+    <ClInclude Include="Material\BSDF\PlasticBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -426,6 +429,9 @@
       <Filter>Material\BSDF</Filter>
     </ClCompile>
     <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\PlasticBSDF.cpp">
       <Filter>Material\BSDF</Filter>
     </ClCompile>
   </ItemGroup>

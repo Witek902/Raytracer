@@ -72,7 +72,7 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     );
 
     // calculate ray direction (ideal, without DoF)
-    Vector4 direction = transform.GetRotation().TransformVector(screenSpaceRayDir);
+    Vector4 direction = transform.TransformVector(screenSpaceRayDir);
     Vector4 origin = transform.GetTranslation();
 
     // depth of field

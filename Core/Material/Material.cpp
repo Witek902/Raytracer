@@ -7,6 +7,7 @@
 #include "BSDF/RoughDielectricBSDF.h"
 #include "BSDF/MetalBSDF.h"
 #include "BSDF/RoughMetalBSDF.h"
+#include "BSDF/PlasticBSDF.h"
 
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
@@ -62,6 +63,10 @@ void Material::SetBsdf(const std::string& bsdfName)
     else if (bsdfName == "roughMetal")
     {
         mBSDF = std::make_unique<RoughMetalBSDF>();
+    }
+    else if (bsdfName == "plastic")
+    {
+        mBSDF = std::make_unique<PlasticBSDF>();
     }
     else
     {

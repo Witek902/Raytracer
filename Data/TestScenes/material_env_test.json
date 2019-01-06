@@ -1,0 +1,37 @@
+{
+    "materials":
+    [
+        {
+            "name": "plastic",
+            "bsdf": "plastic",
+            "baseColor": [0.6, 0.6, 0.6],
+            "metalness": 0.0,
+            "roughness": 0.0
+        }
+    ],
+    "objects":
+    [
+        {
+            "type": "sphere",
+            "radius": 1.0,
+            "material": "plastic"
+        }
+    ],
+    "lights":
+    [
+        {
+            "type": "background",
+            "color": [2.0, 2.0, 2.0],
+            "texture" : "TEXTURES/ENV/HdrOutdoorCityParkingLotEveningClear001/2K/HdrOutdoorCityParkingLotEveningClear001_HDR_2K.exr"
+        }
+    ],
+    "camera":
+    {
+        "transform":
+        {
+            "translation": [0.0, 0.0, 3.0],
+            "orientation": [0.01, 3.14, 0.0]
+        },
+        "fieldOfView": 50.0
+    }
+}

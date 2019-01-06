@@ -88,10 +88,7 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
     const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
     // transform ray to local-space
-    Ray transformedRay;
-    transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
-    transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-    transformedRay.invDir = Vector4::Reciprocal(transformedRay.dir);
+    Ray transformedRay = invTransform.TransformRay(context.ray);
     transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
     SingleTraversalContext objectContext =
@@ -111,10 +108,7 @@ bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context,
     const auto invTransform = object->ComputeInverseTransform(context.context.time);
 
     // transform ray to local-space
-    Ray transformedRay;
-    transformedRay.origin = invTransform.TransformPoint(context.ray.origin);
-    transformedRay.dir = invTransform.TransformVector(context.ray.dir);
-    transformedRay.invDir = Vector4::Reciprocal(transformedRay.dir);
+    Ray transformedRay = invTransform.TransformRay(context.ray);
     transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
     SingleTraversalContext objectContext =
@@ -160,7 +154,7 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
     {
         const Uint32 objectIndex = node.childIndex + i;
         const ISceneObject* object = mObjects[objectIndex].get();
-        const auto invTransform = object->ComputeInverseTransform(context.context.time);
+        const Transform invTransform = object->ComputeInverseTransform(context.context.time);
 
         // transform ray to local-space
         for (Uint32 j = 0; j < numActiveGroups; ++j)

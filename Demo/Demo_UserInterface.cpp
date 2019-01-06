@@ -480,12 +480,13 @@ bool DemoWindow::RenderUI_Settings_Material()
         "diffuse",
         "roughDiffuse",
         "dielectric",
+        "roughDielectric",
         "metal",
         "roughMetal",
-        "roughDielectric",
+        "plastic",
     };
 
-    const int numBsdfs = 6;
+    const int numBsdfs = 7;
     int currentBsdfIndex = 0;
     for (int i = 0; i < numBsdfs; ++i)
     {

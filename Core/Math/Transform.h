@@ -4,13 +4,12 @@
 
 #include "Quaternion.h"
 #include "Box.h"
+#include "Ray.h"
 
 namespace rt {
 namespace math {
 
-/**
- * Class representing 3D transformation (translation + rotation).
- */
+// Class representing 3D transformation (translation + rotation).
 class RT_ALIGN(16) Transform final
 {
 public:
@@ -42,48 +41,35 @@ public:
 
     RT_FORCE_INLINE bool IsValid() const { return mTranslation.IsValid() && mRotation.IsValid(); }
 
-    /**
-     * Transform composition.
-     * The order is the same as for quaternions composition:
-     * (a * b).Transform(x) == a.Transform(b.Transform(x))
-     */
+    // Transform composition.
+    // The order is the same as for quaternions composition:
+    // (a * b).Transform(x) == a.Transform(b.Transform(x))
     RAYLIB_API Transform operator * (const Transform& other) const;
     RT_FORCE_INLINE Transform& operator *= (const Transform& other);
 
-    /**
-     * Calculate inverse of quaternion.
-     */
-    RAYLIB_API Transform Inverted() const;
+    // Calculate inverse of quaternion.
+    RAYLIB_API const Transform Inverted() const;
 
-    /**
-     * Invert this quaternion.
-     */
+    // Invert this transform
     RAYLIB_API Transform& Invert();
 
-    /**
-     * Transform a 3D point.
-     */
-    RAYLIB_API Vector4 TransformPoint(const Vector4& p) const;
-    RAYLIB_API Vector3x8 TransformPoint(const Vector3x8& p) const;
+    // Transform a 3D point
+    RAYLIB_API const Vector4 TransformPoint(const Vector4& p) const;
+    RAYLIB_API const Vector3x8 TransformPoint(const Vector3x8& p) const;
 
-    /**
-     * Transform a 3D vector (direction).
-     * @note Translation is ignored.
-     */
-    RAYLIB_API Vector4 TransformVector(const Vector4& v) const;
-    RAYLIB_API Vector3x8 TransformVector(const Vector3x8& v) const;
+    // Transform a 3D vector (direction).
+    // Note: Translation is ignored.
+    RAYLIB_API const Vector4 TransformVector(const Vector4& v) const;
+    RAYLIB_API const Vector3x8 TransformVector(const Vector3x8& v) const;
 
-    RAYLIB_API Box TransformBox(const Box& box) const;
+    RAYLIB_API const Box TransformBox(const Box& box) const;
+    RAYLIB_API const Ray TransformRay(const Ray& ray) const;
 
-    /**
-     * Interpolate two transforms.
-     * @note Translations are interpolated linearly, rotations - spherically.
-     */
-    RAYLIB_API static Transform Interpolate(const Transform& t0, const Transform& t1, float t);
+    // Interpolate two transforms.
+    // Note: Translations are interpolated linearly, rotations - spherically.
+    RAYLIB_API static const Transform Interpolate(const Transform& t0, const Transform& t1, float t);
 
-    /**
-     * Check if two transforms are almost equal.
-     */
+    // Check if two transforms are almost equal.
     RAYLIB_API static bool AlmostEqual(const Transform& a, const Transform& b, float epsilon = RT_EPSILON);
 
 private:

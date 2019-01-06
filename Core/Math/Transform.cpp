@@ -14,7 +14,7 @@ Transform Transform::operator * (const Transform& other) const
     return result;
 }
 
-Transform Transform::Inverted() const
+const Transform Transform::Inverted() const
 {
     Transform result;
     result.mRotation = mRotation.Conjugate();
@@ -28,27 +28,27 @@ Transform& Transform::Invert()
     return *this;
 }
 
-Vector4 Transform::TransformPoint(const Vector4& p) const
+const Vector4 Transform::TransformPoint(const Vector4& p) const
 {
     return mRotation.TransformVector(p) + mTranslation;
 }
 
-Vector3x8 Transform::TransformPoint(const Vector3x8& p) const
+const Vector3x8 Transform::TransformPoint(const Vector3x8& p) const
 {
     return mRotation.TransformVector(p) + Vector3x8(mTranslation);
 }
 
-Vector4 Transform::TransformVector(const Vector4& v) const
+const Vector4 Transform::TransformVector(const Vector4& v) const
 {
     return mRotation.TransformVector(v);
 }
 
-Vector3x8 Transform::TransformVector(const Vector3x8& v) const
+const Vector3x8 Transform::TransformVector(const Vector3x8& v) const
 {
     return mRotation.TransformVector(v);
 }
 
-Box Transform::TransformBox(const Box& box) const
+const Box Transform::TransformBox(const Box& box) const
 {
     // based on:
     // http://dev.theomader.com/transform-bounding-boxes/
@@ -66,7 +66,14 @@ Box Transform::TransformBox(const Box& box) const
     );
 }
 
-Transform Transform::Interpolate(const Transform& t0, const Transform& t1, float t)
+const Ray Transform::TransformRay(const Ray& ray) const
+{
+    const Vector4 origin = TransformPoint(ray.origin);
+    const Vector4 dir = TransformVector(ray.dir);
+    return Ray(origin, dir);
+}
+
+const Transform Transform::Interpolate(const Transform& t0, const Transform& t1, float t)
 {
     return Transform(Vector4::Lerp(t0.mTranslation, t1.mTranslation, t), Quaternion::Interpolate(t0.mRotation, t1.mRotation, t));
 }
