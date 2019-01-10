@@ -412,7 +412,8 @@ void DemoWindow::UpdateCamera()
     if (IsKeyPressed(KeyCode::F))
         movement -= upDir;
 
-    mCamera.mLinearVelocity = mCameraSetup.linearVelocity;
+    // TODO
+    //mCamera.mLinearVelocity = mCameraSetup.linearVelocity;
 
     if (movement.Length3() > RT_EPSILON)
     {
@@ -428,12 +429,16 @@ void DemoWindow::UpdateCamera()
 
         const Vector4 delta = movement * (float)mDeltaTime;
         mCameraSetup.position += delta;
-        mCamera.mLinearVelocity -= delta;
+
+        // TODO
+        //mCamera.mLinearVelocity -= delta;
     }
+
+    mCamera.SetTransform(Transform(mCameraSetup.position, cameraOrientation));
 
     const Float aspectRatio = (Float)width / (Float)height;
     const Float FoV = RT_PI / 180.0f * mCameraSetup.fov;
-    mCamera.SetPerspective(Transform(mCameraSetup.position, cameraOrientation), aspectRatio, FoV);
+    mCamera.SetPerspective(aspectRatio, FoV);
 
     // rotation motion blur
     if (IsPreview())

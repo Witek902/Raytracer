@@ -178,6 +178,15 @@ const Quaternion Quaternion::FromEulerAngles(const Float3& angles)
     return Quaternion(term0 * term1 * term2 + term3 * term4 * term5);
 }
 
+const Matrix4 Quaternion::ToMatrix4() const
+{
+    Matrix4 m;
+    m.r[0] = GetAxisX();
+    m.r[1] = GetAxisY();
+    m.r[2] = GetAxisZ();
+    return m;
+}
+
 const Float3 Quaternion::ToEulerAngles() const
 {
     // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
@@ -223,7 +232,6 @@ const Float3 Quaternion::ToEulerAngles() const
 
     return Float3{ pitch, yaw, roll };
 }
-
 
 } // namespace math
 } // namespace rt

@@ -181,6 +181,7 @@ static bool TryParseTransform(const rapidjson::Value& parentValue, const char* n
         return false;
 
     outValue = Transform(translation, Quaternion::FromEulerAngles(orientation.ToFloat3()));
+
     return true;
 }
 
@@ -434,8 +435,11 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
     if (!TryParseMaterialName(materials, value, "material", sceneObject->mDefaultMaterial))
         return false;
 
-    if (!TryParseTransform(value, "transform", sceneObject->mTransform))
+    Transform transform;
+    if (!TryParseTransform(value, "transform", transform))
         return false;
+
+    sceneObject->mTransform = transform.ToMatrix4();
 
     scene.AddObject(std::move(sceneObject));
     return true;
@@ -457,7 +461,8 @@ static bool ParseCamera(const rapidjson::Value& value, rt::Camera& camera)
     if (!TryParseFloat(value, "fieldOfView", true, fov))
         return false;
 
-    camera.SetPerspective(transform, 1.0f, fov / 180.0f * RT_PI);
+    camera.SetTransform(transform);
+    camera.SetPerspective(1.0f, fov / 180.0f * RT_PI);
 
     if (!TryParseFloat(value, "aperture", true, camera.mDOF.aperture))
         return false;

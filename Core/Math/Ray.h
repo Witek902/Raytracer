@@ -25,7 +25,17 @@ public:
         , dir(direction.Normalized3())
         , invDir(Vector4::Reciprocal(dir))
         , originDivDir(origin * invDir)
+    {}
+
+    // same as constructor, but direction must be already normalized
+    RT_FORCE_INLINE static const Ray BuildUnsafe(const Vector4& origin, const Vector4& direction)
     {
+        Ray ray;
+        ray.origin = origin;
+        ray.dir = direction;
+        ray.invDir = Vector4::Reciprocal(direction);
+        ray.originDivDir = origin * ray.invDir;
+        return ray;
     }
 
     RT_FORCE_INLINE const Vector4 GetAtDistance(const Float t) const

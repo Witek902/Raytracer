@@ -65,6 +65,8 @@ public:
     RAYLIB_API const Box TransformBox(const Box& box) const;
     RAYLIB_API const Ray TransformRay(const Ray& ray) const;
 
+    RAYLIB_API const Matrix4 ToMatrix4() const;
+
     // Interpolate two transforms.
     // Note: Translations are interpolated linearly, rotations - spherically.
     RAYLIB_API static const Transform Interpolate(const Transform& t0, const Transform& t1, float t);

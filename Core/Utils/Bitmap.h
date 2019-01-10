@@ -106,7 +106,7 @@ public:
 
     // get single pixel
     math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
-    
+
     // get 2x2 pixel block
     void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace,
         math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const;

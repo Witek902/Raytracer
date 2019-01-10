@@ -20,7 +20,10 @@ Box SphereSceneObject::GetBoundingBox() const
     const Vector4 radius = Vector4(mRadius, mRadius, mRadius, 0.0f);
 
     const Box localBox(mTransform.GetTranslation() - radius, mTransform.GetTranslation() + radius);
-    return Box(localBox, localBox + mLinearVelocity);
+
+    // TODO motion blur
+
+    return localBox;
 }
 
 void SphereSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const

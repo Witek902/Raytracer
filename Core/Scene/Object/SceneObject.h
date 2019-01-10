@@ -2,7 +2,7 @@
 
 #include "../../RayLib.h"
 #include "../../Math/Box.h"
-#include "../../Math/Transform.h"
+#include "../../Math/Matrix4.h"
 #include "../../Utils/AlignmentAllocator.h"
 #include "../../Traversal/HitPoint.h"
 
@@ -38,15 +38,12 @@ public:
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
 
-    math::Transform ComputeTransform(const float t) const;
-    math::Transform ComputeInverseTransform(const float t) const;
+    const math::Matrix4 ComputeTransform(const float t) const;
 
     // local->world transform at time=0.0
-    math::Transform mTransform;
+    math::Matrix4 mTransform;
 
-    // local transform delta for motion blur
-    math::Vector4 mLinearVelocity = math::Vector4::Zero();
-    math::Quaternion mAngularVelocity;
+    // TODO velocity
 
     MaterialPtr mDefaultMaterial;
 };

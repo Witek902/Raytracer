@@ -61,7 +61,7 @@ public:
     // cast shadow ray
     bool Traverse_Shadow_Single(const SingleTraversalContext& context) const;
 
-    void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const;
+    RT_FORCE_NOINLINE void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const;
 
     void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, Color* outColors) const;
 

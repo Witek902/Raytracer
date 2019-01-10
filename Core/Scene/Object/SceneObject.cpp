@@ -7,8 +7,14 @@ using namespace math;
 
 ISceneObject::~ISceneObject() = default;
 
-Transform ISceneObject::ComputeTransform(const float t) const
+const Matrix4 ISceneObject::ComputeTransform(const float t) const
 {
+    RT_UNUSED(t);
+
+    return mTransform;
+
+    // TODO
+    /*
     const Vector4 position = Vector4::MulAndAdd(mLinearVelocity, t, mTransform.GetTranslation());
     const Quaternion rotation0 = mTransform.GetRotation();
     Quaternion rotation;
@@ -25,11 +31,7 @@ Transform ISceneObject::ComputeTransform(const float t) const
 
     // TODO motion blur
     return Transform(position, rotation);
-}
-
-Transform ISceneObject::ComputeInverseTransform(const float t) const
-{
-    return ComputeTransform(t).Invert();
+    */
 }
 
 

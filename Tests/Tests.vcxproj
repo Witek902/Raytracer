@@ -247,6 +247,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MathMatrix4Test.cpp" />
     <ClCompile Include="MathTest.cpp" />
     <ClCompile Include="MathTranscendentalTest.cpp" />
     <ClCompile Include="MathVector4Test.cpp" />

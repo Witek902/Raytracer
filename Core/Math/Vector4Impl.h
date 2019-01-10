@@ -127,14 +127,16 @@ const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 
 void Vector4::StoreBGR_NonTemporal(Uint8* dest) const
 {
-    const Vector4 scale = VECTOR_255;
-    const Vector4 scaled = (*this) * scale;
-    const Vector4 fixed = scaled.Clamped(Vector4::Zero(), scale);
+    const Vector4 scaled = (*this) * VECTOR_255;
 
-    // Convert to int & extract components
+    // convert to int and clamp to range
+    __m128i vInt = _mm_cvttps_epi32(scaled);
+    vInt = _mm_max_epi32(vInt, _mm_setzero_si128());
+    vInt = _mm_min_epi32(vInt, _mm_set1_epi32(255));
+
+    // extract RGB components:
     // in: 000000BB  000000GG  000000RR
     // out:                    00RRGGBB
-    const __m128i vInt = _mm_cvttps_epi32(fixed);
     const __m128i b = _mm_srli_si128(vInt, 8);
     const __m128i g = _mm_srli_si128(vInt, 3);
     const __m128i r = _mm_slli_si128(vInt, 2);
@@ -225,6 +227,31 @@ const Vector4 Vector4::Swizzle() const
     static_assert(iy < 4, "Invalid Y element index");
     static_assert(iz < 4, "Invalid Z element index");
     static_assert(iw < 4, "Invalid W element index");
+
+    if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
+    {
+        return _mm_unpacklo_ps(v, v);
+    }
+    else if (ix == 2 && iy == 2 && iz == 3 && iw == 3)
+    {
+        return _mm_unpackhi_ps(v, v);
+    }
+    else if (ix == 0 && iy == 1 && iz == 0 && iw == 1)
+    {
+        return _mm_movelh_ps(v, v);
+    }
+    else if (ix == 2 && iy == 3 && iz == 2 && iw == 3)
+    {
+        return _mm_movehl_ps(v, v);
+    }
+    else if (ix == 0 && iy == 0 && iz == 2 && iw == 2)
+    {
+        return _mm_moveldup_ps(v);
+    }
+    else if (ix == 1 && iy == 1 && iz == 3 && iw == 3)
+    {
+        return _mm_movehdup_ps(v);
+    }
 
     return _mm_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
 }
@@ -400,7 +427,7 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Vector4& b, const Ve
 #ifdef RT_USE_FMA
     return _mm_fnmsub_ps(a, b, c);
 #else
-    return c - a * b;
+    return -(a * b) - c;
 #endif
 }
 
@@ -694,13 +721,11 @@ bool Vector4::IsValid() const
 
 void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)
 {
-    const Vector4 t0 = _mm_unpacklo_ps(a, b);
-    const Vector4 t1 = _mm_unpacklo_ps(c, c);
-    const Vector4 t2 = _mm_unpackhi_ps(a, b);
-    const Vector4 t3 = _mm_unpackhi_ps(c, c);
-    a = _mm_movelh_ps(t0, t1);
-    b = _mm_movehl_ps(t1, t0);
-    c = _mm_movelh_ps(t2, t3);
+    const __m128 t0 = _mm_unpacklo_ps(a, b);
+    const __m128 t1 = _mm_unpackhi_ps(a, b);
+    a = _mm_movelh_ps(t0, c);
+    b = _mm_shuffle_ps(t0, c, _MM_SHUFFLE(3, 1, 3, 2));
+    c = _mm_shuffle_ps(t1, c, _MM_SHUFFLE(3, 2, 1, 0));
 }
 
 const Vector4 Vector4::Orthogonalize(const Vector4& v, const Vector4& reference)

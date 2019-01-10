@@ -130,7 +130,7 @@
         {
             "type": "box",
             "size": [0.5, 0.499, 0.5],
-            "transform": { "translation": [-1.5, -0.5, 0.0] },
+            "transform": { "translation": [-1.5, -0.5, 0.0], "orientation": [0.0, 0.2, 0.0] },
             "material": "glass_0"
         },
 

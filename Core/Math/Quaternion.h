@@ -3,9 +3,7 @@
 #include "../RayLib.h"
 
 #include "Math.h"
-#include "Vector4.h"
-#include "Vector3x8.h"
-
+#include "Matrix4.h"
 
 namespace rt {
 namespace math {
@@ -92,6 +90,9 @@ struct RT_ALIGN(16) Quaternion final
     // yaw     - rotation in Y axis (in radians)
     // roll    - rotation in Z axis (in radians)
     RAYLIB_API static const Quaternion FromEulerAngles(const Float3& angles);
+
+    // Convert quaternion to 4x4 matrix
+    RAYLIB_API const Matrix4 ToMatrix4() const;
 
     // Convert quaternion to Euler angles (pitch, yaw, roll).
     // Note: This is quite costly method.

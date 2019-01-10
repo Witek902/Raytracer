@@ -34,10 +34,9 @@ void Scene::AddLight(LightPtr object)
 
 void Scene::AddObject(SceneObjectPtr object)
 {
-    RT_ASSERT(object->mTransform.GetTranslation().IsValid());
-    RT_ASSERT(object->mTransform.GetRotation().IsValid());
-    RT_ASSERT(object->mLinearVelocity.IsValid());
-    RT_ASSERT(object->mAngularVelocity.IsValid());
+    RT_ASSERT(object->mTransform.IsValid());
+    //RT_ASSERT(object->mLinearVelocity.IsValid());
+    //RT_ASSERT(object->mAngularVelocity.IsValid());
 
     mObjects.push_back(std::move(object));
 }
@@ -85,11 +84,10 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
 {
     const ISceneObject* object = mObjects[objectID].get();
 
-    const auto invTransform = object->ComputeInverseTransform(context.context.time);
+    const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
 
     // transform ray to local-space
-    Ray transformedRay = invTransform.TransformRay(context.ray);
-    transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
+    const Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
 
     SingleTraversalContext objectContext =
     {
@@ -105,10 +103,10 @@ bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context,
 {
     const ISceneObject* object = mObjects[objectID].get();
 
-    const auto invTransform = object->ComputeInverseTransform(context.context.time);
+    const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
 
     // transform ray to local-space
-    Ray transformedRay = invTransform.TransformRay(context.ray);
+    Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
     transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
     SingleTraversalContext objectContext =
@@ -154,7 +152,7 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
     {
         const Uint32 objectIndex = node.childIndex + i;
         const ISceneObject* object = mObjects[objectIndex].get();
-        const Transform invTransform = object->ComputeInverseTransform(context.context.time);
+        const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
 
         // transform ray to local-space
         for (Uint32 j = 0; j < numActiveGroups; ++j)
@@ -229,7 +227,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     else if (numObjects == 1) // bypass BVH
     {
         const ISceneObject* object = mObjects.front().get();
-        const auto invTransform = object->ComputeInverseTransform(context.context.time);
+        const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
 
         for (Uint32 j = 0; j < numRayGroups; ++j)
         {
@@ -256,8 +254,11 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
 
     const ISceneObject* object = mObjects[hitPoint.objectId].get();
 
+    const Matrix4 transform = object->ComputeTransform(time);
+    const Matrix4 invTransform = transform.FastInverseNoScale();
+
     const Vector4 worldPosition = Vector4::MulAndAdd(rayDir, hitPoint.distance, rayOrigin);
-    outShadingData.position = object->ComputeInverseTransform(time).TransformPoint(worldPosition);
+    outShadingData.position = invTransform.TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
@@ -271,7 +272,6 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     //RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.normal) < 0.0001f);
 
     // transform shading data from local space to world space
-    const Transform transform = object->ComputeTransform(time);
     outShadingData.position = worldPosition;
     outShadingData.tangent = transform.TransformVector(outShadingData.tangent);
     outShadingData.bitangent = transform.TransformVector(outShadingData.bitangent);

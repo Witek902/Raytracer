@@ -313,7 +313,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         rt::PathTracer* pathTracer = (PathTracer*)mRenderer.get();
         resetFrame |= ImGui::Checkbox("Light sampling", &pathTracer->mSampleLights);
     }
-  
+
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
     int tileOrder = static_cast<int>(mRenderingParams.tileSize);
 
@@ -327,7 +327,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
     resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);
-    
+
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
     mRenderingParams.tileSize = static_cast<Uint16>(tileOrder);
 
@@ -370,6 +370,8 @@ bool DemoWindow::RenderUI_Settings_Camera()
     if (ImGui::TreeNode("Lens"))
     {
         resetFrame |= ImGui::SliderFloat("Field of view", &mCameraSetup.fov, 0.5f, 120.0f);
+
+        resetFrame |= ImGui::Checkbox("Enable DoF", &mCamera.mDOF.enable);
         resetFrame |= ImGui::SliderFloat("Aperture", &mCamera.mDOF.aperture, 0.0f, 10.0f, "%.3f", 5.0f);
         {
             ImGui::Columns(2, nullptr, false);
@@ -427,11 +429,13 @@ bool DemoWindow::RenderUI_Settings_Object()
         Float3 position = mSelectedObject->mTransform.GetTranslation().ToFloat3();
         if (ImGui::InputFloat3("Position", &position.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
-            mSelectedObject->mTransform.SetTranslation(Vector4(position));
+            mSelectedObject->mTransform = Matrix4::MakeTranslation(Vector4(position));
             positionChanged = true;
         }
     }
 
+    // TODO
+    /*
     {
         Float3 orientation = mSelectedObject->mTransform.GetRotation().ToEulerAngles();
         orientation *= 180.0f / RT_PI;
@@ -462,6 +466,7 @@ bool DemoWindow::RenderUI_Settings_Object()
             positionChanged = true;
         }
     }
+    */
 
     if (positionChanged)
     {

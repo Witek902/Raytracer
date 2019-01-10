@@ -56,6 +56,15 @@ const VectorInt4 VectorInt4::Swizzle() const
     static_assert(iz < 4, "Invalid Z element index");
     static_assert(iw < 4, "Invalid W element index");
 
+    if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
+    {
+        return _mm_unpacklo_epi32(v, v);
+    }
+    else if (ix == 2 && iy == 2 && iz == 3 && iw == 3)
+    {
+        return _mm_unpackhi_epi32(v, v);
+    }
+
     return _mm_shuffle_epi32(v, _MM_SHUFFLE(iw, iz, iy, ix));
 }
 

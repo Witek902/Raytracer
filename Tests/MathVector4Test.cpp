@@ -244,24 +244,285 @@ TEST(MathTest, Vector4_VectorSwizzle)
 {
     const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);
 
-    EXPECT_TRUE((Vector4(0.0f, 1.0f, 2.0f, 3.0f) == (v.Swizzle<0, 1, 2, 3>())).All());
-    EXPECT_TRUE((Vector4(3.0f, 2.0f, 1.0f, 0.0f) == (v.Swizzle<3, 2, 1, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<0, 0, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 1.0f) == (v.Swizzle<1, 1, 1, 1>())).All());
-    EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 2.0f) == (v.Swizzle<2, 2, 2, 2>())).All());
-    EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<3, 3, 3, 3>())).All());
-    EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<1, 0, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 0.0f) == (v.Swizzle<0, 1, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 1.0f, 0.0f) == (v.Swizzle<0, 0, 1, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 1.0f) == (v.Swizzle<0, 0, 0, 1>())).All());
-    EXPECT_TRUE((Vector4(2.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<2, 0, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 2.0f, 0.0f, 0.0f) == (v.Swizzle<0, 2, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 2.0f, 0.0f) == (v.Swizzle<0, 0, 2, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 2.0f) == (v.Swizzle<0, 0, 0, 2>())).All());
-    EXPECT_TRUE((Vector4(3.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<3, 0, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 3.0f, 0.0f, 0.0f) == (v.Swizzle<0, 3, 0, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 3.0f, 0.0f) == (v.Swizzle<0, 0, 3, 0>())).All());
-    EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 3.0f) == (v.Swizzle<0, 0, 0, 3>())).All());
+    {
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<0, 0, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 1.0f) == (v.Swizzle<0, 0, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 2.0f) == (v.Swizzle<0, 0, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 3.0f) == (v.Swizzle<0, 0, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 1.0f, 0.0f) == (v.Swizzle<0, 0, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 1.0f, 1.0f) == (v.Swizzle<0, 0, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 1.0f, 2.0f) == (v.Swizzle<0, 0, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 1.0f, 3.0f) == (v.Swizzle<0, 0, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 2.0f, 0.0f) == (v.Swizzle<0, 0, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 2.0f, 1.0f) == (v.Swizzle<0, 0, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 2.0f, 2.0f) == (v.Swizzle<0, 0, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 2.0f, 3.0f) == (v.Swizzle<0, 0, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 3.0f, 0.0f) == (v.Swizzle<0, 0, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 3.0f, 1.0f) == (v.Swizzle<0, 0, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 3.0f, 2.0f) == (v.Swizzle<0, 0, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 3.0f, 3.0f) == (v.Swizzle<0, 0, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 0.0f) == (v.Swizzle<0, 1, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 1.0f) == (v.Swizzle<0, 1, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 2.0f) == (v.Swizzle<0, 1, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 3.0f) == (v.Swizzle<0, 1, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 1.0f, 0.0f) == (v.Swizzle<0, 1, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 1.0f, 1.0f) == (v.Swizzle<0, 1, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 1.0f, 2.0f) == (v.Swizzle<0, 1, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 1.0f, 3.0f) == (v.Swizzle<0, 1, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 2.0f, 0.0f) == (v.Swizzle<0, 1, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 2.0f, 1.0f) == (v.Swizzle<0, 1, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 2.0f, 2.0f) == (v.Swizzle<0, 1, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 2.0f, 3.0f) == (v.Swizzle<0, 1, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 3.0f, 0.0f) == (v.Swizzle<0, 1, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 3.0f, 1.0f) == (v.Swizzle<0, 1, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 3.0f, 2.0f) == (v.Swizzle<0, 1, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 3.0f, 3.0f) == (v.Swizzle<0, 1, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 0.0f, 0.0f) == (v.Swizzle<0, 2, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 0.0f, 1.0f) == (v.Swizzle<0, 2, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 0.0f, 2.0f) == (v.Swizzle<0, 2, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 0.0f, 3.0f) == (v.Swizzle<0, 2, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 1.0f, 0.0f) == (v.Swizzle<0, 2, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 1.0f, 1.0f) == (v.Swizzle<0, 2, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 1.0f, 2.0f) == (v.Swizzle<0, 2, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 1.0f, 3.0f) == (v.Swizzle<0, 2, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 2.0f, 0.0f) == (v.Swizzle<0, 2, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 2.0f, 1.0f) == (v.Swizzle<0, 2, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 2.0f, 2.0f) == (v.Swizzle<0, 2, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 2.0f, 3.0f) == (v.Swizzle<0, 2, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 3.0f, 0.0f) == (v.Swizzle<0, 2, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 3.0f, 1.0f) == (v.Swizzle<0, 2, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 3.0f, 2.0f) == (v.Swizzle<0, 2, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 2.0f, 3.0f, 3.0f) == (v.Swizzle<0, 2, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 0.0f, 0.0f) == (v.Swizzle<0, 3, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 0.0f, 1.0f) == (v.Swizzle<0, 3, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 0.0f, 2.0f) == (v.Swizzle<0, 3, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 0.0f, 3.0f) == (v.Swizzle<0, 3, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 1.0f, 0.0f) == (v.Swizzle<0, 3, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 1.0f, 1.0f) == (v.Swizzle<0, 3, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 1.0f, 2.0f) == (v.Swizzle<0, 3, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 1.0f, 3.0f) == (v.Swizzle<0, 3, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 2.0f, 0.0f) == (v.Swizzle<0, 3, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 2.0f, 1.0f) == (v.Swizzle<0, 3, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 2.0f, 2.0f) == (v.Swizzle<0, 3, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 2.0f, 3.0f) == (v.Swizzle<0, 3, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 3.0f, 0.0f) == (v.Swizzle<0, 3, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 3.0f, 1.0f) == (v.Swizzle<0, 3, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 3.0f, 2.0f) == (v.Swizzle<0, 3, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(0.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<0, 3, 3, 3>())).All());
+    }
+
+    {
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<1, 0, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 1.0f) == (v.Swizzle<1, 0, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 2.0f) == (v.Swizzle<1, 0, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 3.0f) == (v.Swizzle<1, 0, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 1.0f, 0.0f) == (v.Swizzle<1, 0, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 1.0f, 1.0f) == (v.Swizzle<1, 0, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 1.0f, 2.0f) == (v.Swizzle<1, 0, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 1.0f, 3.0f) == (v.Swizzle<1, 0, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 2.0f, 0.0f) == (v.Swizzle<1, 0, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 2.0f, 1.0f) == (v.Swizzle<1, 0, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 2.0f, 2.0f) == (v.Swizzle<1, 0, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 2.0f, 3.0f) == (v.Swizzle<1, 0, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 3.0f, 0.0f) == (v.Swizzle<1, 0, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 3.0f, 1.0f) == (v.Swizzle<1, 0, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 3.0f, 2.0f) == (v.Swizzle<1, 0, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 3.0f, 3.0f) == (v.Swizzle<1, 0, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 0.0f) == (v.Swizzle<1, 1, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 1.0f) == (v.Swizzle<1, 1, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 2.0f) == (v.Swizzle<1, 1, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 3.0f) == (v.Swizzle<1, 1, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 0.0f) == (v.Swizzle<1, 1, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 1.0f) == (v.Swizzle<1, 1, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 2.0f) == (v.Swizzle<1, 1, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 3.0f) == (v.Swizzle<1, 1, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 2.0f, 0.0f) == (v.Swizzle<1, 1, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 2.0f, 1.0f) == (v.Swizzle<1, 1, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 2.0f, 2.0f) == (v.Swizzle<1, 1, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 2.0f, 3.0f) == (v.Swizzle<1, 1, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 3.0f, 0.0f) == (v.Swizzle<1, 1, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 3.0f, 1.0f) == (v.Swizzle<1, 1, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 3.0f, 2.0f) == (v.Swizzle<1, 1, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 3.0f, 3.0f) == (v.Swizzle<1, 1, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 0.0f) == (v.Swizzle<1, 2, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 1.0f) == (v.Swizzle<1, 2, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 2.0f) == (v.Swizzle<1, 2, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 3.0f) == (v.Swizzle<1, 2, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 1.0f, 0.0f) == (v.Swizzle<1, 2, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 1.0f, 1.0f) == (v.Swizzle<1, 2, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 1.0f, 2.0f) == (v.Swizzle<1, 2, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 1.0f, 3.0f) == (v.Swizzle<1, 2, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 2.0f, 0.0f) == (v.Swizzle<1, 2, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 2.0f, 1.0f) == (v.Swizzle<1, 2, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 2.0f, 2.0f) == (v.Swizzle<1, 2, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 2.0f, 3.0f) == (v.Swizzle<1, 2, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 0.0f) == (v.Swizzle<1, 2, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 1.0f) == (v.Swizzle<1, 2, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 2.0f) == (v.Swizzle<1, 2, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 3.0f) == (v.Swizzle<1, 2, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 0.0f, 0.0f) == (v.Swizzle<1, 3, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 0.0f, 1.0f) == (v.Swizzle<1, 3, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 0.0f, 2.0f) == (v.Swizzle<1, 3, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 0.0f, 3.0f) == (v.Swizzle<1, 3, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 1.0f, 0.0f) == (v.Swizzle<1, 3, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 1.0f, 1.0f) == (v.Swizzle<1, 3, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 1.0f, 2.0f) == (v.Swizzle<1, 3, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 1.0f, 3.0f) == (v.Swizzle<1, 3, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 2.0f, 0.0f) == (v.Swizzle<1, 3, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 2.0f, 1.0f) == (v.Swizzle<1, 3, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 2.0f, 2.0f) == (v.Swizzle<1, 3, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 2.0f, 3.0f) == (v.Swizzle<1, 3, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 3.0f, 0.0f) == (v.Swizzle<1, 3, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 3.0f, 1.0f) == (v.Swizzle<1, 3, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 3.0f, 2.0f) == (v.Swizzle<1, 3, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(1.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<1, 3, 3, 3>())).All());
+    }
+
+    {
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<2, 0, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 0.0f, 1.0f) == (v.Swizzle<2, 0, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 0.0f, 2.0f) == (v.Swizzle<2, 0, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 0.0f, 3.0f) == (v.Swizzle<2, 0, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 1.0f, 0.0f) == (v.Swizzle<2, 0, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 1.0f, 1.0f) == (v.Swizzle<2, 0, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 1.0f, 2.0f) == (v.Swizzle<2, 0, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 1.0f, 3.0f) == (v.Swizzle<2, 0, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 2.0f, 0.0f) == (v.Swizzle<2, 0, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 2.0f, 1.0f) == (v.Swizzle<2, 0, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 2.0f, 2.0f) == (v.Swizzle<2, 0, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 2.0f, 3.0f) == (v.Swizzle<2, 0, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 3.0f, 0.0f) == (v.Swizzle<2, 0, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 3.0f, 1.0f) == (v.Swizzle<2, 0, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 3.0f, 2.0f) == (v.Swizzle<2, 0, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 0.0f, 3.0f, 3.0f) == (v.Swizzle<2, 0, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 0.0f, 0.0f) == (v.Swizzle<2, 1, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 0.0f, 1.0f) == (v.Swizzle<2, 1, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 0.0f, 2.0f) == (v.Swizzle<2, 1, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 0.0f, 3.0f) == (v.Swizzle<2, 1, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 1.0f, 0.0f) == (v.Swizzle<2, 1, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 1.0f, 1.0f) == (v.Swizzle<2, 1, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 1.0f, 2.0f) == (v.Swizzle<2, 1, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 1.0f, 3.0f) == (v.Swizzle<2, 1, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 2.0f, 0.0f) == (v.Swizzle<2, 1, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 2.0f, 1.0f) == (v.Swizzle<2, 1, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 2.0f, 2.0f) == (v.Swizzle<2, 1, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 2.0f, 3.0f) == (v.Swizzle<2, 1, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 3.0f, 0.0f) == (v.Swizzle<2, 1, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 3.0f, 1.0f) == (v.Swizzle<2, 1, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 3.0f, 2.0f) == (v.Swizzle<2, 1, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 1.0f, 3.0f, 3.0f) == (v.Swizzle<2, 1, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 0.0f, 0.0f) == (v.Swizzle<2, 2, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 0.0f, 1.0f) == (v.Swizzle<2, 2, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 0.0f, 2.0f) == (v.Swizzle<2, 2, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 0.0f, 3.0f) == (v.Swizzle<2, 2, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 1.0f, 0.0f) == (v.Swizzle<2, 2, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 1.0f, 1.0f) == (v.Swizzle<2, 2, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 1.0f, 2.0f) == (v.Swizzle<2, 2, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 1.0f, 3.0f) == (v.Swizzle<2, 2, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 0.0f) == (v.Swizzle<2, 2, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 1.0f) == (v.Swizzle<2, 2, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 2.0f) == (v.Swizzle<2, 2, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 3.0f) == (v.Swizzle<2, 2, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 3.0f, 0.0f) == (v.Swizzle<2, 2, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 3.0f, 1.0f) == (v.Swizzle<2, 2, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 3.0f, 2.0f) == (v.Swizzle<2, 2, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 2.0f, 3.0f, 3.0f) == (v.Swizzle<2, 2, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 0.0f, 0.0f) == (v.Swizzle<2, 3, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 0.0f, 1.0f) == (v.Swizzle<2, 3, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 0.0f, 2.0f) == (v.Swizzle<2, 3, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 0.0f, 3.0f) == (v.Swizzle<2, 3, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 1.0f, 0.0f) == (v.Swizzle<2, 3, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 1.0f, 1.0f) == (v.Swizzle<2, 3, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 1.0f, 2.0f) == (v.Swizzle<2, 3, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 1.0f, 3.0f) == (v.Swizzle<2, 3, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 2.0f, 0.0f) == (v.Swizzle<2, 3, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 2.0f, 1.0f) == (v.Swizzle<2, 3, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 2.0f, 2.0f) == (v.Swizzle<2, 3, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 2.0f, 3.0f) == (v.Swizzle<2, 3, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 3.0f, 0.0f) == (v.Swizzle<2, 3, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 3.0f, 1.0f) == (v.Swizzle<2, 3, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 3.0f, 2.0f) == (v.Swizzle<2, 3, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(2.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<2, 3, 3, 3>())).All());
+    }
+
+    {
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 0.0f, 0.0f) == (v.Swizzle<3, 0, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 0.0f, 1.0f) == (v.Swizzle<3, 0, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 0.0f, 2.0f) == (v.Swizzle<3, 0, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 0.0f, 3.0f) == (v.Swizzle<3, 0, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 1.0f, 0.0f) == (v.Swizzle<3, 0, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 1.0f, 1.0f) == (v.Swizzle<3, 0, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 1.0f, 2.0f) == (v.Swizzle<3, 0, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 1.0f, 3.0f) == (v.Swizzle<3, 0, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 2.0f, 0.0f) == (v.Swizzle<3, 0, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 2.0f, 1.0f) == (v.Swizzle<3, 0, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 2.0f, 2.0f) == (v.Swizzle<3, 0, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 2.0f, 3.0f) == (v.Swizzle<3, 0, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 3.0f, 0.0f) == (v.Swizzle<3, 0, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 3.0f, 1.0f) == (v.Swizzle<3, 0, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 3.0f, 2.0f) == (v.Swizzle<3, 0, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 0.0f, 3.0f, 3.0f) == (v.Swizzle<3, 0, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 0.0f, 0.0f) == (v.Swizzle<3, 1, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 0.0f, 1.0f) == (v.Swizzle<3, 1, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 0.0f, 2.0f) == (v.Swizzle<3, 1, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 0.0f, 3.0f) == (v.Swizzle<3, 1, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 1.0f, 0.0f) == (v.Swizzle<3, 1, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 1.0f, 1.0f) == (v.Swizzle<3, 1, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 1.0f, 2.0f) == (v.Swizzle<3, 1, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 1.0f, 3.0f) == (v.Swizzle<3, 1, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 2.0f, 0.0f) == (v.Swizzle<3, 1, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 2.0f, 1.0f) == (v.Swizzle<3, 1, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 2.0f, 2.0f) == (v.Swizzle<3, 1, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 2.0f, 3.0f) == (v.Swizzle<3, 1, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 3.0f, 0.0f) == (v.Swizzle<3, 1, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 3.0f, 1.0f) == (v.Swizzle<3, 1, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 3.0f, 2.0f) == (v.Swizzle<3, 1, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 1.0f, 3.0f, 3.0f) == (v.Swizzle<3, 1, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 0.0f, 0.0f) == (v.Swizzle<3, 2, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 0.0f, 1.0f) == (v.Swizzle<3, 2, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 0.0f, 2.0f) == (v.Swizzle<3, 2, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 0.0f, 3.0f) == (v.Swizzle<3, 2, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 1.0f, 0.0f) == (v.Swizzle<3, 2, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 1.0f, 1.0f) == (v.Swizzle<3, 2, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 1.0f, 2.0f) == (v.Swizzle<3, 2, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 1.0f, 3.0f) == (v.Swizzle<3, 2, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 2.0f, 0.0f) == (v.Swizzle<3, 2, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 2.0f, 1.0f) == (v.Swizzle<3, 2, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 2.0f, 2.0f) == (v.Swizzle<3, 2, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 2.0f, 3.0f) == (v.Swizzle<3, 2, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 3.0f, 0.0f) == (v.Swizzle<3, 2, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 3.0f, 1.0f) == (v.Swizzle<3, 2, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 3.0f, 2.0f) == (v.Swizzle<3, 2, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 2.0f, 3.0f, 3.0f) == (v.Swizzle<3, 2, 3, 3>())).All());
+
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 0.0f, 0.0f) == (v.Swizzle<3, 3, 0, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 0.0f, 1.0f) == (v.Swizzle<3, 3, 0, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 0.0f, 2.0f) == (v.Swizzle<3, 3, 0, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 0.0f, 3.0f) == (v.Swizzle<3, 3, 0, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 1.0f, 0.0f) == (v.Swizzle<3, 3, 1, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 1.0f, 1.0f) == (v.Swizzle<3, 3, 1, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 1.0f, 2.0f) == (v.Swizzle<3, 3, 1, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 1.0f, 3.0f) == (v.Swizzle<3, 3, 1, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 2.0f, 0.0f) == (v.Swizzle<3, 3, 2, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 2.0f, 1.0f) == (v.Swizzle<3, 3, 2, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 2.0f, 2.0f) == (v.Swizzle<3, 3, 2, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 2.0f, 3.0f) == (v.Swizzle<3, 3, 2, 3>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 0.0f) == (v.Swizzle<3, 3, 3, 0>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 1.0f) == (v.Swizzle<3, 3, 3, 1>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 2.0f) == (v.Swizzle<3, 3, 3, 2>())).All());
+        EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<3, 3, 3, 3>())).All());
+    }
 }
 
 TEST(MathTest, Vector4_ChangeSign)
@@ -304,4 +565,17 @@ TEST(MathTest, Vector4_MakeMask)
     EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 0.0f) == (v & Vector4::MakeMask<1,1,0,0>())).All());
     EXPECT_TRUE((Vector4(1.0f, 2.0f, 0.0f, 4.0f) == (v & Vector4::MakeMask<1,1,0,1>())).All());
     EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 0.0f) == (v & Vector4::MakeMask<1,1,1,0>())).All());
+}
+
+TEST(MathTest, Vector4_Transpose3)
+{
+    Vector4 a(1.0f, 2.0f, 3.0f, 0.0f);
+    Vector4 b(4.0f, 5.0f, 6.0f, 0.0f);
+    Vector4 c(7.0f, 8.0f, 9.0f, 0.0f);
+
+    Vector4::Transpose3(a, b, c);
+
+    EXPECT_TRUE((Vector4(1.0f, 4.0f, 7.0f, 0.0f) == (a & Vector4::MakeMask<1,1,1,0>())).All());
+    EXPECT_TRUE((Vector4(2.0f, 5.0f, 8.0f, 0.0f) == (b & Vector4::MakeMask<1,1,1,0>())).All());
+    EXPECT_TRUE((Vector4(3.0f, 6.0f, 9.0f, 0.0f) == (c & Vector4::MakeMask<1,1,1,0>())).All());
 }

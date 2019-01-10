@@ -275,6 +275,9 @@
     <ClInclude Include="Material\BSDF\PlasticBSDF.h">
       <Filter>Material\BSDF</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Matrix4.h">
+      <Filter>Math\Matrix4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -434,6 +437,9 @@
     <ClCompile Include="Material\BSDF\PlasticBSDF.cpp">
       <Filter>Material\BSDF</Filter>
     </ClCompile>
+    <ClCompile Include="Math\Matrix4.cpp">
+      <Filter>Math\Matrix4</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
@@ -510,6 +516,9 @@
     </Filter>
     <Filter Include="Math\VectorInt4">
       <UniqueIdentifier>{6716c006-443a-4f45-932c-63199dd843fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math\Matrix4">
+      <UniqueIdentifier>{bc43ac23-f0d6-4b24-a160-af0a0817c097}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
