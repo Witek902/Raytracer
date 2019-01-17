@@ -68,7 +68,6 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4& operator*= (Float b);
     RT_FORCE_INLINE Vector4& operator/= (Float b);
 
-    // comparison operators (returns true, if all the elements satisfy the equation)
     RT_FORCE_INLINE const VectorBool4 operator == (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator < (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator <= (const Vector4& b) const;

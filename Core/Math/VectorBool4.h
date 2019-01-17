@@ -12,9 +12,14 @@ struct RT_ALIGN(16) VectorBool4
 {
     VectorBool4() = default;
 
-    RT_FORCE_INLINE VectorBool4(bool x, bool y, bool z, bool w)
+    RT_FORCE_INLINE explicit VectorBool4(bool x, bool y, bool z, bool w)
     {
         v = _mm_castsi128_ps(_mm_set_epi32(w ? 0xFFFFFFFF : 0, z ? 0xFFFFFFFF : 0, y ? 0xFFFFFFFF : 0, x ? 0xFFFFFFFF : 0));
+    }
+
+    RT_FORCE_INLINE explicit VectorBool4(int x, int y, int z, int w)
+    {
+        v = _mm_castsi128_ps(_mm_set_epi32((w > 0) ? 0xFFFFFFFF : 0, (z > 0) ? 0xFFFFFFFF : 0, (y > 0) ? 0xFFFFFFFF : 0, (x > 0) ? 0xFFFFFFFF : 0));
     }
 
     template<Uint32 index>
@@ -67,6 +72,7 @@ struct RT_ALIGN(16) VectorBool4
 
 private:
     friend struct Vector4;
+    friend struct VectorInt4;
 
     RT_FORCE_INLINE VectorBool4(const __m128 other) : v(other) { }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math.h"
+#include "VectorBool4.h"
 
 namespace rt {
 namespace math {
@@ -65,11 +66,17 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE const VectorInt4 operator << (Int32 b) const;
     RT_FORCE_INLINE const VectorInt4 operator >> (Int32 b) const;
 
-    // for each component, if it's euqal to 'reference', set the value to 'target'
+    // for each component, if it's greater-or-euqal to 'reference', set the value to 'target'
     RT_FORCE_INLINE const VectorInt4 SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const;
+    // for each component, if it's less than 'reference', set the value to 'target'
+    RT_FORCE_INLINE const VectorInt4 SetIfLessThan(const VectorInt4& reference, const VectorInt4& target) const;
 
-    RT_FORCE_INLINE bool operator == (const VectorInt4& b) const;
-    RT_FORCE_INLINE bool operator != (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator == (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator < (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator <= (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator > (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator >= (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorBool4 operator != (const VectorInt4& b) const;
 
     RT_FORCE_INLINE static const VectorInt4 Min(const VectorInt4& a, const VectorInt4& b);
     RT_FORCE_INLINE static const VectorInt4 Max(const VectorInt4& a, const VectorInt4& b);

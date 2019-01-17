@@ -64,6 +64,14 @@ const VectorInt4 VectorInt4::Swizzle() const
     {
         return _mm_unpackhi_epi32(v, v);
     }
+    else if (ix == 0 && iy == 1 && iz == 0 && iw == 1)
+    {
+        return _mm_unpacklo_epi64(v, v);
+    }
+    else if (ix == 2 && iy == 3 && iz == 2 && iw == 3)
+    {
+        return _mm_unpackhi_epi64(v, v);
+    }
 
     return _mm_shuffle_epi32(v, _MM_SHUFFLE(iw, iz, iy, ix));
 }
@@ -196,14 +204,40 @@ const VectorInt4 VectorInt4::SetIfGreaterOrEqual(const VectorInt4& reference, co
     return VectorInt4(_mm_blendv_epi8(target, v, mask));
 }
 
-bool VectorInt4::operator == (const VectorInt4& b) const
+const VectorInt4 VectorInt4::SetIfLessThan(const VectorInt4& reference, const VectorInt4& target) const
 {
-    return _mm_movemask_ps(_mm_cvtepi32_ps(_mm_cmpeq_epi32(v, b.v))) == 0xF;
+    const __m128i mask = _mm_cmplt_epi32(v, reference.v);
+    return VectorInt4(_mm_blendv_epi8(v, target, mask));
 }
 
-bool VectorInt4::operator != (const VectorInt4& b) const
+const VectorBool4 VectorInt4::operator == (const VectorInt4& b) const
 {
-    return _mm_movemask_ps(_mm_cvtepi32_ps(_mm_cmpeq_epi32(v, b.v))) != 0xF;
+    return _mm_castsi128_ps(_mm_cmpeq_epi32(v, b.v));
+}
+
+const VectorBool4 VectorInt4::operator != (const VectorInt4& b) const
+{
+    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmpeq_epi32(v, b.v)));
+}
+
+const VectorBool4 VectorInt4::operator < (const VectorInt4& b) const
+{
+    return _mm_castsi128_ps(_mm_cmplt_epi32(v, b.v));
+}
+
+const VectorBool4 VectorInt4::operator > (const VectorInt4& b) const
+{
+    return _mm_castsi128_ps(_mm_cmpgt_epi32(v, b.v));
+}
+
+const VectorBool4 VectorInt4::operator >= (const VectorInt4& b) const
+{
+    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmplt_epi32(v, b.v)));
+}
+
+const VectorBool4 VectorInt4::operator <= (const VectorInt4& b) const
+{
+    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmpgt_epi32(v, b.v)));
 }
 
 //////////////////////////////////////////////////////////////////////////

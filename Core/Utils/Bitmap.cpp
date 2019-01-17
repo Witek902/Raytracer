@@ -283,10 +283,10 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace,
     math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const
 {
-    RT_ASSERT(coords.x < mWidth);
-    RT_ASSERT(coords.y < mHeight);
-    RT_ASSERT(coords.z < mWidth);
-    RT_ASSERT(coords.w < mHeight);
+    RT_ASSERT(coords.x < (Int32)mWidth);
+    RT_ASSERT(coords.y < (Int32)mHeight);
+    RT_ASSERT(coords.z < (Int32)mWidth);
+    RT_ASSERT(coords.w < (Int32)mHeight);
 
     // calculate offsets in pixels array for each corner
     const VectorInt4 offsets = coords.Swizzle<1,1,3,3>() * (Int32)mWidth + coords.Swizzle<0,2,0,2>();
@@ -297,10 +297,10 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     {
         case Format::R8_Uint:
         {
-            const Uint32 value0 = mData[offsets.x];
-            const Uint32 value1 = mData[offsets.y];
-            const Uint32 value2 = mData[offsets.z];
-            const Uint32 value3 = mData[offsets.w];
+            const Uint32 value0 = mData[(Uint32)offsets.x];
+            const Uint32 value1 = mData[(Uint32)offsets.y];
+            const Uint32 value2 = mData[(Uint32)offsets.z];
+            const Uint32 value3 = mData[(Uint32)offsets.w];
             outColor0 = Vector4::FromInteger(value0) * byteScale;
             outColor1 = Vector4::FromInteger(value1) * byteScale;
             outColor2 = Vector4::FromInteger(value2) * byteScale;
@@ -409,38 +409,31 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
 
 Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
 {
-    VectorInt4 intCoords = VectorInt4::Convert(Vector4::Floor(coords));
+    // wrap to 0..1 range
+    const Vector4 warpedCoords = coords - Vector4::Floor(coords);
 
-    // perform wrapping
-    Vector4 scaledCoords = (coords - intCoords.ConvertToFloat()) * mFloatSize;
-    intCoords = VectorInt4::Convert(Vector4::Floor(scaledCoords));
-
-    if (intCoords.x >= mWidth)
-    {
-        intCoords.x -= mWidth;
-    }
-
-    if (intCoords.y >= mHeight)
-    {
-        intCoords.y -= mHeight;
-    }
+    // compute texel coordinates
+    const Vector4 scaledCoords = warpedCoords * mFloatSize;
+    const VectorInt4 intCoords = VectorInt4::Convert(Vector4::Floor(scaledCoords));
+    VectorInt4 texelCoords = intCoords.SetIfLessThan(VectorInt4::Zero(), intCoords + mSize);
+    texelCoords = texelCoords.SetIfGreaterOrEqual(mSize, texelCoords - mSize);
 
     Vector4 result;
 
     if (sampler.filter == TextureFilterMode::NearestNeighbor)
     {
-        result = GetPixel(intCoords.x, intCoords.y, sampler.forceLinearSpace);
+        result = GetPixel(texelCoords.x, texelCoords.y, sampler.forceLinearSpace);
     }
     else if (sampler.filter == TextureFilterMode::Bilinear)
     {
-        intCoords = intCoords.Swizzle<0, 1, 0, 1>();
-        intCoords += VectorInt4(0, 0, 1, 1);
+        texelCoords = texelCoords.Swizzle<0, 1, 0, 1>();
+        texelCoords += VectorInt4(0, 0, 1, 1);
 
         // wrap secondary coordinates
-        intCoords = intCoords.SetIfGreaterOrEqual(mSize, intCoords - mSize);
+        texelCoords = texelCoords.SetIfGreaterOrEqual(mSize, texelCoords - mSize);
 
         Vector4 value00, value01, value10, value11;
-        GetPixelBlock(intCoords, sampler.forceLinearSpace, value00, value10, value01, value11);
+        GetPixelBlock(texelCoords, sampler.forceLinearSpace, value00, value10, value01, value11);
 
         // bilinear interpolation
         const Vector4 weights = scaledCoords - intCoords.ConvertToFloat();
