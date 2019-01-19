@@ -12,6 +12,7 @@
 #include "../Core/Scene/Light/AreaLight.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
 #include "../Core/Scene/Light/DirectionalLight.h"
+#include "../Core/Scene/Light/SphereLight.h"
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
 #include "../Core/Scene/Object/SceneObject_Sphere.h"
 #include "../Core/Scene/Object/SceneObject_Box.h"
@@ -344,6 +345,22 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
             return false;
 
         scene.SetBackgroundLight(std::move(backgroundLight));
+    }
+    else if (typeStr == "sphere")
+    {
+        Vector4 lightPosition;
+        if (!TryParseVector3(value, "position", false, lightPosition))
+        {
+            return false;
+        }
+
+        Float radius = 0.0f;
+        if (!TryParseFloat(value, "radius", false, radius))
+        {
+            return false;
+        }
+
+        scene.AddLight(std::make_unique<SphereLight>(lightPosition, radius, lightColor));
     }
     else
     {

@@ -14,7 +14,7 @@ struct RT_ALIGN(16) PostprocessParams
     float exposure = 0.0f;
 
     // applied after tonemapping
-    float ditheringStrength = 0.008f;
+    float ditheringStrength = 0.005f;
 
     RAYLIB_API bool operator == (const PostprocessParams& other) const;
     RAYLIB_API bool operator != (const PostprocessParams& other) const;

@@ -53,6 +53,8 @@ const Color PathTracer::SampleLight(const ILight* light, const ShadingData& shad
     RT_ASSERT(radiance.IsValid());
     RT_ASSERT(IsValid(illuminateParam.outDirectPdfW));
     RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateParam.outDistance));
+    RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
 
     // calculate BSDF contribution
     float bsdfPdfW;

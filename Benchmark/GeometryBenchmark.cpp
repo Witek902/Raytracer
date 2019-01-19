@@ -7,6 +7,25 @@
 using namespace rt;
 using namespace math;
 
+static void Benchmark_Geometry_BuildOrthonormalBasis(benchmark::State& state)
+{
+    Random random;
+
+    Vector4 x = random.GetSphere();
+
+    for (auto _ : state)
+    {
+        Vector4 u, v;
+        BuildOrthonormalBasis(x, u, v);
+        x = (u + v).Normalized3();
+    }
+    benchmark::DoNotOptimize(x);
+
+    printf("%f", x.x);
+}
+BENCHMARK(Benchmark_Geometry_BuildOrthonormalBasis);
+
+
 static void Benchmark_Geometry_RayTriIntersection(benchmark::State& state)
 {
     Random random;

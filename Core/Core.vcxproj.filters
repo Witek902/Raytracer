@@ -278,6 +278,9 @@
     <ClInclude Include="Math\Matrix4.h">
       <Filter>Math\Matrix4</Filter>
     </ClInclude>
+    <ClInclude Include="Scene\Light\SphereLight.h">
+      <Filter>Scene\Light</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -439,6 +442,9 @@
     </ClCompile>
     <ClCompile Include="Math\Matrix4.cpp">
       <Filter>Math\Matrix4</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light\SphereLight.cpp">
+      <Filter>Scene\Light</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

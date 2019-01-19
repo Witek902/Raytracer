@@ -32,15 +32,15 @@ Vector4::Vector4(const Float s)
     : v(_mm_set1_ps(s))
 {}
 
-Vector4::Vector4(const Float x, const Float y, const Float z, const Float w)
+Vector4::Vector4(const Float x, const Float y, const Float z = 0.0f, const Float w = 0.0f)
     : v(_mm_set_ps(w, z, y, x))
 {}
 
-Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
+Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z = 0, const Int32 w = 0)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
-Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
+Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z = 0u, const Uint32 w = 0u)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 

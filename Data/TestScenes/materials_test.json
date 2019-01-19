@@ -217,11 +217,10 @@
     "lights":
     [
         {
-            "type": "area",
-            "color": [1.1, 1.1, 1.1],
-            "position": [4.0, 4.0, 4.0],
-            "edge0": [-2.0, 4.0, -4.0],
-            "edge1": [-4.0, 0.0, 4.0]
+            "type": "sphere",
+            "color": [5.0, 5.0, 5.0],
+            "position": [4.0, 2.0, 4.0],
+            "radius": 2.0
         }
     ],
     "camera":

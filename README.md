@@ -42,7 +42,7 @@ Lighting
 --------
 * Algorithm: unidirectional path tracing
 * Multiple importance sampling (sampling both lights and material BSDF)
-* Supported light types: point, area, directional, background
+* Supported light types: point, area (triangle or quad), spherical, directional, background
 
 Materials
 ---------
