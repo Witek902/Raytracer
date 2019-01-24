@@ -489,9 +489,10 @@ bool DemoWindow::RenderUI_Settings_Material()
         "metal",
         "roughMetal",
         "plastic",
+        "roughPlastic",
     };
 
-    const int numBsdfs = 7;
+    const int numBsdfs = 8;
     int currentBsdfIndex = 0;
     for (int i = 0; i < numBsdfs; ++i)
     {

@@ -3,9 +3,9 @@
     [
         {
             "name": "top",
-            "bsdf": "roughDiffuse",
+            "bsdf": "roughPlastic",
             "baseColor": [1.0, 1.0, 1.0],
-            "roughness": 0.75
+            "roughness": 0.5
         },
         {
             "name": "bottom",

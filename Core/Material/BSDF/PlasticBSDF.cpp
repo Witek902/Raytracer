@@ -18,7 +18,7 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     const float NdotV = ctx.outgoingDir.z;
     if (NdotV < CosEpsilon)
     {
-        Color::Zero();
+        return false;
     }
 
     const float ior = ctx.materialParam.IoR;

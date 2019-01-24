@@ -281,6 +281,9 @@
     <ClInclude Include="Scene\Light\SphereLight.h">
       <Filter>Scene\Light</Filter>
     </ClInclude>
+    <ClInclude Include="Material\BSDF\RoughPlasticBSDF.h">
+      <Filter>Material\BSDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -445,6 +448,9 @@
     </ClCompile>
     <ClCompile Include="Scene\Light\SphereLight.cpp">
       <Filter>Scene\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp">
+      <Filter>Material\BSDF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
