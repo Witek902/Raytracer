@@ -14,6 +14,11 @@
 using namespace rt;
 using namespace math;
 
+namespace helpers
+{
+extern bool LoadCustomScene(Scene& scene, rt::Camera& camera);
+}
+
 DemoWindow::DemoWindow()
     : mLastKeyDown(KeyCode::Invalid)
     , mFrameNumber(0)
@@ -130,7 +135,14 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
     mMaterials.clear();
     mMeshes.clear();
 
-    helpers::LoadScene(sceneName, *mScene, mCamera);
+    if (!sceneName.empty())
+    {
+        helpers::LoadScene(sceneName, *mScene, mCamera);
+    }
+    else
+    {
+        helpers::LoadCustomScene(*mScene, mCamera);
+    }
 
     mCameraSetup.position = mCamera.mTransform.GetTranslation();
     mCameraSetup.orientation = mCamera.mTransform.GetRotation().ToEulerAngles();

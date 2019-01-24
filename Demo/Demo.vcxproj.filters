@@ -44,6 +44,9 @@
     <ClCompile Include="SceneLoader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="CustomScene.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

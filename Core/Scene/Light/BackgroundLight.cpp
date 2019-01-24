@@ -9,8 +9,6 @@ namespace rt {
 
 using namespace math;
 
-static const Float g_backgroundLightDistance = 1.0e+36f;
-
 const Box BackgroundLight::GetBoundingBox() const
 {
     return Box::Full();
@@ -21,7 +19,7 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     RT_UNUSED(ray);
 
     // any ray can hit background
-    outDistance = g_backgroundLightDistance;
+    outDistance = BackgroundLightDistance;
     return true;
 }
 
@@ -52,7 +50,7 @@ const Color BackgroundLight::Illuminate(IlluminateParam& param) const
     const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
     param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
     param.outDirectPdfW = RT_INV_PI / 2.0f; // hemisphere area
-    param.outDistance = g_backgroundLightDistance;
+    param.outDistance = BackgroundLightDistance;
 
     return GetBackgroundColor(param.outDirectionToLight, param.context);
 }

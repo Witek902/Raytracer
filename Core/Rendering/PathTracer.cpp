@@ -107,12 +107,6 @@ const Color PathTracer::SampleLights(const ShadingData& shadingData, RenderingCo
         accumulatedColor += SampleLight(light.get(), shadingData, context);
     }
 
-    // TODO background light should be on mScene.GetLights() list
-    if (const BackgroundLight* light = mScene.GetBackgroundLight())
-    {
-        accumulatedColor += SampleLight(light, shadingData, context);
-    }
-
 #ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
     accumulatedColor *= Color::SampleRGB(context.wavelength, Vector4(1.0f, 0.0f, 0.0f, 0.0f));
 #endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
@@ -147,10 +141,10 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         // ray missed - return background color
         if (hitPoint.distance == FLT_MAX)
         {
-            if (const BackgroundLight* light = mScene.GetBackgroundLight())
+            for (const ILight* globalLight : mScene.GetGlobalLights())
             {
                 float directPdfW;
-                Color lightContribution = light->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
+                Color lightContribution = globalLight->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
                 RT_ASSERT(lightContribution.IsValid());
 
                 if (!lightContribution.AlmostZero())

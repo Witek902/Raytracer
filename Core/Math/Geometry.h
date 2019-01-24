@@ -11,6 +11,11 @@
 namespace rt {
 namespace math {
 
+RT_FORCE_INLINE constexpr Float SphereCapPdf(const Float cosTheta)
+{
+    return 1.0f / (RT_2PI * (1.0f - cosTheta));
+}
+
 // Given a normalized vector 'n', generate orthonormal vectors 'u' and 'v'
 RT_INLINE void BuildOrthonormalBasis(const Vector4& n, Vector4& u, Vector4& v)
 {

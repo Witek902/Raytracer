@@ -95,7 +95,6 @@ const Material* Material::GetDefaultMaterial()
 
 Material::~Material()
 {
-    RT_LOG_INFO("Releasing material '%s'", debugName.c_str());
 }
 
 Material::Material(Material&&) = default;

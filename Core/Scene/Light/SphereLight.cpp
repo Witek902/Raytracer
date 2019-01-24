@@ -54,8 +54,6 @@ bool SphereLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-
-
 const Color SphereLight::Illuminate(IlluminateParam& param) const
 {
     const Vector4 centerDir = mPosition - param.shadingData.position; // direction to light center
@@ -93,7 +91,7 @@ const Color SphereLight::Illuminate(IlluminateParam& param) const
     }
     else
     {
-        param.outDirectPdfW = 1.0f / (RT_2PI * (1.0f - cosThetaMax));
+        param.outDirectPdfW = SphereCapPdf(cosThetaMax);
     }
 
     return Color::SampleRGB(param.context.wavelength, mColor);
@@ -110,7 +108,7 @@ const Color SphereLight::GetRadiance(RenderingContext& context, const math::Vect
     {
         const Float sinThetaSqr = Clamp(mRadiusSqr / centerDistSqr, 0.0f, 1.0f);
         const Float cosTheta = sqrtf(1.0f - sinThetaSqr);
-        *outDirectPdfA = 1.0f / (RT_2PI * (1.0f - cosTheta));
+        *outDirectPdfA = SphereCapPdf(cosTheta);
     }
 
     return Color::SampleRGB(context.wavelength, mColor);

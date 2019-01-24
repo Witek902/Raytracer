@@ -335,7 +335,14 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
             return false;
         }
 
-        scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor));
+        Float angle = 0.0f;
+        if (!TryParseFloat(value, "angle", true, angle))
+        {
+            return false;
+        }
+        const Float angleRad = angle / 180.0f * RT_PI;
+
+        scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor, angleRad));
     }
     else if (typeStr == "background")
     {
@@ -344,7 +351,7 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
         if (!TryParseTexture(value, "texture", backgroundLight->mTexture))
             return false;
 
-        scene.SetBackgroundLight(std::move(backgroundLight));
+        scene.AddLight(std::move(backgroundLight));
     }
     else if (typeStr == "sphere")
     {

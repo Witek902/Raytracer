@@ -13,7 +13,6 @@ namespace rt {
 
 class ISceneObject;
 class ILight;
-class BackgroundLight;
 class Bitmap;
 class Camera;
 struct RenderingContext;
@@ -43,7 +42,6 @@ public:
     Scene(Scene&&);
     Scene& operator = (Scene&&);
 
-    void SetBackgroundLight(std::unique_ptr<BackgroundLight> light);
     void AddLight(LightPtr object);
     void AddObject(SceneObjectPtr object);
 
@@ -52,7 +50,7 @@ public:
     RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
     RT_FORCE_INLINE const std::vector<SceneObjectPtr>& GetObjects() const { return mObjects; }
     RT_FORCE_INLINE const std::vector<LightPtr>& GetLights() const { return mLights; }
-    RT_FORCE_INLINE const BackgroundLight* GetBackgroundLight() const { return mBackground.get(); }
+    RT_FORCE_INLINE const std::vector<const ILight*>& GetGlobalLights() const { return mGlobalLights; }
 
     // traverse the scene, returns hit points
     void Traverse_Single(const SingleTraversalContext& context) const;
@@ -78,7 +76,7 @@ private:
     bool Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
     std::vector<LightPtr> mLights;
-    std::unique_ptr<BackgroundLight> mBackground;
+    std::vector<const ILight*> mGlobalLights;
 
     std::vector<SceneObjectPtr> mObjects;
 

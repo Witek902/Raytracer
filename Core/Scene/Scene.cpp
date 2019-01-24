@@ -22,11 +22,6 @@ Scene::Scene(Scene&&) = default;
 
 Scene& Scene::operator = (Scene&&) = default;
 
-void Scene::SetBackgroundLight(std::unique_ptr<BackgroundLight> light)
-{
-    mBackground = std::move(light);
-}
-
 void Scene::AddLight(LightPtr object)
 {
     mLights.push_back(std::move(object));
@@ -48,6 +43,10 @@ bool Scene::BuildBVH()
         if (!light->IsDelta() && light->IsFinite())
         {
             mObjects.emplace_back(std::make_unique<LightSceneObject>(*light));
+        }
+        else if (!light->IsFinite())
+        {
+            mGlobalLights.push_back(light.get());
         }
     }
 

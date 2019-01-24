@@ -18,6 +18,8 @@ struct ShadingData;
 class RT_ALIGN(16) RAYLIB_API ILight : public Aligned<16>
 {
 public:
+    static constexpr Float BackgroundLightDistance = 1.0e+36f;
+
     struct IlluminateParam
     {
         const ShadingData& shadingData;
