@@ -108,8 +108,7 @@ public:
     math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
 
     // get 2x2 pixel block
-    void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace,
-        math::Vector4& outColor0, math::Vector4& outColor1, math::Vector4& outColor2, math::Vector4& outColor3) const;
+    void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;
 
     // sample the bitmap (including filtering and coordinates wrapping)
     RT_FORCE_NOINLINE math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
