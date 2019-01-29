@@ -46,14 +46,9 @@ void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, co
     // TODO
 }
 
-void LightSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
+void LightSceneObject::EvaluateShadingData_Single(const HitPoint&, ShadingData&) const
 {
-    RT_UNUSED(hitPoint);
-
-    outShadingData.material = nullptr;
-    outShadingData.normal = mLight.GetNormal(outShadingData.position);
-    outShadingData.tangent = Vector4::Zero();
-    outShadingData.bitangent = Vector4::Zero();
+    RT_FATAL("Light surface cannot be shaded");
 }
 
 

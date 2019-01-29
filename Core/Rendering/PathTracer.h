@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Renderer.h"
+#include "../Material/BSDF/BSDF.h"
 
 namespace rt {
 
@@ -19,11 +20,26 @@ public:
     bool mSampleLights;
 
 private:
+
+    struct PathState
+    {
+        Uint32 depth = 0u;
+        Float lastPdfW = 1.0f;
+        BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
+        bool lastSpecular = true;
+    };
+
     // importance sample light sources
-    const Color SampleLights(const ShadingData& shadingData, RenderingContext& context) const;
+    const Color SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
 
     // importance sample single light source
-    const Color SampleLight(const ILight* light, const ShadingData& shadingData, RenderingContext& context) const;
+    const Color SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
+
+    // compute radiance from a hit local lights
+    const Color EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const;
+
+    // compute radiance from global lights
+    const Color EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context) const;
 };
 
 } // namespace rt

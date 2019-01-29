@@ -263,12 +263,12 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
     // TODO uncomment this after ExtractShadingData() is not called for light objects
-    //RT_ASSERT(Abs(1.0f - outShadingData.normal.SqrLength3()) < 0.0001f);
-    //RT_ASSERT(Abs(1.0f - outShadingData.tangent.SqrLength3()) < 0.0001f);
-    //RT_ASSERT(Abs(1.0f - outShadingData.bitangent.SqrLength3()) < 0.0001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.normal, outShadingData.tangent) < 0.0001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.tangent) < 0.0001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.normal) < 0.0001f);
+    RT_ASSERT(Abs(1.0f - outShadingData.normal.SqrLength3()) < 0.001f);
+    RT_ASSERT(Abs(1.0f - outShadingData.tangent.SqrLength3()) < 0.001f);
+    RT_ASSERT(Abs(1.0f - outShadingData.bitangent.SqrLength3()) < 0.001f);
+    RT_ASSERT(Vector4::Dot3(outShadingData.normal, outShadingData.tangent) < 0.001f);
+    RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.tangent) < 0.001f);
+    RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.normal) < 0.001f);
 
     // transform shading data from local space to world space
     outShadingData.position = worldPosition;
