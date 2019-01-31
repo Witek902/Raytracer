@@ -11,7 +11,7 @@ public:
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
-    virtual const Color Illuminate(IlluminateParam& param) const override;
+    virtual const RayColor Illuminate(IlluminateParam& param) const override;
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final; 
 

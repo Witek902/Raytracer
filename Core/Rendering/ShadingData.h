@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Common.h"
-#include "../Color/Color.h"
+#include "../Color/RayColor.h"
 
 namespace rt {
 
@@ -9,7 +9,7 @@ class Material;
 
 struct SampledMaterialParameters
 {
-    Color baseColor;
+    RayColor baseColor;
     Float roughness;
     Float metalness;
     Float IoR;

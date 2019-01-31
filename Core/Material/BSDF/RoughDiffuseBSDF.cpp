@@ -44,7 +44,7 @@ bool RoughDiffuseBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Color RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
+const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -63,7 +63,7 @@ const Color RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outD
         return ctx.materialParam.baseColor * value;
     }
 
-    return Color::Zero();
+    return RayColor::Zero();
 }
 
 } // namespace rt

@@ -40,7 +40,7 @@ struct PathDebugData
         ShadingData shadingData;
 
         // ray influence on the final pixel
-        Color throughput;
+        RayColor throughput;
 
         // evaluated ray color (excluding weight)
         math::Vector4 color;

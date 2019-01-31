@@ -2,7 +2,7 @@
 
 #include "../RayLib.h"
 
-#include "../Color/Color.h"
+#include "../Color/RayColor.h"
 #include "../Math/Ray.h"
 
 namespace rt {
@@ -23,7 +23,7 @@ public:
     // TODO batch & multisample rendering
     // TODO cancelation of ongoing rendering
 
-    virtual const Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const = 0;
+    virtual const RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const = 0;
 
     virtual void Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const;
 

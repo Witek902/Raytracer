@@ -28,7 +28,7 @@ bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color PointLight::Illuminate(IlluminateParam& param) const
+const RayColor PointLight::Illuminate(IlluminateParam& param) const
 {
     param.outDirectionToLight = mPosition - param.shadingData.position;
     const float sqrDistance = param.outDirectionToLight.SqrLength3();
@@ -37,7 +37,7 @@ const Color PointLight::Illuminate(IlluminateParam& param) const
     param.outDistance = std::sqrt(sqrDistance);
     param.outDirectionToLight /= param.outDistance;
 
-    return Color::SampleRGB(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
 bool PointLight::IsFinite() const

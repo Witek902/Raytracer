@@ -2,7 +2,7 @@
 
 #include "../RayLib.h"
 
-#include "../Color/Color.h"
+#include "../Color/RayColor.h"
 #include "../Traversal/HitPoint.h"
 #include "../BVH/BVH.h"
 
@@ -61,7 +61,7 @@ public:
 
     RT_FORCE_NOINLINE void ExtractShadingData(const math::Vector4& rayOrigin, const math::Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const;
 
-    void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, Color* outColors) const;
+    void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, RayColor* outColors) const;
 
     void Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
     void Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const;

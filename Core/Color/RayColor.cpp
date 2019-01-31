@@ -1,5 +1,6 @@
 #include "PCH.h"
-#include "Color.h"
+#include "RayColor.h"
+#include "Spectrum.h"
 #include "../Math/Random.h"
 #include "../Math/Constants.h"
 #include "../Math/VectorInt8.h"
@@ -13,7 +14,7 @@ namespace rt {
 
 using namespace math;
 
-static_assert(sizeof(Color) == sizeof(Float) * Wavelength::NumComponents, "Invalid number of color components");
+static_assert(sizeof(RayColor) == sizeof(Float) * Wavelength::NumComponents, "Invalid number of color components");
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
 
@@ -150,20 +151,7 @@ const Float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 
 /////////////////////////////////////////////////////////////////////////////////
 
-void Wavelength::Randomize(Random& rng)
-{
-    constexpr float offset = 1.0f / static_cast<float>(NumComponents);
-
-    value = Vector8(rng.GetFloat()); // "hero" wavelength
-    value += Vector8(0.0f, 1.0f * offset, 2.0f * offset, 3.0f * offset, 4.0f * offset, 5.0f * offset, 6.0f * offset, 7.0f * offset);
-    value = Vector8::Fmod1(value);
-    value *= 0.99999f; // make sure the value does not exceed 1.0f
-
-    // make multi wavelength
-    isSingle = false;
-}
-
-Color SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength& wavelength)
+RayColor SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength& wavelength)
 {
     const Vector8 scaledWavelengths = wavelength.value * static_cast<Float>(numValues - 1);
     const VectorInt8 indices = VectorInt8::Convert(scaledWavelengths);
@@ -172,7 +160,7 @@ Color SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength
     const Vector8 a = _mm256_i32gather_ps(data, indices, 4);
     const Vector8 b = _mm256_i32gather_ps(data + 1, indices, 4);
 
-    Color result;
+    RayColor result;
     result.value = Vector8::Lerp(a, b, weights);
 
     /*
@@ -196,9 +184,9 @@ Color SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength
 
 /////////////////////////////////////////////////////////////////////////////////
 
-const Color Color::BlackBody(const Wavelength& wavelength, const float temperature)
+const RayColor RayColor::BlackBody(const Wavelength& wavelength, const float temperature)
 {
-    Color result;
+    RayColor result;
 
     using namespace constants;
     double c1 = 2.0f * constants::h * constants::c * constants::c;
@@ -218,11 +206,11 @@ const Color Color::BlackBody(const Wavelength& wavelength, const float temperatu
     return result;
 }
 
-const Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbValues)
+const RayColor RayColor::Resolve(const Wavelength& wavelength, const Spectrum& spectrum)
 {
-    const float r = rgbValues.x;
-    const float g = rgbValues.y;
-    const float b = rgbValues.z;
+    const float r = spectrum.rgbValues.x;
+    const float g = spectrum.rgbValues.y;
+    const float b = spectrum.rgbValues.z;
 
     float coeffA, coeffB, coeffC;
     const float* sourceB;
@@ -280,18 +268,17 @@ const Color Color::SampleRGB(const Wavelength& wavelength, const Vector4& rgbVal
         }
     }
 
-    Color result;
+    RayColor result;
     result = SampleSpectrum(rgbToSpectrum_White, rgbToSpectrumNumSamples, wavelength) * coeffA;
     result += SampleSpectrum(sourceB, rgbToSpectrumNumSamples, wavelength) * coeffB;
     result += SampleSpectrum(sourceC, rgbToSpectrumNumSamples, wavelength) * coeffC;
-    result.value = Wavelength::ValueType::Max(result.value, Wavelength::ValueType::Zero());
     return result * 0.86445f;
 }
 
-const Vector4 Color::Resolve(const Wavelength& wavelength) const
+const Vector4 RayColor::ConvertToTristimulus(const Wavelength& wavelength) const
 {
     Vector3x8 xyz;
-    Color illuminant = SampleSpectrum(illuminantD65, NumBins, wavelength);
+    RayColor illuminant = SampleSpectrum(illuminantD65, NumBins, wavelength);
     xyz.x = SampleSpectrum(colorMatchingX, NumBins, wavelength).value;
     xyz.y = SampleSpectrum(colorMatchingY, NumBins, wavelength).value;
     xyz.z = SampleSpectrum(colorMatchingZ, NumBins, wavelength).value;
@@ -308,16 +295,12 @@ const Vector4 Color::Resolve(const Wavelength& wavelength) const
 
 #else // !RT_ENABLE_SPECTRAL_RENDERING
 
-void Wavelength::Randomize(Random&)
+const RayColor RayColor::Resolve(const Wavelength&, const Spectrum& spectrum)
 {
+    return RayColor{ spectrum.rgbValues };
 }
 
-const Color Color::SampleRGB(const Wavelength&, const Vector4& rgbValues)
-{
-    return Color{ rgbValues };
-}
-
-const Vector4 Color::Resolve(const Wavelength&) const
+const Vector4 RayColor::ConvertToTristimulus(const Wavelength&) const
 {
     return value;
 }

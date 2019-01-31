@@ -67,16 +67,16 @@ bool AreaLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color AreaLight::Illuminate(IlluminateParam& param) const
+const RayColor AreaLight::Illuminate(IlluminateParam& param) const
 {
     const Float2 uv = isTriangle ? param.context.randomGenerator.GetTriangle() : param.context.randomGenerator.GetFloat2();
 
-    Vector4 rgbColor = mColor;
+    Spectrum color = mColor;
 
     // sample texture map
     if (mTexture)
     {
-        rgbColor *= mTexture->Sample(Vector4(uv), SamplerDesc());
+        color.rgbValues *= mTexture->Sample(Vector4(uv), SamplerDesc());
     }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
@@ -91,20 +91,20 @@ const Color AreaLight::Illuminate(IlluminateParam& param) const
     const float cosNormalDir = Vector4::Dot3(normal, -param.outDirectionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
 
-    return Color::SampleRGB(param.context.wavelength, rgbColor);
+    return RayColor::Resolve(param.context.wavelength, color);
 }
 
-const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     if (outDirectPdfA)
@@ -112,7 +112,7 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
         *outDirectPdfA = invArea;
     }
 
-    Vector4 rgbColor = mColor;
+    Spectrum color = mColor;
 
     if (mTexture)
     {
@@ -121,10 +121,10 @@ const Color AreaLight::GetRadiance(RenderingContext& context, const math::Vector
         const Float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
         const Vector4 textureCoords(u, v, 0.0f, 0.0f);
 
-        rgbColor *= mTexture->Sample(textureCoords, SamplerDesc());
+        color.rgbValues *= mTexture->Sample(textureCoords, SamplerDesc());
     }
 
-    return Color::SampleRGB(context.wavelength, rgbColor);
+    return RayColor::Resolve(context.wavelength, color);
 }
 
 const Vector4 AreaLight::GetNormal(const Vector4&) const

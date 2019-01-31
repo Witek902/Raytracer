@@ -5,6 +5,7 @@
 #include "Scene/Scene.h"
 #include "Material/Material.h"
 #include "Color/ColorHelpers.h"
+#include "Color/Spectrum.h"
 #include "Traversal/TraversalContext.h"
 #include "Traversal/RayPacket.h"
 #include "Rendering/Viewport.h"
@@ -25,7 +26,7 @@ DebugRenderer::DebugRenderer(const Scene& scene)
 {
 }
 
-const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& context) const
+const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& context) const
 {
     HitPoint hitPoint;
     context.localCounters.Reset();
@@ -35,7 +36,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
     if (hitPoint.distance == FLT_MAX)
     {
         // ray hit background
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     ShadingData shadingData;
@@ -156,7 +157,7 @@ const Color DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& con
             RT_FATAL("Invalid debug rendering mode");
     }
 
-    return Color::SampleRGB(context.wavelength, resultColor);
+    return RayColor::Resolve(context.wavelength, Spectrum(resultColor));
 }
 
 void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const

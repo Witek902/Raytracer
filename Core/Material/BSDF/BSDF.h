@@ -4,7 +4,7 @@
 #include "../../Rendering/ShadingData.h"
 #include "../../Utils/AlignmentAllocator.h"
 #include "../../Math/Ray.h"
-#include "../../Color/Color.h"
+#include "../../Color/RayColor.h"
 
 namespace rt {
 
@@ -62,7 +62,7 @@ public:
         math::Random& randomGenerator;
 
         // outputs
-        Color outColor = Color::Zero();
+        RayColor outColor = RayColor::Zero();
         math::Vector4 outIncomingDir = math::Vector4::Zero();
         Float outPdf = 0.0f;
         EventType outEventType = NullEvent;
@@ -88,7 +88,7 @@ public:
     // Evaluate BSDF
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
-    virtual const Color Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
+    virtual const RayColor Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
 };
 
 } // namespace rt

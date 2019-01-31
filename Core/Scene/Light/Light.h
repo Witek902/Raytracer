@@ -2,7 +2,8 @@
 
 #include "../../RayLib.h"
 #include "../../Math/Box.h"
-#include "../../Color/Color.h"
+#include "../../Color/RayColor.h"
+#include "../../Color/Spectrum.h"
 #include "../../Utils/AlignmentAllocator.h"
 
 namespace rt {
@@ -41,7 +42,7 @@ public:
 
     // Illuminate a point in the scene.
     // Returns probability of sampling the returned direction.
-    virtual const Color Illuminate(IlluminateParam& param) const = 0;
+    virtual const RayColor Illuminate(IlluminateParam& param) const = 0;
 
     // get normal vector at intersection point
     virtual const math::Vector4 GetNormal(const math::Vector4& hitPoint) const;
@@ -56,7 +57,7 @@ public:
 
     // Returns radiance for ray hitting the light directly
     // Optionally returns probability of hitting this point
-    virtual const Color GetRadiance(
+    virtual const RayColor GetRadiance(
         RenderingContext& context,
         const math::Vector4& rayDirection,
         const math::Vector4& hitPoint,
@@ -72,8 +73,7 @@ public:
 
 protected:
 
-    // TODO color spectrum
-    math::Vector4 mColor;
+    Spectrum mColor;
 
 private:
     // light object cannot be copied

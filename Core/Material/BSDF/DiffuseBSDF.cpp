@@ -28,7 +28,7 @@ bool DiffuseBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Color DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -41,10 +41,10 @@ const Color DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirect
             *outDirectPdfW = NdotL * RT_INV_PI;
         }
 
-        return ctx.materialParam.baseColor * Color(NdotL * RT_INV_PI);
+        return ctx.materialParam.baseColor * RayColor(NdotL * RT_INV_PI);
     }
 
-    return Color::Zero();
+    return RayColor::Zero();
 }
 
 } // namespace rt

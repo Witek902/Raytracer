@@ -3,7 +3,7 @@
 #include "Renderer.h"
 #include "Utils/Logger.h"
 #include "Scene/Camera.h"
-#include "Color/Color.h"
+#include "Color/RayColor.h"
 #include "Color/ColorHelpers.h"
 #include "Color/LdrColor.h"
 #include "Traversal/TraversalContext.h"
@@ -167,7 +167,7 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
         }
         else
         {
-            ComputeError();
+            //ComputeError();
         }
     }
 
@@ -179,11 +179,6 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
     }
 
     return true;
-}
-
-RT_FORCE_INLINE void Store_NonTemporal(Uint32* target, const Uint32 value)
-{
-    _mm_stream_si32(reinterpret_cast<int*>(target), value);
 }
 
 void Viewport::Internal_AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor)
@@ -233,12 +228,16 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                     // generate primary ray
                     const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
-                    const Color color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
-                    sampleColor += color.Resolve(renderingContext.wavelength);
+                    const RayColor color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
+                    sampleColor += color.ConvertToTristimulus(renderingContext.wavelength);
                 }
 
                 RT_ASSERT(sampleColor.IsValid());
+
+#ifndef RT_ENABLE_SPECTRAL_RENDERING
+                // exception: in spectral rendering these values can get below zero due to RGB->Spectrum conversion
                 RT_ASSERT((sampleColor >= Vector4::Zero()).All());
+#endif // RT_ENABLE_SPECTRAL_RENDERING
 
                 // TODO get rid of this
                 sampleColor *= sampleScale;
@@ -378,7 +377,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             const Vector4 xyzColor = Vector4(sumPixels[pixelIndex]);
-            const Vector4 rgbColor = ConvertXYZtoRGB(xyzColor);
+            const Vector4 rgbColor = Vector4::Max(Vector4::Zero(), ConvertXYZtoRGB(xyzColor));
 #else
             const Vector4 rgbColor = Vector4(sumPixels[pixelIndex]);
 #endif

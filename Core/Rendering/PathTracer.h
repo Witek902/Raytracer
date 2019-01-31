@@ -14,7 +14,7 @@ class RAYLIB_API PathTracer : public IRenderer
 public:
     PathTracer(const Scene& scene);
 
-    virtual const Color TraceRay_Single(const math::Ray& ray, RenderingContext& context) const override;
+    virtual const RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const override;
 
     // a.k.a. next event estimation (NEE)
     bool mSampleLights;
@@ -30,16 +30,16 @@ private:
     };
 
     // importance sample light sources
-    const Color SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
+    const RayColor SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
 
     // importance sample single light source
-    const Color SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
+    const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
 
     // compute radiance from a hit local lights
-    const Color EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const;
+    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const;
 
     // compute radiance from global lights
-    const Color EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context) const;
+    const RayColor EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context) const;
 };
 
 } // namespace rt

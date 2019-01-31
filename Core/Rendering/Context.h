@@ -5,7 +5,7 @@
 #include "../Traversal/RayPacket.h"
 #include "../Traversal/HitPoint.h"
 
-#include "../Color/Color.h"
+#include "../Color/RayColor.h"
 
 #include "../Math/Random.h"
 

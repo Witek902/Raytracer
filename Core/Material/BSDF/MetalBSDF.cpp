@@ -26,7 +26,7 @@ bool MetalBSDF::Sample(SamplingContext& ctx) const
     // Metal always reflect 100% pure white at grazing angle.
     const float F = FresnelMetal(NdotV, ctx.material.IoR, ctx.material.K);
 
-    ctx.outColor = ctx.materialParam.baseColor * Color(F);
+    ctx.outColor = ctx.materialParam.baseColor * RayColor(F);
     ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, VECTOR_Z);
     ctx.outPdf = 1.0f;
     ctx.outEventType = SpecularReflectionEvent;
@@ -34,7 +34,7 @@ bool MetalBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Color MetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor MetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     RT_UNUSED(ctx);
 
@@ -45,7 +45,7 @@ const Color MetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPd
         *outDirectPdfW = 0.0f; 
     }
 
-    return Color::Zero();
+    return RayColor::Zero();
 }
 
 } // namespace rt

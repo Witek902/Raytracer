@@ -71,7 +71,7 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
         const float F = FresnelDielectric(VdotH, ctx.material.IoR);
 
         ctx.outPdf = pdf / (4.0f * VdotH) * specularProbability;
-        ctx.outColor = Color(VdotH * F * G * D / (pdf * NdotV * specularProbability));
+        ctx.outColor = RayColor(VdotH * F * G * D / (pdf * NdotV * specularProbability));
         ctx.outEventType = GlossyReflectionEvent;
 
         RT_ASSERT(ctx.outPdf > 0.0f);
@@ -93,7 +93,7 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Color RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
@@ -109,7 +109,7 @@ const Color RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outD
 
     if (NdotV < CosEpsilon || NdotL < CosEpsilon)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const float ior = ctx.materialParam.IoR;
@@ -127,8 +127,8 @@ const Color RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outD
     float diffusePdf = NdotL * RT_INV_PI; // cos-weighted hemisphere distribution
     float specularPdf = 0.0f;
 
-    Color diffuseTerm = ctx.materialParam.baseColor * (NdotL * RT_INV_PI * (1.0f - Fi) * (1.0f - Fo));
-    Color specularTerm = Color::Zero();
+    RayColor diffuseTerm = ctx.materialParam.baseColor * (NdotL * RT_INV_PI * (1.0f - Fi) * (1.0f - Fo));
+    RayColor specularTerm = RayColor::Zero();
 
     {
         // microfacet normal
@@ -144,7 +144,7 @@ const Color RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outD
             const float F = FresnelDielectric(VdotH, ctx.material.IoR);
 
             specularPdf = microfacet.Pdf(m) / (4.0f * VdotH);
-            specularTerm = Color(F * G * D / (4.0f * NdotV));
+            specularTerm = RayColor(F * G * D / (4.0f * NdotV));
         }
     }
 

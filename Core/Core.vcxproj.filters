@@ -82,9 +82,6 @@
     <ClInclude Include="Rendering\Counters.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Color\Color.h">
-      <Filter>Color</Filter>
-    </ClInclude>
     <ClInclude Include="Traversal\HitPoint.h">
       <Filter>Traversal</Filter>
     </ClInclude>
@@ -284,6 +281,13 @@
     <ClInclude Include="Material\BSDF\RoughPlasticBSDF.h">
       <Filter>Material\BSDF</Filter>
     </ClInclude>
+    <ClInclude Include="Color\Wavelength.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\RayColor.h">
+      <Filter>Color</Filter>
+    </ClInclude>
+    <ClInclude Include="Color\Spectrum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -327,9 +331,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\Viewport.cpp">
       <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Color\Color.cpp">
-      <Filter>Color</Filter>
     </ClCompile>
     <ClCompile Include="Math\Transcendental.cpp">
       <Filter>Math\Transcendental</Filter>
@@ -451,6 +452,12 @@
     </ClCompile>
     <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp">
       <Filter>Material\BSDF</Filter>
+    </ClCompile>
+    <ClCompile Include="Color\RayColor.cpp">
+      <Filter>Color</Filter>
+    </ClCompile>
+    <ClCompile Include="Color\Wavelength.cpp">
+      <Filter>Color</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

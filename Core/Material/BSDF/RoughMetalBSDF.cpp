@@ -57,13 +57,13 @@ bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
     const float F = FresnelMetal(VdotH, ctx.material.IoR, ctx.material.K);
 
     ctx.outPdf = pdf / (4.0f * VdotH);
-    ctx.outColor = ctx.materialParam.baseColor * Color(VdotH * F * G * D / (pdf * NdotV));
+    ctx.outColor = ctx.materialParam.baseColor * RayColor(VdotH * F * G * D / (pdf * NdotV));
     ctx.outEventType = GlossyReflectionEvent;
 
     return true;
 }
 
-const Color RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
@@ -84,7 +84,7 @@ const Color RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
     // clip the function
     if (NdotV < CosEpsilon || NdotL < CosEpsilon || VdotH < CosEpsilon)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const Microfacet microfacet(roughness * roughness);
@@ -97,7 +97,7 @@ const Color RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
         *outDirectPdfW = microfacet.Pdf(m) / (4.0f * VdotH);
     }
 
-    return ctx.materialParam.baseColor * Color(F * G * D / (4.0f * NdotV));
+    return ctx.materialParam.baseColor * RayColor(F * G * D / (4.0f * NdotV));
 }
 
 } // namespace rt

@@ -39,7 +39,7 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) cons
     return false;
 }
 
-const Color DirectionalLight::Illuminate(IlluminateParam& param) const
+const RayColor DirectionalLight::Illuminate(IlluminateParam& param) const
 {
     if (mCosAngle < CosEpsilon)
     {
@@ -66,10 +66,10 @@ const Color DirectionalLight::Illuminate(IlluminateParam& param) const
 
     param.outDistance = BackgroundLightDistance;
 
-    return Color::SampleRGB(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const Color DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(hitPoint);
 
@@ -82,11 +82,11 @@ const Color DirectionalLight::GetRadiance(RenderingContext& context, const math:
                 *outDirectPdfA = SphereCapPdf(mCosAngle);
             }
 
-            return Color::SampleRGB(context.wavelength, mColor);
+            return RayColor::Resolve(context.wavelength, mColor);
         }
     }
 
-    return Color::Zero();
+    return RayColor::Zero();
 }
 
 bool DirectionalLight::IsFinite() const

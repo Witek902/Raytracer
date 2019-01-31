@@ -23,9 +23,9 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return true;
 }
 
-const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingContext& context) const
+const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingContext& context) const
 {
-    Vector4 rgbColor = mColor;
+    Spectrum color = mColor;
 
     // sample environment map
     if (mTexture)
@@ -39,13 +39,13 @@ const Color BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingCon
         const Vector4 textureColor = mTexture->Sample(coords, SamplerDesc());
         RT_ASSERT((textureColor >= Vector4::Zero()).All());
 
-        rgbColor *= textureColor;
+        color.rgbValues *= textureColor;
     }
 
-    return Color::SampleRGB(context.wavelength, rgbColor);
+    return RayColor::Resolve(context.wavelength, color);
 }
 
-const Color BackgroundLight::Illuminate(IlluminateParam& param) const
+const RayColor BackgroundLight::Illuminate(IlluminateParam& param) const
 {
     const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
     param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
@@ -55,7 +55,7 @@ const Color BackgroundLight::Illuminate(IlluminateParam& param) const
     return GetBackgroundColor(param.outDirectionToLight, param.context);
 }
 
-const Color BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(hitPoint);
 

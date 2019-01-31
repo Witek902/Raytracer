@@ -36,7 +36,7 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
 
     if (specular)
     {
-        ctx.outColor = Color(Fi / specularProbability);
+        ctx.outColor = RayColor(Fi / specularProbability);
         ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, VECTOR_Z);
         ctx.outPdf = specularProbability;
         ctx.outEventType = SpecularReflectionEvent;
@@ -57,14 +57,14 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const Color PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
 
     if (NdotV < CosEpsilon || NdotL < CosEpsilon)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const float ior = ctx.materialParam.IoR;

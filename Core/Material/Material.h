@@ -3,7 +3,7 @@
 #include "BSDF/BSDF.h"
 #include "../RayLib.h"
 #include "../Utils/AlignmentAllocator.h"
-#include "../Color/Color.h"
+#include "../Color/RayColor.h"
 #include "../Math/Ray.h"
 #include "../Utils/Bitmap.h" // TODO remove
 
@@ -121,7 +121,7 @@ public:
     void EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const;
 
     // sample material's BSDFs
-    const Color Sample(
+    const RayColor Sample(
         Wavelength& wavelength,
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
@@ -130,7 +130,7 @@ public:
         BSDF::EventType& outSampledEvent) const;
 
     // calculate amount of light reflected from incoming direction to outgoing direction
-    const Color Evaluate(
+    const RayColor Evaluate(
         const Wavelength& wavelength,
         const ShadingData& shadingData,
         const math::Vector4& incomingDirWorldSpace,

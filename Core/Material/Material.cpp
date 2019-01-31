@@ -10,6 +10,7 @@
 #include "BSDF/PlasticBSDF.h"
 #include "BSDF/RoughPlasticBSDF.h"
 
+#include "Color/Spectrum.h"
 #include "Mesh/Mesh.h"
 #include "Rendering/ShadingData.h"
 #include "Utils/Bitmap.h"
@@ -151,13 +152,13 @@ bool Material::GetMaskValue(const Vector4 uv) const
 
 void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
 {
-    shadingData.materialParams.baseColor = Color::SampleRGB(wavelength, baseColor.Evaluate(shadingData.texCoord));
+    shadingData.materialParams.baseColor = RayColor::Resolve(wavelength, Spectrum(baseColor.Evaluate(shadingData.texCoord)));
     shadingData.materialParams.roughness = roughness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.metalness = metalness.Evaluate(shadingData.texCoord);
     shadingData.materialParams.IoR = IoR;
 }
 
-const Color Material::Evaluate(
+const RayColor Material::Evaluate(
     const Wavelength& wavelength,
     const ShadingData& shadingData,
     const Vector4& incomingDirWorldSpace,
@@ -179,7 +180,7 @@ const Color Material::Evaluate(
     return mBSDF->Evaluate(evalContext, outPdfW);
 }
 
-const Color Material::Sample(
+const RayColor Material::Sample(
     Wavelength& wavelength,
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
@@ -202,7 +203,7 @@ const Color Material::Sample(
     if (!mBSDF->Sample(samplingContext))
     {
         outSampledEvent = BSDF::NullEvent;
-        return Color();
+        return RayColor();
     }
 
     RT_ASSERT(IsValid(samplingContext.outPdf));

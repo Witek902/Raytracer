@@ -28,7 +28,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
     if (ctx.material.isDispersive)
     {
-        const float lambda = 1.0e+6f * Wavelength::Lower + ctx.wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower);
+        const float lambda = 1.0e+6f * (Wavelength::Lower + ctx.wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower));
         // Cauchy's equation for light dispersion
         const float lambda2 = lambda * lambda;
         const float lambda4 = lambda2 * lambda2;
@@ -68,7 +68,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
     if (reflection)
     {
         ctx.outPdf = F;
-        ctx.outColor = Color::One();
+        ctx.outColor = RayColor::One();
     }
     else
     {
@@ -79,13 +79,13 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
     if (fallbackToSingleWavelength)
     {
         // in case of wavelength-dependent event, switch to single wavelength per ray
-        ctx.outColor *= Color::SingleWavelengthFallback();
+        ctx.outColor *= RayColor::SingleWavelengthFallback();
     }
 
     return true;
 }
 
-const Color DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     RT_UNUSED(ctx);
 
@@ -96,7 +96,7 @@ const Color DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
         *outDirectPdfW = 0.0f;
     }
 
-    return Color::Zero();
+    return RayColor::Zero();
 }
 
 } // namespace rt

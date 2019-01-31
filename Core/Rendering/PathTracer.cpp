@@ -39,15 +39,15 @@ PathTracer::PathTracer(const Scene& scene)
 {
 }
 
-const Color PathTracer::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracer::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
 {
     ILight::IlluminateParam illuminateParam = { shadingData, context };
 
     // calculate light contribution
-    Color radiance = light.Illuminate(illuminateParam);
+    RayColor radiance = light.Illuminate(illuminateParam);
     if (radiance.AlmostZero())
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     RT_ASSERT(radiance.IsValid());
@@ -58,12 +58,12 @@ const Color PathTracer::SampleLight(const ILight& light, const ShadingData& shad
 
     // calculate BSDF contribution
     float bsdfPdfW;
-    const Color factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
+    const RayColor factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
     RT_ASSERT(factor.IsValid());
 
     if (factor.AlmostZero())
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     RT_ASSERT(bsdfPdfW > 0.0f && IsValid(bsdfPdfW));
@@ -79,7 +79,7 @@ const Color PathTracer::SampleLight(const ILight& light, const ShadingData& shad
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
         {
             // shadow ray missed the light - light is occluded
-            return Color::Zero();
+            return RayColor::Zero();
         }
     }
 
@@ -101,9 +101,9 @@ const Color PathTracer::SampleLight(const ILight& light, const ShadingData& shad
     return (radiance * factor) * (weight / illuminateParam.outDirectPdfW);
 }
 
-const Color PathTracer::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracer::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
 {
-    Color accumulatedColor = Color::Zero();
+    RayColor accumulatedColor = RayColor::Zero();
 
     // TODO check only one (or few) lights per sample instead all of them
     // TODO check only nearest lights
@@ -113,24 +113,24 @@ const Color PathTracer::SampleLights(const ShadingData& shadingData, const PathS
     }
 
 #ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
-    accumulatedColor *= Color::SampleRGB(context.wavelength, Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+    accumulatedColor *= RayColor::SampleRGB(context.wavelength, Vector4(1.0f, 0.0f, 0.0f, 0.0f));
 #endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
 
     return accumulatedColor;
 }
 
-const Color PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);
     const Vector4 normal = light.GetNormal(hitPos);
 
     float directPdfA;
-    Color lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
+    RayColor lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
     RT_ASSERT(lightContribution.IsValid());
 
     if (lightContribution.AlmostZero())
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     RT_ASSERT(directPdfA > 0.0f && IsValid(directPdfA));
@@ -144,20 +144,20 @@ const Color PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray,
     }
 
 #ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
-    lightContribution *= Color::SampleRGB(context.wavelength, Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+    lightContribution *= RayColor::Resolve(context.wavelength, Spectrum(Vector4(0.0f, 1.0f, 0.0f, 0.0f)));
 #endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
 
     return lightContribution * misWeight;
 }
 
-const Color PathTracer::EvaluateGlobalLights(const Ray& ray, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracer::EvaluateGlobalLights(const Ray& ray, const PathState& pathState, RenderingContext& context) const
 {
-    Color result = Color::Zero();
+    RayColor result = RayColor::Zero();
 
     for (const ILight* globalLight : mScene.GetGlobalLights())
     {
         float directPdfW;
-        Color lightContribution = globalLight->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
+        RayColor lightContribution = globalLight->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
         RT_ASSERT(lightContribution.IsValid());
 
         if (!lightContribution.AlmostZero())
@@ -171,7 +171,7 @@ const Color PathTracer::EvaluateGlobalLights(const Ray& ray, const PathState& pa
             }
 
 #ifdef RT_VISUALIZE_MIS_CONTRIBUTIONS
-            lightContribution *= Color::SampleRGB(context.wavelength, Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+            lightContribution *= RayColor::Resolve(context.wavelength, Spectrum(Vector4(0.0f, 1.0f, 0.0f, 0.0f)));
 #endif // RT_VISUALIZE_MIS_CONTRIBUTIONS
 
             result += lightContribution * misWeight;
@@ -181,15 +181,15 @@ const Color PathTracer::EvaluateGlobalLights(const Ray& ray, const PathState& pa
     return result;
 }
 
-const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext& context) const
+const RayColor PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext& context) const
 {
     HitPoint hitPoint;
     Ray ray = primaryRay;
 
     ShadingData shadingData;
 
-    Color resultColor = Color::Zero();
-    Color throughput = Color::One();
+    RayColor resultColor = RayColor::Zero();
+    RayColor throughput = RayColor::One();
 
     PathTerminationReason pathTerminationReason = PathTerminationReason::None;
 
@@ -234,7 +234,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         }
 
         // accumulate emission color
-        const Color emissionColor = Color::SampleRGB(context.wavelength, shadingData.material->emission.Evaluate(shadingData.texCoord));
+        const RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(shadingData.material->emission.Evaluate(shadingData.texCoord)));
         RT_ASSERT(emissionColor.IsValid());
         resultColor += throughput * emissionColor;
         RT_ASSERT(resultColor.IsValid());
@@ -255,7 +255,13 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         // Russian roulette algorithm
         if (pathState.depth >= context.params->minRussianRouletteDepth)
         {
-            const Float threshold = throughput.Max();
+            Float threshold = throughput.Max();
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+            if (context.wavelength.isSingle)
+            {
+                threshold *= 1.0f / static_cast<Float>(Wavelength::NumComponents);
+            }
+#endif
             if (context.randomGenerator.GetFloat() > threshold)
             {
                 pathTerminationReason = PathTerminationReason::RussianRoulette;
@@ -268,7 +274,7 @@ const Color PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingContext&
         float pdf;
         Vector4 incomingDirWorldSpace;
         pathState.lastSampledBsdfEvent = BSDF::NullEvent;
-        const Color bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, pathState.lastSampledBsdfEvent);
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, pdf, pathState.lastSampledBsdfEvent);
 
         if (pathState.lastSampledBsdfEvent == BSDF::NullEvent)
         {

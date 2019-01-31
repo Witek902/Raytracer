@@ -30,7 +30,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
     if (ctx.material.isDispersive)
     {
-        const float lambda = 1.0e+6f * Wavelength::Lower + ctx.wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower);
+        const float lambda = 1.0e+6f * (Wavelength::Lower + ctx.wavelength.GetBase() * (Wavelength::Higher - Wavelength::Lower));
         // Cauchy's equation for light dispersion
         const float lambda2 = lambda * lambda;
         const float lambda4 = lambda2 * lambda2;
@@ -86,7 +86,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     const float D = microfacet.D(m);
     const float G = microfacet.G(NdotV, NdotL);
     
-    ctx.outColor = Color(Abs(VdotH) * G * D / (microfacetPdf * Abs(NdotV)));
+    ctx.outColor = RayColor(Abs(VdotH) * G * D / (microfacetPdf * Abs(NdotV)));
 
     if (reflection)
     {
@@ -104,26 +104,26 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     if (fallbackToSingleWavelength)
     {
         // in case of wavelength-dependent event, switch to single wavelength per ray
-        ctx.outColor *= Color::SingleWavelengthFallback();
+        ctx.outColor *= RayColor::SingleWavelengthFallback();
     }
 
     return true;
 }
 
-const Color RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
 {
     const float NdotV = ctx.outgoingDir.z; // wi
     const float NdotL = -ctx.incomingDir.z; // wo
 
     if (Abs(NdotV) < CosEpsilon || Abs(NdotL) < CosEpsilon)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const float roughness = ctx.materialParam.roughness;
     if (roughness < SpecularEventRoughnessTreshold)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     // TODO handle dispersion
@@ -147,13 +147,13 @@ const Color RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* o
 
     if (Abs(m.z) < CosEpsilon)
     {
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
     const float LdotH = Vector4::Dot3(m, -ctx.incomingDir);
 
-    Color color;
+    RayColor color;
     float pdf;
 
     const Microfacet microfacet(roughness * roughness);
@@ -164,13 +164,13 @@ const Color RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* o
     if (reflection)
     {
         pdf = F * microfacet.Pdf(m) / (4.0f * Abs(VdotH));
-        color = Color(F * G * D / (4.0f * Abs(NdotV)));
+        color = RayColor(F * G * D / (4.0f * Abs(NdotV)));
     }
     else // transmission
     {
         const float denom = Sqr(eta * VdotH + LdotH);
         pdf = (1.0f - F) * microfacet.Pdf(m) * Abs(LdotH) / denom;
-        color = Color(Abs(VdotH * LdotH) * (1.0f - F) * G * D / (denom * Abs(NdotV)));
+        color = RayColor(Abs(VdotH * LdotH) * (1.0f - F) * G * D / (denom * Abs(NdotV)));
     }
 
     if (outDirectPdfW)
@@ -179,7 +179,7 @@ const Color RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* o
         *outDirectPdfW = pdf;
     }
 
-    return Color(color);
+    return RayColor(color);
 }
 
 } // namespace rt

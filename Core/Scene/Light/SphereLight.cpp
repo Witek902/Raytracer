@@ -54,7 +54,7 @@ bool SphereLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
     return false;
 }
 
-const Color SphereLight::Illuminate(IlluminateParam& param) const
+const RayColor SphereLight::Illuminate(IlluminateParam& param) const
 {
     const Vector4 centerDir = mPosition - param.shadingData.position; // direction to light center
     const Float centerDistSqr = centerDir.SqrLength3();
@@ -63,7 +63,7 @@ const Color SphereLight::Illuminate(IlluminateParam& param) const
     if (centerDistSqr < mRadiusSqr)
     {
         // TODO illuminate inside?
-        return Color::Zero();
+        return RayColor::Zero();
     }
 
     const Float2 uv = param.context.randomGenerator.GetFloat2();
@@ -94,10 +94,10 @@ const Color SphereLight::Illuminate(IlluminateParam& param) const
         param.outDirectPdfW = SphereCapPdf(cosThetaMax);
     }
 
-    return Color::SampleRGB(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const Color SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
 {
     RT_UNUSED(rayDirection);
 
@@ -111,7 +111,7 @@ const Color SphereLight::GetRadiance(RenderingContext& context, const math::Vect
         *outDirectPdfA = SphereCapPdf(cosTheta);
     }
 
-    return Color::SampleRGB(context.wavelength, mColor);
+    return RayColor::Resolve(context.wavelength, mColor);
 }
 
 const Vector4 SphereLight::GetNormal(const Vector4& hitPoint) const
