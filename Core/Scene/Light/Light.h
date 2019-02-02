@@ -19,7 +19,8 @@ struct ShadingData;
 class RT_ALIGN(16) ILight : public Aligned<16>
 {
 public:
-    static constexpr float BackgroundLightDistance = 1.0e+36f;
+    static constexpr const float BackgroundLightDistance = 1.0e+36f;
+    static constexpr const float CosEpsilon = 0.9999f;
 
     enum class Type : Uint8
     {
@@ -28,6 +29,7 @@ public:
         Directional,
         Point,
         Sphere,
+        Spot,
     };
 
     struct IlluminateParam

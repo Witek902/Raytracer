@@ -21,6 +21,7 @@ const char* PathTracer::GetName() const
     return "Path Tracer";
 }
 
+RT_FORCE_NOINLINE
 const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, RenderingContext& context) const
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);

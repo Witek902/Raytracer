@@ -32,6 +32,11 @@ public:
         , max(Vector4::Max(a, Vector4::Max(b, c)))
     {}
 
+    RT_FORCE_INLINE Box(const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& d)
+        : min(Vector4::Min(Vector4::Min(a, b), Vector4::Min(c, d)))
+        , max(Vector4::Max(Vector4::Max(a, b), Vector4::Max(c, d)))
+    {}
+
     RT_FORCE_INLINE static const Box Empty()
     {
         return { VECTOR_MAX, -VECTOR_MAX };

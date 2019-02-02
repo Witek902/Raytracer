@@ -628,17 +628,17 @@ const Vector4 Vector4::Dot4V(const Vector4& v1, const Vector4& v2)
 
 float Vector4::Dot2(const Vector4& v1, const Vector4& v2)
 {
-    return Dot2V(v1, v2).x;
+    return _mm_cvtss_f32(Dot2V(v1, v2));
 }
 
 float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
 {
-    return Dot3V(v1, v2).x;
+    return _mm_cvtss_f32(Dot3V(v1, v2));
 }
 
 float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
 {
-    return Dot4V(v1, v2).x;
+    return _mm_cvtss_f32(Dot4V(v1, v2));
 }
 
 const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
@@ -658,22 +658,17 @@ float Vector4::SqrLength2() const
 
 float Vector4::Length2() const
 {
-    float result;
-    _mm_store_ss(&result, Length2V());
-    return result;
+    return _mm_cvtss_f32(Length2V());
 }
 
 const Vector4 Vector4::Length2V() const
 {
-    const __m128 vDot = Dot2V(v, v);
-    return _mm_sqrt_ps(vDot);
+    return _mm_sqrt_ps(Dot2V(v, v));
 }
 
 float Vector4::Length3() const
 {
-    float result;
-    _mm_store_ss(&result, Length3V());
-    return result;
+    return _mm_cvtss_f32(Length3V());
 }
 
 float Vector4::SqrLength3() const
@@ -683,8 +678,7 @@ float Vector4::SqrLength3() const
 
 const Vector4 Vector4::Length3V() const
 {
-    const __m128 vDot = Dot3V(v, v);
-    return _mm_sqrt_ps(vDot);
+    return _mm_sqrt_ps(Dot3V(v, v));
 }
 
 Vector4& Vector4::Normalize3()
@@ -728,17 +722,12 @@ const Vector4 Vector4::FastNormalized3() const
 
 float Vector4::Length4() const
 {
-    const __m128 vDot = Dot4V(v, v);
-
-    float result;
-    _mm_store_ss(&result, _mm_sqrt_ss(vDot));
-    return result;
+    return _mm_cvtss_f32(Length4V());
 }
 
 const Vector4 Vector4::Length4V() const
 {
-    const __m128 vDot = Dot4V(v, v);
-    return _mm_sqrt_ps(vDot);
+    return _mm_sqrt_ps(Dot4V(v, v));
 }
 
 float Vector4::SqrLength4() const

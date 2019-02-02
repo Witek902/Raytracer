@@ -29,7 +29,6 @@ private:
     {
         Uint32 depth = 0u;
         float lastPdfW = 1.0f;
-        BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
         bool lastSpecular = true;
     };
 

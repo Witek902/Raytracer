@@ -311,10 +311,10 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // sample BSDF
         float pdf;
         Vector4 incomingDirWorldSpace;
-        pathState.lastSampledBsdfEvent = BSDF::NullEvent;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3(), &pdf, &pathState.lastSampledBsdfEvent);
+        BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3(), &pdf, &lastSampledBsdfEvent);
 
-        if (pathState.lastSampledBsdfEvent == BSDF::NullEvent)
+        if (lastSampledBsdfEvent == BSDF::NullEvent)
         {
             pathTerminationReason = PathTerminationReason::NoSampledEvent;
             break;
@@ -331,7 +331,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         }
 
         RT_ASSERT(pdf >= 0.0f);
-        pathState.lastSpecular = (pathState.lastSampledBsdfEvent & BSDF::SpecularEvent) != 0;
+        pathState.lastSpecular = (lastSampledBsdfEvent & BSDF::SpecularEvent) != 0;
         pathState.lastPdfW = pdf;
 
         // TODO check for NaNs
@@ -345,7 +345,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
             data.hitPoint = hitPoint;
             data.shadingData = shadingData;
             data.throughput = throughput;
-            data.bsdfEvent = pathState.lastSampledBsdfEvent;
+            data.bsdfEvent = lastSampledBsdfEvent;
             context.pathDebugData->data.PushBack(data);
         }
 #endif // RT_CONFIGURATION_FINAL
@@ -366,7 +366,6 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         data.hitPoint = hitPoint;
         data.shadingData = shadingData;
         data.throughput = throughput;
-        data.bsdfEvent = pathState.lastSampledBsdfEvent;
         context.pathDebugData->data.PushBack(data);
         context.pathDebugData->terminationReason = pathTerminationReason;
     }

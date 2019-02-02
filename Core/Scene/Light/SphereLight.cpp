@@ -4,6 +4,7 @@
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
 #include "../../Math/SamplingHelpers.h"
+#include "../../Math/Transcendental.h"
 
 namespace rt {
 
@@ -72,6 +73,7 @@ const RayColor SphereLight::Illuminate(const IlluminateParam& param, IlluminateR
     }
 
     const float phi = RT_2PI * param.sample.y;
+    const Vector4 sinCosPhi = SinCos(phi);
 
     float sinThetaMaxSqr = mRadiusSqr / centerDistSqr;
     float cosThetaMax = sqrtf(1.0f - Clamp(sinThetaMaxSqr, 0.0f, 1.0f));
@@ -83,7 +85,7 @@ const RayColor SphereLight::Illuminate(const IlluminateParam& param, IlluminateR
     const Vector4 w = centerDir / centerDist;
     Vector4 u, v;
     BuildOrthonormalBasis(w, u, v);
-    outResult.directionToLight = (u * cosf(phi) + v * sinf(phi)) * sinTheta + w * cosTheta;
+    outResult.directionToLight = (u * sinCosPhi.y + v * sinCosPhi.x) * sinTheta + w * cosTheta;
     outResult.directionToLight.Normalize3();
 
     // calculate distance to hit point

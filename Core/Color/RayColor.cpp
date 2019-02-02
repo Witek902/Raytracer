@@ -292,13 +292,6 @@ const Vector4 RayColor::ConvertToTristimulus(const Wavelength& wavelength) const
     return result;
 }
 
-#else // !RT_ENABLE_SPECTRAL_RENDERING
-
-const RayColor RayColor::Resolve(const Wavelength&, const Spectrum& spectrum)
-{
-    return RayColor{ spectrum.rgbValues };
-}
-
 #endif // RT_ENABLE_SPECTRAL_RENDERING
 
 } // namespace rt

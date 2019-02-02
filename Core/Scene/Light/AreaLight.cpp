@@ -40,9 +40,10 @@ ILight::Type AreaLight::GetType() const
 
 const Box AreaLight::GetBoundingBox() const
 {
-    Box box(p0, p0 + edge0, p0 + edge1);
-    box.AddPoint(p0 + edge0 + edge1);
-    return box;
+    const Vector4 p1 = p0 + edge0;
+    const Vector4 p2 = p0 + edge1;
+    const Vector4 p3 = p1 + edge1;
+    return Box(p0, p1, p2, p3);
 }
 
 bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const

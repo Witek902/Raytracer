@@ -5,12 +5,12 @@
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
 #include "../../Math/SamplingHelpers.h"
+#include "../../Math/Transcendental.h"
 
 namespace rt {
 
 using namespace math;
 
-static constexpr const float CosEpsilon = 0.9999f;
 static constexpr const float SceneRadius = 30.0f; // TODO
 
 DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const float angle)
@@ -63,6 +63,7 @@ const Vector4 DirectionalLight::SampleDirection(const Float2 sample, float& outP
         outPdf = SphereCapPdf(mCosAngle);
 
         const float phi = RT_2PI * sample.y;
+        const Vector4 sinCosPhi = SinCos(phi);
 
         float cosTheta = Lerp(mCosAngle, 1.0f, sample.x);
         float sinThetaSqr = 1.0f - Sqr(cosTheta);
@@ -72,7 +73,7 @@ const Vector4 DirectionalLight::SampleDirection(const Float2 sample, float& outP
         const Vector4 w = -mDirection;
         Vector4 u, v;
         BuildOrthonormalBasis(w, u, v);
-        sampledDirection = (u * cosf(phi) + v * sinf(phi)) * sinTheta + w * cosTheta;
+        sampledDirection = (u * sinCosPhi.y + v * sinCosPhi.x) * sinTheta + w * cosTheta;
         sampledDirection.Normalize3();
 
         RT_ASSERT(sampledDirection.IsValid());

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Wavelength.h"
+#include "Spectrum.h"
 
 namespace rt {
 
-struct Spectrum;
 
 // Represents a ray color/weight during raytracing
 // The color values corresponds to wavelength values.
@@ -150,6 +150,11 @@ RT_FORCE_INLINE const RayColor operator * (const float a, const RayColor& b)
 RT_FORCE_INLINE const math::Vector4 RayColor::ConvertToTristimulus(const Wavelength&) const
 {
     return value;
+}
+
+RT_FORCE_INLINE const RayColor RayColor::Resolve(const Wavelength&, const Spectrum& spectrum)
+{
+    return RayColor{ spectrum.rgbValues };
 }
 
 #endif // RT_ENABLE_SPECTRAL_RENDERING

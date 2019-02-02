@@ -45,8 +45,8 @@ public:
     float mMinMergingRadius;
     float mMergingRadiusMultiplier;
 
-    bool mUseVertexConnection = true;
-    bool mUseVertexMerging = true;
+    bool mUseVertexConnection;
+    bool mUseVertexMerging;
 
     struct LightVertex
     {

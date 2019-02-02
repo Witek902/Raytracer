@@ -8,6 +8,7 @@
 #include "../Core/Scene/Light/BackgroundLight.h"
 #include "../Core/Scene/Light/DirectionalLight.h"
 #include "../Core/Scene/Light/SphereLight.h"
+#include "../Core/Scene/Light/SpotLight.h"
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
 #include "../Core/Scene/Object/SceneObject_Sphere.h"
 #include "../Core/Scene/Object/SceneObject_Box.h"
@@ -464,6 +465,29 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene, const Textur
         }
 
         scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
+    }
+    else if (typeStr == "spot")
+    {
+        Vector4 lightPosition;
+        if (!TryParseVector3(value, "position", false, lightPosition))
+        {
+            return false;
+        }
+
+        Vector4 lightDirection;
+        if (!TryParseVector3(value, "direction", false, lightDirection))
+        {
+            return false;
+        }
+
+        float angle = 0.0f;
+        if (!TryParseFloat(value, "angle", true, angle))
+        {
+            return false;
+        }
+        const float angleRad = angle / 180.0f * RT_PI;
+
+        scene.AddLight(std::make_unique<SpotLight>(lightPosition, lightDirection, lightColor, angleRad));
     }
     else if (typeStr == "directional")
     {

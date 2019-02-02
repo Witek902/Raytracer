@@ -1,512 +1,213 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="Math\Math.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Geometry.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector4.h">
-      <Filter>Math\Vector4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector4Impl.h">
-      <Filter>Math\Vector4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector8.h">
-      <Filter>Math\Vector8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector8Impl.h">
-      <Filter>Math\Vector8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd8Box.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd8Geometry.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd8Ray.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Simd8Triangle.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Logger.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Timer.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\AlignmentAllocator.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\iacaMarks.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\VertexBuffer.h">
-      <Filter>Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\VertexBufferDesc.h">
-      <Filter>Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Mesh.h">
-      <Filter>Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\Material.h">
-      <Filter>Material</Filter>
-    </ClInclude>
-    <ClInclude Include="BVH\BVH.h">
-      <Filter>BVH</Filter>
-    </ClInclude>
-    <ClInclude Include="BVH\BVHBuilder.h">
-      <Filter>BVH</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\ThreadPool.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Scene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Camera.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\RayPacket.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\RayStream.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Viewport.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Counters.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\HitPoint.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Float2.h">
-      <Filter>Math\Float2</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Float2Impl.h">
-      <Filter>Math\Float2</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Float3.h">
-      <Filter>Math\Float3</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Float3Impl.h">
-      <Filter>Math\Float3</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Context.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Box.h">
-      <Filter>Math\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Sphere.h">
-      <Filter>Math\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Triangle.h">
-      <Filter>Math\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Transcendental.h">
-      <Filter>Math\Transcendental</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector3x8.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Vector2x8.h">
-      <Filter>Math\Simd8</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\ShadingData.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\BlockCompression.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorInt8.h">
-      <Filter>Math\VectorInt8</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorInt8Impl.h">
-      <Filter>Math\VectorInt8</Filter>
-    </ClInclude>
+    <ClInclude Include="..\External\tinyexr\tinyexr.h" />
+    <ClInclude Include="BVH\BVH.h" />
+    <ClInclude Include="BVH\BVHBuilder.h" />
+    <ClInclude Include="Color\ColorHelpers.h" />
+    <ClInclude Include="Color\LdrColor.h" />
+    <ClInclude Include="Color\RayColor.h" />
+    <ClInclude Include="Color\Spectrum.h" />
+    <ClInclude Include="Color\Wavelength.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="PCH.h" />
-    <ClInclude Include="RayLib.h" />
-    <ClInclude Include="Traversal\Traversal_Single.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\Traversal_Simd.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\Traversal_Packet.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Traversal\TraversalContext.h">
-      <Filter>Traversal</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Quaternion.h">
-      <Filter>Math\Quaternion</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\QuaternionImpl.h">
-      <Filter>Math\Quaternion</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Transform.h">
-      <Filter>Math\Transform</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Random.h">
-      <Filter>Math\Random</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PathDebugging.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\ColorHelpers.h">
-      <Filter>Color</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Constants.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Utils.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Ray.h">
-      <Filter>Math\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PathTracer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Renderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\DebugRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\AreaLight.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\BackgroundLight.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\DirectionalLight.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\Light.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\PointLight.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\BSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\Microfacet.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject_Mesh.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject_Plane.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject_Sphere.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject_Box.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Object\SceneObject_Light.h">
-      <Filter>Scene\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="..\External\tinyexr\tinyexr.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Half.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Bitmap.h">
-      <Filter>Utils\Bitmap</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Rectangle.h">
-      <Filter>Math\Shapes</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\LdrColor.h">
-      <Filter>Color</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PostProcess.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorInt4.h">
-      <Filter>Math\VectorInt4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorInt4Impl.h">
-      <Filter>Math\VectorInt4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorBool4.h">
-      <Filter>Math\Vector4</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\VectorBool8.h">
-      <Filter>Math\Vector8</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\DielectricBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\RoughMetalBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\MetalBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\RoughDielectricBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\DiffuseBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\RoughDiffuseBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\PlasticBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Matrix4.h">
-      <Filter>Math\Matrix4</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Light\SphereLight.h">
-      <Filter>Scene\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="Material\BSDF\RoughPlasticBSDF.h">
-      <Filter>Material\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\Wavelength.h">
-      <Filter>Color</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\RayColor.h">
-      <Filter>Color</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\Spectrum.h" />
-    <ClInclude Include="Rendering\PathTracerMIS.h" />
-    <ClInclude Include="Rendering\LightTracer.h" />
-    <ClInclude Include="Rendering\Film.h" />
-    <ClInclude Include="Material\BSDF\NullBSDF.h" />
-    <ClInclude Include="Utils\HashGrid.h" />
-    <ClInclude Include="Rendering\RendererContext.h" />
-    <ClInclude Include="Rendering\VertexConnectionAndMerging.h" />
-    <ClInclude Include="Math\SamplingHelpers.h" />
-    <ClInclude Include="Sampling\HaltonSampler.h" />
-    <ClInclude Include="Sampling\GenericSampler.h" />
-    <ClInclude Include="Utils\TextureEvaluator.h" />
     <ClInclude Include="Containers\ArrayIterator.h" />
     <ClInclude Include="Containers\ArrayIteratorImpl.h" />
     <ClInclude Include="Containers\ArrayView.h" />
-    <ClInclude Include="Containers\DynArray.h" />
     <ClInclude Include="Containers\ArrayViewImpl.h" />
+    <ClInclude Include="Containers\DynArray.h" />
     <ClInclude Include="Containers\DynArrayImpl.h" />
-    <ClInclude Include="Utils\MemoryHelpers.h" />
+    <ClInclude Include="Material\BSDF\BSDF.h" />
+    <ClInclude Include="Material\BSDF\DielectricBSDF.h" />
+    <ClInclude Include="Material\BSDF\DiffuseBSDF.h" />
+    <ClInclude Include="Material\BSDF\MetalBSDF.h" />
+    <ClInclude Include="Material\BSDF\Microfacet.h" />
+    <ClInclude Include="Material\BSDF\NullBSDF.h" />
+    <ClInclude Include="Material\BSDF\PlasticBSDF.h" />
+    <ClInclude Include="Material\BSDF\RoughDielectricBSDF.h" />
+    <ClInclude Include="Material\BSDF\RoughDiffuseBSDF.h" />
+    <ClInclude Include="Material\BSDF\RoughMetalBSDF.h" />
+    <ClInclude Include="Material\BSDF\RoughPlasticBSDF.h" />
+    <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="Math\Box.h" />
+    <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Distribution.h" />
-    <ClInclude Include="Textures\BitmapTexture.h" />
-    <ClInclude Include="Textures\Texture.h" />
-    <ClInclude Include="Utils\Texture.h" />
-    <ClInclude Include="Textures\CheckerboardTexture.h" />
-    <ClInclude Include="Textures\NoiseTexture.h" />
-    <ClInclude Include="Textures\MixTexture.h" />
-    <ClInclude Include="Textures\ConstTexture.h" />
-    <ClInclude Include="Utils\Entropy.h" />
+    <ClInclude Include="Math\Float2.h" />
+    <ClInclude Include="Math\Float2Impl.h" />
+    <ClInclude Include="Math\Float3.h" />
+    <ClInclude Include="Math\Float3Impl.h" />
+    <ClInclude Include="Math\Geometry.h" />
+    <ClInclude Include="Math\Half.h" />
+    <ClInclude Include="Math\Math.h" />
+    <ClInclude Include="Math\Matrix4.h" />
+    <ClInclude Include="Math\Quaternion.h" />
+    <ClInclude Include="Math\QuaternionImpl.h" />
+    <ClInclude Include="Math\Random.h" />
+    <ClInclude Include="Math\Ray.h" />
+    <ClInclude Include="Math\Rectangle.h" />
+    <ClInclude Include="Math\SamplingHelpers.h" />
+    <ClInclude Include="Math\Simd8Box.h" />
+    <ClInclude Include="Math\Simd8Geometry.h" />
+    <ClInclude Include="Math\Simd8Ray.h" />
+    <ClInclude Include="Math\Simd8Triangle.h" />
+    <ClInclude Include="Math\Sphere.h" />
+    <ClInclude Include="Math\Transcendental.h" />
     <ClInclude Include="Math\TranscendentalImpl.h" />
+    <ClInclude Include="Math\Transform.h" />
+    <ClInclude Include="Math\Triangle.h" />
+    <ClInclude Include="Math\Utils.h" />
+    <ClInclude Include="Math\Vector2x8.h" />
+    <ClInclude Include="Math\Vector3x8.h" />
+    <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Math\Vector4Impl.h" />
+    <ClInclude Include="Math\Vector8.h" />
+    <ClInclude Include="Math\Vector8Impl.h" />
+    <ClInclude Include="Math\VectorBool4.h" />
+    <ClInclude Include="Math\VectorBool8.h" />
+    <ClInclude Include="Math\VectorInt4.h" />
+    <ClInclude Include="Math\VectorInt4Impl.h" />
+    <ClInclude Include="Math\VectorInt8.h" />
+    <ClInclude Include="Math\VectorInt8Impl.h" />
+    <ClInclude Include="Mesh\Mesh.h" />
+    <ClInclude Include="Mesh\VertexBuffer.h" />
+    <ClInclude Include="Mesh\VertexBufferDesc.h" />
+    <ClInclude Include="PCH.h" />
+    <ClInclude Include="RayLib.h" />
+    <ClInclude Include="Rendering\Context.h" />
+    <ClInclude Include="Rendering\Counters.h" />
+    <ClInclude Include="Rendering\DebugRenderer.h" />
+    <ClInclude Include="Rendering\Film.h" />
+    <ClInclude Include="Rendering\LightTracer.h" />
+    <ClInclude Include="Rendering\PathDebugging.h" />
+    <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\PathTracerMIS.h" />
+    <ClInclude Include="Rendering\PostProcess.h" />
+    <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\RendererContext.h" />
+    <ClInclude Include="Rendering\ShadingData.h" />
+    <ClInclude Include="Rendering\VertexConnectionAndMerging.h" />
+    <ClInclude Include="Rendering\Viewport.h" />
+    <ClInclude Include="Sampling\GenericSampler.h" />
+    <ClInclude Include="Sampling\HaltonSampler.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Light\AreaLight.h" />
+    <ClInclude Include="Scene\Light\BackgroundLight.h" />
+    <ClInclude Include="Scene\Light\DirectionalLight.h" />
+    <ClInclude Include="Scene\Light\Light.h" />
+    <ClInclude Include="Scene\Light\PointLight.h" />
+    <ClInclude Include="Scene\Light\SphereLight.h" />
+    <ClInclude Include="Scene\Light\SpotLight.h" />
+    <ClInclude Include="Scene\Object\SceneObject.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Box.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Light.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Mesh.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Plane.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Sphere.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Textures\BitmapTexture.h" />
+    <ClInclude Include="Textures\CheckerboardTexture.h" />
+    <ClInclude Include="Textures\ConstTexture.h" />
+    <ClInclude Include="Textures\MixTexture.h" />
+    <ClInclude Include="Textures\NoiseTexture.h" />
+    <ClInclude Include="Textures\Texture.h" />
+    <ClInclude Include="Traversal\HitPoint.h" />
+    <ClInclude Include="Traversal\RayPacket.h" />
+    <ClInclude Include="Traversal\RayStream.h" />
+    <ClInclude Include="Traversal\Traversal_Packet.h" />
+    <ClInclude Include="Traversal\Traversal_Simd.h" />
+    <ClInclude Include="Traversal\Traversal_Single.h" />
+    <ClInclude Include="Traversal\TraversalContext.h" />
+    <ClInclude Include="Utils\AlignmentAllocator.h" />
+    <ClInclude Include="Utils\Bitmap.h" />
+    <ClInclude Include="Utils\BlockCompression.h" />
+    <ClInclude Include="Utils\Entropy.h" />
+    <ClInclude Include="Utils\HashGrid.h" />
+    <ClInclude Include="Utils\iacaMarks.h" />
+    <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\MemoryHelpers.h" />
+    <ClInclude Include="Utils\Texture.h" />
+    <ClInclude Include="Utils\TextureEvaluator.h" />
+    <ClInclude Include="Utils\ThreadPool.h" />
+    <ClInclude Include="Utils\Timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Math\Math.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Vector4.cpp">
-      <Filter>Math\Vector4</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Logger.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Timer.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\VertexBuffer.cpp">
-      <Filter>Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Mesh.cpp">
-      <Filter>Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\Material.cpp">
-      <Filter>Material</Filter>
-    </ClCompile>
-    <ClCompile Include="BVH\BVHBuilder.cpp">
-      <Filter>BVH</Filter>
-    </ClCompile>
-    <ClCompile Include="BVH\BVH.cpp">
-      <Filter>BVH</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\ThreadPool.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Scene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Camera.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Traversal\RayPacket.cpp">
-      <Filter>Traversal</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Viewport.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Transcendental.cpp">
-      <Filter>Math\Transcendental</Filter>
-    </ClCompile>
-    <ClCompile Include="Traversal\RayStream.cpp">
-      <Filter>Traversal</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\BlockCompression.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Traversal\Traversal_Packet.cpp">
-      <Filter>Traversal</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Quaternion.cpp">
-      <Filter>Math\Quaternion</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Transform.cpp">
-      <Filter>Math\Transform</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Random.cpp">
-      <Filter>Math\Random</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Utils.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="PCH.cpp" />
-    <ClCompile Include="Rendering\PathTracer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Renderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\DebugRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\BackgroundLight.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\DirectionalLight.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\Light.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\PointLight.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\AreaLight.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\BSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject_Plane.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject_Box.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Object\SceneObject_Light.cpp">
-      <Filter>Scene\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="..\External\tinyexr\tinyexr.cc">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\BitmapBMP.cpp">
-      <Filter>Utils\Bitmap</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\BitmapDDS.cpp">
-      <Filter>Utils\Bitmap</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\BitmapEXR.cpp">
-      <Filter>Utils\Bitmap</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Bitmap.cpp">
-      <Filter>Utils\Bitmap</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\PostProcess.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Traversal\TraversalContext.cpp">
-      <Filter>Traversal</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\DielectricBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\RoughMetalBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\MetalBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\RoughDielectricBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\DiffuseBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\PlasticBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Matrix4.cpp">
-      <Filter>Math\Matrix4</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Light\SphereLight.cpp">
-      <Filter>Scene\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp">
-      <Filter>Material\BSDF</Filter>
-    </ClCompile>
-    <ClCompile Include="Color\RayColor.cpp">
-      <Filter>Color</Filter>
-    </ClCompile>
-    <ClCompile Include="Color\Wavelength.cpp">
-      <Filter>Color</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\PathTracerMIS.cpp" />
-    <ClCompile Include="Rendering\LightTracer.cpp" />
-    <ClCompile Include="Rendering\Film.cpp" />
+    <ClCompile Include="..\External\tinyexr\tinyexr.cc" />
+    <ClCompile Include="BVH\BVH.cpp" />
+    <ClCompile Include="BVH\BVHBuilder.cpp" />
+    <ClCompile Include="Color\RayColor.cpp" />
+    <ClCompile Include="Color\Wavelength.cpp" />
+    <ClCompile Include="Material\BSDF\BSDF.cpp" />
+    <ClCompile Include="Material\BSDF\DielectricBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\DiffuseBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\MetalBSDF.cpp" />
     <ClCompile Include="Material\BSDF\NullBSDF.cpp" />
-    <ClCompile Include="Rendering\RendererContext.cpp" />
-    <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
-    <ClCompile Include="Rendering\ShadingData.cpp" />
-    <ClCompile Include="Math\SamplingHelpers.cpp" />
-    <ClCompile Include="Sampling\HaltonSampler.cpp" />
-    <ClCompile Include="Sampling\GenericSampler.cpp" />
-    <ClCompile Include="Rendering\Context.cpp" />
-    <ClCompile Include="Math\Geometry.cpp" />
+    <ClCompile Include="Material\BSDF\PlasticBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\RoughDielectricBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\RoughMetalBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp" />
+    <ClCompile Include="Material\Material.cpp" />
     <ClCompile Include="Math\Distribution.cpp" />
+    <ClCompile Include="Math\Geometry.cpp" />
+    <ClCompile Include="Math\Math.cpp" />
+    <ClCompile Include="Math\Matrix4.cpp" />
+    <ClCompile Include="Math\Quaternion.cpp" />
+    <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\SamplingHelpers.cpp" />
+    <ClCompile Include="Math\Transcendental.cpp" />
+    <ClCompile Include="Math\Transform.cpp" />
+    <ClCompile Include="Math\Utils.cpp" />
+    <ClCompile Include="Math\Vector4.cpp" />
+    <ClCompile Include="Mesh\Mesh.cpp" />
+    <ClCompile Include="Mesh\VertexBuffer.cpp" />
+    <ClCompile Include="PCH.cpp" />
+    <ClCompile Include="Rendering\Context.cpp" />
+    <ClCompile Include="Rendering\DebugRenderer.cpp" />
+    <ClCompile Include="Rendering\Film.cpp" />
+    <ClCompile Include="Rendering\LightTracer.cpp" />
+    <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\PathTracerMIS.cpp" />
+    <ClCompile Include="Rendering\PostProcess.cpp" />
+    <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\RendererContext.cpp" />
+    <ClCompile Include="Rendering\ShadingData.cpp" />
+    <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
+    <ClCompile Include="Rendering\Viewport.cpp" />
+    <ClCompile Include="Sampling\GenericSampler.cpp" />
+    <ClCompile Include="Sampling\HaltonSampler.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Light\AreaLight.cpp" />
+    <ClCompile Include="Scene\Light\BackgroundLight.cpp" />
+    <ClCompile Include="Scene\Light\DirectionalLight.cpp" />
+    <ClCompile Include="Scene\Light\Light.cpp" />
+    <ClCompile Include="Scene\Light\PointLight.cpp" />
+    <ClCompile Include="Scene\Light\SphereLight.cpp" />
+    <ClCompile Include="Scene\Light\SpotLight.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Box.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Light.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Plane.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Textures\BitmapTexture.cpp" />
-    <ClCompile Include="Textures\Texture.cpp" />
     <ClCompile Include="Textures\CheckerboardTexture.cpp" />
-    <ClCompile Include="Textures\NoiseTexture.cpp" />
-    <ClCompile Include="Textures\MixTexture.cpp" />
     <ClCompile Include="Textures\ConstTexture.cpp" />
-    <ClCompile Include="Utils\Entropy.cpp" />
+    <ClCompile Include="Textures\MixTexture.cpp" />
+    <ClCompile Include="Textures\NoiseTexture.cpp" />
+    <ClCompile Include="Textures\Texture.cpp" />
+    <ClCompile Include="Traversal\RayPacket.cpp" />
+    <ClCompile Include="Traversal\RayStream.cpp" />
+    <ClCompile Include="Traversal\Traversal_Packet.cpp" />
+    <ClCompile Include="Traversal\TraversalContext.cpp" />
+    <ClCompile Include="Utils\Bitmap.cpp" />
+    <ClCompile Include="Utils\BitmapBMP.cpp" />
+    <ClCompile Include="Utils\BitmapDDS.cpp" />
+    <ClCompile Include="Utils\BitmapEXR.cpp" />
+    <ClCompile Include="Utils\BlockCompression.cpp" />
+    <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\ThreadPool.cpp" />
+    <ClCompile Include="Utils\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">
