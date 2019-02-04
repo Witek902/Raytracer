@@ -58,17 +58,17 @@ class Material;
 using MaterialPtr = std::shared_ptr<rt::Material>;
 
 // simple PBR material
-class RAYLIB_API RT_ALIGN(16) Material : public Aligned<16>
+class RT_ALIGN(16) Material : public Aligned<16>
 {
 public:
-    Material(const char* debugName = "<unnamed>");
-    ~Material();
-    Material(Material&&);
-    Material& operator = (Material&&);
+    RAYLIB_API Material(const char* debugName = "<unnamed>");
+    RAYLIB_API ~Material();
+    RAYLIB_API Material(Material&&);
+    RAYLIB_API Material& operator = (Material&&);
 
-    static const char* DefaultBsdfName;
+    RAYLIB_API static const char* DefaultBsdfName;
 
-    static MaterialPtr Create();
+    RAYLIB_API static MaterialPtr Create();
 
     static const Material* GetDefaultMaterial();
 
@@ -110,11 +110,11 @@ public:
 
     // TODO material layers
 
-    void SetBsdf(const std::string& bsdfName);
+    RAYLIB_API void SetBsdf(const std::string& bsdfName);
 
     const BSDF* GetBSDF() const { return mBSDF.get(); }
 
-    void Compile();
+    RAYLIB_API void Compile();
 
     const math::Vector4 GetNormalVector(const math::Vector4 uv) const;
     bool GetMaskValue(const math::Vector4 uv) const;
@@ -127,15 +127,16 @@ public:
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
         math::Random& randomGenerator,
-        Float& outPdfW,
-        BSDF::EventType& outSampledEvent) const;
+        Float* outPdfW = nullptr,
+        BSDF::EventType* outSampledEvent = nullptr) const;
 
     // calculate amount of light reflected from incoming direction to outgoing direction
     const RayColor Evaluate(
         const Wavelength& wavelength,
         const ShadingData& shadingData,
         const math::Vector4& incomingDirWorldSpace,
-        Float* outPdfW = nullptr) const;
+        Float* outPdfW = nullptr,
+        Float* outReversePdfW = nullptr) const;
 
 private:
     Material(const Material&) = delete;

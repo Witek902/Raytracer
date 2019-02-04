@@ -103,7 +103,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [1.5, -0.5, 0.0] },
             "material": "plastic_0"
         },
@@ -116,7 +116,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [0.0, -0.5, 0.0] },
             "material": "aluminium_0"
         },
@@ -129,7 +129,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [-1.5, -0.5, 0.0], "orientation": [0.0, 0.2, 0.0] },
             "material": "glass_0"
         },
@@ -143,7 +143,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [1.5, -0.5, -1.5] },
             "material": "plastic_1"
         },
@@ -156,7 +156,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [0.0, -0.5, -1.5] },
             "material": "aluminium_1"
         },
@@ -169,7 +169,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [-1.5, -0.5, -1.5] },
             "material": "glass_1"
         },
@@ -183,7 +183,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [1.5, -0.5, -3.0] },
             "material": "plastic_2"
         },
@@ -196,7 +196,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [0.0, -0.5, -3.0] },
             "material": "aluminium_2"
         },
@@ -209,7 +209,7 @@
         },
         {
             "type": "box",
-            "size": [0.5, 0.499, 0.5],
+            "size": [0.5, 0.495, 0.5],
             "transform": { "translation": [-1.5, -0.5, -3.0] },
             "material": "glass_2"
         }
@@ -217,14 +217,10 @@
     "lights":
     [
         {
-            "type": "directional",
-            "color": [120.0, 100.0, 100.0],
-            "direction": [1.1, -0.5, 1.0],
-            "angle": 5.0
-        },
-        {
-            "type": "background",
-            "color": [0.01, 0.015, 0.02]
+            "type": "sphere",
+            "color": [50.0, 50.0, 50.0],
+            "position": [5.0, 5.0, 5.0],
+            "radius": 1.0
         }
     ],
     "camera":

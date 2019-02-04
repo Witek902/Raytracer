@@ -220,6 +220,7 @@
     <ClInclude Include="Material\BSDF\DielectricBSDF.h" />
     <ClInclude Include="Material\BSDF\DiffuseBSDF.h" />
     <ClInclude Include="Material\BSDF\MetalBSDF.h" />
+    <ClInclude Include="Material\BSDF\NullBSDF.h" />
     <ClInclude Include="Material\BSDF\PlasticBSDF.h" />
     <ClInclude Include="Material\BSDF\RoughDielectricBSDF.h" />
     <ClInclude Include="Material\BSDF\RoughMetalBSDF.h" />
@@ -268,11 +269,15 @@
     <ClInclude Include="Mesh\VertexBufferDesc.h" />
     <ClInclude Include="PCH.h" />
     <ClInclude Include="RayLib.h" />
+    <ClInclude Include="Rendering\BidirectionalPathTracer.h" />
     <ClInclude Include="Rendering\Counters.h" />
     <ClInclude Include="Rendering\Context.h" />
     <ClInclude Include="Rendering\DebugRenderer.h" />
+    <ClInclude Include="Rendering\Film.h" />
+    <ClInclude Include="Rendering\LightTracer.h" />
     <ClInclude Include="Rendering\PathDebugging.h" />
     <ClInclude Include="Rendering\PathTracer.h" />
+    <ClInclude Include="Rendering\PathTracerMIS.h" />
     <ClInclude Include="Rendering\PostProcess.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ShadingData.h" />
@@ -322,6 +327,7 @@
     <ClCompile Include="Material\BSDF\DielectricBSDF.cpp" />
     <ClCompile Include="Material\BSDF\DiffuseBSDF.cpp" />
     <ClCompile Include="Material\BSDF\MetalBSDF.cpp" />
+    <ClCompile Include="Material\BSDF\NullBSDF.cpp" />
     <ClCompile Include="Material\BSDF\PlasticBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughDielectricBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughMetalBSDF.cpp" />
@@ -344,8 +350,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp" />
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
+    <ClCompile Include="Rendering\Film.cpp" />
+    <ClCompile Include="Rendering\LightTracer.cpp" />
     <ClCompile Include="Rendering\PathTracer.cpp" />
+    <ClCompile Include="Rendering\PathTracerMIS.cpp" />
     <ClCompile Include="Rendering\PostProcess.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />

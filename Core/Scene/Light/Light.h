@@ -29,6 +29,17 @@ public:
         math::Vector4 outDirectionToLight = math::Vector4::Zero();
         float outDistance = 0.0f;
         float outDirectPdfW = 0.0f;
+        float outEmissionPdfW = 0.0f;
+        float outCosAtLight = -1.0f;
+    };
+
+    struct EmitResult
+    {
+        math::Vector4 position;
+        math::Vector4 direction;
+        Float directPdfA;
+        Float emissionPdfW;
+        Float cosAtLight;
     };
 
     RAYLIB_API ILight(const math::Vector4 color);
@@ -47,21 +58,16 @@ public:
     // get normal vector at intersection point
     virtual const math::Vector4 GetNormal(const math::Vector4& hitPoint) const;
 
-    /*
     // Emit random light photon from the light
-    virtual math::Vector4 Emit(
-        math::Vector4& outPosition,
-        math::Vector4& outDirection,
-        float& outPdfW) const = 0;
-        */
+    virtual const RayColor Emit(RenderingContext& context, EmitResult& outResult) const = 0;
 
     // Returns radiance for ray hitting the light directly
-    // Optionally returns probability of hitting this point
+    // Optionally returns probability of hitting this point and emitting a photon in that direction
     virtual const RayColor GetRadiance(
         RenderingContext& context,
         const math::Vector4& rayDirection,
         const math::Vector4& hitPoint,
-        Float* outDirectPdfA = nullptr) const;
+        Float* outDirectPdfA = nullptr, Float* outEmissionPdfW = nullptr) const;
 
     // Returs true if the light has finite extent.
     // E.g. point or area light.

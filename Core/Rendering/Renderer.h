@@ -7,32 +7,40 @@
 
 namespace rt {
 
-class Viewport;
+class Film;
 class Scene;
+class Camera;
 struct RenderingContext;
 struct RayPacket;
 
+
 // abstract scene rendering interface
-class RAYLIB_API IRenderer
+class IRenderer
 {
 public:
     IRenderer(const Scene& scene);
 
-    virtual ~IRenderer();
+    RAYLIB_API virtual ~IRenderer();
 
     // TODO batch & multisample rendering
     // TODO cancelation of ongoing rendering
 
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const = 0;
+    virtual const char* GetName() const = 0;
 
-    virtual void Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const;
+    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera& camera, Film& film, RenderingContext& context) const = 0;
+
+    virtual void Raytrace_Packet(RayPacket& packet, const Camera& camera, Film& film, RenderingContext& context) const;
 
 protected:
     const Scene& mScene;
 
 private:
+    IRenderer(const IRenderer&) = delete;
+    IRenderer& operator = (const IRenderer&) = delete;
     IRenderer(IRenderer&&) = delete;
     IRenderer& operator = (IRenderer&&) = delete;
 };
+
+RAYLIB_API IRenderer* CreateRenderer(const std::string& name, const Scene& scene);
 
 } // namespace rt

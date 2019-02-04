@@ -39,8 +39,6 @@ public:
     RAYLIB_API bool Render(const IRenderer& renderer, const Camera& camera);
     RAYLIB_API void Reset();
 
-    RT_FORCE_NOINLINE void Internal_AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor);
-
     RT_FORCE_INLINE const Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
     RT_FORCE_INLINE const Bitmap& GetSumBuffer() const { return mSum; }
 

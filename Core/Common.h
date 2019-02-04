@@ -114,21 +114,3 @@ using Int8 = signed char;
 using Float = float;
 using Double = double;
 
-
-namespace rt {
-
-union Bits32
-{
-    Float f;
-    Uint32 ui;
-    Int32 si;
-};
-
-union Bits64
-{
-    Double f;
-    Uint64 ui;
-    Int64 si;
-};
-
-} // namespace rt

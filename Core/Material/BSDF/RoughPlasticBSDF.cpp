@@ -14,8 +14,6 @@ const char* RoughPlasticBSDF::GetName() const
     return "roughPlastic";
 }
 
-#pragma optimize("", off)
-
 bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
 {
     const float NdotV = ctx.outgoingDir.z;
@@ -29,8 +27,7 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)
     {
-        PlasticBSDF smoothBsdf;
-        return smoothBsdf.Sample(ctx);
+        return PlasticBSDF().Sample(ctx);
     }
 
     const float ior = ctx.materialParam.IoR;
@@ -92,15 +89,14 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)
     {
-        PlasticBSDF smoothBsdf;
-        return smoothBsdf.Evaluate(ctx, outDirectPdfW);
+        return PlasticBSDF().Evaluate(ctx, outDirectPdfW);
     }
 
     const float NdotV = ctx.outgoingDir.z;
@@ -124,6 +120,7 @@ const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* o
     const float diffuseProbability = 1.0f - specularProbability;
 
     float diffusePdf = NdotL * RT_INV_PI; // cos-weighted hemisphere distribution
+    float diffuseReversePdf = NdotV * RT_INV_PI;
     float specularPdf = 0.0f;
 
     RayColor diffuseTerm = ctx.materialParam.baseColor * (NdotL * RT_INV_PI * (1.0f - Fi) * (1.0f - Fo));
@@ -152,7 +149,68 @@ const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* o
         *outDirectPdfW = diffusePdf * diffuseProbability + specularPdf * specularProbability;
     }
 
+    if (outReversePdfW)
+    {
+        *outDirectPdfW = diffuseReversePdf * diffuseProbability + specularPdf * specularProbability;
+    }
+
     return diffuseTerm + specularTerm;
+}
+
+Float RoughPlasticBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    const Float roughness = ctx.materialParam.roughness;
+
+    // fallback to specular event
+    if (roughness < SpecularEventRoughnessTreshold)
+    {
+        return PlasticBSDF().Pdf(ctx, dir);
+    }
+
+    const float NdotV = ctx.outgoingDir.z;
+    const float NdotL = -ctx.incomingDir.z;
+
+    if (NdotV < CosEpsilon || NdotL < CosEpsilon)
+    {
+        return 0.0f;
+    }
+
+    const float Fi = FresnelDielectric(NdotV, ctx.materialParam.IoR);
+
+    const float specularWeight = Fi;
+    const float diffuseWeight = (1.0f - Fi) * ctx.materialParam.baseColor.Max();
+    RT_ASSERT(diffuseWeight >= 0.0f && diffuseWeight <= 1.0f);
+
+    const float specularProbability = specularWeight / (specularWeight + diffuseWeight);
+    const float diffuseProbability = 1.0f - specularProbability;
+
+    // cos-weighted hemisphere distribution
+    float diffusePdf;
+    if (dir == ForwardPdf)
+    {
+        diffusePdf = NdotL * RT_INV_PI;
+    }
+    else
+    {
+        diffusePdf = NdotV * RT_INV_PI;
+    }
+
+    float specularPdf = 0.0f;
+
+    // microfacet normal
+    const Vector4 m = (ctx.outgoingDir - ctx.incomingDir).Normalized3();
+    const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
+
+    // clip the function
+    if (VdotH >= CosEpsilon)
+    {
+        const Microfacet microfacet(roughness * roughness);
+        const float F = FresnelDielectric(VdotH, ctx.material.IoR);
+
+        specularPdf = microfacet.Pdf(m) / (4.0f * VdotH);
+    }
+
+    return diffusePdf * diffuseProbability + specularPdf * specularProbability;
 }
 
 } // namespace rt

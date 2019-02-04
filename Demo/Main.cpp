@@ -10,7 +10,7 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
         ("w,width", "Window width", cxxopts::value<Uint32>())
         ("h,height", "Window width", cxxopts::value<Uint32>())
         ("s,scene", "Initial scene", cxxopts::value<std::string>())
-        ("debug-renderer", "Use debug renderer by default", cxxopts::value<bool>())
+        ("renderer", "Renderer name", cxxopts::value<std::string>())
         ("p,packet-tracing", "Use ray packet tracing by default", cxxopts::value<bool>())
         ("data", "Data path", cxxopts::value<std::string>())
         ;
@@ -31,7 +31,8 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
         if (result.count("scene"))
             outOptions.sceneName = result["scene"].as<std::string>();
 
-        outOptions.useDebugRenderer = result["debug-renderer"].count() > 0;
+        if (result.count("renderer"))
+            outOptions.rendererName = result["renderer"].as<std::string>();
 
         outOptions.enablePacketTracing = result["p"].count() > 0;
     }

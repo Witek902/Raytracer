@@ -64,12 +64,13 @@ const RayColor DirectionalLight::Illuminate(IlluminateParam& param) const
         param.outDirectPdfW = 1.0f;
     }
 
+    param.outEmissionPdfW = 0.0f; // TODO BDPT
     param.outDistance = BackgroundLightDistance;
 
     return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 
@@ -82,10 +83,24 @@ const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const ma
                 *outDirectPdfA = SphereCapPdf(mCosAngle);
             }
 
+            if (outEmissionPdfW)
+            {
+                // TODO
+                RT_FATAL("Not implemented");
+            }
+
             return RayColor::Resolve(context.wavelength, mColor);
         }
     }
 
+    return RayColor::Zero();
+}
+
+const RayColor DirectionalLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+{
+    // TODO
+    RT_UNUSED(ctx);
+    RT_UNUSED(outResult);
     return RayColor::Zero();
 }
 

@@ -2,8 +2,9 @@
 #include "Demo.h"
 
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
-#include "../Core/Rendering/PathTracer.h"
-
+#include "../Core/Rendering/PathTracerMIS.h"
+#include "../Core/Rendering/BidirectionalPathTracer.h"
+#include "../Core/Rendering/DebugRenderer.h"
 
 using namespace rt;
 using namespace math;
@@ -282,10 +283,40 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         ImGui::SliderInt("Threads", (int*)&mRenderingParams.numThreads, 1, 2 * maxThreads);
     }
 
-    resetFrame |= ImGui::Checkbox("Use debug renderer", &mUseDebugRenderer);
-    if (mUseDebugRenderer)
+    // renderer selection
     {
-        int debugRenderingModeIndex = static_cast<int>(mDebugRenderer->mRenderingMode);
+        // TODO use reflection
+        const char* rendererNames[] =
+        {
+            "Debug",
+            "Path Tracer",
+            "Path Tracer MIS",
+            "Light Tracer",
+            "Bidirectional Path Tracer",
+        };
+
+        int currentRendererIndex = 0;
+        for (int i = 0; i < IM_ARRAYSIZE(rendererNames); ++i)
+        {
+            if (0 == strcmp(rendererNames[i], mRenderer->GetName()))
+            {
+                currentRendererIndex = i;
+                break;
+            }
+        }
+
+        if (ImGui::Combo("Renderer", &currentRendererIndex, rendererNames, IM_ARRAYSIZE(rendererNames)))
+        {
+            mRendererName = rendererNames[currentRendererIndex];
+            mRenderer = std::unique_ptr<IRenderer>(CreateRenderer(mRendererName, *mScene));
+            resetFrame = true;
+        }
+    }
+
+    if (mRendererName == "Debug")
+    {
+        rt::DebugRenderer* debugRenderer = (DebugRenderer*)mRenderer.get();
+        int debugRenderingModeIndex = static_cast<int>(debugRenderer->mRenderingMode);
 
         const char* renderingModeItems[] =
         {
@@ -299,12 +330,21 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
         };
         resetFrame |= ImGui::Combo("Rendering mode", &debugRenderingModeIndex, renderingModeItems, IM_ARRAYSIZE(renderingModeItems));
-        mDebugRenderer->mRenderingMode = static_cast<DebugRenderingMode>(debugRenderingModeIndex);
+        debugRenderer->mRenderingMode = static_cast<DebugRenderingMode>(debugRenderingModeIndex);
     }
-    else
+    else if (mRendererName == "Path Tracer MIS")
     {
-        rt::PathTracer* pathTracer = (PathTracer*)mRenderer.get();
-        resetFrame |= ImGui::Checkbox("Light sampling", &pathTracer->mSampleLights);
+        rt::PathTracerMIS* renderer = (PathTracerMIS*)mRenderer.get();
+        resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+    }
+    else if (mRendererName == "Bidirectional Path Tracer")
+    {
+        rt::BidirectionalPathTracer* renderer = (BidirectionalPathTracer*)mRenderer.get();
+        resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::ColorEdit3("Vertex connecting weight", &renderer->mVertexConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::ColorEdit3("Camera connecting weight", &renderer->mCameraConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
     }
 
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
@@ -316,7 +356,6 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     ImGui::SliderInt("Tile size", (int*)&tileOrder, 1, 1024);
 
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 200);
-    ImGui::SliderInt("Samples per pixel", (int*)&mRenderingParams.samplesPerPixel, 1, 64);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
     resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);

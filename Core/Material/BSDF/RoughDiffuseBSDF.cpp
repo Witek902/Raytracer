@@ -44,7 +44,7 @@ bool RoughDiffuseBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW) const
+const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, Float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -57,6 +57,12 @@ const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* o
             *outDirectPdfW = NdotL * RT_INV_PI;
         }
 
+        if (outReversePdfW)
+        {
+            // cos-weighted hemisphere distribution
+            *outDirectPdfW = NdotV * RT_INV_PI;
+        }
+
         const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.incomingDir));
         const float value = NdotL * RT_INV_PI * Evaluate_Internal(NdotL, NdotV, LdotV, ctx.materialParam.roughness);
 
@@ -64,6 +70,26 @@ const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* o
     }
 
     return RayColor::Zero();
+}
+
+Float RoughDiffuseBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    const float NdotV = ctx.outgoingDir.z;
+    const Float NdotL = -ctx.incomingDir.z;
+
+    if (NdotV > CosEpsilon && NdotL > CosEpsilon)
+    {
+        if (dir == ForwardPdf)
+        {
+            return NdotL * RT_INV_PI;
+        }
+        else
+        {
+            return NdotV * RT_INV_PI;
+        }
+    }
+
+    return 0.0f;
 }
 
 } // namespace rt

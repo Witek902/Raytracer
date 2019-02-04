@@ -42,6 +42,12 @@ public:
         AnyEvent                    = ReflectiveEvent | TransmissiveEvent,
     };
 
+    enum PdfDirection
+    {
+        ForwardPdf,
+        ReversePdf,
+    };
+
     // If incoming/outgoing direction is at extremely grazing angle, the BSDF will early-return zero value
     // in order to avoid potential divisions by zero.
     static constexpr Float CosEpsilon = 1.0e-5f;
@@ -80,6 +86,10 @@ public:
     // get debug name
     virtual const char* GetName() const = 0;
 
+    // Check if the distribution is Dirac delta
+    // In other words it means that sampling the BSDF generates only specular events and evaluation returns zero.
+    virtual bool IsDelta() const = 0;
+
     // Importance sample the BSDF
     // Generates incoming light direction for given outgoing ray direction.
     // Returns ray weight (NdotL multiplied) as well as sampling probability of the generated direction.
@@ -88,7 +98,10 @@ public:
     // Evaluate BSDF
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
-    virtual const RayColor Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr) const = 0;
+    virtual const RayColor Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr, Float* outReversePdfW = nullptr) const = 0;
+
+    // Compute probability of scaterring event
+    virtual Float Pdf(const EvaluationContext& ctx, PdfDirection dir = ForwardPdf) const = 0;
 };
 
 } // namespace rt

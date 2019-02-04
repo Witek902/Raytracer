@@ -10,7 +10,6 @@
 #include "../Core/Utils/Texture.h"
 #include "../Core/Rendering/Context.h"
 #include "../Core/Rendering/PathDebugging.h"
-#include "../Core/Rendering/DebugRenderer.h"
 
 struct Options
 {
@@ -19,7 +18,7 @@ struct Options
     std::string dataPath;
 
     bool enablePacketTracing = false;
-    bool useDebugRenderer = false;
+    std::string rendererName = "Path Tracer";
 
     std::string sceneName;
 };
@@ -82,9 +81,8 @@ private:
 
     Float mCameraSpeed;
 
+    std::string mRendererName;
     std::unique_ptr<rt::IRenderer> mRenderer;
-    std::unique_ptr<rt::DebugRenderer> mDebugRenderer;
-    bool mUseDebugRenderer = false;
 
     bool mEnableUI = true;
     bool mVisualizeAdaptiveRenderingBlocks = false;

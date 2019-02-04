@@ -32,13 +32,14 @@ enum class DebugRenderingMode : Uint8
 
 
 // Debug renderer for visualizing normals, tangents, base color, etc.
-class RAYLIB_API DebugRenderer : public IRenderer
+class DebugRenderer : public IRenderer
 {
 public:
     DebugRenderer(const Scene& scene);
 
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, RenderingContext& context) const override;
-    virtual void Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const override;
+    virtual const char* GetName() const;
+    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera& camera, Film& film, RenderingContext& context) const override;
+    virtual void Raytrace_Packet(RayPacket& packet, const Camera& camera, Film& film, RenderingContext& context) const override;
 
     DebugRenderingMode mRenderingMode;
 };

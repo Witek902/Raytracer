@@ -56,7 +56,7 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -83,7 +83,41 @@ const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
         *outDirectPdfW = NdotL * RT_INV_PI * diffuseProbability;
     }
 
+    if (outReversePdfW)
+    {
+        // cos-weighted hemisphere distribution
+        *outReversePdfW = NdotV * RT_INV_PI * diffuseProbability;
+    }
+
     return ctx.materialParam.baseColor * (NdotL * RT_INV_PI * (1.0f - Fi) * (1.0f - Fo));
+}
+
+Float PlasticBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    const float NdotV = ctx.outgoingDir.z;
+    const float NdotL = -ctx.incomingDir.z;
+
+    if (NdotV < CosEpsilon || NdotL < CosEpsilon)
+    {
+        return 0.0f;
+    }
+
+    const float Fi = FresnelDielectric(NdotV, ctx.materialParam.IoR);
+
+    const float specularWeight = Fi;
+    const float diffuseWeight = (1.0f - Fi) * ctx.materialParam.baseColor.Max();
+
+    const float specularProbability = specularWeight / (specularWeight + diffuseWeight);
+    const float diffuseProbability = 1.0f - specularProbability;
+
+    if (dir == ForwardPdf)
+    {
+        return NdotL * RT_INV_PI * diffuseProbability;
+    }
+    else
+    {
+        return NdotV * RT_INV_PI * diffuseProbability;
+    }
 }
 
 } // namespace rt

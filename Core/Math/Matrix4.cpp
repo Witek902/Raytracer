@@ -15,6 +15,17 @@ Matrix4 Matrix4::MakeTranslation(const Vector4& pos)
     return m;
 }
 
+const Matrix4 Matrix4::MakePerspective(float aspect, float fovY, float nearZ, float farZ)
+{
+    float yScale = 1.0f / tanf(fovY * 0.5f);
+    float xScale = yScale / aspect;
+
+    return Matrix4(Vector4(xScale, 0.0f, 0.0f, 0.0f),
+        Vector4(0.0f, yScale, 0.0f, 0.0f),
+        Vector4(0.0f, 0.0f, farZ / (farZ - nearZ), 1.0f),
+        Vector4(0.0f, 0.0f, -nearZ * farZ / (farZ - nearZ), 0.0f));
+}
+
 Matrix4 Matrix4::MakeScaling(const Vector4& scale)
 {
     Matrix4 m;

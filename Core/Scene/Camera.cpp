@@ -31,6 +31,17 @@ void Camera::SetPerspective(Float aspectRatio, Float FoV)
     mAspectRatio = aspectRatio;
     mFieldOfView = FoV;
     mTanHalfFoV = tanf(mFieldOfView * 0.5f);
+
+    {
+        Matrix4 worldToLocal = mLocalToWorld.FastInverseNoScale();
+        worldToLocal[0].w = 0.0f;
+        worldToLocal[1].w = 0.0f;
+        worldToLocal[2].w = 0.0f;
+        worldToLocal[3].w = 1.0f;
+
+        const Matrix4 projection = Matrix4::MakePerspective(aspectRatio, FoV, 0.01f, 1000.0f);
+        mWorldToScreen = mLocalToWorld.FastInverseNoScale() * projection;
+    }
 }
 
 void Camera::SetAngularVelocity(const math::Quaternion& quat)
@@ -98,6 +109,40 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
 
     return Ray(origin, direction);
 }
+
+bool Camera::WorldToFilm(const Vector4 worldPosition, Vector4& outFilmCoords) const
+{
+    // TODO motion blur
+    const Vector4 cameraSpacePosition = mWorldToScreen.TransformPoint(worldPosition);
+
+    if (cameraSpacePosition.z > 0.0f)
+    {
+        // perspective projection
+        outFilmCoords = cameraSpacePosition / cameraSpacePosition.w;
+
+        // [-1...1] -> [0...1]
+        outFilmCoords *= 0.5f;
+        outFilmCoords += Vector4(0.5f);
+
+        return true;
+    }
+
+    return false;
+}
+
+Float Camera::PdfW(const math::Vector4 direction) const
+{
+    const float cosAtCamera = Vector4::Dot3(GetLocalToWorld()[2], direction);
+
+    // equivalent of:
+    //const float imagePointToCameraDist = 0.5f / (mTanHalfFoV * cosAtCamera);
+    //const float pdf = Sqr(imagePointToCameraDist) / (cosAtCamera * mAspectRatio);
+
+    const float pdf = 0.25f / (Sqr(mTanHalfFoV) * Cube(cosAtCamera) * mAspectRatio);
+
+    return Max(0.0f, pdf);
+}
+
 
 Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& context) const
 {

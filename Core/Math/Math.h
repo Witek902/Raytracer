@@ -83,11 +83,18 @@ RT_FORCE_INLINE constexpr T Abs(const T x)
     return x;
 }
 
-// Square
+// x^2
 template<typename T>
 RT_FORCE_INLINE constexpr T Sqr(const T x)
 {
     return x * x;
+}
+
+// x^3
+template<typename T>
+RT_FORCE_INLINE constexpr T Cube(const T x)
+{
+    return x * x * x;
 }
 
 // Square root
@@ -144,25 +151,27 @@ RT_FORCE_INLINE constexpr T Lerp(const T a, const T b, const T w)
 }
 
 // Check if a given number is NaN (not a number), according to IEEE 754 standard.
-RT_FORCE_INLINE bool IsNaN(float a)
+RT_FORCE_INLINE bool IsNaN(float x)
 {
     Bits32 num;
-    num.f = a;
+    num.f = x;
     return ((num.ui & 0x7F800000) == 0x7F800000) && ((num.ui & 0x7FFFFF) != 0);
 }
 
 // Check if a given number is infinity (positive or negative), according to IEEE 754 standard.
-RT_FORCE_INLINE bool IsInfinity(float a)
+RT_FORCE_INLINE bool IsInfinity(float x)
 {
     Bits32 num;
-    num.f = a;
+    num.f = x;
     return (num.ui & 0x7FFFFFFF) == 0x7F800000;
 }
 
 // Check if a given number is not NaN nor infinity
 RT_FORCE_INLINE bool IsValid(float x)
 {
-    return !isnan(x) && !isinf(x);
+    Bits32 num;
+    num.f = x;
+    return (num.ui & 0x7F800000) != 0x7F800000;
 }
 
 // Check if a number is power of two.

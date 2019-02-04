@@ -93,10 +93,12 @@ const RayColor SphereLight::Illuminate(IlluminateParam& param) const
         param.outDirectPdfW = SphereCapPdf(cosThetaMax);
     }
 
+    param.outEmissionPdfW = 0.0f; // TODO BDPT
+
     return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
 {
     RT_UNUSED(rayDirection);
 
@@ -110,7 +112,21 @@ const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::V
         *outDirectPdfA = SphereCapPdf(cosTheta);
     }
 
+    if (outEmissionPdfW)
+    {
+        // TODO
+        RT_FATAL("Not implemented");
+    }
+
     return RayColor::Resolve(context.wavelength, mColor);
+}
+
+const RayColor SphereLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+{
+    // TODO
+    RT_UNUSED(ctx);
+    RT_UNUSED(outResult);
+    return RayColor::Zero();
 }
 
 const Vector4 SphereLight::GetNormal(const Vector4& hitPoint) const

@@ -62,7 +62,7 @@ bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     const Float roughness = ctx.materialParam.roughness;
 
@@ -91,12 +91,49 @@ const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* out
     const float G = microfacet.G(NdotV, NdotL);
     const float F = FresnelMetal(VdotH, ctx.material.IoR, ctx.material.K);
 
+    const float pdf = microfacet.Pdf(m) / (4.0f * VdotH);
+
     if (outDirectPdfW)
     {
-        *outDirectPdfW = microfacet.Pdf(m) / (4.0f * VdotH);
+        *outDirectPdfW = pdf;
+    }
+
+    if (outReversePdfW)
+    {
+        *outReversePdfW = pdf;
     }
 
     return ctx.materialParam.baseColor * RayColor(F * G * D / (4.0f * NdotV));
+}
+
+Float RoughMetalBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    RT_UNUSED(dir);
+
+    const Float roughness = ctx.materialParam.roughness;
+
+    // fallback to specular event
+    if (roughness < SpecularEventRoughnessTreshold)
+    {
+        return 0.0f;
+    }
+
+    // microfacet normal
+    const Vector4 m = (ctx.outgoingDir - ctx.incomingDir).Normalized3();
+
+    const float NdotV = ctx.outgoingDir.z;
+    const float NdotL = -ctx.incomingDir.z;
+    const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
+
+    // clip the function
+    if (NdotV < CosEpsilon || NdotL < CosEpsilon || VdotH < CosEpsilon)
+    {
+        return 0.0f;
+    }
+
+    const Microfacet microfacet(roughness * roughness);
+
+    return microfacet.Pdf(m) / (4.0f * VdotH);
 }
 
 } // namespace rt

@@ -163,6 +163,9 @@ public:
         return t;
     }
 
+    // Create perspective projection matrix
+    static const Matrix4 MakePerspective(float aspect, float fovY, float nearZ, float farZ);
+
     // Create matrix representing a translation by 3D vector.
     RAYLIB_API static Matrix4 MakeTranslation(const Vector4& pos);
 
@@ -170,6 +173,7 @@ public:
     RT_FORCE_INLINE const Matrix4 FastInverseNoScale() const
     {
         Matrix4 result = *this;
+        result.r[3] = VECTOR_W;
         Vector4::Transpose3(result[0], result[1], result[2]);
         result.r[3] = result.TransformVectorNeg(r[3]);
         return result;

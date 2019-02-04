@@ -18,6 +18,9 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     RT_ASSERT(p0.IsValid());
     RT_ASSERT(edge0.IsValid());
     RT_ASSERT(edge1.IsValid());
+    RT_ASSERT(edge0.Length3() > 0.0f);
+    RT_ASSERT(edge1.Length3() > 0.0f);
+    RT_ASSERT(Abs(Vector4::Dot3(edge0.Normalized3(), edge1.Normalized3())) < 0.001f);
 
     edgeLengthInv0 = 1.0f / edge0.Length3();
     edgeLengthInv1 = 1.0f / edge1.Length3();
@@ -45,7 +48,7 @@ const Box AreaLight::GetBoundingBox() const
     return box;
 }
 
-bool AreaLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
+bool AreaLight::TestRayHit(const Ray& ray, Float& outDistance) const
 {
     Float u, v; // unused
 
@@ -94,12 +97,14 @@ const RayColor AreaLight::Illuminate(IlluminateParam& param) const
         return RayColor::Zero();
     }
 
+    param.outCosAtLight = cosNormalDir;
     param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
+    param.outEmissionPdfW = cosNormalDir * invArea * RT_INV_PI;
 
     return RayColor::Resolve(param.context.wavelength, color);
 }
 
-const RayColor AreaLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& rayDirection, const Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
 {
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
@@ -110,6 +115,11 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const math::Vec
     if (outDirectPdfA)
     {
         *outDirectPdfA = invArea;
+    }
+
+    if (outEmissionPdfW)
+    {
+        *outEmissionPdfW = cosNormalDir * invArea * RT_INV_PI;
     }
 
     Spectrum color = mColor;
@@ -125,6 +135,34 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const math::Vec
     }
 
     return RayColor::Resolve(context.wavelength, color);
+}
+
+const RayColor AreaLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+{
+    // generate random point on the light surface
+    const Float2 uv = isTriangle ? ctx.randomGenerator.GetTriangle() : ctx.randomGenerator.GetFloat2();
+    // p0 + edge0 * uv.x + edge1 * uv.y;
+    outResult.position = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
+
+    // generate random direction
+    Vector4 dirLocalSpace = ctx.randomGenerator.GetHemishpereCos();
+    dirLocalSpace.z = Max(dirLocalSpace.z, 0.001f);
+    outResult.direction = dirLocalSpace.x * edge0 * edgeLengthInv0 + dirLocalSpace.y * edge1 * edgeLengthInv1 + dirLocalSpace.z * normal;
+
+    outResult.cosAtLight = dirLocalSpace.z;
+    outResult.directPdfA = invArea;
+    outResult.emissionPdfW = dirLocalSpace.z * (invArea * RT_INV_PI);
+
+    Spectrum color = mColor;
+
+    // sample texture map
+    if (mTexture)
+    {
+        color.rgbValues *= mTexture->Evaluate(Vector4(uv), SamplerDesc());
+    }
+
+    // TODO texture
+    return RayColor::Resolve(ctx.wavelength, color) * dirLocalSpace.z;
 }
 
 const Vector4 AreaLight::GetNormal(const Vector4&) const

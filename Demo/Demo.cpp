@@ -4,7 +4,7 @@
 
 #include "../Core/Utils/Timer.h"
 #include "../Core/Utils/Logger.h"
-#include "../Core/Rendering/PathTracer.h"
+#include "../Core/Rendering/Renderer.h"
 #include "../Core/Traversal/TraversalContext.h"
 
 #include "../External/imgui/imgui_sw.hpp"
@@ -62,7 +62,7 @@ bool DemoWindow::Initialize()
 
     InitializeUI();
 
-    mUseDebugRenderer = gOptions.useDebugRenderer;
+    mRendererName = gOptions.rendererName;
     mRenderingParams.numThreads = std::thread::hardware_concurrency();
     mRenderingParams.traversalMode = gOptions.enablePacketTracing ? TraversalMode::Packet : TraversalMode::Single;
 
@@ -153,8 +153,7 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
     mSelectedMaterial = nullptr;
     mSelectedObject = nullptr;
 
-    mRenderer = std::make_unique<PathTracer>(*mScene);
-    mDebugRenderer = std::make_unique<DebugRenderer>(*mScene);
+    mRenderer = std::unique_ptr<IRenderer>(CreateRenderer(mRendererName, *mScene));
 }
 
 void DemoWindow::ResetFrame()
@@ -212,9 +211,6 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
-        mRenderer->TraceRay_Single(ray, *renderingContext);
-        RT_ASSERT(!mPathDebugData.data.empty());
-
         HitPoint hitPoint;
         mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
 
@@ -232,8 +228,6 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
     }
     else if (button == MouseButton::Left)
     {
-        mPathDebugData.data.clear();
-
         rt::RenderingParams params = mRenderingParams;
         params.antiAliasingSpread = 0.0f;
 
@@ -243,14 +237,10 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
-        // TODO DebugPathTracer?
-        mRenderer->TraceRay_Single(ray, *renderingContext);
-        RT_ASSERT(!mPathDebugData.data.empty());
-
         HitPoint hitPoint;
         mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
 
-        if (mPathDebugData.data[0].hitPoint.objectId != UINT32_MAX)
+        if (hitPoint.objectId != UINT32_MAX)
         {
             mSelectedMaterial = const_cast<Material*>(mPathDebugData.data[0].shadingData.material);
             mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[mPathDebugData.data[0].hitPoint.objectId].get());
@@ -341,15 +331,13 @@ bool DemoWindow::Loop()
         {
             mPreviewRenderingParams = mRenderingParams;
             mPreviewRenderingParams.antiAliasingSpread = 0.0f;
-            mPreviewRenderingParams.samplesPerPixel = 1;
             ResetFrame();
         }
 
         //// render
-        const IRenderer& renderer = mUseDebugRenderer ? (*mDebugRenderer) : (*mRenderer);
         mViewport->SetRenderingParams(IsPreview() ? mPreviewRenderingParams : mRenderingParams);
         localTimer.Start();
-        mViewport->Render(renderer, mCamera);
+        mViewport->Render(*mRenderer, mCamera);
         mRenderDeltaTime = localTimer.Stop();
 
         if (mEnableUI)

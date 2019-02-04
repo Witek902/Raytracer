@@ -28,7 +28,7 @@ bool DiffuseBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -41,10 +41,36 @@ const RayColor DiffuseBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
             *outDirectPdfW = NdotL * RT_INV_PI;
         }
 
+        if (outReversePdfW)
+        {
+            // cos-weighted hemisphere distribution
+            *outReversePdfW = NdotV * RT_INV_PI;
+        }
+
         return ctx.materialParam.baseColor * RayColor(NdotL * RT_INV_PI);
     }
 
     return RayColor::Zero();
+}
+
+Float DiffuseBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    const float NdotV = ctx.outgoingDir.z;
+    const Float NdotL = -ctx.incomingDir.z;
+
+    if (NdotV > CosEpsilon && NdotL > CosEpsilon)
+    {
+        if (dir == ForwardPdf)
+        {
+            return NdotL * RT_INV_PI;
+        }
+        else
+        {
+            return NdotV * RT_INV_PI;
+        }
+    }
+
+    return 0.0f;
 }
 
 } // namespace rt

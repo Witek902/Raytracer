@@ -4,8 +4,8 @@
 
 namespace rt {
 
-// simplest Lambertian diffuse
-class DiffuseBSDF : public BSDF
+// BSDF that absorbs all the light
+class NullBSDF : public BSDF
 {
 public:
     virtual const char* GetName() const override;

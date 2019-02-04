@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Material.h"
 
+#include "BSDF/NullBSDF.h"
 #include "BSDF/DiffuseBSDF.h"
 #include "BSDF/RoughDiffuseBSDF.h"
 #include "BSDF/DielectricBSDF.h"
@@ -38,7 +39,12 @@ MaterialPtr Material::Create()
 
 void Material::SetBsdf(const std::string& bsdfName)
 {
-    if (bsdfName == "diffuse")
+    // TODO use some kind of reflection for this
+    if (bsdfName == "null")
+    {
+        mBSDF = std::make_unique<NullBSDF>();
+    }
+    else if (bsdfName == "diffuse")
     {
         mBSDF = std::make_unique<DiffuseBSDF>();
     }
@@ -158,7 +164,7 @@ const RayColor Material::Evaluate(
     const Wavelength& wavelength,
     const ShadingData& shadingData,
     const Vector4& incomingDirWorldSpace,
-    Float* outPdfW) const
+    Float* outPdfW, Float* outReversePdfW) const
 {
     RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
 
@@ -173,7 +179,7 @@ const RayColor Material::Evaluate(
         incomingDirLocalSpace
     };
 
-    return mBSDF->Evaluate(evalContext, outPdfW);
+    return mBSDF->Evaluate(evalContext, outPdfW, outReversePdfW);
 }
 
 const RayColor Material::Sample(
@@ -181,8 +187,8 @@ const RayColor Material::Sample(
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
     Random& randomGenerator,
-    Float& outPdfW,
-    BSDF::EventType& outSampledEvent) const
+    Float* outPdfW,
+    BSDF::EventType* outSampledEvent) const
 {
     RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
 
@@ -196,9 +202,14 @@ const RayColor Material::Sample(
     };
 
     // BSDF sampling (in local space)
+    // TODO don't compute PDF if not requested
     if (!mBSDF->Sample(samplingContext))
     {
-        outSampledEvent = BSDF::NullEvent;
+        if (outSampledEvent)
+        {
+            *outSampledEvent = BSDF::NullEvent;
+        }
+
         return RayColor();
     }
 
@@ -209,8 +220,16 @@ const RayColor Material::Sample(
 
     // convert incoming light direction back to world space
     outIncomingDirWorldSpace = shadingData.LocalToWorld(samplingContext.outIncomingDir);
-    outPdfW = samplingContext.outPdf;
-    outSampledEvent = samplingContext.outEventType;
+
+    if (outPdfW)
+    {
+        *outPdfW = samplingContext.outPdf;
+    }
+
+    if (outSampledEvent)
+    {
+        *outSampledEvent = samplingContext.outEventType;
+    }
 
     return samplingContext.outColor;
 }

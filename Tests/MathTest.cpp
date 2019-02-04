@@ -200,6 +200,27 @@ TEST(Math, IsInfinity_Float)
     EXPECT_FALSE(IsInfinity(-123.0f));
 }
 
+TEST(Math, IsValid_Float)
+{
+    EXPECT_FALSE(IsValid(std::numeric_limits<float>::quiet_NaN()));
+    EXPECT_FALSE(IsValid(-std::numeric_limits<float>::quiet_NaN()));
+
+    EXPECT_TRUE(IsValid(std::numeric_limits<float>::max()));
+    EXPECT_TRUE(IsValid(std::numeric_limits<float>::min()));
+    EXPECT_TRUE(IsValid(-std::numeric_limits<float>::max()));
+    EXPECT_TRUE(IsValid(-std::numeric_limits<float>::min()));
+
+    EXPECT_FALSE(IsValid(-std::numeric_limits<float>::infinity()));
+    EXPECT_FALSE(IsValid(-std::numeric_limits<float>::infinity()));
+
+    EXPECT_TRUE(IsValid(0.0f));
+    EXPECT_TRUE(IsValid(-0.0f));
+    EXPECT_TRUE(IsValid(1.0f));
+    EXPECT_TRUE(IsValid(-1.0f));
+    EXPECT_TRUE(IsValid(123.0f));
+    EXPECT_TRUE(IsValid(-123.0f));
+}
+
 TEST(Math, Denormal_Float)
 {
     volatile float value = 1.0e-20f;

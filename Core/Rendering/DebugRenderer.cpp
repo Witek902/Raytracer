@@ -5,7 +5,8 @@
 #include "Color/ColorHelpers.h"
 #include "Color/Spectrum.h"
 #include "Traversal/TraversalContext.h"
-#include "Rendering/Viewport.h"
+#include "Rendering/Film.h"
+#include "Rendering/Context.h"
 
 namespace rt {
 
@@ -23,7 +24,12 @@ DebugRenderer::DebugRenderer(const Scene& scene)
 {
 }
 
-const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& context) const
+const char* DebugRenderer::GetName() const
+{
+    return "Debug";
+}
+
+const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, const Camera&, Film&, RenderingContext& context) const
 {
     HitPoint hitPoint;
     context.localCounters.Reset();
@@ -36,10 +42,16 @@ const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& 
         return RayColor::Zero();
     }
 
+    if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
+    {
+        // ray hit a light
+        return RayColor::One();
+    }
+
     ShadingData shadingData;
     if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
     {
-        mScene.ExtractShadingData(ray.origin, ray.dir, hitPoint, context.time, shadingData);
+        mScene.ExtractShadingData(ray, hitPoint, context.time, shadingData);
     }
 
     Vector4 resultColor;
@@ -157,7 +169,7 @@ const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& 
     return RayColor::Resolve(context.wavelength, Spectrum(resultColor));
 }
 
-void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context, Viewport& viewport) const
+void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film, RenderingContext& context) const
 {
     mScene.Traverse_Packet({ packet, context });
 
@@ -184,7 +196,7 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context
             {
                 if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
                 {
-                    mScene.ExtractShadingData(rayOrigins[j], rayDirs[j], hitPoint, context.time, shadingData);
+                    mScene.ExtractShadingData(Ray(rayOrigins[j], rayDirs[j]), hitPoint, context.time, shadingData);
                 }
 
                 switch (mRenderingMode)
@@ -227,7 +239,7 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context
             }
 
             const ImageLocationInfo& imageLocation = packet.imageLocations[RayPacket::RaysPerGroup * i + j];
-            viewport.Internal_AccumulateColor(imageLocation.x, imageLocation.y, color);
+            film.AccumulateColor(imageLocation.x, imageLocation.y, color);
         }
     }
 }

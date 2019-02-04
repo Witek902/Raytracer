@@ -32,7 +32,16 @@ void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, co
 
 bool LightSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 {
-    RT_UNUSED(context);
+    Float lightDistance;
+    if (mLight.TestRayHit(context.ray, lightDistance))
+    {
+        if (lightDistance < context.hitPoint.distance)
+        {
+            context.hitPoint.distance = lightDistance;
+            return true;
+        }
+    }
+
     return false;
 }
 

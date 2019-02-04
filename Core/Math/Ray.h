@@ -42,6 +42,11 @@ public:
     {
         return Vector4::MulAndAdd(dir, t, origin);
     }
+
+    RT_FORCE_INLINE bool IsValid() const
+    {
+        return origin.IsValid() && dir.IsValid();
+    }
 };
 
 class RayBoxSegment

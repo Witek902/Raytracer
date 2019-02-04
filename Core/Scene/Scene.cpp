@@ -79,6 +79,12 @@ bool Scene::BuildBVH()
     return true;
 }
 
+const ILight& Scene::Internal_GetLightByObjectId(Uint32 id) const
+{
+    const LightSceneObject* lightSceneObj = static_cast<const LightSceneObject*>(mObjects[id].get());
+    return lightSceneObj->GetLight();
+}
+
 void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
     const ISceneObject* object = mObjects[objectID].get();
@@ -244,7 +250,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
 }
 
-void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const
+void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const
 {
     if (hitPoint.distance == FLT_MAX)
     {
@@ -256,7 +262,7 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     const Matrix4 transform = object->ComputeTransform(time);
     const Matrix4 invTransform = transform.FastInverseNoScale();
 
-    const Vector4 worldPosition = Vector4::MulAndAdd(rayDir, hitPoint.distance, rayOrigin);
+    const Vector4 worldPosition = Vector4::MulAndAdd(ray.dir, hitPoint.distance, ray.origin);
     outShadingData.frame[3] = invTransform.TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data

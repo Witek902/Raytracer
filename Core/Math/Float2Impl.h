@@ -2,8 +2,6 @@
 
 #include "Float2.h"
 
-#include <cassert>
-
 
 namespace rt {
 namespace math {

@@ -289,6 +289,11 @@
     </ClInclude>
     <ClInclude Include="Color\Spectrum.h" />
     <ClInclude Include="Utils\Texture.h" />
+    <ClInclude Include="Rendering\PathTracerMIS.h" />
+    <ClInclude Include="Rendering\LightTracer.h" />
+    <ClInclude Include="Rendering\Film.h" />
+    <ClInclude Include="Rendering\BidirectionalPathTracer.h" />
+    <ClInclude Include="Material\BSDF\NullBSDF.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -460,6 +465,11 @@
     <ClCompile Include="Color\Wavelength.cpp">
       <Filter>Color</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\PathTracerMIS.cpp" />
+    <ClCompile Include="Rendering\LightTracer.cpp" />
+    <ClCompile Include="Rendering\Film.cpp" />
+    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp" />
+    <ClCompile Include="Material\BSDF\NullBSDF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

@@ -58,6 +58,9 @@ public:
 
     RAYLIB_API void SetAngularVelocity(const math::Quaternion& quat);
 
+    RT_FORCE_INLINE const math::Transform& GetTransform() const { return mTransform; }
+    RT_FORCE_INLINE const math::Matrix4& GetLocalToWorld() const { return mLocalToWorld; }
+
     // Sample camera transfrom for given time point
     RT_FORCE_INLINE const math::Matrix4 SampleTransform(const float time) const;
 
@@ -69,7 +72,10 @@ public:
     RT_FORCE_INLINE const math::Vector4 GenerateBokeh(RenderingContext& context) const;
     RT_FORCE_INLINE const math::Vector2x8 GenerateBokeh_Simd8(RenderingContext& context) const;
 
-    // TODO generate ray packet
+    // Convert world-space coordinates to film-space coordinates including camera projection (0...1 range)
+    bool WorldToFilm(const math::Vector4 worldPosition, math::Vector4& outFilmCoords) const;
+
+    Float PdfW(const math::Vector4 direction) const;
 
     // camera placement
     math::Transform mTransform;
@@ -90,7 +96,9 @@ public:
 
 private:
     Float mTanHalfFoV;
+
     math::Matrix4 mLocalToWorld;
+    math::Matrix4 mWorldToScreen;
 };
 
 } // namespace rt

@@ -47,8 +47,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)
     {
-        DielectricBSDF smoothBsdf;
-        return smoothBsdf.Sample(ctx);
+        return DielectricBSDF().Sample(ctx);
     }
 
     // microfacet normal (aka. half vector)
@@ -61,7 +60,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     const float F = FresnelDielectric(VdotH, ior);
     const bool reflection = ctx.randomGenerator.GetFloat() < F;
 
-    if (reflection) 
+    if (reflection)
     {
         ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, m);
         ctx.outEventType = GlossyReflectionEvent;
@@ -83,7 +82,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
 
     const float D = microfacet.D(m);
     const float G = microfacet.G(NdotV, NdotL);
-    
+
     ctx.outColor = RayColor(Abs(VdotH) * G * D / (microfacetPdf * Abs(NdotV)));
 
     if (reflection)
@@ -108,7 +107,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z; // wi
     const float NdotL = -ctx.incomingDir.z; // wo
@@ -171,13 +170,82 @@ const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float
         color = RayColor(Abs(VdotH * LdotH) * (1.0f - F) * G * D / (denom * Abs(NdotV)));
     }
 
+    RT_ASSERT(pdf >= 0.0f);
+
     if (outDirectPdfW)
     {
-        RT_ASSERT(pdf >= 0.0f);
+        *outDirectPdfW = pdf;
+    }
+
+    if (outReversePdfW)
+    {
+        // TODO BDPT
         *outDirectPdfW = pdf;
     }
 
     return RayColor(color);
+}
+
+Float RoughDielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    if (dir != ForwardPdf)
+    {
+        RT_FATAL("Not implemented");
+    }
+
+    const float NdotV = ctx.outgoingDir.z; // wi
+    const float NdotL = -ctx.incomingDir.z; // wo
+
+    if (Abs(NdotV) < CosEpsilon || Abs(NdotL) < CosEpsilon)
+    {
+        return 0.0f;
+    }
+
+    const float roughness = ctx.materialParam.roughness;
+    if (roughness < SpecularEventRoughnessTreshold)
+    {
+        return 0.0f;
+    }
+
+    // TODO handle dispersion
+    float ior = ctx.materialParam.IoR;
+    const float eta = NdotV < 0.0f ? ior : 1.0f / ior;
+
+    const bool reflection = NdotV * NdotL >= 0.0f;
+
+    // microfacet normal
+    Vector4 m;
+    if (reflection)
+    {
+        m = ctx.outgoingDir - ctx.incomingDir;
+    }
+    else
+    {
+        m = eta * ctx.outgoingDir - ctx.incomingDir;
+    }
+    m *= Signum(m.z);
+    m.Normalize3();
+
+    if (Abs(m.z) < CosEpsilon)
+    {
+        return 0.0f;
+    }
+
+    const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
+    const float LdotH = Vector4::Dot3(m, -ctx.incomingDir);
+
+    const Microfacet microfacet(roughness * roughness);
+    const float F = FresnelDielectric(VdotH, ior);
+
+    if (reflection)
+    {
+        return F * microfacet.Pdf(m) / (4.0f * Abs(VdotH));
+    }
+    else // transmission
+    {
+        const float denom = Sqr(eta * VdotH + LdotH);
+        return (1.0f - F) * microfacet.Pdf(m) * Abs(LdotH) / denom;
+    }
 }
 
 } // namespace rt

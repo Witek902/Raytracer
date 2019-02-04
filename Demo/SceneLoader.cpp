@@ -308,7 +308,12 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
             return false;
         }
 
-        scene.AddLight(std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor));
+        auto areaLight = std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor);
+
+        if (!TryParseTexture(value, "texture", areaLight->mTexture))
+            return false;
+
+        scene.AddLight(std::move(areaLight));
     }
     else if (typeStr == "point")
     {

@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "Viewport.h"
+#include "Film.h"
 #include "Renderer.h"
 #include "Utils/Logger.h"
 #include "Scene/Camera.h"
@@ -180,21 +181,6 @@ bool Viewport::Render(const IRenderer& renderer, const Camera& camera)
     return true;
 }
 
-void Viewport::Internal_AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor)
-{
-    Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
-    Float3* __restrict secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
-
-    const size_t pixelIndex = GetWidth() * y + x;
-    sumPixels[pixelIndex] += sampleColor.ToFloat3();
-    mPassesPerPixel[pixelIndex] = mProgress.passesFinished + 1;
-
-    if (mProgress.passesFinished % 2 == 0)
-    {
-        secondarySumPixels[pixelIndex] += sampleColor.ToFloat3();
-    }
-}
-
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
 {
     RT_ASSERT(tile.minX < tile.maxX);
@@ -202,10 +188,11 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     RT_ASSERT(tile.maxX <= GetWidth());
     RT_ASSERT(tile.maxY <= GetHeight());
 
-    const Vector4 invSize = VECTOR_ONE2 / Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
+    const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
+    const Vector4 invSize = VECTOR_ONE2 / filmSize;
     const Uint32 tileSize = renderingContext.params->tileSize;
-    const Uint32 samplesPerPixel = renderingContext.params->samplesPerPixel;
-    const Float sampleScale = 1.0f / (Float)samplesPerPixel;
+
+    Film film(mSum, mSecondarySum, filmSize);
 
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
@@ -219,17 +206,13 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                Vector4 sampleColor = Vector4::Zero();
-                for (Uint32 s = 0; s < samplesPerPixel; ++s)
-                {
-                    renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
-                    renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
+                renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
+                renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
 
-                    // generate primary ray
-                    const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
-                    const RayColor color = tileContext.renderer.TraceRay_Single(ray, renderingContext);
-                    sampleColor += color.ConvertToTristimulus(renderingContext.wavelength);
-                }
+                // generate primary ray
+                const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
+                const RayColor color = tileContext.renderer.TraceRay_Single(ray, tileContext.camera, film, renderingContext);
+                const Vector4 sampleColor = color.ConvertToTristimulus(renderingContext.wavelength);
 
                 RT_ASSERT(sampleColor.IsValid());
 
@@ -238,10 +221,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 RT_ASSERT((sampleColor >= Vector4::Zero()).All());
 #endif // RT_ENABLE_SPECTRAL_RENDERING
 
-                // TODO get rid of this
-                sampleColor *= sampleScale;
-
-                Internal_AccumulateColor(x, y, sampleColor);
+                film.AccumulateColor(x, y, sampleColor);
             }
         }
     }
@@ -310,11 +290,11 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
         }
 
         renderingContext.localCounters.Reset();
-        tileContext.renderer.Raytrace_Packet(primaryPacket, renderingContext, *this);
+        tileContext.renderer.Raytrace_Packet(primaryPacket, tileContext.camera, film, renderingContext);
         renderingContext.counters.Append(renderingContext.localCounters);
     }
 
-    renderingContext.counters.numPrimaryRays += tileSize * tileSize * renderingContext.params->samplesPerPixel;
+    renderingContext.counters.numPrimaryRays += tileSize * tileSize;
 }
 
 void Viewport::PerformPostProcess()
@@ -381,7 +361,9 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
             const Vector4 rgbColor = Vector4(sumPixels[pixelIndex]);
 #endif
 
-            const Float pixelScaling = 1.0f / static_cast<Float>(mPassesPerPixel[pixelIndex]);
+            // TODO
+            const Float pixelScaling = 1.0f / (1 + mProgress.passesFinished);
+            //const Float pixelScaling = 1.0f / static_cast<Float>(mPassesPerPixel[pixelIndex]);
 
             const Vector4 toneMapped = ToneMap(rgbColor * mPostprocessParams.colorScale * pixelScaling);
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);

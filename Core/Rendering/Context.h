@@ -41,11 +41,8 @@ struct RenderingParams
     // NOTE: must be in [0...1] range
     Float motionBlurStrength = 0.5f;
 
-    // number of primary rays to be generated for image pixel
-    Uint32 samplesPerPixel = 1;
-
     // maximum ray depth
-    Uint32 maxRayDepth = 50;
+    Uint32 maxRayDepth = 20;
 
     // ray depth at which Russian Roulette algorithm kicks in
     Uint32 minRussianRouletteDepth = 1;

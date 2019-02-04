@@ -84,7 +84,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW) const
+const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
 {
     RT_UNUSED(ctx);
 
@@ -95,7 +95,21 @@ const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* out
         *outDirectPdfW = 0.0f;
     }
 
+    if (outReversePdfW)
+    {
+        *outReversePdfW = 0.0f;
+    }
+
     return RayColor::Zero();
+}
+
+Float DielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+{
+    RT_UNUSED(ctx);
+    RT_UNUSED(dir);
+
+    // Dirac delta, assume we cannot hit it
+    return 0.0f;
 }
 
 } // namespace rt

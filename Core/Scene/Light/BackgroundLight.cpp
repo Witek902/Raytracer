@@ -50,12 +50,14 @@ const RayColor BackgroundLight::Illuminate(IlluminateParam& param) const
     const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
     param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
     param.outDirectPdfW = RT_INV_PI / 2.0f; // hemisphere area
+    param.outEmissionPdfW = 0.0f;
     param.outDistance = BackgroundLightDistance;
+    param.outCosAtLight = 1.0f;
 
     return GetBackgroundColor(param.outDirectionToLight, param.context);
 }
 
-const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA) const
+const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 
@@ -64,7 +66,25 @@ const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const mat
         *outDirectPdfA = RT_INV_PI / 2.0f; // hemisphere area
     }
 
+    if (outEmissionPdfW)
+    {
+        *outEmissionPdfW = 0.0f;
+    }
+
     return GetBackgroundColor(rayDirection, context);
+}
+
+const RayColor BackgroundLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+{
+    // TODO how to generate ray for background light?
+
+    RT_UNUSED(ctx);
+
+    outResult.emissionPdfW = 0.0f;
+    outResult.directPdfA = RT_INV_PI / 2.0f; // hemisphere area
+    outResult.cosAtLight = 1.0f;
+
+    return RayColor::Zero();
 }
 
 bool BackgroundLight::IsFinite() const
