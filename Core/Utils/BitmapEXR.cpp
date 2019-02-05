@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "Bitmap.h"
 #include "Logger.h"
-#include "Timer.h"
-#include "Math/Half.h"
 
 #include "../External/tinyexr/tinyexr.h"
 

@@ -1,6 +1,5 @@
 #include "PCH.h"
 #include "SceneObject_Plane.h"
-#include "Math/Geometry.h"
 #include "Rendering/ShadingData.h"
 #include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"

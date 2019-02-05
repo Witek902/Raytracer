@@ -1,6 +1,6 @@
 #include "PCH.h"
+#include "Vector4.h"
 #include "Utils.h"
-#include "Math.h"
 
 namespace rt {
 namespace math {

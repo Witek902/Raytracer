@@ -4,7 +4,6 @@
 #include "PathDebugging.h"
 #include "Scene/Scene.h"
 #include "Scene/Light/Light.h"
-#include "Scene/Light/BackgroundLight.h"
 #include "Scene/Object/SceneObject_Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"

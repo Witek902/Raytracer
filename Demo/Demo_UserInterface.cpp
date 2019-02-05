@@ -1,18 +1,9 @@
 #include "PCH.h"
 #include "Demo.h"
 
-#include "../Core/Mesh/Mesh.h"
-#include "../Core/Material/Material.h"
-#include "../Core/Rendering/Context.h"
-#include "../Core/Rendering/ShadingData.h"
-#include "../Core/Traversal/TraversalContext.h"
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
-#include "../Core/Scene/Object/SceneObject_Sphere.h"
-#include "../Core/Scene/Object/SceneObject_Box.h"
-#include "../Core/Color/ColorHelpers.h"
 #include "../Core/Rendering/PathTracer.h"
 
-#include "../External/imgui/imgui.h"
 
 using namespace rt;
 using namespace math;

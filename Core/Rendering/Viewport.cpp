@@ -3,10 +3,7 @@
 #include "Renderer.h"
 #include "Utils/Logger.h"
 #include "Scene/Camera.h"
-#include "Color/RayColor.h"
-#include "Color/ColorHelpers.h"
 #include "Color/LdrColor.h"
-#include "Traversal/TraversalContext.h"
 
 namespace rt {
 

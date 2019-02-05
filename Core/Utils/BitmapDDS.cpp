@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "Bitmap.h"
 #include "Logger.h"
-#include "BlockCompression.h"
-#include "Timer.h"
 
 #define DDS_MAGIC_NUMBER    0x20534444
 

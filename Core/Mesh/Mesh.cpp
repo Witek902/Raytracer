@@ -5,21 +5,14 @@
 
 #include "BVH/BVHBuilder.h"
 
-#include "Rendering/ShadingData.h"
 #include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"
 
-#include "Math/Triangle.h"
 #include "Math/Geometry.h"
-#include "Math/Simd8Triangle.h"
 #include "Math/Simd8Geometry.h"
 
 #include "Utils/Logger.h"
-#include "Utils/Bitmap.h"
-#include "Utils/AlignmentAllocator.h"
 
-#include <vector>
-#include <sstream>
 
 
 namespace rt {

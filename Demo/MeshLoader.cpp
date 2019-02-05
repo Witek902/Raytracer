@@ -1,12 +1,8 @@
 #include "PCH.h"
 #include "MeshLoader.h"
-#include "Demo.h"
 
-#include "../Core/Utils/Bitmap.h"
 #include "../Core/Utils/Logger.h"
-#include "../Core/Math/Vector4.h"
 
-#include "../External/tiny_obj_loader.h"
 
 namespace helpers {
 

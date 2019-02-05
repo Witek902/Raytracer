@@ -4,7 +4,6 @@
 #include "Utils/AlignmentAllocator.h"
 #include "Math/Simd8Triangle.h"
 
-#include <string.h>
 
 namespace rt {
 

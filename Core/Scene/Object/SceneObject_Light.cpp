@@ -2,8 +2,6 @@
 #include "SceneObject_Light.h"
 #include "../Light/Light.h"
 #include "Traversal/TraversalContext.h"
-#include "Math/Geometry.h"
-#include "Rendering/ShadingData.h"
 
 namespace rt {
 

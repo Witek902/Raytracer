@@ -1,9 +1,7 @@
 #include "PCH.h"
 #include "SceneObject_Mesh.h"
 #include "Mesh/Mesh.h"
-#include "Math/Geometry.h"
 #include "Traversal/Traversal_Single.h"
-#include "Traversal/Traversal_Simd.h"
 #include "Traversal/Traversal_Packet.h"
 
 namespace rt {

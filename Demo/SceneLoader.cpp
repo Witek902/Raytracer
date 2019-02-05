@@ -1,13 +1,8 @@
 #include "PCH.h"
-#include "SceneLoader.h"
 #include "Demo.h"
 #include "MeshLoader.h"
 
-#include "../Core/Utils/Bitmap.h"
 #include "../Core/Utils/Logger.h"
-#include "../Core/Math/Vector4.h"
-#include "../Core/Mesh/Mesh.h"
-#include "../Core/Material/Material.h"
 #include "../Core/Scene/Light/PointLight.h"
 #include "../Core/Scene/Light/AreaLight.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
@@ -19,8 +14,6 @@
 #include "../Core/Scene/Object/SceneObject_Plane.h"
 
 #include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 #include "rapidjson/filereadstream.h"
 
 namespace helpers {

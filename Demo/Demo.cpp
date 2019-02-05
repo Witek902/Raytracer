@@ -6,8 +6,6 @@
 #include "../Core/Utils/Logger.h"
 #include "../Core/Rendering/PathTracer.h"
 #include "../Core/Traversal/TraversalContext.h"
-#include "../Core/Scene/Object/SceneObject_Mesh.h"
-#include "../Core/Scene/Light/BackgroundLight.h"
 
 #include "../External/imgui/imgui_sw.hpp"
 

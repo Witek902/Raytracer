@@ -1,6 +1,5 @@
 #include "PCH.h"
 #include "Random.h"
-#include "Math.h"
 #include "Transcendental.h"
 
 namespace rt {

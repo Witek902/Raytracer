@@ -2,8 +2,6 @@
 #include "Microfacet.h"
 #include "RoughDielectricBSDF.h"
 #include "DielectricBSDF.h"
-#include "../Material.h"
-#include "Math/Random.h"
 #include "Math/Utils.h"
 
 namespace rt {

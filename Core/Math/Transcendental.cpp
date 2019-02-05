@@ -1,13 +1,9 @@
 #include "PCH.h"
 #include "Transcendental.h"
-#include "Math.h"
-#include "VectorInt4.h"
 #include "VectorInt8.h"
-
 
 namespace rt {
 namespace math {
-
 
 namespace {
 

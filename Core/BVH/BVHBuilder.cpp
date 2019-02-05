@@ -3,7 +3,6 @@
 #include "Utils/Logger.h"
 #include "Utils/Timer.h"
 
-#include <algorithm>
 
 namespace rt {
 

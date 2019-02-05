@@ -3,9 +3,7 @@
 #include "Logger.h"
 #include "BlockCompression.h"
 #include "Timer.h"
-#include "Math/Half.h"
 
-#include <string.h>
 
 namespace rt {
 

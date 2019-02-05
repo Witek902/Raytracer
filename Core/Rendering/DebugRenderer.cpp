@@ -1,13 +1,10 @@
 #include "PCH.h"
 #include "DebugRenderer.h"
-#include "ShadingData.h"
-#include "Context.h"
 #include "Scene/Scene.h"
 #include "Material/Material.h"
 #include "Color/ColorHelpers.h"
 #include "Color/Spectrum.h"
 #include "Traversal/TraversalContext.h"
-#include "Traversal/RayPacket.h"
 #include "Rendering/Viewport.h"
 
 namespace rt {

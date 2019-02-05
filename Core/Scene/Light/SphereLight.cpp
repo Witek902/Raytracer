@@ -3,7 +3,6 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
-#include "../../Utils/Bitmap.h"
 
 namespace rt {
 

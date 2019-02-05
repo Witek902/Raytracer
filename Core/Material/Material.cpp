@@ -11,11 +11,7 @@
 #include "BSDF/RoughPlasticBSDF.h"
 
 #include "Color/Spectrum.h"
-#include "Mesh/Mesh.h"
-#include "Rendering/ShadingData.h"
-#include "Utils/Bitmap.h"
 #include "Utils/Logger.h"
-#include "Math/Random.h"
 
 namespace rt {
 

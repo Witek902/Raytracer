@@ -5,8 +5,6 @@
 //   publish, and distribute this file as you see fit.
 #include "imgui_sw.hpp"
 
-#include <cmath>
-#include <vector>
 #include <algorithm>
 
 #include <imgui/imgui.h>
