@@ -7,10 +7,10 @@ namespace rt {
 class ILight;
 
 // scene object representing a finite scene object (e.g. area light)
-class RAYLIB_API LightSceneObject : public ISceneObject
+class LightSceneObject : public ISceneObject
 {
 public:
-    explicit LightSceneObject(const ILight& light);
+    RAYLIB_API explicit LightSceneObject(const ILight& light);
 
     RT_FORCE_INLINE const ILight& GetLight() const { return mLight; }
 

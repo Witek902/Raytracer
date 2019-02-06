@@ -74,6 +74,10 @@ Bitmap::~Bitmap()
     RT_LOG_INFO("Releasing bitmap '%s'", mDebugName.c_str());
 }
 
+Bitmap::Bitmap(Bitmap&&) = default;
+
+Bitmap& Bitmap::operator = (Bitmap&&) = default;
+
 void Bitmap::Clear()
 {
     if (mData)
@@ -384,7 +388,7 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     }
 }
 
-Vector4 Bitmap::Sample(Vector4 coords, const SamplerDesc& sampler) const
+const Vector4 Bitmap::Evaluate(Vector4 coords, const SamplerDesc& sampler) const
 {
     // wrap to 0..1 range
     const Vector4 warpedCoords = coords - Vector4::Floor(coords);

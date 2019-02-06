@@ -62,24 +62,24 @@ const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, RenderingContext& 
             break;
         }
 
-        case DebugRenderingMode::Normals:
-        {
-            resultColor = ScaleBipolarRange(shadingData.normal);
-            break;
-        }
         case DebugRenderingMode::Tangents:
         {
-            resultColor = ScaleBipolarRange(shadingData.tangent);
+            resultColor = ScaleBipolarRange(shadingData.frame[0]);
             break;
         }
         case DebugRenderingMode::Bitangents:
         {
-            resultColor = ScaleBipolarRange(shadingData.bitangent);
+            resultColor = ScaleBipolarRange(shadingData.frame[1]);
+            break;
+        }
+        case DebugRenderingMode::Normals:
+        {
+            resultColor = ScaleBipolarRange(shadingData.frame[2]);
             break;
         }
         case DebugRenderingMode::Position:
         {
-            resultColor = Vector4::Max(Vector4::Zero(), shadingData.position);
+            resultColor = Vector4::Max(Vector4::Zero(), shadingData.frame[3]);
             break;
         }
         case DebugRenderingMode::TexCoords:
@@ -195,14 +195,24 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, RenderingContext& context
                         color = Vector4(logDepth);
                         break;
                     }
+                    case DebugRenderingMode::Tangents:
+                    {
+                        color = ScaleBipolarRange(shadingData.frame[0]);
+                        break;
+                    }
+                    case DebugRenderingMode::Bitangents:
+                    {
+                        color = ScaleBipolarRange(shadingData.frame[1]);
+                        break;
+                    }
                     case DebugRenderingMode::Normals:
                     {
-                        color = ScaleBipolarRange(shadingData.normal);
+                        color = ScaleBipolarRange(shadingData.frame[2]);
                         break;
                     }
                     case DebugRenderingMode::Position:
                     {
-                        color = ScaleBipolarRange(shadingData.position);
+                        color = ScaleBipolarRange(shadingData.frame.GetTranslation());
                         break;
                     }
                     case DebugRenderingMode::TriangleID:

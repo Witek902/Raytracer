@@ -107,11 +107,13 @@ void DemoWindow::RenderUI_Debugging_Path()
             ImGui::Text("Tri UV"); ImGui::NextColumn();
             ImGui::Text("[%f, %f]", data.hitPoint.u, data.hitPoint.v); ImGui::NextColumn();
 
+            const Vector4 pos = data.shadingData.frame.GetTranslation();
             ImGui::Text("Position"); ImGui::NextColumn();
-            ImGui::Text("[%f, %f, %f]", data.shadingData.position.x, data.shadingData.position.y, data.shadingData.position.z); ImGui::NextColumn();
+            ImGui::Text("[%f, %f, %f]", pos.x, pos.y, pos.z); ImGui::NextColumn();
 
+            const Vector4 normal = data.shadingData.frame.GetTranslation();
             ImGui::Text("Normal"); ImGui::NextColumn();
-            ImGui::Text("[%f, %f, %f]", data.shadingData.normal.x, data.shadingData.normal.y, data.shadingData.normal.z); ImGui::NextColumn();
+            ImGui::Text("[%f, %f, %f]", normal.x, normal.y, normal.z); ImGui::NextColumn();
 
             //ImGui::Text("Tangent"); ImGui::NextColumn();
             //ImGui::Text("[%f, %f, %f]", data.shadingData.tangent.x, data.shadingData.tangent.y, data.shadingData.tangent.z); ImGui::NextColumn();

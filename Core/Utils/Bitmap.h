@@ -1,38 +1,16 @@
 #pragma once
 
-#include "../RayLib.h"
-#include "../Math/Vector4.h"
+#include "Texture.h"
+
 #include "../Math/VectorInt4.h"
 #include "../Utils/AlignmentAllocator.h"
 
 namespace rt {
 
-enum class TextureAddressMode : Uint8
-{
-    Repeat = 0,
-    Clamp = 1,
-    Border = 2,
-};
-
-enum class TextureFilterMode : Uint8
-{
-    NearestNeighbor = 0,
-    Bilinear = 1,
-};
-
-struct SamplerDesc
-{
-    math::Vector4 borderColor = math::Vector4::Zero();
-    TextureAddressMode addressU = TextureAddressMode::Repeat;
-    TextureAddressMode addressV = TextureAddressMode::Repeat;
-    TextureFilterMode filter = TextureFilterMode::Bilinear;
-    bool forceLinearSpace = false;
-};
-
 /**
- * Class representing 2D image/texture.
+ * Class representing 2D bitmap texture.
  */
-class RT_ALIGN(16) RAYLIB_API Bitmap : public Aligned<16>
+class RT_ALIGN(16) Bitmap : public ITexture, public Aligned<16>
 {
 public:
     enum class Format : Uint8
@@ -51,10 +29,10 @@ public:
         // TODO monochromatic, compressed, half-float, etc.
     };
 
-    Bitmap(const char* debugName = "<unnamed>");
-    ~Bitmap();
-    Bitmap(Bitmap&&) = default;
-    Bitmap& operator = (Bitmap&&) = default;
+    RAYLIB_API Bitmap(const char* debugName = "<unnamed>");
+    RAYLIB_API ~Bitmap();
+    RAYLIB_API Bitmap(Bitmap&&);
+    RAYLIB_API Bitmap& operator = (Bitmap&&);
 
     template<typename T>
     RT_FORCE_INLINE T* GetDataAs()
@@ -79,21 +57,21 @@ public:
     static size_t GetDataSize(Uint32 width, Uint32 height, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
-    bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
+    RAYLIB_API bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
 
     // copy texture data
     // NOTE: both textures must have the same format and size
-    static bool Copy(Bitmap& target, const Bitmap& source);
+    RAYLIB_API static bool Copy(Bitmap& target, const Bitmap& source);
 
     // load from file
-    bool Load(const char* path);
+    RAYLIB_API bool Load(const char* path);
 
     // save to BMP file
-    bool SaveBMP(const char* path, bool flipVertically) const;
+    RAYLIB_API bool SaveBMP(const char* path, bool flipVertically) const;
 
     // save to OpenEXR file
     // NOTE: must be Float or Half format
-    bool SaveEXR(const char* path, const Float exposure) const;
+    RAYLIB_API bool SaveEXR(const char* path, const Float exposure) const;
 
     // release memory
     void Release();
@@ -105,13 +83,13 @@ public:
     static const char* FormatToString(Format format);
 
     // get single pixel
-    math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
+    RAYLIB_API math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
 
     // get 2x2 pixel block
     void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;
 
-    // sample the bitmap (including filtering and coordinates wrapping)
-    RT_FORCE_NOINLINE math::Vector4 Sample(math::Vector4 coords, const SamplerDesc& sampler) const;
+    // evaluate the bitmap color (including filtering and coordinates wrapping)
+    virtual const math::Vector4 Evaluate(math::Vector4 coords, const SamplerDesc& sampler) const override;
 
     // fill with zeros
     void Clear();

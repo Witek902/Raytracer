@@ -4,13 +4,13 @@
 
 namespace rt {
 
-class Bitmap;
-using BitmapPtr = std::shared_ptr<Bitmap>;
+class ITexture;
+using TexturePtr = std::shared_ptr<ITexture>;
 
-class RAYLIB_API AreaLight : public ILight
+class AreaLight : public ILight
 {
 public:
-    AreaLight(const math::Vector4& p0, const math::Vector4& edge0, const math::Vector4& edge1, const math::Vector4& color);
+    RAYLIB_API AreaLight(const math::Vector4& p0, const math::Vector4& edge0, const math::Vector4& edge1, const math::Vector4& color);
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;
@@ -20,7 +20,7 @@ public:
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final;
 
-    BitmapPtr mTexture = nullptr;
+    TexturePtr mTexture = nullptr;
 
 private:
     math::Vector4 p0;

@@ -28,14 +28,14 @@ struct MeshDesc
 /**
  * Class representing a mesh.
  */
-class RAYLIB_API RT_ALIGN(16) Mesh : public Aligned<16>
+class RT_ALIGN(16) Mesh : public Aligned<16>
 {
 public:
-    Mesh();
-    ~Mesh();
+    RAYLIB_API Mesh();
+    RAYLIB_API ~Mesh();
 
     // Initialize the mesh
-    bool Initialize(const MeshDesc& desc);
+    RAYLIB_API bool Initialize(const MeshDesc& desc);
 
     RT_FORCE_INLINE const math::Box& GetBoundingBox() const { return mBoundingBox; }
     RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }

@@ -2,7 +2,7 @@
 #include "MeshLoader.h"
 
 #include "../Core/Utils/Logger.h"
-
+#include "../Core/Utils/Bitmap.h"
 
 namespace helpers {
 
@@ -35,7 +35,7 @@ struct TriangleIndices
     }
 };
 
-BitmapPtr LoadTexture(const std::string& baseDir, const std::string& path)
+TexturePtr LoadTexture(const std::string& baseDir, const std::string& path)
 {
     if (path.empty())
     {

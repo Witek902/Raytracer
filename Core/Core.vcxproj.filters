@@ -288,6 +288,7 @@
       <Filter>Color</Filter>
     </ClInclude>
     <ClInclude Include="Color\Spectrum.h" />
+    <ClInclude Include="Utils\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

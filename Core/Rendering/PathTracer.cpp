@@ -72,7 +72,7 @@ const RayColor PathTracer::SampleLight(const ILight& light, const ShadingData& s
         HitPoint hitPoint;
         hitPoint.distance = illuminateParam.outDistance;
 
-        Ray shadowRay(shadingData.position, illuminateParam.outDirectionToLight);
+        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateParam.outDirectionToLight);
         shadowRay.origin += shadowRay.dir * 0.001f;
 
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
@@ -310,7 +310,7 @@ const RayColor PathTracer::TraceRay_Single(const Ray& primaryRay, RenderingConte
         }
 
         // generate secondary ray
-        ray = Ray(shadingData.position, incomingDirWorldSpace);
+        ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
         ray.origin += ray.dir * 0.001f;
 
         pathState.depth++;

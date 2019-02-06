@@ -30,7 +30,7 @@ bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 
 const RayColor PointLight::Illuminate(IlluminateParam& param) const
 {
-    param.outDirectionToLight = mPosition - param.shadingData.position;
+    param.outDirectionToLight = mPosition - param.shadingData.frame.GetTranslation();
     const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
     param.outDirectPdfW = sqrDistance;

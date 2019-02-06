@@ -27,16 +27,17 @@ struct RenderingProgress
     Float averageError = std::numeric_limits<Float>::infinity();
 };
 
-class RT_ALIGN(64) RAYLIB_API Viewport : public Aligned<64>
+class RT_ALIGN(64) Viewport : public Aligned<64>
 {
 public:
-    Viewport();
+    RAYLIB_API Viewport();
+    RAYLIB_API ~Viewport();
 
-    bool Resize(Uint32 width, Uint32 height);
-    bool SetRenderingParams(const RenderingParams& params);
-    bool SetPostprocessParams(const PostprocessParams& params);
-    bool Render(const IRenderer& renderer, const Camera& camera);
-    void Reset();
+    RAYLIB_API bool Resize(Uint32 width, Uint32 height);
+    RAYLIB_API bool SetRenderingParams(const RenderingParams& params);
+    RAYLIB_API bool SetPostprocessParams(const PostprocessParams& params);
+    RAYLIB_API bool Render(const IRenderer& renderer, const Camera& camera);
+    RAYLIB_API void Reset();
 
     RT_FORCE_NOINLINE void Internal_AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor);
 
@@ -49,7 +50,7 @@ public:
     RT_FORCE_INLINE const RenderingProgress& GetProgress() const { return mProgress; }
     RT_FORCE_INLINE const RayTracingCounters& GetCounters() const { return mCounters; }
 
-    void VisualizeActiveBlocks(Bitmap& bitmap) const;
+    RAYLIB_API void VisualizeActiveBlocks(Bitmap& bitmap) const;
 
 private:
     void InitThreadData();

@@ -16,7 +16,7 @@ struct RenderingContext;
 struct ShadingData;
 
 // abstract light
-class RT_ALIGN(16) RAYLIB_API ILight : public Aligned<16>
+class RT_ALIGN(16) ILight : public Aligned<16>
 {
 public:
     static constexpr Float BackgroundLightDistance = 1.0e+36f;
@@ -31,8 +31,8 @@ public:
         float outDirectPdfW = 0.0f;
     };
 
-    ILight(const math::Vector4 color);
-    virtual ~ILight() = default;
+    RAYLIB_API ILight(const math::Vector4 color);
+    RAYLIB_API virtual ~ILight() = default;
 
     // get light's surface bounding box
     virtual const math::Box GetBoundingBox() const = 0;

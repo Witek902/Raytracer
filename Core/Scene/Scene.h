@@ -34,18 +34,18 @@ class Ray_Simd8;
  * Rendering scene.
  * Allows for placing objects (meshes, lights, etc.) and raytracing them.
  */
-class RAYLIB_API RT_ALIGN(16) Scene : public Aligned<16>
+class RT_ALIGN(16) Scene : public Aligned<16>
 {
 public:
-    Scene();
-    ~Scene();
-    Scene(Scene&&);
-    Scene& operator = (Scene&&);
+    RAYLIB_API Scene();
+    RAYLIB_API ~Scene();
+    RAYLIB_API Scene(Scene&&);
+    RAYLIB_API Scene& operator = (Scene&&);
 
-    void AddLight(LightPtr object);
-    void AddObject(SceneObjectPtr object);
+    RAYLIB_API void AddLight(LightPtr object);
+    RAYLIB_API void AddObject(SceneObjectPtr object);
 
-    bool BuildBVH();
+    RAYLIB_API bool BuildBVH();
 
     RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
     RT_FORCE_INLINE const std::vector<SceneObjectPtr>& GetObjects() const { return mObjects; }
@@ -53,7 +53,7 @@ public:
     RT_FORCE_INLINE const std::vector<const ILight*>& GetGlobalLights() const { return mGlobalLights; }
 
     // traverse the scene, returns hit points
-    void Traverse_Single(const SingleTraversalContext& context) const;
+    RAYLIB_API void Traverse_Single(const SingleTraversalContext& context) const;
     void Traverse_Packet(const PacketTraversalContext& context) const;
 
     // cast shadow ray
@@ -72,8 +72,8 @@ private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;
 
-    void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
-    bool Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
+    RT_FORCE_NOINLINE void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
+    RT_FORCE_NOINLINE bool Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
     std::vector<LightPtr> mLights;
     std::vector<const ILight*> mGlobalLights;

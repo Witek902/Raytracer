@@ -1,11 +1,10 @@
 #pragma once
 
 #include "BSDF/BSDF.h"
-#include "../RayLib.h"
+#include "../Utils/Texture.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Color/RayColor.h"
 #include "../Math/Ray.h"
-#include "../Utils/Bitmap.h" // TODO remove
 
 #include <string>
 
@@ -17,7 +16,9 @@ class Random;
 }
 
 struct ShadingData;
-class Bitmap;
+
+class ITexture;
+using TexturePtr = std::shared_ptr<ITexture>;
 
 // coefficients of Sellmeier dispersion equation
 struct RAYLIB_API DispersionParams
@@ -32,7 +33,7 @@ template<typename T>
 struct MaterialParameter
 {
     T baseValue;
-    BitmapPtr texture = nullptr;
+    TexturePtr texture = nullptr;
 
     MaterialParameter() = default;
 
@@ -46,7 +47,7 @@ struct MaterialParameter
 
         if (texture)
         {
-            value = static_cast<T>(value * texture->Sample(uv, SamplerDesc()));
+            value = static_cast<T>(value * texture->Evaluate(uv, SamplerDesc()));
         }
 
         return value;
@@ -104,8 +105,8 @@ public:
     bool isDispersive = false;
 
     // textures
-    BitmapPtr maskMap = nullptr;
-    BitmapPtr normalMap = nullptr;
+    TexturePtr maskMap = nullptr;
+    TexturePtr normalMap = nullptr;
 
     // TODO material layers
 

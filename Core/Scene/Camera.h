@@ -47,23 +47,23 @@ struct DOFSettings
 /**
  * Class describing camera for scene raytracing.
  */
-class RT_ALIGN(16) RAYLIB_API Camera
+class RT_ALIGN(16) Camera
 {
 public:
-    Camera();
+    RAYLIB_API Camera();
 
-    void SetTransform(const math::Transform& transform);
+    RAYLIB_API void SetTransform(const math::Transform& transform);
 
-    void SetPerspective(Float aspectRatio, Float FoV);
+    RAYLIB_API void SetPerspective(Float aspectRatio, Float FoV);
 
-    void SetAngularVelocity(const math::Quaternion& quat);
+    RAYLIB_API void SetAngularVelocity(const math::Quaternion& quat);
 
     // Sample camera transfrom for given time point
     RT_FORCE_INLINE const math::Matrix4 SampleTransform(const float time) const;
 
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
-    RT_FORCE_NOINLINE math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
+    RAYLIB_API RT_FORCE_NOINLINE math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
     RT_FORCE_NOINLINE math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2x8& coords, RenderingContext& context) const;
 
     RT_FORCE_INLINE const math::Vector4 GenerateBokeh(RenderingContext& context) const;

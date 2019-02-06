@@ -13,7 +13,7 @@ namespace rt {
 namespace math {
 
 // 4x4 matrix
-class RAYLIB_API RT_ALIGN(16) Matrix4 final
+class RT_ALIGN(16) Matrix4 final
 {
 public:
     union
@@ -73,8 +73,8 @@ public:
         return r[3];
     }
 
-    Matrix4 operator * (const Matrix4& b) const;
-    Matrix4& operator *= (const Matrix4& b);
+    RAYLIB_API Matrix4 operator * (const Matrix4& b) const;
+    RAYLIB_API Matrix4& operator *= (const Matrix4& b);
 
     RT_FORCE_INLINE bool IsValid() const
     {
@@ -95,7 +95,7 @@ public:
      * Create scaling matrix
      * @param scale Scaling factor (only XYZ components are taken into account).
      */
-    static Matrix4 MakeScaling(const Vector4& scale);
+    RAYLIB_API static Matrix4 MakeScaling(const Vector4& scale);
 
     // Multiply a 3D vector by a 4x4 matrix (affine transform).
     // Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + m.r[3]
@@ -164,7 +164,7 @@ public:
     }
 
     // Create matrix representing a translation by 3D vector.
-    static Matrix4 MakeTranslation(const Vector4& pos);
+    RAYLIB_API static Matrix4 MakeTranslation(const Vector4& pos);
 
 
     RT_FORCE_INLINE const Matrix4 FastInverseNoScale() const

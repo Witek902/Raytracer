@@ -4,12 +4,12 @@
 
 namespace rt {
 
-class RAYLIB_API DirectionalLight : public ILight
+class DirectionalLight : public ILight
 {
 public:
-    DirectionalLight() = default;
+    RAYLIB_API DirectionalLight() = default;
 
-    DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const Float angle = 0.2f);
+    RAYLIB_API DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const Float angle = 0.2f);
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;

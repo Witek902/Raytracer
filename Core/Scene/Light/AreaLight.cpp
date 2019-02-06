@@ -3,7 +3,7 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
-#include "../../Utils/Bitmap.h"
+#include "../../Utils/Texture.h"
 
 namespace rt {
 
@@ -76,13 +76,13 @@ const RayColor AreaLight::Illuminate(IlluminateParam& param) const
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Sample(Vector4(uv), SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(Vector4(uv), SamplerDesc());
     }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
-    param.outDirectionToLight = lightPoint - param.shadingData.position;
+    param.outDirectionToLight = lightPoint - param.shadingData.frame.GetTranslation();
     const float sqrDistance = param.outDirectionToLight.SqrLength3();
 
     param.outDistance = sqrtf(sqrDistance);
@@ -121,7 +121,7 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const math::Vec
         const Float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
         const Vector4 textureCoords(u, v, 0.0f, 0.0f);
 
-        color.rgbValues *= mTexture->Sample(textureCoords, SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(textureCoords, SamplerDesc());
     }
 
     return RayColor::Resolve(context.wavelength, color);

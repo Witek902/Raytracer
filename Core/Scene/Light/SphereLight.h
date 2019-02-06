@@ -4,10 +4,10 @@
 
 namespace rt {
 
-class RAYLIB_API SphereLight : public ILight
+class SphereLight : public ILight
 {
 public:
-    SphereLight(const math::Vector4& pos, Float radius, const math::Vector4& color);
+    RAYLIB_API SphereLight(const math::Vector4& pos, Float radius, const math::Vector4& color);
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;

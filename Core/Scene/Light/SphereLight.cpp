@@ -55,7 +55,7 @@ bool SphereLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 
 const RayColor SphereLight::Illuminate(IlluminateParam& param) const
 {
-    const Vector4 centerDir = mPosition - param.shadingData.position; // direction to light center
+    const Vector4 centerDir = mPosition - param.shadingData.frame.GetTranslation(); // direction to light center
     const Float centerDistSqr = centerDir.SqrLength3();
     const Float centerDist = sqrtf(centerDistSqr);
 

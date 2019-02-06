@@ -19,10 +19,11 @@ class Material;
 using MaterialPtr = std::shared_ptr<rt::Material>;
 
 // Object on a scene
-class RAYLIB_API ISceneObject : public Aligned<16>
+class ISceneObject : public Aligned<16>
 {
 public:
-    virtual ~ISceneObject();
+    RAYLIB_API ISceneObject();
+    RAYLIB_API virtual ~ISceneObject();
 
     // traverse the object and return hit points
     virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const = 0;

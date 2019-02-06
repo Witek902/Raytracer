@@ -16,6 +16,8 @@ Viewport::Viewport()
     InitThreadData();
 }
 
+Viewport::~Viewport() = default;
+
 void Viewport::InitThreadData()
 {
     const size_t numThreads = mThreadPool.GetNumThreads();

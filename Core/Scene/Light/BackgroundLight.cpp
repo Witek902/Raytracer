@@ -36,7 +36,7 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, Rendering
 
         RT_ASSERT(coords.IsValid());
 
-        const Vector4 textureColor = mTexture->Sample(coords, SamplerDesc());
+        const Vector4 textureColor = mTexture->Evaluate(coords, SamplerDesc());
         RT_ASSERT((textureColor >= Vector4::Zero()).All());
 
         color.rgbValues *= textureColor;

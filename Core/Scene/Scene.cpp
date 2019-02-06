@@ -257,24 +257,24 @@ void Scene::ExtractShadingData(const Vector4& rayOrigin, const Vector4& rayDir, 
     const Matrix4 invTransform = transform.FastInverseNoScale();
 
     const Vector4 worldPosition = Vector4::MulAndAdd(rayDir, hitPoint.distance, rayOrigin);
-    outShadingData.position = invTransform.TransformPoint(worldPosition);
+    outShadingData.frame[3] = invTransform.TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
     // TODO uncomment this after ExtractShadingData() is not called for light objects
-    RT_ASSERT(Abs(1.0f - outShadingData.normal.SqrLength3()) < 0.001f);
-    RT_ASSERT(Abs(1.0f - outShadingData.tangent.SqrLength3()) < 0.001f);
-    RT_ASSERT(Abs(1.0f - outShadingData.bitangent.SqrLength3()) < 0.001f);
-    RT_ASSERT(Vector4::Dot3(outShadingData.normal, outShadingData.tangent) < 0.001f);
-    RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.tangent) < 0.001f);
-    RT_ASSERT(Vector4::Dot3(outShadingData.bitangent, outShadingData.normal) < 0.001f);
+    //RT_ASSERT(Abs(1.0f - outShadingData.frame[0].SqrLength3()) < 0.001f);
+    //RT_ASSERT(Abs(1.0f - outShadingData.frame[1].SqrLength3()) < 0.001f);
+    //RT_ASSERT(Abs(1.0f - outShadingData.frame[2].SqrLength3()) < 0.001f);
+    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[1], outShadingData.frame[0]) < 0.001f);
+    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[1], outShadingData.frame[2]) < 0.001f);
+    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[2], outShadingData.frame[0]) < 0.001f);
 
     // transform shading data from local space to world space
-    outShadingData.position = worldPosition;
-    outShadingData.tangent = transform.TransformVector(outShadingData.tangent);
-    outShadingData.bitangent = transform.TransformVector(outShadingData.bitangent);
-    outShadingData.normal = transform.TransformVector(outShadingData.normal);
+    outShadingData.frame[0] = transform.TransformVector(outShadingData.frame[0]);
+    outShadingData.frame[1] = transform.TransformVector(outShadingData.frame[1]);
+    outShadingData.frame[2] = transform.TransformVector(outShadingData.frame[2]);
+    outShadingData.frame[3] = worldPosition;
 }
 
 } // namespace rt

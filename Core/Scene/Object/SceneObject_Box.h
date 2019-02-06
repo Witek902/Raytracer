@@ -7,10 +7,10 @@ namespace rt {
 class Material;
 
 // Primite scene object - box
-class RAYLIB_API BoxSceneObject : public ISceneObject
+class BoxSceneObject : public ISceneObject
 {
 public:
-    BoxSceneObject(const math::Vector4& size);
+    RAYLIB_API BoxSceneObject(const math::Vector4& size);
 
 private:
     virtual math::Box GetBoundingBox() const override;

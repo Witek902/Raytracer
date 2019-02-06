@@ -10,8 +10,8 @@ struct Spectrum
 {
     math::Vector4 rgbValues;
 
-    Spectrum() = default;
-    Spectrum(const math::Vector4& rgbValues) : rgbValues(rgbValues) { }
+    RT_FORCE_INLINE Spectrum() = default;
+    RT_FORCE_INLINE Spectrum(const math::Vector4& rgbValues) : rgbValues(rgbValues) { }
 };
 
 

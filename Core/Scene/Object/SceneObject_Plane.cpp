@@ -84,10 +84,10 @@ void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
     RT_UNUSED(hitPoint);
 
     outShadingData.material = mDefaultMaterial.get();
-    outShadingData.texCoord = (outShadingData.position.Swizzle<0,2,0,0>() & Vector4::MakeMask<1,1,0,0>()) * Vector4(mTextureScale);
-    outShadingData.tangent = VECTOR_X;
-    outShadingData.normal = VECTOR_Y;
-    outShadingData.bitangent = VECTOR_Z;
+    outShadingData.texCoord = (outShadingData.frame.GetTranslation().Swizzle<0,2,0,0>() & Vector4::MakeMask<1,1,0,0>()) * Vector4(mTextureScale);
+    outShadingData.frame[0] = VECTOR_X;
+    outShadingData.frame[1] = VECTOR_Z;
+    outShadingData.frame[2] = VECTOR_Y;
 }
 
 

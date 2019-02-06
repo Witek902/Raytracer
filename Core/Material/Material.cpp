@@ -120,7 +120,7 @@ const Vector4 Material::GetNormalVector(const Vector4 uv) const
         SamplerDesc sampler;
         sampler.forceLinearSpace = true;
 
-        normal = normalMap->Sample(uv, sampler);
+        normal = normalMap->Evaluate(uv, sampler);
 
         // scale from [0...1] to [-1...1]
         normal += normal;
@@ -140,7 +140,7 @@ bool Material::GetMaskValue(const Vector4 uv) const
     if (maskMap)
     {
         const float maskTreshold = 0.5f;
-        return maskMap->Sample(uv, SamplerDesc()).x > maskTreshold;
+        return maskMap->Evaluate(uv, SamplerDesc()).x > maskTreshold;
     }
 
     return true;

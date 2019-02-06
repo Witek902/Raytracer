@@ -275,21 +275,21 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     outData.texCoord = Vector4::MulAndAdd(coeff2, texCoord2, outData.texCoord);
     outData.texCoord = Vector4::MulAndAdd(coeff0, texCoord0, outData.texCoord);
 
-    const Vector4 normal0(&vertexShadingData[0].normal.x);
-    const Vector4 normal1(&vertexShadingData[1].normal.x);
-    const Vector4 normal2(&vertexShadingData[2].normal.x);
-    outData.normal = coeff1 * normal1;
-    outData.normal = Vector4::MulAndAdd(coeff2, normal2, outData.normal);
-    outData.normal = Vector4::MulAndAdd(coeff0, normal0, outData.normal);
-    outData.normal.Normalize3();
-
     const Vector4 tangent0(&vertexShadingData[0].tangent.x);
     const Vector4 tangent1(&vertexShadingData[1].tangent.x);
     const Vector4 tangent2(&vertexShadingData[2].tangent.x);
-    outData.tangent = coeff1 * tangent1;
-    outData.tangent = Vector4::MulAndAdd(coeff2, tangent2, outData.tangent);
-    outData.tangent = Vector4::MulAndAdd(coeff0, tangent0, outData.tangent);
-    outData.tangent.FastNormalize3();
+    outData.frame[0] = coeff1 * tangent1;
+    outData.frame[0] = Vector4::MulAndAdd(coeff2, tangent2, outData.frame[1]);
+    outData.frame[0] = Vector4::MulAndAdd(coeff0, tangent0, outData.frame[1]);
+    outData.frame[0].FastNormalize3();
+
+    const Vector4 normal0(&vertexShadingData[0].normal.x);
+    const Vector4 normal1(&vertexShadingData[1].normal.x);
+    const Vector4 normal2(&vertexShadingData[2].normal.x);
+    outData.frame[2] = coeff1 * normal1;
+    outData.frame[2] = Vector4::MulAndAdd(coeff2, normal2, outData.frame[2]);
+    outData.frame[2] = Vector4::MulAndAdd(coeff0, normal0, outData.frame[2]);
+    outData.frame[2].Normalize3();
 
     if (outData.material->normalMap)
     {
@@ -297,35 +297,35 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
 
         // transform normal vector
         {
-            Vector4 newNormal = outData.tangent * localNormal.x;
-            newNormal = Vector4::MulAndAdd(outData.bitangent, localNormal.y, newNormal);
-            newNormal = Vector4::MulAndAdd(outData.normal, localNormal.z, newNormal);
-            outData.normal = newNormal.FastNormalized3();
+            Vector4 newNormal = outData.frame[0] * localNormal.x;
+            newNormal = Vector4::MulAndAdd(outData.frame[1], localNormal.y, newNormal);
+            newNormal = Vector4::MulAndAdd(outData.frame[2], localNormal.z, newNormal);
+            outData.frame[2] = newNormal.FastNormalized3();
         }
     }
 
     // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
     // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
     // and normal mapping is disabled
-    outData.tangent = Vector4::Orthogonalize(outData.tangent, outData.normal).Normalized3();
+    outData.frame[1] = Vector4::Orthogonalize(outData.frame[1], outData.frame[2]).Normalized3();
 
     // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
-    outData.bitangent = Vector4::Cross3(outData.tangent, outData.normal);
+    outData.frame[1] = Vector4::Cross3(outData.frame[0], outData.frame[2]);
 }
 
 const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
 {
-    Vector4 result = tangent * localCoords.x;
-    result = Vector4::MulAndAdd(bitangent, localCoords.y, result);
-    result = Vector4::MulAndAdd(normal, localCoords.z, result);
+    Vector4 result = frame[0] * localCoords.x;
+    result = Vector4::MulAndAdd(frame[1], localCoords.y, result);
+    result = Vector4::MulAndAdd(frame[2], localCoords.z, result);
     return result;
 }
 
 const Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
 {
-    Vector4 worldToLocalX = tangent;
-    Vector4 worldToLocalY = bitangent;
-    Vector4 worldToLocalZ = normal;
+    Vector4 worldToLocalX = frame[0];
+    Vector4 worldToLocalY = frame[1];
+    Vector4 worldToLocalZ = frame[2];
     Vector4::Transpose3(worldToLocalX, worldToLocalY, worldToLocalZ);
 
     Vector4 result = worldToLocalX * worldCoords.x;

@@ -179,7 +179,7 @@ static bool TryParseTransform(const rapidjson::Value& parentValue, const char* n
     return true;
 }
 
-static bool TryParseTexture(const rapidjson::Value& value, const char* name, BitmapPtr& outValue)
+static bool TryParseTexture(const rapidjson::Value& value, const char* name, TexturePtr& outValue)
 {
     if (!value.HasMember(name))
     {

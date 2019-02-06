@@ -5,6 +5,8 @@ namespace rt {
 
 using namespace math;
 
+ISceneObject::ISceneObject() = default;
+
 ISceneObject::~ISceneObject() = default;
 
 const Matrix4 ISceneObject::ComputeTransform(const float t) const

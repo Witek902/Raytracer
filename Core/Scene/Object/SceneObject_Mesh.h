@@ -18,10 +18,10 @@ struct HitPoint_Simd8;
 struct ShadingData;
 struct RayPacket;
 
-class RAYLIB_API MeshSceneObject : public ISceneObject
+class MeshSceneObject : public ISceneObject
 {
 public:
-    explicit MeshSceneObject(const MeshPtr mesh);
+    RAYLIB_API explicit MeshSceneObject(const MeshPtr mesh);
 
     const MeshPtr mMesh;
 

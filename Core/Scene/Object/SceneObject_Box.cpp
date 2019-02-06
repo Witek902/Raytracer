@@ -175,10 +175,10 @@ void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shadin
 
     outShadingData.material = mDefaultMaterial.get();
 
-    const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.position * mInvSize, outShadingData.texCoord);
-    outShadingData.normal = normalsAndTangnts[2 * side];
-    outShadingData.tangent = normalsAndTangnts[2 * side + 1];
-    outShadingData.bitangent = Vector4::Cross3(outShadingData.tangent, outShadingData.normal);
+    const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.frame.GetTranslation() * mInvSize, outShadingData.texCoord);
+    outShadingData.frame[2] = normalsAndTangnts[2 * side];
+    outShadingData.frame[0] = normalsAndTangnts[2 * side + 1];
+    outShadingData.frame[1] = Vector4::Cross3(outShadingData.frame[0], outShadingData.frame[2]);
 }
 
 

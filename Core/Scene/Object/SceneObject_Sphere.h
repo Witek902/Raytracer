@@ -7,10 +7,10 @@ namespace rt {
 class Material;
 
 // Primite scene object - sphere
-class RAYLIB_API SphereSceneObject : public ISceneObject
+class SphereSceneObject : public ISceneObject
 {
 public:
-    SphereSceneObject(const float radius);
+    RAYLIB_API SphereSceneObject(const float radius);
 
 private:
     virtual math::Box GetBoundingBox() const override;

@@ -4,10 +4,10 @@
 
 namespace rt {
 
-class RAYLIB_API PointLight : public ILight
+class PointLight : public ILight
 {
 public:
-    PointLight(const math::Vector4& position, const math::Vector4& color);
+    RAYLIB_API PointLight(const math::Vector4& position, const math::Vector4& color);
 
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const override;

@@ -8,10 +8,10 @@ class Material;
 
 // Primite scene object - infinite plane
 // Note: Normal is Y+
-class RAYLIB_API PlaneSceneObject : public ISceneObject
+class PlaneSceneObject : public ISceneObject
 {
 public:
-    PlaneSceneObject(const math::Float2 size = math::Float2(FLT_MAX), const math::Float2 texScale = math::Float2(1.0f));
+    RAYLIB_API PlaneSceneObject(const math::Float2 size = math::Float2(FLT_MAX), const math::Float2 texScale = math::Float2(1.0f));
 
 private:
     virtual math::Box GetBoundingBox() const override;

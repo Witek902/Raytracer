@@ -303,6 +303,7 @@
     <ClInclude Include="Utils\BlockCompression.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\Texture.h" />
     <ClInclude Include="Utils\Timer.h" />
     <ClInclude Include="Utils\ThreadPool.h" />
   </ItemGroup>

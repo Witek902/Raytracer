@@ -2,6 +2,7 @@
 
 #include "../Common.h"
 #include "../Color/RayColor.h"
+#include "../Math/Matrix4.h"
 
 namespace rt {
 
@@ -18,10 +19,7 @@ struct SampledMaterialParameters
 struct ShadingData
 {
     // geometry data
-    math::Vector4 position;
-    math::Vector4 tangent;
-    math::Vector4 bitangent;
-    math::Vector4 normal;
+    math::Matrix4 frame;
     math::Vector4 texCoord;
 
     const Material* material = nullptr;
