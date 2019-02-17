@@ -76,6 +76,9 @@
     <ClCompile Include="VectorBenchmark.cpp">
       <Filter>Benchmarks</Filter>
     </ClCompile>
+    <ClCompile Include="HashGridBenchmark.cpp">
+      <Filter>Benchmarks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

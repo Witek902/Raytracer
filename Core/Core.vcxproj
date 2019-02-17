@@ -306,6 +306,7 @@
     <ClInclude Include="Utils\AlignmentAllocator.h" />
     <ClInclude Include="Utils\Bitmap.h" />
     <ClInclude Include="Utils\BlockCompression.h" />
+    <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\Texture.h" />

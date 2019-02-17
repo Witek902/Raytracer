@@ -294,6 +294,7 @@
     <ClInclude Include="Rendering\Film.h" />
     <ClInclude Include="Rendering\BidirectionalPathTracer.h" />
     <ClInclude Include="Material\BSDF\NullBSDF.h" />
+    <ClInclude Include="Utils\HashGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

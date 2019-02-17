@@ -39,6 +39,7 @@
     <ClCompile Include="MathVectorInt8Test.cpp" />
     <ClCompile Include="MathMatrix4Test.cpp" />
     <ClCompile Include="MathGeometryTest.cpp" />
+    <ClCompile Include="HashGridTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
