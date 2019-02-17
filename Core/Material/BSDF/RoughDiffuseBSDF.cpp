@@ -60,7 +60,7 @@ const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* o
         if (outReversePdfW)
         {
             // cos-weighted hemisphere distribution
-            *outDirectPdfW = NdotV * RT_INV_PI;
+            *outReversePdfW = NdotV * RT_INV_PI;
         }
 
         const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.incomingDir));

@@ -2,31 +2,64 @@
 
 #include "Renderer.h"
 #include "../Material/BSDF/BSDF.h"
+#include "../Utils/HashGrid.h"
 
 namespace rt {
 
 struct ShadingData;
 class ILight;
 
-// Unidirectional path tracer
-class BidirectionalPathTracer : public IRenderer
+// Vertex Connection and Merging
+//
+// Implements "Light Transport Simulation with Vertex Connection and Merging"
+// Iliyan Georgiev, Jaroslav Krivanek, Tomas Davidovic, Philipp Slusallek
+// ACM Transactions on Graphics 31(6) (SIGGRAPH Asia 2012).
+//
+// Based on https://github.com/SmallVCM/SmallVCM
+//
+class VertexConnectionAndMerging : public IRenderer
 {
 public:
-    BidirectionalPathTracer(const Scene& scene);
-    ~BidirectionalPathTracer();
+    VertexConnectionAndMerging(const Scene& scene);
+    ~VertexConnectionAndMerging();
 
     virtual const char* GetName() const override;
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera& camera, Film& film, RenderingContext& ctx) const override;
+    virtual RendererContextPtr CreateContext() const;
+
+    virtual void PreRender(const Film& film) override;
+    virtual void PreRender(RenderingContext& ctx) override;
+    virtual void PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const override;
+    virtual void PreRenderGlobal(RenderingContext& ctx) override;
+    virtual void PreRenderGlobal() override;
+    virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
 
     // for debugging
     math::Vector4 mBSDFSamplingWeight;
     math::Vector4 mLightSamplingWeight;
     math::Vector4 mVertexConnectingWeight;
+    math::Vector4 mVertexMergingWeight;
     math::Vector4 mCameraConnectingWeight;
 
-private:
+    bool mUseVertexConnection = true;
+    bool mUseVertexMerging = true;
 
-    static constexpr Uint32 MaxLightPathLength = 16;
+    struct LightVertex
+    {
+        PackedShadingData shadingData;
+        RayColor throughput;            // TODO should be Float3
+
+        // quantities for MIS weight calculation
+        Float dVC;
+        Float dVM;
+        Float dVCM;
+
+        Uint8 pathLength;
+
+        // used by hash grid query
+        RT_FORCE_INLINE const math::Vector4 GetPosition() const { return math::Vector4(shadingData.position); }
+    };
+
+private:
 
     // describes current state of path coming from camera or a light
     struct PathState
@@ -43,27 +76,6 @@ private:
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
         bool lastSpecular = true;
         bool isFiniteLight;
-    };
-
-    struct LightVertex
-    {
-        ShadingData shadingData;    // TODO pack it, it's way too big
-        RayColor throughput;        // TODO should be Float3
-
-        // quantities for MIS weight calculation
-        Float dVC;
-        Float dVM;
-        Float dVCM;
-
-        Uint32 pathLength;
-    };
-
-    static_assert(sizeof(LightVertex) <= 192, "Don't make this struct even bigger");
-
-    struct LightPath
-    {
-        Uint32 length = 0;
-        LightVertex vertices[MaxLightPathLength];
     };
 
     // importance sample light sources
@@ -83,7 +95,7 @@ private:
 
     // generate initial light ray
     bool GenerateLightSample(PathState& pathState, RenderingContext& ctx) const;
-    void TraceLightPath(const Camera& camera, Film& film, LightPath& path, RenderingContext& ctx) const;
+    void TraceLightPath(const Camera& camera, Film& film, RenderingContext& ctx) const;
 
     // evaluate BSDF at ray's intersection and generate scattered ray
     bool AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx) const;
@@ -91,15 +103,29 @@ private:
     // connect a camera path end to a light path end and return contribution
     const RayColor ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const;
 
+    // merge a camera path vertex to light vertices nearby and return contribution
+    const RayColor MergeVertices(PathState& cameraPathState, const ShadingData& shadingData, RenderingContext& ctx) const;
+
     // connect a light path to camera directly and splat the contribution onto film
     void ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const;
 
-    Uint32 mMinPathLength;
     Uint32 mMaxPathLength;
 
     Uint32 mLightPathsCount;
+    float mMergingRadius;
+    float mVertexMergingNormalizationFactor;
     float mMisVertexMergingWeightFactor;
     float mMisVertexConnectionWeightFactor;
+
+    // acceleration structure used for vertex merging
+    HashGrid mHashGrid;
+
+    // list of all recorded light vertices
+    std::vector<LightVertex> mLightVertices;
+
+    // marks each path end index in the 'mLightVertices' array
+    // Note: path length is obtained by comparing two consequent values
+    std::vector<Uint32> mLightPathEnds;
 };
 
 } // namespace rt

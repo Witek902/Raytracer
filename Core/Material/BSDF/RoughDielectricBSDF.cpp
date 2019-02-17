@@ -179,8 +179,8 @@ const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float
 
     if (outReversePdfW)
     {
-        // TODO BDPT
-        *outDirectPdfW = pdf;
+        // TODO is this correct for reverse direction?
+        *outReversePdfW = pdf;
     }
 
     return RayColor(color);
@@ -188,10 +188,8 @@ const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float
 
 Float RoughDielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
-    if (dir != ForwardPdf)
-    {
-        RT_FATAL("Not implemented");
-    }
+    // TODO is this correct for reverse direction?
+    RT_UNUSED(dir);
 
     const float NdotV = ctx.outgoingDir.z; // wi
     const float NdotL = -ctx.incomingDir.z; // wo

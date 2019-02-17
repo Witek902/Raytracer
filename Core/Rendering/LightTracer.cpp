@@ -22,7 +22,7 @@ const char* LightTracer::GetName() const
     return "Light Tracer";
 }
 
-const RayColor LightTracer::TraceRay_Single(const Ray&, const Camera& camera, Film& film, RenderingContext& ctx) const
+const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, RenderingContext& ctx) const
 {
     Uint32 depth = 0;
 
@@ -76,9 +76,6 @@ const RayColor LightTracer::TraceRay_Single(const Ray&, const Camera& camera, Fi
         {
             mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
 
-            shadingData.outgoingDirWorldSpace = -ray.dir;
-            shadingData.outgoingDirLocalSpace = shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace);
-
             RT_ASSERT(shadingData.material != nullptr);
             shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
         }
@@ -108,7 +105,7 @@ const RayColor LightTracer::TraceRay_Single(const Ray&, const Camera& camera, Fi
 
         // connect to camera
         {
-            const Vector4 cameraPos = camera.GetTransform().GetTranslation();
+            const Vector4 cameraPos = param.camera.GetTransform().GetTranslation();
             const Vector4 samplePos = shadingData.frame.GetTranslation();
 
             Vector4 dirToCamera = cameraPos - samplePos;
@@ -127,7 +124,7 @@ const RayColor LightTracer::TraceRay_Single(const Ray&, const Camera& camera, Fi
             {
                 Vector4 filmPos;
 
-                if (camera.WorldToFilm(samplePos, filmPos))
+                if (param.camera.WorldToFilm(samplePos, filmPos))
                 {
                     HitPoint shadowHitPoint;
                     shadowHitPoint.distance = cameraDistance * 0.999f;
@@ -136,10 +133,10 @@ const RayColor LightTracer::TraceRay_Single(const Ray&, const Camera& camera, Fi
 
                     if (!mScene.Traverse_Shadow_Single({ shadowRay, shadowHitPoint, ctx }))
                     {
-                        const Float cameraPdfA = camera.PdfW(-dirToCamera) / cameraDistanceSqr;
+                        const Float cameraPdfA = param.camera.PdfW(-dirToCamera) / cameraDistanceSqr;
                         const RayColor contribution = (cameraFactor * throughput) * cameraPdfA;
                         const Vector4 value = contribution.ConvertToTristimulus(ctx.wavelength);
-                        film.AccumulateColor(filmPos, value);
+                        param.film.AccumulateColor(filmPos, value, ctx.randomGenerator);
                     }
                 }
             }

@@ -3,7 +3,7 @@
 
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
 #include "../Core/Rendering/PathTracerMIS.h"
-#include "../Core/Rendering/BidirectionalPathTracer.h"
+#include "../Core/Rendering/VertexConnectionAndMerging.h"
 #include "../Core/Rendering/DebugRenderer.h"
 
 using namespace rt;
@@ -292,7 +292,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
             "Path Tracer",
             "Path Tracer MIS",
             "Light Tracer",
-            "Bidirectional Path Tracer",
+            "VCM",
         };
 
         int currentRendererIndex = 0;
@@ -308,7 +308,8 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         if (ImGui::Combo("Renderer", &currentRendererIndex, rendererNames, IM_ARRAYSIZE(rendererNames)))
         {
             mRendererName = rendererNames[currentRendererIndex];
-            mRenderer = std::unique_ptr<IRenderer>(CreateRenderer(mRendererName, *mScene));
+            mRenderer = CreateRenderer(mRendererName, *mScene);
+            mViewport->SetRenderer(mRenderer);
             resetFrame = true;
         }
     }
@@ -338,12 +339,15 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
         resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
     }
-    else if (mRendererName == "Bidirectional Path Tracer")
+    else if (mRendererName == "VCM")
     {
-        rt::BidirectionalPathTracer* renderer = (BidirectionalPathTracer*)mRenderer.get();
+        rt::VertexConnectionAndMerging* renderer = (VertexConnectionAndMerging*)mRenderer.get();
+        resetFrame |= ImGui::Checkbox("Use vertex connection", &renderer->mUseVertexConnection);
+        resetFrame |= ImGui::Checkbox("Use vertex merging", &renderer->mUseVertexMerging);
         resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
         resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
         resetFrame |= ImGui::ColorEdit3("Vertex connecting weight", &renderer->mVertexConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::ColorEdit3("Vertex merging weight", &renderer->mVertexMergingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
         resetFrame |= ImGui::ColorEdit3("Camera connecting weight", &renderer->mCameraConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
     }
 

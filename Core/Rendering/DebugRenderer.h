@@ -38,7 +38,7 @@ public:
     DebugRenderer(const Scene& scene);
 
     virtual const char* GetName() const;
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera& camera, Film& film, RenderingContext& context) const override;
+    virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
     virtual void Raytrace_Packet(RayPacket& packet, const Camera& camera, Film& film, RenderingContext& context) const override;
 
     DebugRenderingMode mRenderingMode;

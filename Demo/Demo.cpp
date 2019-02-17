@@ -153,7 +153,8 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
     mSelectedMaterial = nullptr;
     mSelectedObject = nullptr;
 
-    mRenderer = std::unique_ptr<IRenderer>(CreateRenderer(mRendererName, *mScene));
+    mRenderer = CreateRenderer(mRendererName, *mScene);
+    mViewport->SetRenderer(mRenderer);
 }
 
 void DemoWindow::ResetFrame()
@@ -242,8 +243,11 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
 
         if (hitPoint.objectId != UINT32_MAX)
         {
-            mSelectedMaterial = const_cast<Material*>(mPathDebugData.data[0].shadingData.material);
-            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[mPathDebugData.data[0].hitPoint.objectId].get());
+            ShadingData shadingData;
+            mScene->ExtractShadingData(ray, hitPoint, renderingContext->time, shadingData);
+
+            mSelectedMaterial = const_cast<Material*>(shadingData.material);
+            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[hitPoint.objectId].get());
         }
     }
 }
@@ -337,7 +341,7 @@ bool DemoWindow::Loop()
         //// render
         mViewport->SetRenderingParams(IsPreview() ? mPreviewRenderingParams : mRenderingParams);
         localTimer.Start();
-        mViewport->Render(*mRenderer, mCamera);
+        mViewport->Render(mCamera);
         mRenderDeltaTime = localTimer.Stop();
 
         if (mEnableUI)

@@ -18,6 +18,8 @@ namespace rt {
 class IRenderer;
 class Camera;
 
+using RendererPtr = std::shared_ptr<IRenderer>;
+
 struct RenderingProgress
 {
     Uint32 passesFinished = 0;
@@ -35,8 +37,9 @@ public:
 
     RAYLIB_API bool Resize(Uint32 width, Uint32 height);
     RAYLIB_API bool SetRenderingParams(const RenderingParams& params);
+    RAYLIB_API bool SetRenderer(const RendererPtr& renderer);
     RAYLIB_API bool SetPostprocessParams(const PostprocessParams& params);
-    RAYLIB_API bool Render(const IRenderer& renderer, const Camera& camera);
+    RAYLIB_API bool Render(const Camera& camera);
     RAYLIB_API void Reset();
 
     RT_FORCE_INLINE const Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
@@ -85,6 +88,7 @@ private:
     void UpdateBlocksList();
 
     // raytrace single image tile (will be called from multiple threads)
+    void PreRenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile);
     void RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile);
 
     void PerformPostProcess();
@@ -93,6 +97,8 @@ private:
     void PostProcessTile(const Block& tile, Uint32 threadID);
 
     ThreadPool mThreadPool;
+
+    RendererPtr mRenderer;
 
     std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 

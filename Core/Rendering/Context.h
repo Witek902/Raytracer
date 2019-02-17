@@ -13,6 +13,9 @@ namespace rt {
 
 struct PathDebugData;
 
+class IRendererContext;
+using RendererContextPtr = std::unique_ptr<IRendererContext>;
+
 enum class TraversalMode : Uint8
 {
     Single = 0,
@@ -61,20 +64,17 @@ struct RenderingParams
  * A structure with local (per-thread) data.
  * It's like a hub for all global params (read only) and local state (read write).
  */
-struct RT_ALIGN(64) RenderingContext : public Aligned<64>
+struct RT_ALIGN(64) RenderingContext
+    : public Aligned<64>
+    , public NoCopyable
 {
     Wavelength wavelength;
 
-    RayPacket rayPacket;
-
-    HitPoint hitPoints[MaxRayPacketSize];
-
-    // TODO separate stacks for scene and mesh
-    Uint8 activeRaysMask[RayPacket::MaxNumGroups];
-    Uint16 activeGroupsIndices[RayPacket::MaxNumGroups];
-
     // per-thread pseudo-random number generator
     math::Random randomGenerator;
+
+    // renderer-specific context, can be null
+    RendererContextPtr rendererContext;
 
     // global rendering parameters
     const RenderingParams* params = nullptr;
@@ -90,6 +90,14 @@ struct RT_ALIGN(64) RenderingContext : public Aligned<64>
 
     // optional path debugging data
     PathDebugData* pathDebugData = nullptr;
+
+    RayPacket rayPacket;
+
+    HitPoint hitPoints[MaxRayPacketSize];
+
+    // TODO separate stacks for scene and mesh
+    Uint8 activeRaysMask[RayPacket::MaxNumGroups];
+    Uint16 activeGroupsIndices[RayPacket::MaxNumGroups];
 };
 
 

@@ -25,7 +25,6 @@ struct ShadingData
     const Material* material = nullptr;
 
     // incoming ray data
-    math::Vector4 outgoingDirLocalSpace;
     math::Vector4 outgoingDirWorldSpace;
 
     SampledMaterialParameters materialParams;
@@ -39,5 +38,21 @@ struct ShadingData
     }
 };
 
+struct PackedShadingData
+{
+    const Material* material = nullptr; // TODO can be turned into Uint32
+
+    math::Float3 position;
+    math::Float3 normal;    // TODO can be packed more
+    math::Float3 tangent;   // TODO can be packed more
+    math::Float2 texCoord;
+
+    math::Float3 outgoingDirWorldSpace;
+
+    SampledMaterialParameters materialParams; // TODO can be packed more
+};
+
+void PackShadingData(PackedShadingData& outPacked, const ShadingData& input);
+void UnpackShadingData(ShadingData& outUnpacked, const PackedShadingData& input);
 
 } // namespace rt

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Timer.h"
+#include "Logger.h"
 #include "../Math/Box.h"
 #include "../Math/Random.h"
 
@@ -15,6 +17,8 @@ public:
     template<typename ParticleType>
     RT_FORCE_NOINLINE void Build(const std::vector<ParticleType>& particles, float radius)
     {
+        //Timer timer;
+
         mRadius = radius;
         mRadiusSqr = Sqr(radius);
         mCellSize = radius * 2.0f;
@@ -28,12 +32,16 @@ public:
             mBox.AddPoint(pos);
         }
 
+        Uint32 maxPerticlesPerCell = 0;
+
         // determine number of particles in each hash table entry
         {
-            // TODO may be too small
-            mCellEnds.resize(particles.size());
+            // TODO tweak this
+            Uint32 hashTableSize = NextPowerOfTwo(Uint32(particles.size()));
+            mHashTableMask = hashTableSize - 1;
+            mCellEnds.resize(hashTableSize);
 
-            memset(mCellEnds.data(), 0, mCellEnds.size() * sizeof(int));
+            memset(mCellEnds.data(), 0, mCellEnds.size() * sizeof(Uint32));
 
             // set mCellEnds[x] to number of particles within x
             for (size_t i = 0; i < particles.size(); i++)
@@ -47,7 +55,8 @@ public:
             int sum = 0;
             for (size_t i = 0; i < mCellEnds.size(); i++)
             {
-                int temp = mCellEnds[i];
+                Uint32 temp = mCellEnds[i];
+                maxPerticlesPerCell = Max(maxPerticlesPerCell, temp);
                 mCellEnds[i] = sum;
                 sum += temp;
             }
@@ -59,65 +68,63 @@ public:
         {
             const math::Vector4& pos = particles[i].GetPosition();
             const int targetIdx = mCellEnds[GetCellIndex(pos)]++;
-            mIndices[targetIdx] = int(i);
+            mIndices[targetIdx] = Uint32(i);
         }
+
+        //RT_LOG_INFO("Building hash grid took %.2f ms, %zu particels, max perticles per cell = %u, min=[%f,%f,%f], max=[%f,%f,%f]",
+        //    timer.Stop() * 1000.0, particles.size(), maxPerticlesPerCell,
+        //    mBox.min.x, mBox.min.y, mBox.min.z, mBox.max.x, mBox.max.y, mBox.max.z);
     }
 
     template<typename ParticleType, typename Query>
     RT_FORCE_NOINLINE void Process(const math::Vector4& queryPos, const std::vector<ParticleType>& particles, Query& query) const
     {
-        const math::Vector4 distMin = queryPos - mBox.min;
-        const math::Vector4 distMax = mBox.max - queryPos;
-        for (int i = 0; i < 3; i++)
+        if (mIndices.empty())
         {
-            if (distMin[i] < 0.0f || distMax[i] < 0.0f)
-            {
-                return;
-            }
+            return;
         }
 
-        const math::Vector4 cellPt = mInvCellSize * distMin;
-        const math::Vector4 coordF(std::floor(cellPt.x), std::floor(cellPt.y), std::floor(cellPt.z));
+        const math::Vector4 distMin = queryPos - mBox.min;
+        // TODO check if point is inside box?
 
-        // TODO SSE
-        const int px = int(coordF.x);
-        const int py = int(coordF.y);
-        const int pz = int(coordF.z);
+        const math::Vector4 cellCoords = mInvCellSize * distMin;
+        // Note: -0.5 is to reduce cells search from 3x3x3 to 2x2x2 (emulates spheres shift in the cells)
+        const math::Vector4 coordF = math::Vector4::Floor(cellCoords - math::Vector4(0.5f));
+        const math::VectorInt4 coordI = math::VectorInt4::Convert(coordF);
 
-        const math::Vector4 fractCoord = cellPt - coordF;
-
-        // TODO SSE
-        const int pxo = px + (fractCoord.x < 0.5f ? -1 : 1);
-        const int pyo = py + (fractCoord.y < 0.5f ? -1 : 1);
-        const int pzo = pz + (fractCoord.z < 0.5f ? -1 : 1);
+        const math::VectorInt4 offsets[] = 
+        {
+            math::VectorInt4(0, 0, 0, 0),
+            math::VectorInt4(0, 0, 1, 0),
+            math::VectorInt4(0, 1, 0, 0),
+            math::VectorInt4(0, 1, 1, 0),
+            math::VectorInt4(1, 0, 0, 0),
+            math::VectorInt4(1, 0, 1, 0),
+            math::VectorInt4(1, 1, 0, 0),
+            math::VectorInt4(1, 1, 1, 0),
+        };
 
         Uint32 numCellsToVisit = 0;
         Uint32 cellsToVisit[8];
 
-        const auto checkCellToVisit = [&](Uint32 cellIndex)
+        // find neigboring (potential) cells - 2x2x2 block
+        for (Uint32 i = 0; i < 8; ++i)
         {
+            const Uint32 cellIndex = GetCellIndex(coordI + offsets[i]);
+
             // check if the cell is not already marked to visit
-            for (Uint32 i = 0; i < numCellsToVisit; ++i)
+            for (Uint32 j = 0; j < numCellsToVisit; ++j)
             {
-                if (cellsToVisit[i] == cellIndex)
+                if (cellsToVisit[j] == cellIndex)
                 {
-                    return;
+                    continue;
                 }
             }
 
             cellsToVisit[numCellsToVisit++] = cellIndex;
-        };
+        }
 
-        checkCellToVisit(GetCellIndex(px, py, pz));
-        checkCellToVisit(GetCellIndex(px, py, pzo));
-        checkCellToVisit(GetCellIndex(px, pyo, pz));
-        checkCellToVisit(GetCellIndex(px, pyo, pzo));
-        checkCellToVisit(GetCellIndex(pxo, py, pz));
-        checkCellToVisit(GetCellIndex(pxo, py, pzo));
-        checkCellToVisit(GetCellIndex(pxo, pyo, pz));
-        checkCellToVisit(GetCellIndex(pxo, pyo, pzo));
-
-
+        // collect particles from potential cells
         for (Uint32 j = 0; j < numCellsToVisit; j++)
         {
             Uint32 rangeStart, rangeEnd;
@@ -153,10 +160,10 @@ private:
         }
     }
 
-    Uint32 GetCellIndex(Uint32 x, Uint32 y, Uint32 z) const
+    Uint32 GetCellIndex(const math::VectorInt4& p) const
     {
-        // TODO get rid of division
-        return ((x * 73856093u) ^ (y * 19349663u) ^ (z * 83492791u)) % Uint32(mCellEnds.size());
+        // "Optimized Spatial Hashing for Collision Detection of Deformable Objects", Matthias Teschner, 2003
+        return ((p.x * 73856093u) ^ (p.y * 19349663u) ^ (p.z * 83492791u)) & mHashTableMask;
     }
 
 
@@ -164,18 +171,21 @@ private:
     {
         const math::Vector4 distMin = p - mBox.min;
         const math::Vector4 coordF = mInvCellSize * distMin;
+        const math::VectorInt4 coordI = math::VectorInt4::Convert(math::Vector4::Floor(coordF));
 
-        return GetCellIndex(Uint32(std::floor(coordF.x)), Uint32(std::floor(coordF.y)), Uint32(std::floor(coordF.z)));
+        return GetCellIndex(coordI);
     }
 
     math::Box mBox;
-    std::vector<int> mIndices;
-    std::vector<int> mCellEnds;
+    std::vector<Uint32> mIndices;
+    std::vector<Uint32> mCellEnds;
 
     float mRadius;
     float mRadiusSqr;
     float mCellSize;
     float mInvCellSize;
+
+    Uint32 mHashTableMask;
 };
 
 } // namespace rt

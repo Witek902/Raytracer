@@ -91,6 +91,7 @@
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0] },
             "textureScale" : [0.4, 0.4],
+            "size": [20.0, 20.0],
             "material": "ground"
         },
 
@@ -217,9 +218,11 @@
     "lights":
     [
         {
-            "type": "sphere",
-            "color": [50.0, 50.0, 50.0],
+            "type": "area",
+            "color": [10.0, 10.0, 10.0],
             "position": [5.0, 5.0, 5.0],
+            "edge1": [-2.0, 0.0, 2.0],
+            "edge0": [-2.0, 2.0, -2.0],
             "radius": 1.0
         }
     ],

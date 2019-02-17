@@ -82,7 +82,7 @@ private:
     Float mCameraSpeed;
 
     std::string mRendererName;
-    std::unique_ptr<rt::IRenderer> mRenderer;
+    rt::RendererPtr mRenderer;
 
     bool mEnableUI = true;
     bool mVisualizeAdaptiveRenderingBlocks = false;

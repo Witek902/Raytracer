@@ -307,7 +307,7 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
     // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
     // and normal mapping is disabled
-    outData.frame[1] = Vector4::Orthogonalize(outData.frame[1], outData.frame[2]).Normalized3();
+    outData.frame[0] = Vector4::Orthogonalize(outData.frame[0], outData.frame[2]).Normalized3();
 
     // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
     outData.frame[1] = Vector4::Cross3(outData.frame[0], outData.frame[2]);

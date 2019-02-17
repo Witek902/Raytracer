@@ -292,9 +292,10 @@
     <ClInclude Include="Rendering\PathTracerMIS.h" />
     <ClInclude Include="Rendering\LightTracer.h" />
     <ClInclude Include="Rendering\Film.h" />
-    <ClInclude Include="Rendering\BidirectionalPathTracer.h" />
     <ClInclude Include="Material\BSDF\NullBSDF.h" />
     <ClInclude Include="Utils\HashGrid.h" />
+    <ClInclude Include="Rendering\RendererContext.h" />
+    <ClInclude Include="Rendering\VertexConnectionAndMerging.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -469,8 +470,10 @@
     <ClCompile Include="Rendering\PathTracerMIS.cpp" />
     <ClCompile Include="Rendering\LightTracer.cpp" />
     <ClCompile Include="Rendering\Film.cpp" />
-    <ClCompile Include="Rendering\BidirectionalPathTracer.cpp" />
     <ClCompile Include="Material\BSDF\NullBSDF.cpp" />
+    <ClCompile Include="Rendering\RendererContext.cpp" />
+    <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
+    <ClCompile Include="Rendering\ShadingData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

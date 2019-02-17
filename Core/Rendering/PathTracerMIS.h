@@ -17,7 +17,7 @@ public:
     PathTracerMIS(const Scene& scene);
 
     virtual const char* GetName() const override;
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera&, Film& film, RenderingContext& context) const override;
+    virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
 
     // for debugging
     math::Vector4 mLightSamplingWeight;

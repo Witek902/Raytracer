@@ -3,7 +3,7 @@
 #include "PathTracer.h"
 #include "PathTracerMIS.h"
 #include "LightTracer.h"
-#include "BidirectionalPathTracer.h"
+#include "VertexConnectionAndMerging.h"
 #include "DebugRenderer.h"
 
 namespace rt {
@@ -15,32 +15,58 @@ IRenderer::IRenderer(const Scene& scene)
 
 IRenderer::~IRenderer() = default;
 
+RendererContextPtr IRenderer::CreateContext() const
+{
+    return nullptr;
+}
+
+void IRenderer::PreRender(const Film&)
+{
+}
+
+void IRenderer::PreRender(RenderingContext&)
+{
+}
+
+void IRenderer::PreRenderPixel(const RenderParam&, RenderingContext&) const
+{
+}
+
+void IRenderer::PreRenderGlobal(RenderingContext&)
+{
+}
+
+void IRenderer::PreRenderGlobal()
+{
+}
+
 void IRenderer::Raytrace_Packet(RayPacket&, const Camera&, Film&, RenderingContext&) const
 {
 }
 
+
 // TODO use reflection
-IRenderer* CreateRenderer(const std::string& name, const Scene& scene)
+RendererPtr CreateRenderer(const std::string& name, const Scene& scene)
 {
     if (name == "Path Tracer")
     {
-        return new PathTracer(scene);
+        return RendererPtr(new PathTracer(scene));
     }
     else if (name == "Path Tracer MIS")
     {
-        return new PathTracerMIS(scene);
+        return RendererPtr(new PathTracerMIS(scene));
     }
     else if (name == "Light Tracer")
     {
-        return new LightTracer(scene);
+        return RendererPtr(new LightTracer(scene));
     }
     else if (name == "Debug")
     {
-        return new DebugRenderer(scene);
+        return RendererPtr(new DebugRenderer(scene));
     }
-    else if (name == "Bidirectional Path Tracer")
+    else if (name == "VCM")
     {
-        return new BidirectionalPathTracer(scene);
+        return RendererPtr(new VertexConnectionAndMerging(scene));
     }
 
     return nullptr;

@@ -151,7 +151,7 @@ const RayColor RoughPlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* o
 
     if (outReversePdfW)
     {
-        *outDirectPdfW = diffuseReversePdf * diffuseProbability + specularPdf * specularProbability;
+        *outReversePdfW = diffuseReversePdf * diffuseProbability + specularPdf * specularProbability;
     }
 
     return diffuseTerm + specularTerm;

@@ -183,6 +183,19 @@ RT_FORCE_INLINE constexpr bool PowerOfTwo(const T x)
     return x && !(x & (x - 1));
 }
 
+// Roundup to next power of two
+RT_FORCE_INLINE constexpr Uint32 NextPowerOfTwo(Uint32 v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
+
 template<typename T>
 RT_FORCE_INLINE constexpr const T RoundUp(const T x, const T multiple)
 {

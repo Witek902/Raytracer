@@ -43,7 +43,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
 
     // compute Fresnel term
     const float F = FresnelDielectric(NdotV, ior);
-    const bool reflection = ctx.randomGenerator.GetFloat() < F;
+    const bool reflection = (F == 1.0f) || ctx.randomGenerator.GetFloat() < F;
 
     if (reflection) 
     {
@@ -55,6 +55,8 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
         ctx.outIncomingDir = Vector4::Refract3(-ctx.outgoingDir, VECTOR_Z, ior);
         ctx.outEventType = SpecularRefractionEvent;
     }
+
+    RT_ASSERT(ctx.outIncomingDir.SqrLength3() > 0.1f);
 
     const float NdotL = ctx.outIncomingDir.z;
 

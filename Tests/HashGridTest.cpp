@@ -9,7 +9,7 @@ using namespace rt::math;
 
 TEST(MathTest, HashGrid_RandomPoints)
 {
-    const Uint32 numPoints = 100000;
+    const Uint32 numPoints = 50000;
     const Uint32 numQueries = 10000;
     const float particleRadius = 1.0f;
     const float boxSize = 100.0f;

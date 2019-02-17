@@ -128,12 +128,15 @@ bool BoxSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& contex
 {
     const Box box(-mSize, mSize);
 
-    float dist;
-    if (Intersect_BoxRay(context.ray, box, dist))
+    float nearDist, farDist;
+    if (Intersect_BoxRay_TwoSided(context.ray, box, nearDist, farDist))
     {
-        if (dist > 0.0f && dist < context.hitPoint.distance)
+        if (nearDist > 0.0f && nearDist < context.hitPoint.distance)
         {
-            context.hitPoint.distance = dist;
+            return true;
+        }
+        if (farDist > 0.0f && farDist < context.hitPoint.distance)
+        {
             return true;
         }
     }

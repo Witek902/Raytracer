@@ -112,6 +112,11 @@ public:
         new (p) value_type(wert);
     }
 
+    void construct(pointer p, value_type&& wert)
+    {
+        new (p) value_type(std::move(wert));
+    }
+
     void destroy(pointer p)
     {
         p->~value_type();

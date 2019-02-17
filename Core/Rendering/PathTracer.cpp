@@ -45,7 +45,7 @@ const RayColor PathTracer::EvaluateGlobalLights(const Ray& ray, RenderingContext
     return result;
 }
 
-const RayColor PathTracer::TraceRay_Single(const Ray& primaryRay, const Camera&, Film&, RenderingContext& context) const
+const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const RenderParam&, RenderingContext& context) const
 {
     HitPoint hitPoint;
     Ray ray = primaryRay;
@@ -82,9 +82,6 @@ const RayColor PathTracer::TraceRay_Single(const Ray& primaryRay, const Camera&,
         // fill up structure with shading data
         {
             mScene.ExtractShadingData(ray, hitPoint, context.time, shadingData);
-
-            shadingData.outgoingDirWorldSpace = -ray.dir;
-            shadingData.outgoingDirLocalSpace = shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace);
 
             RT_ASSERT(shadingData.material != nullptr);
             shadingData.material->EvaluateShadingData(context.wavelength, shadingData);

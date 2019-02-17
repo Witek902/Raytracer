@@ -416,7 +416,7 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
     else if (typeStr == "plane")
     {
         Vector4 size(FLT_MAX);
-        if (!TryParseVector3(value, "size", true, size))
+        if (!TryParseVector2(value, "size", true, size))
         {
             return false;
         }

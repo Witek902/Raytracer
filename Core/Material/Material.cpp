@@ -175,7 +175,7 @@ const RayColor Material::Evaluate(
         *this,
         shadingData.materialParams,
         wavelength,
-        shadingData.outgoingDirLocalSpace,
+        shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
         incomingDirLocalSpace
     };
 
@@ -196,7 +196,7 @@ const RayColor Material::Sample(
     {
         *this,
         shadingData.materialParams,
-        shadingData.outgoingDirLocalSpace,
+        shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
         wavelength,
         randomGenerator,
     };

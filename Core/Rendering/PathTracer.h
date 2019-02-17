@@ -16,7 +16,7 @@ public:
     PathTracer(const Scene& scene);
 
     virtual const char* GetName() const override;
-    virtual const RayColor TraceRay_Single(const math::Ray& ray, const Camera& camera, Film& film, RenderingContext& context) const override;
+    virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
 
 private:
 

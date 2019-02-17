@@ -1,5 +1,6 @@
 #include "PCH.h"
-#include "BidirectionalPathTracer.h"
+#include "VertexConnectionAndMerging.h"
+#include "RendererContext.h"
 #include "Context.h"
 #include "Film.h"
 #include "Scene/Scene.h"
@@ -11,6 +12,8 @@
 namespace rt {
 
 using namespace math;
+
+static_assert(sizeof(VertexConnectionAndMerging::LightVertex) <= 128, "Don't make this struct even bigger");
 
 RT_FORCE_INLINE static constexpr float Mis(const float samplePdf)
 {
@@ -27,44 +30,134 @@ RT_FORCE_INLINE static constexpr float PdfWtoA(const float pdfW, const float dis
     return pdfW * Abs(cosThere) / Sqr(distance);
 }
 
-BidirectionalPathTracer::BidirectionalPathTracer(const Scene& scene)
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+class BidirectionalPathTracerContext : public IRendererContext
+{
+public:
+    using LightVertex = VertexConnectionAndMerging::LightVertex;
+
+    // list of all recorded light vertices
+    std::vector<LightVertex> lightVertices;
+
+    // marks each path end index in the 'mLightVertices' array
+    // Note: path length is obtained by comparing two consequent values
+    std::vector<Uint32> pathEnds;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     : IRenderer(scene)
+    , mLightPathsCount(0)
 {
     mBSDFSamplingWeight = Vector4(1.0f);
     mLightSamplingWeight = Vector4(1.0f);
     mVertexConnectingWeight = Vector4(1.0f);
     mCameraConnectingWeight = Vector4(1.0f);
+    mVertexMergingWeight = Vector4(1.0f);
 
-    mMinPathLength = 0;
-    mMaxPathLength = MaxLightPathLength;
+    mMaxPathLength = 15;
 
-    // TODO VCM
-    mLightPathsCount = 1;
-    mMisVertexMergingWeightFactor = 0.0f;
-    mMisVertexConnectionWeightFactor = 1.0f / mLightPathsCount;
+    mMergingRadius = 0.02f;
 }
 
-BidirectionalPathTracer::~BidirectionalPathTracer() = default;
+VertexConnectionAndMerging::~VertexConnectionAndMerging() = default;
 
-const char* BidirectionalPathTracer::GetName() const
+const char* VertexConnectionAndMerging::GetName() const
 {
-    return "Bidirectional Path Tracer";
+    return "VCM";
 }
 
-const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, const Camera& camera, Film& film, RenderingContext& ctx) const
+RendererContextPtr VertexConnectionAndMerging::CreateContext() const
 {
+    return std::make_unique<BidirectionalPathTracerContext>();
+}
+
+void VertexConnectionAndMerging::PreRender(const Film& film)
+{
+    mLightPathsCount = film.GetHeight() * film.GetWidth();
+
+    mMergingRadius *= 0.98f;
+    mMergingRadius = Max(mMergingRadius, 0.005f);
+
+    // Factor used to normalize vertex merging contribution.
+    // We divide the summed up energy by disk radius and number of light paths
+    mVertexMergingNormalizationFactor = 1.0f / (Sqr(mMergingRadius) * RT_PI * mLightPathsCount);
+
+    const float etaVCM = RT_PI * Sqr(mMergingRadius) * mLightPathsCount;
+    mMisVertexMergingWeightFactor = mUseVertexMerging ? Mis(etaVCM) : 0.0f;
+    mMisVertexConnectionWeightFactor = mUseVertexConnection ?  Mis(1.f / etaVCM) : 0.0f;
+}
+
+void VertexConnectionAndMerging::PreRender(RenderingContext& ctx)
+{
+    RT_ASSERT(ctx.rendererContext);
+    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+
+    // Stage 1 - prepare data structures
+    rendererContext.lightVertices.clear();
+    rendererContext.pathEnds.clear();
+
+    // TODO this is duplicated
+    mLightVertices.clear();
+    mLightPathEnds.clear();
+}
+
+void VertexConnectionAndMerging::PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const
+{
+    // Stage 2 - trace light paths
+    TraceLightPath(param.camera, param.film, ctx);
+}
+
+void VertexConnectionAndMerging::PreRenderGlobal(RenderingContext& ctx)
+{
+    RT_ASSERT(ctx.rendererContext);
+    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+
+    // Stage 3a - merge vertices list
+    // TODO is there any way to get rid of this? (or at least make it multithreaded)
+    {
+        const Uint32 pathEndsOffset = Uint32(mLightVertices.size());
+
+        mLightVertices.reserve(mLightVertices.size() + rendererContext.lightVertices.size());
+        for (const LightVertex& vertex : rendererContext.lightVertices)
+        {
+            mLightVertices.push_back(vertex);
+        }
+
+        mLightPathEnds.reserve(mLightPathEnds.size() + rendererContext.pathEnds.size());
+        for (const Uint32 pathEndIndex : rendererContext.pathEnds)
+        {
+            mLightPathEnds.push_back(pathEndsOffset + pathEndIndex);
+        }
+    }
+}
+
+void VertexConnectionAndMerging::PreRenderGlobal()
+{
+    // Stage 3b - build hash grid of all light vertices
+    // TODO make it multithreaded
+    if (mUseVertexMerging)
+    {
+        mHashGrid.Build(mLightVertices, mMergingRadius);
+    }
+}
+
+const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const
+{
+    // Stage 4 - trace camera paths
+
     RayColor resultColor = RayColor::Zero();
 
-    // build full light path for current sample
-    LightPath lightPath;
-    TraceLightPath(camera, film, lightPath, ctx);
-
     // initialize camera path
-    PathState pathState{ primaryRay };
+    PathState pathState{ ray };
     {
+        const float cameraPdf = param.camera.PdfW(ray.dir);
+
         pathState.dVC = 0.0f;
         pathState.dVM = 0.0f;
-        pathState.dVCM = Mis(mLightPathsCount / camera.PdfW(primaryRay.dir));
+        pathState.dVCM = Mis(1.0f / cameraPdf);
         pathState.lastSpecular = true;
     }
 
@@ -80,10 +173,7 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            if (pathState.length > mMinPathLength)
-            {
-                resultColor += pathState.throughput * EvaluateGlobalLights(pathState, ctx);
-            }
+            resultColor += pathState.throughput * EvaluateGlobalLights(pathState, ctx);
             break;
         }
 
@@ -99,14 +189,11 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
                 const float cosTheta = Vector4::Dot3(pathState.ray.dir, normal);
                 pathState.dVCM *= Mis(Sqr(hitPoint.distance));
                 pathState.dVCM /= Mis(Abs(cosTheta));
-                pathState.dVC  /= Mis(Abs(cosTheta));
-                pathState.dVM  /= Mis(Abs(cosTheta));
+                pathState.dVC /= Mis(Abs(cosTheta));
+                pathState.dVM /= Mis(Abs(cosTheta));
             }
 
-            if (pathState.length > mMinPathLength)
-            {
-                resultColor += pathState.throughput * EvaluateLight(light, hitPoint.distance, pathState, ctx);
-            }
+            resultColor += pathState.throughput * EvaluateLight(light, hitPoint.distance, pathState, ctx);
             break;
         }
 
@@ -114,9 +201,6 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
         ShadingData shadingData;
         {
             mScene.ExtractShadingData(pathState.ray, hitPoint, ctx.time, shadingData);
-
-            shadingData.outgoingDirWorldSpace = -pathState.ray.dir;
-            shadingData.outgoingDirLocalSpace = shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace);
 
             RT_ASSERT(shadingData.material != nullptr);
             shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
@@ -128,8 +212,8 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
             const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.frame[2]);
             pathState.dVCM *= Mis(Sqr(hitPoint.distance));
             pathState.dVCM /= Mis(Abs(cosTheta));
-            pathState.dVC  /= Mis(Abs(cosTheta));
-            pathState.dVM  /= Mis(Abs(cosTheta));
+            pathState.dVC /= Mis(Abs(cosTheta));
+            pathState.dVM /= Mis(Abs(cosTheta));
         }
 
         // accumulate material emission color
@@ -147,29 +231,32 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
             break;
         }
 
-        // sample lights directly (a.k.a. next event estimation)
-        if (pathState.length > mMinPathLength)
+        const bool isDeltaBsdf = shadingData.material->GetBSDF()->IsDelta();
+
+        // Vertex Connection -sample lights directly (a.k.a. next event estimation)
+        if (!isDeltaBsdf && mUseVertexConnection)
         {
             resultColor += pathState.throughput * SampleLights(shadingData, pathState, ctx);
         }
 
-        // connect camera vertex to light vertices (bidirectional path tracing)
-        if (!shadingData.material->GetBSDF()->IsDelta() && pathState.length > mMinPathLength)
+        // Vertex Connection - connect camera vertex to light vertices (bidirectional path tracing)
+        if (!isDeltaBsdf && mUseVertexConnection && !mLightPathEnds.empty())
         {
             RayColor vertexConnectionColor = RayColor::Zero();
-            for (Uint32 i = 0; i < lightPath.length; ++i)
-            {
-                const LightVertex& lightVertex = lightPath.vertices[i];
 
-                // full path would be too short
-                if (lightVertex.pathLength + pathState.length + 1 < mMinPathLength)
-                {
-                    continue;
-                }
+            // get indices of the light vertices that build a bath for given pixel
+            // Note: the path used here does not come from the same pixel index as in pre-render step,
+            // but it doesn't matter, because all the path are random anyways
+            Uint32 lightPathStart = (param.pixelIndex == 0) ? 0 : mLightPathEnds[param.pixelIndex - 1];
+            Uint32 lightPathEnd = mLightPathEnds[param.pixelIndex];
+
+            for (Uint32 i = lightPathStart; i < lightPathEnd; ++i)
+            {
+                const LightVertex& lightVertex = mLightVertices[i];
 
                 // full path would be too long
                 // Note: all other light vertices can be skiped, as they will produce even longer paths
-                if (lightVertex.pathLength + pathState.length + 1 > mMaxPathLength)
+                if (lightVertex.pathLength + pathState.length + 1u > mMaxPathLength)
                 {
                     break;
                 }
@@ -180,6 +267,14 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
             vertexConnectionColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexConnectingWeight));
 
             resultColor += pathState.throughput * vertexConnectionColor;
+        }
+
+        // Vertex Merging - merge camera vertex to light vertices nearby
+        if (!isDeltaBsdf && mUseVertexMerging && !mLightPathEnds.empty())
+        {
+            RayColor vertexMergingColor = MergeVertices(pathState, shadingData, ctx);
+            vertexMergingColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexMergingWeight));
+            resultColor += (pathState.throughput * vertexMergingColor) * mVertexMergingNormalizationFactor;
         }
 
         // check if the ray depth won't be exeeded in the next iteration
@@ -195,11 +290,15 @@ const RayColor BidirectionalPathTracer::TraceRay_Single(const Ray& primaryRay, c
         }
     }
 
+    // param.film.AccumulateColor(param.x, param.y, resultColor);
     return resultColor;
 }
 
-void BidirectionalPathTracer::TraceLightPath(const Camera& camera, Film& film, LightPath& outPath, RenderingContext& ctx) const
+void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film, RenderingContext& ctx) const
 {
+    RT_ASSERT(ctx.rendererContext);
+    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+
     PathState pathState;
 
     if (!GenerateLightSample(pathState, ctx))
@@ -219,12 +318,12 @@ void BidirectionalPathTracer::TraceLightPath(const Camera& camera, Film& film, L
 
         if (hitPoint.distance == FLT_MAX)
         {
-            return; // ray missed - terminate the path
+            break; // ray missed - terminate the path
         }
 
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
-            return; // for now, light sources do not reflect light
+            break; // for now, light sources do not reflect light
         }
 
         // fill up structure with shading data
@@ -232,9 +331,6 @@ void BidirectionalPathTracer::TraceLightPath(const Camera& camera, Film& film, L
         {
             // TODO this is copy-paste from TraceRay_Single
             mScene.ExtractShadingData(pathState.ray, hitPoint, ctx.time, shadingData);
-
-            shadingData.outgoingDirWorldSpace = -pathState.ray.dir;
-            shadingData.outgoingDirLocalSpace = shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace);
 
             RT_ASSERT(shadingData.material != nullptr);
             shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
@@ -254,18 +350,21 @@ void BidirectionalPathTracer::TraceLightPath(const Camera& camera, Film& film, L
         }
 
         // record the vertex for non-specular materials
-        if (!shadingData.material->GetBSDF()->IsDelta())
+        const bool isDeltaBsdf = shadingData.material->GetBSDF()->IsDelta();
+        if (!isDeltaBsdf && (mUseVertexConnection || mUseVertexMerging))
         {
-            LightVertex& vertex = outPath.vertices[outPath.length++];
-            vertex.pathLength = pathState.length;
+            rendererContext.lightVertices.emplace_back();
+            LightVertex& vertex = rendererContext.lightVertices.back();
+
+            vertex.pathLength = Uint8(pathState.length);
             vertex.throughput = pathState.throughput;
-            vertex.shadingData = shadingData;
             vertex.dVC = pathState.dVC;
             vertex.dVM = pathState.dVM;
             vertex.dVCM = pathState.dVCM;
+            PackShadingData(vertex.shadingData, shadingData);
 
             // connect vertex to camera directly
-            if (pathState.length > mMinPathLength)
+            if (mUseVertexConnection)
             {
                 ConnectToCamera(camera, film, vertex, ctx);
             }
@@ -273,17 +372,20 @@ void BidirectionalPathTracer::TraceLightPath(const Camera& camera, Film& film, L
 
         if (pathState.length + 2 > mMaxPathLength)
         {
-            return; // check if the ray depth won't be exeeded in the next iteration
+            break; // check if the ray depth won't be exeeded in the next iteration
         }
 
         if (!AdvancePath(pathState, shadingData, ctx))
         {
-            return;
+            break;
         }
     }
+
+    const Uint32 numVertces = Uint32(rendererContext.lightVertices.size());
+    rendererContext.pathEnds.push_back(numVertces);
 }
 
-bool BidirectionalPathTracer::GenerateLightSample(PathState& outPath, RenderingContext& ctx) const
+bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, RenderingContext& ctx) const
 {
     const auto& allLocalLights = mScene.GetLights();
     if (allLocalLights.empty())
@@ -301,7 +403,7 @@ bool BidirectionalPathTracer::GenerateLightSample(PathState& outPath, RenderingC
 
     if (throughput.AlmostZero())
     {
-        // generated too weak sample - skip it
+        // generated sample is too weak - skip it
         return false;
     }
 
@@ -311,6 +413,7 @@ bool BidirectionalPathTracer::GenerateLightSample(PathState& outPath, RenderingC
     const float emissionInvPdfW = 1.0f / emitResult.emissionPdfW;
 
     outPath.ray = Ray(emitResult.position, emitResult.direction);
+    outPath.ray.origin += outPath.ray.dir * 0.0001f;
     outPath.throughput = throughput * emissionInvPdfW;
     outPath.isFiniteLight = light->IsFinite();
 
@@ -334,7 +437,7 @@ bool BidirectionalPathTracer::GenerateLightSample(PathState& outPath, RenderingC
     return true;
 }
 
-bool BidirectionalPathTracer::AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx) const
+bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx) const
 {
     // sample BSDF
     Vector4 incomingDirWorldSpace;
@@ -366,21 +469,19 @@ bool BidirectionalPathTracer::AdvancePath(PathState& path, const ShadingData& sh
 
     // TODO for some reason this gives wrong result
     // evaluate reverse PDF
-    //if ((sampledEvent & BSDF::SpecularEvent) == 0)
-    //{
-    //    const Vector4 incomingDirLocalSpace = shadingData.WorldToLocal(incomingDirWorldSpace);
-    //
-    //    const BSDF::EvaluationContext evalContext =
-    //    {
-    //        *shadingData.material,
-    //        shadingData.materialParams,
-    //        ctx.wavelength,
-    //        shadingData.outgoingDirLocalSpace,
-    //        incomingDirLocalSpace,
-    //    };
-    //
-    //    bsdfRevPdf = shadingData.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
-    //}
+    if ((sampledEvent & BSDF::SpecularEvent) == 0)
+    {
+        const BSDF::EvaluationContext evalContext =
+        {
+            *shadingData.material,
+            shadingData.materialParams,
+            ctx.wavelength,
+            shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
+            -shadingData.WorldToLocal(incomingDirWorldSpace),
+        };
+    
+        bsdfRevPdf = shadingData.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
+    }
 
     if (sampledEvent & BSDF::SpecularEvent)
     {
@@ -410,10 +511,57 @@ bool BidirectionalPathTracer::AdvancePath(PathState& path, const ShadingData& sh
     path.lastSampledBsdfEvent = sampledEvent;
     path.length++;
 
+    RT_ASSERT(path.ray.IsValid());
+
     return true;
 }
 
-const RayColor BidirectionalPathTracer::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
+{
+    const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
+    const Vector4 normal = light.GetNormal(hitPos);
+
+    float directPdfA, emissionPdfW;
+    RayColor lightContribution = light.GetRadiance(ctx, pathState.ray.dir, hitPos, &directPdfA, &emissionPdfW);
+    RT_ASSERT(lightContribution.IsValid());
+
+    if (lightContribution.AlmostZero())
+    {
+        return RayColor::Zero();
+    }
+
+    RT_ASSERT(directPdfA >= 0.0f && IsValid(directPdfA));
+    RT_ASSERT(emissionPdfW >= 0.0f && IsValid(emissionPdfW));
+
+    // no weighting required for directly visible lights
+    if (pathState.length > 1)
+    {
+        if (mUseVertexMerging && !mUseVertexConnection) // special case for photon mapping
+        {
+            if (!pathState.lastSpecular)
+            {
+                return RayColor::Zero();
+            }
+        }
+        else
+        {
+            // TODO Russian roulette
+
+            // compute MIS weight
+            const float wCamera = Mis(directPdfA) * pathState.dVCM + Mis(emissionPdfW) * pathState.dVC;
+            const float misWeight = 1.0f / (1.0f + wCamera);
+            RT_ASSERT(misWeight >= 0.0f);
+
+            lightContribution *= misWeight;
+        }
+    }
+
+    lightContribution *= RayColor::Resolve(ctx.wavelength, Spectrum(mBSDFSamplingWeight));
+
+    return lightContribution;
+}
+
+const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
 {
     ILight::IlluminateParam illuminateParam = { shadingData, ctx };
 
@@ -468,6 +616,10 @@ const RayColor BidirectionalPathTracer::SampleLight(const ILight& light, const S
     bsdfRevPdfW *= continuationProbability;
 
     const float cosToLight = Vector4::Dot3(shadingData.frame[2], illuminateParam.outDirectionToLight);
+    if (cosToLight <= FLT_EPSILON)
+    {
+        return RayColor::Zero();
+    }
 
     const float wLight = Mis(bsdfPdfW / (lightPickProbability * illuminateParam.outDirectPdfW));
     const float wCamera = Mis(illuminateParam.outEmissionPdfW * cosToLight / (illuminateParam.outDirectPdfW * illuminateParam.outCosAtLight)) * (mMisVertexMergingWeightFactor + pathState.dVCM + pathState.dVC * Mis(bsdfRevPdfW));
@@ -477,7 +629,7 @@ const RayColor BidirectionalPathTracer::SampleLight(const ILight& light, const S
     return (radiance * bsdfFactor) * (misWeight / (lightPickProbability * illuminateParam.outDirectPdfW));
 }
 
-const RayColor BidirectionalPathTracer::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
 {
     RayColor accumulatedColor = RayColor::Zero();
 
@@ -493,40 +645,7 @@ const RayColor BidirectionalPathTracer::SampleLights(const ShadingData& shadingD
     return accumulatedColor;
 }
 
-const RayColor BidirectionalPathTracer::EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
-{
-    const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
-    const Vector4 normal = light.GetNormal(hitPos);
-
-    float directPdfA, emissionPdfW;
-    RayColor lightContribution = light.GetRadiance(ctx, pathState.ray.dir, hitPos, &directPdfA, &emissionPdfW);
-    RT_ASSERT(lightContribution.IsValid());
-
-    if (lightContribution.AlmostZero())
-    {
-        return RayColor::Zero();
-    }
-
-    RT_ASSERT(directPdfA >= 0.0f && IsValid(directPdfA));
-    RT_ASSERT(emissionPdfW >= 0.0f && IsValid(emissionPdfW));
-
-    // no weighting required for directly visible lights
-    if (pathState.length > 1)
-    {
-        // compute MIS weight
-        const float wCamera = Mis(directPdfA) * pathState.dVCM + Mis(emissionPdfW) * pathState.dVC;
-        const float misWeight = 1.0f / (1.0f + wCamera);
-        RT_ASSERT(misWeight >= 0.0f);
-
-        lightContribution *= misWeight;
-    }
-
-    lightContribution *= RayColor::Resolve(ctx.wavelength, Spectrum(mBSDFSamplingWeight));
-
-    return lightContribution;
-}
-
-const RayColor BidirectionalPathTracer::EvaluateGlobalLights(const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(const PathState& pathState, RenderingContext& ctx) const
 {
     RayColor result = RayColor::Zero();
 
@@ -538,16 +657,19 @@ const RayColor BidirectionalPathTracer::EvaluateGlobalLights(const PathState& pa
     return result;
 }
 
-const RayColor BidirectionalPathTracer::ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const
 {
+    ShadingData lightVertexShadingData;
+    UnpackShadingData(lightVertexShadingData, lightVertex.shadingData);
+
     // compute connection direction (from camera vertex to light vertex)
-    Vector4 lightDir = lightVertex.shadingData.frame.GetTranslation() - shadingData.frame.GetTranslation();
+    Vector4 lightDir = lightVertexShadingData.frame.GetTranslation() - shadingData.frame.GetTranslation();
     const float distanceSqr = lightDir.SqrLength3();
     const float distance = sqrtf(distanceSqr);
     lightDir /= distance;
 
     const float cosCameraVertex = shadingData.CosTheta(lightDir);
-    const float cosLightVertex = lightVertex.shadingData.CosTheta(-lightDir);
+    const float cosLightVertex = lightVertexShadingData.CosTheta(-lightDir);
 
     if (cosCameraVertex <= 0.0f || cosLightVertex <= 0.0f)
     {
@@ -569,7 +691,7 @@ const RayColor BidirectionalPathTracer::ConnectVertices(PathState& cameraPathSta
 
     // evaluate BSDF at light vertex
     float lightBsdfPdfW, lightBsdfRevPdfW;
-    const RayColor lightFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
+    const RayColor lightFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertexShadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
     RT_ASSERT(lightFactor.IsValid());
     if (lightFactor.AlmostZero())
     {
@@ -581,7 +703,8 @@ const RayColor BidirectionalPathTracer::ConnectVertices(PathState& cameraPathSta
         HitPoint hitPoint;
         hitPoint.distance = distance * 0.999f;
 
-        const Ray shadowRay(shadingData.frame.GetTranslation() + shadingData.frame[2] * 0.0001f, lightDir);
+        Ray shadowRay(shadingData.frame.GetTranslation(), lightDir);
+        shadowRay.origin += shadowRay.dir * 0.0001f;
 
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, ctx }))
         {
@@ -614,10 +737,80 @@ const RayColor BidirectionalPathTracer::ConnectVertices(PathState& cameraPathSta
     return contribution;
 }
 
-void BidirectionalPathTracer::ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathState, const ShadingData& shadingData, RenderingContext& ctx) const
 {
+    class RangeQuery
+    {
+    public:
+        RT_FORCE_INLINE RangeQuery(const VertexConnectionAndMerging& renderer, const PathState& cameraPathState, const ShadingData& shadingData, RenderingContext& ctx)
+            : mRenderer(renderer)
+            , mShadingData(shadingData)
+            , mCameraPathState(cameraPathState)
+            , mContribution(RayColor::Zero())
+            , mContext(ctx)
+        {}
+
+        RT_FORCE_INLINE const RayColor& GetContribution() const { return mContribution; }
+
+        void operator()(Uint32 lightVectexIndex)
+        {
+            const LightVertex& lightVertex = mRenderer.mLightVertices[lightVectexIndex];
+
+            if (lightVertex.pathLength + mCameraPathState.length > mRenderer.mMaxPathLength)
+            {
+                return;
+            }
+
+            // Retrieve light incoming direction in world coordinates
+            const Vector4 lightDirection = -Vector4(&lightVertex.shadingData.outgoingDirWorldSpace.x);
+
+            float cameraBsdfDirPdfW, cameraBsdfRevPdfW;
+            const RayColor cameraBsdfFactor = mShadingData.material->Evaluate(mContext.wavelength, mShadingData, lightDirection, &cameraBsdfDirPdfW, &cameraBsdfRevPdfW);
+            if (cameraBsdfFactor.AlmostZero())
+            {
+                return;
+            }
+
+            const float cosToLight = mShadingData.CosTheta(-lightDirection);
+            if (cosToLight < FLT_EPSILON)
+            {
+                return;
+            }
+
+            // TODO
+            //cameraBsdfDirPdfW *= mCameraBsdf.ContinuationProb();
+            //cameraBsdfRevPdfW *= aLightVertex.mBSDF.ContinuationProb();
+
+            // Partial light sub-path MIS weight [tech. rep. (38)]
+            const float wLight = lightVertex.dVCM * mRenderer.mMisVertexConnectionWeightFactor + lightVertex.dVM * Mis(cameraBsdfDirPdfW);
+            const float wCamera = mCameraPathState.dVCM * mRenderer.mMisVertexConnectionWeightFactor + mCameraPathState.dVM * Mis(cameraBsdfRevPdfW);
+            const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
+
+            mContribution += (cameraBsdfFactor * lightVertex.throughput) * (misWeight / cosToLight);
+        }
+
+    private:
+        RenderingContext& mContext;
+        const VertexConnectionAndMerging& mRenderer;
+        const ShadingData& mShadingData;
+        const PathState& mCameraPathState;
+        RayColor mContribution;
+    };
+
+    const Vector4& cameraVertexPos = shadingData.frame.GetTranslation();
+
+    RangeQuery query(*this, cameraPathState, shadingData, ctx);
+    mHashGrid.Process(cameraVertexPos, mLightVertices, query);
+    return query.GetContribution();
+}
+
+void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const
+{
+    ShadingData lightVertexShadingData;
+    UnpackShadingData(lightVertexShadingData, lightVertex.shadingData);
+
     const Vector4 cameraPos = camera.GetTransform().GetTranslation();
-    const Vector4 samplePos = lightVertex.shadingData.frame.GetTranslation();
+    const Vector4 samplePos = lightVertexShadingData.frame.GetTranslation();
 
     Vector4 dirToCamera = cameraPos - samplePos;
 
@@ -628,7 +821,7 @@ void BidirectionalPathTracer::ConnectToCamera(const Camera& camera, Film& film, 
 
     // calculate BSDF contribution
     float bsdfPdfW, bsdfRevPdfW;
-    const RayColor cameraFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
+    const RayColor cameraFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertexShadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
     RT_ASSERT(cameraFactor.IsValid());
 
     if (cameraFactor.AlmostZero())
@@ -646,7 +839,8 @@ void BidirectionalPathTracer::ConnectToCamera(const Camera& camera, Film& film, 
     HitPoint shadowHitPoint;
     shadowHitPoint.distance = cameraDistance * 0.999f;
 
-    const Ray shadowRay(samplePos + lightVertex.shadingData.frame[2] * 0.001f, dirToCamera);
+    Ray shadowRay(samplePos, dirToCamera);
+    shadowRay.origin += shadowRay.dir * 0.0001f;
 
     if (mScene.Traverse_Shadow_Single({ shadowRay, shadowHitPoint, ctx }))
     {
@@ -654,20 +848,25 @@ void BidirectionalPathTracer::ConnectToCamera(const Camera& camera, Film& film, 
         return;
     }
 
-    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertex.shadingData.frame[2]);
+    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertexShadingData.frame[2]);
+    if (cosToCamera <= FLT_EPSILON)
+    {
+        return;
+    }
+
     const float cameraPdfW = camera.PdfW(-dirToCamera);
     const float cameraPdfA = cameraPdfW * cosToCamera / cameraDistanceSqr;
 
     // compute MIS weight
-    const float wLight = Mis(cameraPdfA / mLightPathsCount) * (mMisVertexMergingWeightFactor + lightVertex.dVCM + lightVertex.dVC * Mis(bsdfRevPdfW));
+    const float wLight = Mis(cameraPdfA) * (mMisVertexMergingWeightFactor + lightVertex.dVCM + lightVertex.dVC * Mis(bsdfRevPdfW));
     const float misWeight = 1.0f / (wLight + 1.0f);
     RT_ASSERT(misWeight >= 0.0f);
 
-    RayColor contribution = (cameraFactor * lightVertex.throughput) * (misWeight * cameraPdfA / mLightPathsCount) / cosToCamera;
+    RayColor contribution = (cameraFactor * lightVertex.throughput) * (misWeight * cameraPdfA / (cosToCamera));
     contribution *= RayColor::Resolve(ctx.wavelength, Spectrum(mCameraConnectingWeight));
 
     const Vector4 value = contribution.ConvertToTristimulus(ctx.wavelength);
-    film.AccumulateColor(filmPos, value);
+    film.AccumulateColor(filmPos, value, ctx.randomGenerator);
 }
 
 } // namespace rt

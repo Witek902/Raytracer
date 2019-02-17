@@ -20,7 +20,7 @@ static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::BaseColor)
+    , mRenderingMode(DebugRenderingMode::TriangleID)
 {
 }
 
@@ -29,12 +29,12 @@ const char* DebugRenderer::GetName() const
     return "Debug";
 }
 
-const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, const Camera&, Film&, RenderingContext& context) const
+const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderParam&, RenderingContext& ctx) const
 {
     HitPoint hitPoint;
-    context.localCounters.Reset();
-    mScene.Traverse_Single({ ray, hitPoint, context });
-    context.counters.Append(context.localCounters);
+    ctx.localCounters.Reset();
+    mScene.Traverse_Single({ ray, hitPoint, ctx });
+    ctx.counters.Append(ctx.localCounters);
 
     if (hitPoint.distance == FLT_MAX)
     {
@@ -51,7 +51,7 @@ const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, const Camera&, Fil
     ShadingData shadingData;
     if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
     {
-        mScene.ExtractShadingData(ray, hitPoint, context.time, shadingData);
+        mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
     }
 
     Vector4 resultColor;
@@ -166,7 +166,7 @@ const RayColor DebugRenderer::TraceRay_Single(const Ray& ray, const Camera&, Fil
             RT_FATAL("Invalid debug rendering mode");
     }
 
-    return RayColor::Resolve(context.wavelength, Spectrum(resultColor));
+    return RayColor::Resolve(ctx.wavelength, Spectrum(resultColor));
 }
 
 void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film, RenderingContext& context) const

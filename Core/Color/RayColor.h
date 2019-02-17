@@ -128,4 +128,15 @@ RT_FORCE_INLINE const RayColor operator * (const float a, const RayColor& b)
     return b * a;
 }
 
+
+#ifndef RT_ENABLE_SPECTRAL_RENDERING
+
+RT_FORCE_INLINE const math::Vector4 RayColor::ConvertToTristimulus(const Wavelength&) const
+{
+    return value;
+}
+
+#endif // RT_ENABLE_SPECTRAL_RENDERING
+
+
 } // namespace rt

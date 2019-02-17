@@ -114,3 +114,13 @@ using Int8 = signed char;
 using Float = float;
 using Double = double;
 
+class NoCopyable
+{
+public:
+    NoCopyable() = default;
+    NoCopyable(NoCopyable&&) = default;
+    NoCopyable& operator = (NoCopyable&&) = default;
+private:
+    NoCopyable(const NoCopyable&) = delete;
+    NoCopyable& operator = (const NoCopyable&) = delete;
+};

@@ -281,6 +281,8 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
     outShadingData.frame[1] = transform.TransformVector(outShadingData.frame[1]);
     outShadingData.frame[2] = transform.TransformVector(outShadingData.frame[2]);
     outShadingData.frame[3] = worldPosition;
+
+    outShadingData.outgoingDirWorldSpace = -ray.dir;
 }
 
 } // namespace rt
