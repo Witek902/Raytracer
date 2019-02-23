@@ -15,7 +15,7 @@ bool NullBSDF::Sample(SamplingContext& ctx) const
     return false;
 }
 
-const RayColor NullBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor NullBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     RT_UNUSED(ctx);
     RT_UNUSED(outDirectPdfW);
@@ -24,7 +24,7 @@ const RayColor NullBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirect
     return RayColor::Zero();
 }
 
-Float NullBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float NullBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     RT_UNUSED(ctx);
     RT_UNUSED(dir);

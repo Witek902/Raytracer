@@ -9,8 +9,8 @@ using namespace math;
 
 static void Benchmark_Transcendental_Sin(benchmark::State& state)
 {
-    Float x = 0.0f;
-    Float y = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
     for (auto _ : state)
     {
         y += Sin(x);
@@ -37,8 +37,8 @@ BENCHMARK(Benchmark_Transcendental_Sin4);
 
 static void Benchmark_Transcendental_FastACos(benchmark::State& state)
 {
-    Float x = 0.0f;
-    Float y = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
     for (auto _ : state)
     {
         y += FastACos(x);
@@ -51,8 +51,8 @@ BENCHMARK(Benchmark_Transcendental_FastACos);
 
 static void Benchmark_Transcendental_FastExp(benchmark::State& state)
 {
-    Float x = -80.0f;
-    Float y = 0.0f;
+    float x = -80.0f;
+    float y = 0.0f;
     for (auto _ : state)
     {
         y += FastExp(x);
@@ -64,8 +64,8 @@ BENCHMARK(Benchmark_Transcendental_FastExp);
 
 static void Benchmark_Transcendental_Log(benchmark::State& state)
 {
-    Float x = 1.0e-10f;
-    Float y = 0.0f;
+    float x = 1.0e-10f;
+    float y = 0.0f;
     for (auto _ : state)
     {
         y += Log(x);

@@ -56,7 +56,7 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -92,7 +92,7 @@ const RayColor PlasticBSDF::Evaluate(const EvaluationContext& ctx, Float* outDir
     return ctx.materialParam.baseColor * (NdotL * RT_INV_PI * (1.0f - Fi) * (1.0f - Fo));
 }
 
-Float PlasticBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float PlasticBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;

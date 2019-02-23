@@ -36,7 +36,7 @@ struct RayColor
     RT_FORCE_INLINE static const RayColor SingleWavelengthFallback()
     {
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-        return RayColor{ Wavelength::ValueType((Float)Wavelength::NumComponents, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
+        return RayColor{ Wavelength::ValueType((float)Wavelength::NumComponents, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) };
 #else
         return RayColor{ math::VECTOR_ONE };
 #endif
@@ -90,7 +90,7 @@ struct RayColor
         return Wavelength::ValueType::AlmostEqual(value, Wavelength::ValueType::Zero());
     }
 
-    RT_FORCE_INLINE Float Max() const
+    RT_FORCE_INLINE float Max() const
     {
         return value.HorizontalMax()[0];
     }

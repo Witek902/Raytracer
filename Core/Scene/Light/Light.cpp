@@ -13,7 +13,7 @@ ILight::ILight(const Vector4 color)
     mColor.rgbValues = color;
 }
 
-const RayColor ILight::GetRadiance(RenderingContext&, const math::Vector4&, const math::Vector4&, Float*, Float*) const
+const RayColor ILight::GetRadiance(RenderingContext&, const math::Vector4&, const math::Vector4&, float*, float*) const
 {
     RT_FATAL("Cannot hit this type of light");
     return RayColor();

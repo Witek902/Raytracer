@@ -44,7 +44,7 @@ bool RoughDiffuseBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z;
     const float NdotL = -ctx.incomingDir.z;
@@ -72,10 +72,10 @@ const RayColor RoughDiffuseBSDF::Evaluate(const EvaluationContext& ctx, float* o
     return RayColor::Zero();
 }
 
-Float RoughDiffuseBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float RoughDiffuseBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     const float NdotV = ctx.outgoingDir.z;
-    const Float NdotL = -ctx.incomingDir.z;
+    const float NdotL = -ctx.incomingDir.z;
 
     if (NdotV > CosEpsilon && NdotL > CosEpsilon)
     {

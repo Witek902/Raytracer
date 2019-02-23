@@ -25,8 +25,8 @@ struct RenderingProgress
     Uint32 passesFinished = 0;
     Uint32 activePixels = 0;
     Uint32 activeBlocks = 0;
-    Float converged = 0.0f;
-    Float averageError = std::numeric_limits<Float>::infinity();
+    float converged = 0.0f;
+    float averageError = std::numeric_limits<float>::infinity();
 };
 
 class RT_ALIGN(64) Viewport : public Aligned<64>
@@ -80,7 +80,7 @@ private:
     void ComputeError();
 
     // calculate estimated error (variance) of a given block
-    Float ComputeBlockError(const Block& block) const;
+    float ComputeBlockError(const Block& block) const;
 
     // generate list of tiles to be rendered (updates mRenderingTiles)
     void GenerateRenderingTiles();

@@ -56,8 +56,6 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
         ctx.outEventType = SpecularRefractionEvent;
     }
 
-    RT_ASSERT(ctx.outIncomingDir.SqrLength3() > 0.1f);
-
     const float NdotL = ctx.outIncomingDir.z;
 
     if ((NdotV * NdotL > 0.0f) != reflection)
@@ -86,7 +84,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     RT_UNUSED(ctx);
 
@@ -105,7 +103,7 @@ const RayColor DielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* out
     return RayColor::Zero();
 }
 
-Float DielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float DielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     RT_UNUSED(ctx);
     RT_UNUSED(dir);

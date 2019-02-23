@@ -11,9 +11,9 @@ class Material;
 struct SampledMaterialParameters
 {
     RayColor baseColor;
-    Float roughness;
-    Float metalness;
-    Float IoR;
+    float roughness;
+    float metalness;
+    float IoR;
 };
 
 struct ShadingData
@@ -32,7 +32,7 @@ struct ShadingData
     RT_FORCE_NOINLINE const math::Vector4 LocalToWorld(const math::Vector4 localCoords) const;
     RT_FORCE_NOINLINE const math::Vector4 WorldToLocal(const math::Vector4 worldCoords) const;
 
-    RT_FORCE_NOINLINE Float CosTheta(const math::Vector4 dir) const
+    RT_FORCE_NOINLINE float CosTheta(const math::Vector4 dir) const
     {
         return math::Max(0.0f, math::Vector4::Dot3(frame[2], dir));
     }

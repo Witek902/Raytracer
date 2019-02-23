@@ -23,7 +23,7 @@ void Camera::SetTransform(const math::Transform& transform)
     mLocalToWorld = transform.ToMatrix4();
 }
 
-void Camera::SetPerspective(Float aspectRatio, Float FoV)
+void Camera::SetPerspective(float aspectRatio, float FoV)
 {
     RT_ASSERT(IsValid(aspectRatio) && aspectRatio > 0.0f);
     RT_ASSERT(IsValid(FoV) && aspectRatio > 0.0f && FoV < RT_PI);
@@ -130,7 +130,7 @@ bool Camera::WorldToFilm(const Vector4 worldPosition, Vector4& outFilmCoords) co
     return false;
 }
 
-Float Camera::PdfW(const math::Vector4 direction) const
+float Camera::PdfW(const math::Vector4 direction) const
 {
     const float cosAtCamera = Vector4::Dot3(GetLocalToWorld()[2], direction);
 

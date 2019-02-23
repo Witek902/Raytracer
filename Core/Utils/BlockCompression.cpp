@@ -81,10 +81,10 @@ namespace helper
 
 RT_FORCE_INLINE static float DecodeBC_Grayscale(const Uint8* blockData, const Uint32 x, const Uint32 y)
 {
-    const Float intColor0 = blockData[0];
-    const Float intColor1 = blockData[1];
-    const Float color0 = static_cast<Float>(intColor0) / 255.0f;
-    const Float color1 = static_cast<Float>(intColor1) / 255.0f;
+    const float intColor0 = blockData[0];
+    const float intColor1 = blockData[1];
+    const float color0 = static_cast<float>(intColor0) / 255.0f;
+    const float color1 = static_cast<float>(intColor1) / 255.0f;
 
     const Uint64 code = *reinterpret_cast<const Uint64*>(blockData + 2);
     const Uint32 index = (code >> (Uint64)(3 * (4 * y + x))) % 8;

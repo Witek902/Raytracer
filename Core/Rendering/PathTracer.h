@@ -21,7 +21,7 @@ public:
 private:
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, RenderingContext& context) const;
+    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, RenderingContext& context) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(const math::Ray& ray, RenderingContext& context) const;

@@ -16,7 +16,7 @@ struct RT_ALIGN(16) Vector4
 {
     union
     {
-        Float f[4];
+        float f[4];
         Int32 i[4];
         Uint32 u[4];
         __m128 v;
@@ -35,11 +35,11 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4(const Vector4& other);
     RT_FORCE_INLINE Vector4(const __m128& src);
     RT_FORCE_INLINE static const Vector4 Zero();
-    RT_FORCE_INLINE explicit Vector4(const Float s); // splat
-    RT_FORCE_INLINE Vector4(const Float x, const Float y, const Float z, const Float w);
+    RT_FORCE_INLINE explicit Vector4(const float s); // splat
+    RT_FORCE_INLINE Vector4(const float x, const float y, const float z, const float w);
     RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
     RT_FORCE_INLINE Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w);
-    RT_FORCE_INLINE explicit Vector4(const Float* src);
+    RT_FORCE_INLINE explicit Vector4(const float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
     RT_FORCE_INLINE Vector4& operator = (const Vector4& other);
@@ -48,10 +48,10 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w);
     RT_FORCE_INLINE static const Vector4 FromHalves(const Half* src);
 
-    RT_FORCE_INLINE explicit operator Float() const { return x; }
+    RT_FORCE_INLINE explicit operator float() const { return x; }
     RT_FORCE_INLINE operator __m128() const { return v; }
     RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
-    RT_FORCE_INLINE Float operator[] (Uint32 index) const { return f[index]; }
+    RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
 
     // simple arithmetics
     RT_FORCE_INLINE const Vector4 operator- () const;
@@ -59,14 +59,14 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE const Vector4 operator- (const Vector4& b) const;
     RT_FORCE_INLINE const Vector4 operator* (const Vector4& b) const;
     RT_FORCE_INLINE const Vector4 operator/ (const Vector4& b) const;
-    RT_FORCE_INLINE const Vector4 operator* (Float b) const;
-    RT_FORCE_INLINE const Vector4 operator/ (Float b) const;
+    RT_FORCE_INLINE const Vector4 operator* (float b) const;
+    RT_FORCE_INLINE const Vector4 operator/ (float b) const;
     RT_FORCE_INLINE Vector4& operator+= (const Vector4& b);
     RT_FORCE_INLINE Vector4& operator-= (const Vector4& b);
     RT_FORCE_INLINE Vector4& operator*= (const Vector4& b);
     RT_FORCE_INLINE Vector4& operator/= (const Vector4& b);
-    RT_FORCE_INLINE Vector4& operator*= (Float b);
-    RT_FORCE_INLINE Vector4& operator/= (Float b);
+    RT_FORCE_INLINE Vector4& operator*= (float b);
+    RT_FORCE_INLINE Vector4& operator/= (float b);
 
     RT_FORCE_INLINE const VectorBool4 operator == (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator < (const Vector4& b) const;
@@ -112,7 +112,7 @@ struct RT_ALIGN(16) Vector4
     // Convert a Vector4 to 4 unsigned chars
     RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
 
-    RT_FORCE_INLINE void Store(Float* dest) const;
+    RT_FORCE_INLINE void Store(float* dest) const;
     RT_FORCE_INLINE void Store(Float2* dest) const;
     RT_FORCE_INLINE void Store(Float3* dest) const;
     RT_FORCE_INLINE Float2 ToFloat2() const;
@@ -123,7 +123,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Reciprocal(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 FastReciprocal(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight);
-    RT_FORCE_INLINE static const Vector4 Lerp(const Vector4& v1, const Vector4& v2, Float weight);
+    RT_FORCE_INLINE static const Vector4 Lerp(const Vector4& v1, const Vector4& v2, float weight);
     RT_FORCE_INLINE static const Vector4 Min(const Vector4& a, const Vector4& b);
     RT_FORCE_INLINE static const Vector4 Max(const Vector4& a, const Vector4& b);
     RT_FORCE_INLINE static const Vector4 Abs(const Vector4& v);
@@ -136,19 +136,19 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b, const VectorBool4& sel);
 
     // Calculate 2D dot product (scalar result)
-    RT_FORCE_INLINE static Float Dot2(const Vector4& v1, const Vector4& v2);
+    RT_FORCE_INLINE static float Dot2(const Vector4& v1, const Vector4& v2);
 
     // Calculate 2D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot2V(const Vector4& v1, const Vector4& v2);
 
     // Calculate 3D dot product (scalar result)
-    RT_FORCE_INLINE static Float Dot3(const Vector4& v1, const Vector4& v2);
+    RT_FORCE_INLINE static float Dot3(const Vector4& v1, const Vector4& v2);
 
     // Calculate 3D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot3V(const Vector4& v1, const Vector4& v2);
 
     // Calculate 4D dot product (scalar result)
-    RT_FORCE_INLINE static Float Dot4(const Vector4& v1, const Vector4& v2);
+    RT_FORCE_INLINE static float Dot4(const Vector4& v1, const Vector4& v2);
 
     // Calculate 4D dot product (vector result)
     RT_FORCE_INLINE static const Vector4 Dot4V(const Vector4& v1, const Vector4& v2);
@@ -157,28 +157,28 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Cross3(const Vector4& v1, const Vector4& v2);
 
     // Length of a 2D vector (scalar result)
-    RT_FORCE_INLINE Float Length2() const;
+    RT_FORCE_INLINE float Length2() const;
 
     // Length of a 2D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length2V() const;
 
     // Length of a 3D vector (scalar result)
-    RT_FORCE_INLINE Float Length3() const;
+    RT_FORCE_INLINE float Length3() const;
 
     // Square length of a 2D vector (scalar result)
-    RT_FORCE_INLINE Float SqrLength3() const;
+    RT_FORCE_INLINE float SqrLength3() const;
 
     // Length of a 3D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length3V() const;
 
     // Length of a 4D vector (scalar result)
-    RT_FORCE_INLINE Float Length4() const;
+    RT_FORCE_INLINE float Length4() const;
 
     // Length of a 4D vector (vector result)
     RT_FORCE_INLINE const Vector4 Length4V() const;
 
     // Square length of a 4D vector (scalar result)
-    RT_FORCE_INLINE Float SqrLength4() const;
+    RT_FORCE_INLINE float SqrLength4() const;
 
     // Normalize as 3D vector
     RT_FORCE_INLINE Vector4& Normalize3();
@@ -201,7 +201,7 @@ struct RT_ALIGN(16) Vector4
     static const Vector4 Refract3(const Vector4& i, const Vector4& n, float eta);
 
     // Check if two vectors are (almost) equal
-    RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon = RT_EPSILON);
+    RT_FORCE_INLINE static bool AlmostEqual(const Vector4& v1, const Vector4& v2, float epsilon = RT_EPSILON);
 
     // Check if the vector is equal to zero
     RT_FORCE_INLINE const VectorBool4 IsZero() const;
@@ -217,19 +217,19 @@ struct RT_ALIGN(16) Vector4
 
     // Fused multiply and add (a * b + c)
     RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
-    RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const Float b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 MulAndAdd(const Vector4& a, const float b, const Vector4& c);
 
     // Fused multiply and subtract (a * b - c)
     RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
-    RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const Float b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 MulAndSub(const Vector4& a, const float b, const Vector4& c);
 
     // Fused multiply (negated) and add (-a * b + c)
     RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c);
-    RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 NegMulAndAdd(const Vector4& a, const float b, const Vector4& c);
 
     // Fused multiply (negated) and subtract (-a * b - c)
     RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Vector4& b, const Vector4& c);
-    RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const Float b, const Vector4& c);
+    RT_FORCE_INLINE static const Vector4 NegMulAndSub(const Vector4& a, const float b, const Vector4& c);
 
     // Calculate horizontal maximum. Result is splatted across all elements
     RT_FORCE_INLINE const Vector4 HorizontalMax() const;
@@ -241,8 +241,8 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Orthogonalize(const Vector4& v, const Vector4& reference);
 };
 
-// like Vector4::operator * (Float)
-RT_FORCE_INLINE const Vector4 operator*(Float a, const Vector4& b);
+// like Vector4::operator * (float)
+RT_FORCE_INLINE const Vector4 operator*(float a, const Vector4& b);
 
 
 // some commonly used constants

@@ -19,7 +19,7 @@ const Box PointLight::GetBoundingBox() const
     return Box(mPosition, mPosition);
 }
 
-bool PointLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
+bool PointLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 {
     RT_UNUSED(ray);
     RT_UNUSED(outDistance);

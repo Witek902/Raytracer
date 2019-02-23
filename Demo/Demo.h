@@ -29,7 +29,7 @@ struct RT_ALIGN(16) CameraSetup
     rt::math::Vector4 linearVelocity = rt::math::Vector4::Zero();
     rt::math::Float3 orientation; // yaw, pitch, roll
     rt::math::Float3 angularVelocity;
-    Float fov = 60.0f;
+    float fov = 60.0f;
 };
 
 
@@ -70,16 +70,16 @@ private:
     Uint32 mFrameNumber;
     Uint32 mFrameCounterForAverage;
 
-    Double mDeltaTime;
-    Double mRefreshTime;
+    double mDeltaTime;
+    double mRefreshTime;
 
-    Double mAverageRenderDeltaTime;
-    Double mMinimumRenderDeltaTime;
-    Double mAccumulatedRenderTime;
-    Double mRenderDeltaTime;
-    Double mTotalRenderTime;
+    double mAverageRenderDeltaTime;
+    double mMinimumRenderDeltaTime;
+    double mAccumulatedRenderTime;
+    double mRenderDeltaTime;
+    double mTotalRenderTime;
 
-    Float mCameraSpeed;
+    float mCameraSpeed;
 
     std::string mRendererName;
     rt::RendererPtr mRenderer;

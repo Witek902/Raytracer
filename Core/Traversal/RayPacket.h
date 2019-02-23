@@ -113,22 +113,22 @@ struct RT_ALIGN(32) RayPacket
 /*
 struct RT_ALIGN(64) RayStream
 {
-    Float rayOriginX[MaxRayPacketSize];
-    Float rayOriginY[MaxRayPacketSize];
-    Float rayOriginZ[MaxRayPacketSize];
+    float rayOriginX[MaxRayPacketSize];
+    float rayOriginY[MaxRayPacketSize];
+    float rayOriginZ[MaxRayPacketSize];
 
-    Float rayDirX[MaxRayPacketSize];
-    Float rayDirY[MaxRayPacketSize];
-    Float rayDirZ[MaxRayPacketSize];
+    float rayDirX[MaxRayPacketSize];
+    float rayDirY[MaxRayPacketSize];
+    float rayDirZ[MaxRayPacketSize];
 
-    Float distance[MaxRayPacketSize];
+    float distance[MaxRayPacketSize];
 };
 
 struct RT_ALIGN(64) RayStreamHitData
 {
-    Float distance[MaxRayPacketSize];
-    Float u[MaxRayPacketSize];
-    Float v[MaxRayPacketSize];
+    float distance[MaxRayPacketSize];
+    float u[MaxRayPacketSize];
+    float v[MaxRayPacketSize];
     Uint32 subObjectId[MaxRayPacketSize];
     Uint32 objectId[MaxRayPacketSize];
 };

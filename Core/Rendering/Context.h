@@ -28,8 +28,8 @@ struct AdaptiveRenderingSettings
     Uint32 numInitialPasses = 10;
     Uint32 minBlockSize = 4;
     Uint32 maxBlockSize = 256;
-    Float subdivisionTreshold = 0.005f;
-    Float convergenceTreshold = 0.0001f;
+    float subdivisionTreshold = 0.005f;
+    float convergenceTreshold = 0.0001f;
 };
 
 struct RenderingParams
@@ -38,11 +38,11 @@ struct RenderingParams
 
     // Antialiasing factor
     // Setting to higher values will blur the image
-    Float antiAliasingSpread = 0.5f;
+    float antiAliasingSpread = 0.5f;
 
     // Motion blur multiplier
     // NOTE: must be in [0...1] range
-    Float motionBlurStrength = 0.5f;
+    float motionBlurStrength = 0.5f;
 
     // maximum ray depth
     Uint32 maxRayDepth = 20;

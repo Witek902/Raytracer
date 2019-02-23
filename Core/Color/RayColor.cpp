@@ -3,14 +3,14 @@
 #include "Spectrum.h"
 
 #ifdef _MSC_VER
-#pragma warning(disable: 4305) // truncation from 'double' to 'const Float'
+#pragma warning(disable: 4305) // truncation from 'double' to 'const float'
 #endif
 
 namespace rt {
 
 using namespace math;
 
-static_assert(sizeof(RayColor) == sizeof(Float) * Wavelength::NumComponents, "Invalid number of color components");
+static_assert(sizeof(RayColor) == sizeof(float) * Wavelength::NumComponents, "Invalid number of color components");
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
 
@@ -61,7 +61,7 @@ static const float illuminantD65[NumBins] =
 
 static constexpr int rgbToSpectrumNumSamples = 32;
 
-const Float rgbToSpectrum_White[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_White[rgbToSpectrumNumSamples] =
 {
     1.0618958571272863e+00f,   1.0615019980348779e+00f,    1.0614335379927147e+00f,   1.0622711654692485e+00f,
     1.0622036218416742e+00f,   1.0625059965187085e+00f,    1.0623938486985884e+00f,   1.0624706448043137e+00f,
@@ -73,7 +73,7 @@ const Float rgbToSpectrum_White[rgbToSpectrumNumSamples] =
     1.0599810758292072e+00f,   1.0602547314449409e+00f,    1.0601263046243634e+00f,   1.0606565756823634e+00f
 };
 
-const Float rgbToSpectrum_Cyan[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Cyan[rgbToSpectrumNumSamples] =
 {
      1.0414628021426751e+00f,   1.0328661533771188e+00f,    1.0126146228964314e+00f,   1.0350460524836209e+00f,
      1.0078661447098567e+00f,   1.0422280385081280e+00f,    1.0442596738499825e+00f,   1.0535238290294409e+00f,
@@ -85,7 +85,7 @@ const Float rgbToSpectrum_Cyan[rgbToSpectrumNumSamples] =
      1.7119799082865147e-02f,   4.9211089759759801e-03f,    5.8762925143334985e-03f,   2.5259399415550079e-02f
 };
 
-const Float rgbToSpectrum_Magenta[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Magenta[rgbToSpectrumNumSamples] =
 {
     9.9422138151236850e-01f,   9.8986937122975682e-01f,    9.8293658286116958e-01f,   9.9627868399859310e-01f,
     1.0198955019000133e+00f,   1.0166395501210359e+00f,    1.0220913178757398e+00f,   9.9651666040682441e-01f,
@@ -97,7 +97,7 @@ const Float rgbToSpectrum_Magenta[rgbToSpectrumNumSamples] =
     9.9598944191059791e-01f,   8.6301351503809076e-01f,    8.9150987853523145e-01f,   8.4866492652845082e-01f
 };
 
-const Float rgbToSpectrum_Yellow[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Yellow[rgbToSpectrumNumSamples] =
 {
      5.5740622924920873e-03f,  -4.7982831631446787e-03f,   -5.2536564298613798e-03f,  -6.4571480044499710e-03f,
     -5.9693514658007013e-03f,  -2.1836716037686721e-03f,    1.6781120601055327e-02f,   9.6096355429062641e-02f,
@@ -109,7 +109,7 @@ const Float rgbToSpectrum_Yellow[rgbToSpectrumNumSamples] =
      1.0477492815668303e+00f,   1.0493272144017338e+00f,    1.0435963333422726e+00f,   1.0392280772051465e+00f
 };
 
-const Float rgbToSpectrum_Red[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Red[rgbToSpectrumNumSamples] =
 {
      1.6575604867086180e-01f,   1.1846442802747797e-01f,    1.2408293329637447e-01f,   1.1371272058349924e-01f,
      7.8992434518899132e-02f,   3.2205603593106549e-02f,   -1.0798365407877875e-02f,   1.8051975516730392e-02f,
@@ -121,7 +121,7 @@ const Float rgbToSpectrum_Red[rgbToSpectrumNumSamples] =
      9.7451138326568698e-01f,   9.8543269570059944e-01f,    9.3495763980962043e-01f,   9.8713907792319400e-01f
 };
 
-const Float rgbToSpectrum_Green[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Green[rgbToSpectrumNumSamples] =
 {
      2.6494153587602255e-03f,  -5.0175013429732242e-03f,   -1.2547236272489583e-02f,  -9.4554964308388671e-03f,
     -1.2526086181600525e-02f,  -7.9170697760437767e-03f,   -7.9955735204175690e-03f,  -9.3559433444469070e-03f,
@@ -133,7 +133,7 @@ const Float rgbToSpectrum_Green[rgbToSpectrumNumSamples] =
     -7.8685832338754313e-03f,  -8.3657578711085132e-06f,    5.4301225442817177e-03f,  -2.7745589759259194e-03f
 };
 
-const Float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
+const float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 {
      9.9209771469720676e-01f,   9.8876426059369127e-01f,    9.9539040744505636e-01f,   9.9529317353008218e-01f,
      9.9181447411633950e-01f,   1.0002584039673432e+00f,    9.9968478437342512e-01f,   9.9988120766657174e-01f,
@@ -147,9 +147,9 @@ const Float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 
 /////////////////////////////////////////////////////////////////////////////////
 
-RayColor SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelength& wavelength)
+RayColor SampleSpectrum(const float* data, const Uint32 numValues, const Wavelength& wavelength)
 {
-    const Vector8 scaledWavelengths = wavelength.value * static_cast<Float>(numValues - 1);
+    const Vector8 scaledWavelengths = wavelength.value * static_cast<float>(numValues - 1);
     const VectorInt8 indices = VectorInt8::Convert(scaledWavelengths);
     const Vector8 weights = scaledWavelengths - indices.ConvertToFloat();
 
@@ -165,12 +165,12 @@ RayColor SampleSpectrum(const Float* data, const Uint32 numValues, const Wavelen
         assert(wavelength.value[i] >= 0.0f);
         assert(wavelength.value[i] < 1.0f);
 
-        const Float w = wavelength.value[i] * static_cast<Float>(numValues - 1);
+        const float w = wavelength.value[i] * static_cast<float>(numValues - 1);
         const Uint32 index = static_cast<Uint32>(w);
         assert(index >= 0);
         assert(index + 1 < numValues);
 
-        const Float weight = w - static_cast<Float>(index);
+        const float weight = w - static_cast<float>(index);
         result.value[i] = Lerp(data[index], data[index + 1], weight);
     }
     */

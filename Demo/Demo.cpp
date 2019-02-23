@@ -173,7 +173,7 @@ void DemoWindow::ResetCounters()
     mFrameCounterForAverage = 0;
     mAccumulatedRenderTime = 0.0;
     mAverageRenderDeltaTime = 0.0;
-    mMinimumRenderDeltaTime = std::numeric_limits<Double>::max();
+    mMinimumRenderDeltaTime = std::numeric_limits<double>::max();
     mTotalRenderTime = 0.0;
 }
 
@@ -260,9 +260,9 @@ void DemoWindow::OnMouseMove(int x, int y, int deltaX, int deltaY)
 
     if (IsMouseButtonDown(MouseButton::Right))
     {
-        const Float sensitivity = 0.0001f * mCameraSetup.fov;
-        mCameraSetup.orientation.y += sensitivity * (Float)deltaX;
-        mCameraSetup.orientation.x += sensitivity * (Float)deltaY;
+        const float sensitivity = 0.0001f * mCameraSetup.fov;
+        mCameraSetup.orientation.y += sensitivity * (float)deltaX;
+        mCameraSetup.orientation.x += sensitivity * (float)deltaY;
 
         // clamp yaw
         if (mCameraSetup.orientation.y > RT_PI)   mCameraSetup.orientation.y -= 2.0f * RT_PI;
@@ -438,8 +438,8 @@ void DemoWindow::UpdateCamera()
 
     mCamera.SetTransform(Transform(mCameraSetup.position, cameraOrientation));
 
-    const Float aspectRatio = (Float)width / (Float)height;
-    const Float FoV = RT_PI / 180.0f * mCameraSetup.fov;
+    const float aspectRatio = (float)width / (float)height;
+    const float FoV = RT_PI / 180.0f * mCameraSetup.fov;
     mCamera.SetPerspective(aspectRatio, FoV);
 
     // rotation motion blur

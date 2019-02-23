@@ -28,11 +28,11 @@ Vector4::Vector4(const __m128& src)
     : v(src)
 { }
 
-Vector4::Vector4(const Float s)
+Vector4::Vector4(const float s)
     : v(_mm_set1_ps(s))
 {}
 
-Vector4::Vector4(const Float x, const Float y, const Float z = 0.0f, const Float w = 0.0f)
+Vector4::Vector4(const float x, const float y, const float z = 0.0f, const float w = 0.0f)
     : v(_mm_set_ps(w, z, y, x))
 {}
 
@@ -44,7 +44,7 @@ Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z = 0u, const Uint
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
-Vector4::Vector4(const Float* src)
+Vector4::Vector4(const float* src)
     : v(_mm_loadu_ps(src))
 {}
 
@@ -102,11 +102,11 @@ const Vector4 Vector4::Load4(const Uint8* src)
     const Vector4 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
     const Vector4 unsignedOffset = { 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
 
-    __m128 vTemp = _mm_load_ps1((const Float*)src);
+    __m128 vTemp = _mm_load_ps1((const float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
     vTemp = _mm_xor_ps(vTemp, VECTOR_MASK_SIGN_W);
 
-    // convert to Float
+    // convert to float
     vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
     vTemp = _mm_add_ps(vTemp, unsignedOffset);
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
@@ -117,10 +117,10 @@ const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
     const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
     const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
-    __m128 vTemp = _mm_load_ps1((const Float*)src);
+    __m128 vTemp = _mm_load_ps1((const float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
 
-    // convert to Float
+    // convert to float
     vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
@@ -159,7 +159,7 @@ void Vector4::Store4_NonTemporal(Uint8* dest) const
     _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
 }
 
-void Vector4::Store(Float* dest) const
+void Vector4::Store(float* dest) const
 {
     _mm_store_ss(dest, v);
 }
@@ -343,17 +343,17 @@ const Vector4 Vector4::operator/ (const Vector4& b) const
     return _mm_div_ps(v, b);
 }
 
-const Vector4 Vector4::operator* (Float b) const
+const Vector4 Vector4::operator* (float b) const
 {
     return _mm_mul_ps(v, _mm_set1_ps(b));
 }
 
-const Vector4 Vector4::operator/ (Float b) const
+const Vector4 Vector4::operator/ (float b) const
 {
     return _mm_div_ps(v, _mm_set1_ps(b));
 }
 
-const Vector4 operator*(Float a, const Vector4& b)
+const Vector4 operator*(float a, const Vector4& b)
 {
     return _mm_mul_ps(b, _mm_set1_ps(a));
 }
@@ -383,13 +383,13 @@ Vector4& Vector4::operator/= (const Vector4& b)
     return *this;
 }
 
-Vector4& Vector4::operator*= (Float b)
+Vector4& Vector4::operator*= (float b)
 {
     v = _mm_mul_ps(v, _mm_set1_ps(b));
     return *this;
 }
 
-Vector4& Vector4::operator/= (Float b)
+Vector4& Vector4::operator/= (float b)
 {
     v = _mm_div_ps(v, _mm_set1_ps(b));
     return *this;
@@ -431,22 +431,22 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Vector4& b, const Ve
 #endif
 }
 
-const Vector4 Vector4::MulAndAdd(const Vector4& a, const Float b, const Vector4& c)
+const Vector4 Vector4::MulAndAdd(const Vector4& a, const float b, const Vector4& c)
 {
     return MulAndAdd(a, Vector4(b), c);
 }
 
-const Vector4 Vector4::MulAndSub(const Vector4& a, const Float b, const Vector4& c)
+const Vector4 Vector4::MulAndSub(const Vector4& a, const float b, const Vector4& c)
 {
     return MulAndSub(a, Vector4(b), c);
 }
 
-const Vector4 Vector4::NegMulAndAdd(const Vector4& a, const Float b, const Vector4& c)
+const Vector4 Vector4::NegMulAndAdd(const Vector4& a, const float b, const Vector4& c)
 {
     return NegMulAndAdd(a, Vector4(b), c);
 }
 
-const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Float b, const Vector4& c)
+const Vector4 Vector4::NegMulAndSub(const Vector4& a, const float b, const Vector4& c)
 {
     return NegMulAndSub(a, Vector4(b), c);
 }
@@ -479,7 +479,7 @@ const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4&
     return MulAndAdd(v2 - v1, weight, v1);
 }
 
-const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, Float weight)
+const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, float weight)
 {
     return MulAndAdd(v2 - v1, Vector4(weight), v1);
 }
@@ -562,17 +562,17 @@ const Vector4 Vector4::Dot4V(const Vector4& v1, const Vector4& v2)
     return _mm_dp_ps(v1, v2, 0xFF);
 }
 
-Float Vector4::Dot2(const Vector4& v1, const Vector4& v2)
+float Vector4::Dot2(const Vector4& v1, const Vector4& v2)
 {
     return Dot2V(v1, v2).x;
 }
 
-Float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
+float Vector4::Dot3(const Vector4& v1, const Vector4& v2)
 {
     return Dot3V(v1, v2).x;
 }
 
-Float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
+float Vector4::Dot4(const Vector4& v1, const Vector4& v2)
 {
     return Dot4V(v1, v2).x;
 }
@@ -587,9 +587,9 @@ const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
     return NegMulAndAdd(vTemp1, vTemp2, vResult);
 }
 
-Float Vector4::Length2() const
+float Vector4::Length2() const
 {
-    Float result;
+    float result;
     _mm_store_ss(&result, Length2V());
     return result;
 }
@@ -600,14 +600,14 @@ const Vector4 Vector4::Length2V() const
     return _mm_sqrt_ps(vDot);
 }
 
-Float Vector4::Length3() const
+float Vector4::Length3() const
 {
-    Float result;
+    float result;
     _mm_store_ss(&result, Length3V());
     return result;
 }
 
-Float Vector4::SqrLength3() const
+float Vector4::SqrLength3() const
 {
     return Dot3(*this, *this);
 }
@@ -647,11 +647,11 @@ const Vector4 Vector4::FastNormalized3() const
     return result;
 }
 
-Float Vector4::Length4() const
+float Vector4::Length4() const
 {
     const __m128 vDot = Dot4V(v, v);
 
-    Float result;
+    float result;
     _mm_store_ss(&result, _mm_sqrt_ss(vDot));
     return result;
 }
@@ -662,7 +662,7 @@ const Vector4 Vector4::Length4V() const
     return _mm_sqrt_ps(vDot);
 }
 
-Float Vector4::SqrLength4() const
+float Vector4::SqrLength4() const
 {
     return Dot4(*this, *this);
 }
@@ -689,7 +689,7 @@ const Vector4 Vector4::Reflect3(const Vector4& i, const Vector4& n)
     return NegMulAndAdd(vDot + vDot, n, i);
 }
 
-bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, Float epsilon)
+bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, float epsilon)
 {
     return (Abs(v1 - v2) < Vector4(epsilon)).All();
 }

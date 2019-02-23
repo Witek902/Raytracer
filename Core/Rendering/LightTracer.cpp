@@ -89,11 +89,11 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 //        // Russian roulette algorithm
 //        if (depth >= ctx.params->minRussianRouletteDepth)
 //        {
-//            Float threshold = throughput.Max();
+//            float threshold = throughput.Max();
 //#ifdef RT_ENABLE_SPECTRAL_RENDERING
 //            if (ctx.wavelength.isSingle)
 //            {
-//                threshold *= 1.0f / static_cast<Float>(Wavelength::NumComponents);
+//                threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
 //            }
 //#endif
 //            if (ctx.randomGenerator.GetFloat() > threshold)
@@ -110,8 +110,8 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
             Vector4 dirToCamera = cameraPos - samplePos;
 
-            const Float cameraDistanceSqr = dirToCamera.SqrLength3();
-            const Float cameraDistance = sqrtf(cameraDistanceSqr);
+            const float cameraDistanceSqr = dirToCamera.SqrLength3();
+            const float cameraDistance = sqrtf(cameraDistanceSqr);
 
             dirToCamera /= cameraDistance;
 
@@ -133,7 +133,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
                     if (!mScene.Traverse_Shadow_Single({ shadowRay, shadowHitPoint, ctx }))
                     {
-                        const Float cameraPdfA = param.camera.PdfW(-dirToCamera) / cameraDistanceSqr;
+                        const float cameraPdfA = param.camera.PdfW(-dirToCamera) / cameraDistanceSqr;
                         const RayColor contribution = (cameraFactor * throughput) * cameraPdfA;
                         const Vector4 value = contribution.ConvertToTristimulus(ctx.wavelength);
                         param.film.AccumulateColor(filmPos, value, ctx.randomGenerator);

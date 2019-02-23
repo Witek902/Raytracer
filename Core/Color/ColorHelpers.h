@@ -42,7 +42,7 @@ RT_FORCE_INLINE math::Vector4 ConvertRGBtoXYZ(const math::Vector4 rgbColor)
 }
 
 // Convert HSV to linear RGB
-RT_FORCE_INLINE math::Vector4 HSVtoRGB(const Float hue, const Float saturation, const Float value)
+RT_FORCE_INLINE math::Vector4 HSVtoRGB(const float hue, const float saturation, const float value)
 {
     const int h_i = (int)(hue * 6.0f);
     const float f = hue * 6 - h_i;

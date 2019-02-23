@@ -69,7 +69,7 @@ void TestTranscendental(const char* name, const TestRange& range,
 
 TEST(MathTest, Sin)
 {
-    const auto func = [](Float x)
+    const auto func = [](float x)
     {
         return math::Sin(x);
     };
@@ -80,7 +80,7 @@ TEST(MathTest, Sin)
 
 TEST(MathTest, Sin_4)
 {
-    const auto func = [](Float x)
+    const auto func = [](float x)
     {
         return math::Sin(math::Vector4(x)).x;
     };
@@ -91,7 +91,7 @@ TEST(MathTest, Sin_4)
 
 TEST(MathTest, Sin_8)
 {
-    const auto func = [](Float x)
+    const auto func = [](float x)
     {
         return math::Sin(math::Vector8(x))[0];
     };
@@ -102,7 +102,7 @@ TEST(MathTest, Sin_8)
 
 TEST(MathTest, Cos)
 {
-    const auto func = [](Float x)
+    const auto func = [](float x)
     {
         return math::Cos(x);
     };

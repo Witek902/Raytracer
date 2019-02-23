@@ -34,7 +34,7 @@ bool MetalBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor MetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor MetalBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     RT_UNUSED(ctx);
 
@@ -53,7 +53,7 @@ const RayColor MetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirec
     return RayColor::Zero();
 }
 
-Float MetalBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float MetalBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     RT_UNUSED(ctx);
     RT_UNUSED(dir);

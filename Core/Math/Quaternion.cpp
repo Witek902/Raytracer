@@ -155,9 +155,9 @@ const Quaternion Quaternion::FromEulerAngles(const Float3& angles)
 {
     // based on: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 
-    const Float pitch = angles.x * 0.5f;
-    const Float yaw = angles.y * 0.5f;
-    const Float roll = angles.z * 0.5f;
+    const float pitch = angles.x * 0.5f;
+    const float yaw = angles.y * 0.5f;
+    const float roll = angles.z * 0.5f;
 
     Quaternion q;
     float t0 = Cos(yaw);
@@ -199,9 +199,9 @@ const Float3 Quaternion::ToEulerAngles() const
 
     t2 = Clamp(t2, -1.0f, 1.0f);
 
-    Float pitch = asinf(t2);
-    Float yaw = atan2f(t3, t4);
-    Float roll = atan2f(t0, t1);
+    float pitch = asinf(t2);
+    float yaw = atan2f(t3, t4);
+    float roll = atan2f(t0, t1);
 
     if (pitch > RT_PI)
     {

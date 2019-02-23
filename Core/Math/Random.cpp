@@ -57,7 +57,7 @@ Uint32 Random::GetInt()
 
 float Random::GetFloat()
 {
-    return static_cast<Float>(GetInt()) / static_cast<Float>(std::numeric_limits<Uint32>::max());
+    return static_cast<float>(GetInt()) / static_cast<float>(std::numeric_limits<Uint32>::max());
 }
 
 const Float2 Random::GetFloat2()
@@ -188,7 +188,7 @@ const Vector2x8 Random::GetCircle_Simd8()
 const Float2 Random::GetTriangle()
 {
     const Float2 uv = GetFloat2();
-    const Float u = sqrtf(uv.x);
+    const float u = sqrtf(uv.x);
     return { 1.0f - u, uv.y * u };
 }
 
@@ -246,19 +246,19 @@ const Vector4 Random::GetRegularPolygon(const Uint32 n)
 
     // generate random point in a generic triangle
     const Float2 uv = GetVector4().ToFloat2();
-    const Float u = sqrtf(uv.x);
+    const float u = sqrtf(uv.x);
     const Float2 triangle(1.0f - u, uv.y * u);
 
     // base triangle size
-    const Float a = Sin(RT_PI / (Float)n); // can be precomputed
-    const Float b = sqrtf(1.0f - a * a);
+    const float a = Sin(RT_PI / (float)n); // can be precomputed
+    const float b = sqrtf(1.0f - a * a);
 
     // genrate point in base triangle
-    const Float sign = GetInt() % 2 ? 1.0f : -1.0f;
+    const float sign = GetInt() % 2 ? 1.0f : -1.0f;
     const Vector4 base(b * (triangle.x + triangle.y), a * triangle.y * sign, 0.0f, 0.0f);
 
     // rotate
-    const Float alpha = RT_2PI * (Float)(GetInt() % n) / (Float)n;
+    const float alpha = RT_2PI * (float)(GetInt() % n) / (float)n;
     const Vector4 sinCosAlpha = SinCos(alpha);
 
     return Vector4(sinCosAlpha.y * base.x - sinCosAlpha.x * base.y, sinCosAlpha.y * base.y + sinCosAlpha.x * base.x, 0.0f, 0.0f);
@@ -268,7 +268,7 @@ const Vector2x8 Random::GetRegularPolygon_Simd8(const Uint32 n)
 {
     RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
 
-    const Float invN = 1.0f / (Float)n;
+    const float invN = 1.0f / (float)n;
 
     // generate random point in a generic triangle
     const Vector2x8 uv{ GetVector8(), GetVector8() };
@@ -276,11 +276,11 @@ const Vector2x8 Random::GetRegularPolygon_Simd8(const Uint32 n)
     const Vector2x8 triangle(Vector8(1.0f) - u, uv.y * u);
 
     // base triangle size
-    const Float a = Sin(RT_PI * invN); // can be precomputed
-    const Float b = sqrtf(1.0f - a * a);
+    const float a = Sin(RT_PI * invN); // can be precomputed
+    const float b = sqrtf(1.0f - a * a);
 
     // genrate point in base triangle
-    const Float sign = GetInt() % 2 ? 1.0f : -1.0f;
+    const float sign = GetInt() % 2 ? 1.0f : -1.0f;
     const Vector2x8 base(b * (triangle.x + triangle.y), a * triangle.y * sign);
 
     // rotate
@@ -298,8 +298,8 @@ const Vector4 Random::GetSphere()
 
     const Vector4 u = GetVector4Bipolar();
 
-    const Float t = sqrtf(1.0f - u.y * u.y);
-    const Float theta = RT_PI * u.x;
+    const float t = sqrtf(1.0f - u.y * u.y);
+    const float theta = RT_PI * u.x;
     Vector4 result = t * SinCos(theta); // xy
 
     result.z = u.y;
@@ -318,8 +318,8 @@ const Vector4 Random::GetHemishpereCos()
 {
     const Vector4 u = GetVector4();
 
-    const Float theta = 2.0f * RT_PI * u.y;
-    const Float r = sqrtf(u.x); // this is required for the result vector to be normalized
+    const float theta = 2.0f * RT_PI * u.y;
+    const float r = sqrtf(u.x); // this is required for the result vector to be normalized
 
     Vector4 result = r * SinCos(theta); // xy
     result.z = sqrtf(1.0f - u.x);

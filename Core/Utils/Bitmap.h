@@ -70,8 +70,8 @@ public:
     RAYLIB_API bool SaveBMP(const char* path, bool flipVertically) const;
 
     // save to OpenEXR file
-    // NOTE: must be Float or Half format
-    RAYLIB_API bool SaveEXR(const char* path, const Float exposure) const;
+    // NOTE: must be float or Half format
+    RAYLIB_API bool SaveEXR(const char* path, const float exposure) const;
 
     // release memory
     void Release();

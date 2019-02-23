@@ -98,7 +98,7 @@ RT_FORCE_INLINE constexpr T Cube(const T x)
 }
 
 // Square root
-RT_FORCE_INLINE Float Sqrt(const Float x)
+RT_FORCE_INLINE float Sqrt(const float x)
 {
     RT_ASSERT(x >= 0.0f, "Invalid argument");
     return sqrtf(x);

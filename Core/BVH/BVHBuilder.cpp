@@ -94,7 +94,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     mTarget.mNodes.resize(mNumGeneratedNodes);
     mTarget.mNodes.shrink_to_fit();
 
-    const Float millisecondsElapsed = (Float)(1000.0 * timer.Stop());
+    const float millisecondsElapsed = (float)(1000.0 * timer.Stop());
     RT_LOG_INFO("Finished BVH generation in %.9g ms (num nodes = %u)", millisecondsElapsed, mNumGeneratedNodes);
 
     outLeavesOrder = mLeavesOrder;
@@ -132,7 +132,7 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
 
     Uint32 bestAxis = 0;
     Uint32 bestSplitPos = 0;
-    Float bestCost = FLT_MAX;
+    float bestCost = FLT_MAX;
     Box bestLeftBox = Box::Empty();
     Box bestRightBox = Box::Empty();
 
@@ -168,14 +168,14 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
             const Box& leftBox = context.mLeftBoxesCache[splitPos];
             const Box& rightBox = context.mRightBoxesCache[splitPos + 1];
 
-            const Float leftArea = leftBox.SurfaceArea();
-            const Float rightArea = rightBox.SurfaceArea();
+            const float leftArea = leftBox.SurfaceArea();
+            const float rightArea = rightBox.SurfaceArea();
             const Uint32 leftCount = splitPos + 1;
             const Uint32 rightCount = workSet.numLeaves - leftCount;
 
-            const Float totalCost =
-                leftArea * static_cast<Float>(leftCount) +
-                rightArea * static_cast<Float>(rightCount);
+            const float totalCost =
+                leftArea * static_cast<float>(leftCount) +
+                rightArea * static_cast<float>(rightCount);
 
             if (totalCost < bestCost)
             {

@@ -11,7 +11,7 @@
 namespace rt {
 namespace math {
 
-RT_FORCE_INLINE constexpr Float SphereCapPdf(const Float cosTheta)
+RT_FORCE_INLINE constexpr float SphereCapPdf(const float cosTheta)
 {
     return 1.0f / (RT_2PI * (1.0f - cosTheta));
 }
@@ -22,8 +22,8 @@ RT_INLINE void BuildOrthonormalBasis(const Vector4& n, Vector4& u, Vector4& v)
     // algorithm based on "Building an Orthonormal Basis, Revisited" (2017) paper
     // by T. Duff, J. Burgess, P. Christensen, C. Hery, A. Kensler, M. Liani, and R. Villemin
 
-    const Float sign = CopySign(1.0f, n.z);
-    const Float a = -1.0f / (sign + n.z);
+    const float sign = CopySign(1.0f, n.z);
+    const float a = -1.0f / (sign + n.z);
 
     u = Vector4(
         1.0f + sign * n.x * n.x * a,

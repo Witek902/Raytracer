@@ -28,7 +28,7 @@ private:
     struct PathState
     {
         Uint32 depth = 0u;
-        Float lastPdfW = 1.0f;
+        float lastPdfW = 1.0f;
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
         bool lastSpecular = true;
     };
@@ -40,7 +40,7 @@ private:
     const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const;
+    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context) const;

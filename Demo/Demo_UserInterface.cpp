@@ -180,7 +180,7 @@ void DemoWindow::RenderUI_Debugging_Color()
     {
         // TODO this is incorrect, each pixel can have different number of samples
         const Uint32 numSamples = mViewport->GetProgress().passesFinished;
-        hdrColor = mViewport->GetSumBuffer().GetPixel(x, y, true) / static_cast<Float>(numSamples);
+        hdrColor = mViewport->GetSumBuffer().GetPixel(x, y, true) / static_cast<float>(numSamples);
         ldrColor = mViewport->GetFrontBuffer().GetPixel(x, y, true);
     }
 
@@ -268,7 +268,7 @@ void DemoWindow::RenderUI_Settings()
         if (ImGui::Button("HDR screenshot"))
         {
             // TODO this is incorrect
-            const Float colorScale = 1.0f / (Float)mViewport->GetProgress().passesFinished;
+            const float colorScale = 1.0f / (float)mViewport->GetProgress().passesFinished;
             mViewport->GetSumBuffer().SaveEXR("screenshot.exr", colorScale);
         }
     }

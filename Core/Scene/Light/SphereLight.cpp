@@ -8,7 +8,7 @@ namespace rt {
 
 using namespace math;
 
-SphereLight::SphereLight(const math::Vector4& pos, Float radius, const math::Vector4& color)
+SphereLight::SphereLight(const math::Vector4& pos, float radius, const math::Vector4& color)
     : ILight(color)
     , mPosition(pos)
     , mRadius(Abs(radius))
@@ -23,7 +23,7 @@ const Box SphereLight::GetBoundingBox() const
     return Box(mPosition, mRadius);
 }
 
-bool SphereLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
+bool SphereLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 {
     // TODO optimize
 
@@ -56,8 +56,8 @@ bool SphereLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
 const RayColor SphereLight::Illuminate(IlluminateParam& param) const
 {
     const Vector4 centerDir = mPosition - param.shadingData.frame.GetTranslation(); // direction to light center
-    const Float centerDistSqr = centerDir.SqrLength3();
-    const Float centerDist = sqrtf(centerDistSqr);
+    const float centerDistSqr = centerDir.SqrLength3();
+    const float centerDist = sqrtf(centerDistSqr);
 
     if (centerDistSqr < mRadiusSqr)
     {
@@ -66,7 +66,7 @@ const RayColor SphereLight::Illuminate(IlluminateParam& param) const
     }
 
     const Float2 uv = param.context.randomGenerator.GetFloat2();
-    const Float phi = RT_2PI * uv.y;
+    const float phi = RT_2PI * uv.y;
 
     float sinThetaMaxSqr = mRadiusSqr / centerDistSqr;
     float cosThetaMax = sqrtf(1.0f - Clamp(sinThetaMaxSqr, 0.0f, 1.0f));
@@ -98,17 +98,17 @@ const RayColor SphereLight::Illuminate(IlluminateParam& param) const
     return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
+const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     RT_UNUSED(rayDirection);
 
     const Vector4 centerDir = mPosition - hitPoint; // direction to light center
-    const Float centerDistSqr = centerDir.SqrLength3();
+    const float centerDistSqr = centerDir.SqrLength3();
 
     if (outDirectPdfA)
     {
-        const Float sinThetaSqr = Clamp(mRadiusSqr / centerDistSqr, 0.0f, 1.0f);
-        const Float cosTheta = sqrtf(1.0f - sinThetaSqr);
+        const float sinThetaSqr = Clamp(mRadiusSqr / centerDistSqr, 0.0f, 1.0f);
+        const float cosTheta = sqrtf(1.0f - sinThetaSqr);
         *outDirectPdfA = SphereCapPdf(cosTheta);
     }
 

@@ -14,7 +14,7 @@ const Box BackgroundLight::GetBoundingBox() const
     return Box::Full();
 }
 
-bool BackgroundLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
+bool BackgroundLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 {
     RT_UNUSED(ray);
 
@@ -30,8 +30,8 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, Rendering
     // sample environment map
     if (mTexture)
     {
-        const Float theta = FastACos(Clamp(dir.y, -1.0f, 1.0f));
-        const Float phi = Abs(dir.x) > FLT_EPSILON ? FastATan2(dir.z, dir.x) : 0.0f;
+        const float theta = FastACos(Clamp(dir.y, -1.0f, 1.0f));
+        const float phi = Abs(dir.x) > FLT_EPSILON ? FastATan2(dir.z, dir.x) : 0.0f;
         const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
 
         RT_ASSERT(coords.IsValid());
@@ -57,7 +57,7 @@ const RayColor BackgroundLight::Illuminate(IlluminateParam& param) const
     return GetBackgroundColor(param.outDirectionToLight, param.context);
 }
 
-const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
+const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 

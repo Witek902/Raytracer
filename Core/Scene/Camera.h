@@ -30,10 +30,10 @@ enum class BokehShape : Uint8
 struct DOFSettings
 {
     // distance from camera at which plane of perfect focus is located
-    Float focalPlaneDistance = 2.0f;
+    float focalPlaneDistance = 2.0f;
 
     // the bigger value, the bigger out-of-focus blur
-    Float aperture = 0.1f;
+    float aperture = 0.1f;
 
     bool enable = false;
 
@@ -54,7 +54,7 @@ public:
 
     RAYLIB_API void SetTransform(const math::Transform& transform);
 
-    RAYLIB_API void SetPerspective(Float aspectRatio, Float FoV);
+    RAYLIB_API void SetPerspective(float aspectRatio, float FoV);
 
     RAYLIB_API void SetAngularVelocity(const math::Quaternion& quat);
 
@@ -75,27 +75,27 @@ public:
     // Convert world-space coordinates to film-space coordinates including camera projection (0...1 range)
     bool WorldToFilm(const math::Vector4 worldPosition, math::Vector4& outFilmCoords) const;
 
-    Float PdfW(const math::Vector4 direction) const;
+    float PdfW(const math::Vector4 direction) const;
 
     // camera placement
     math::Transform mTransform;
 
     // width to height ratio
-    Float mAspectRatio;
+    float mAspectRatio;
 
     // in radians, vertical angle
-    Float mFieldOfView;
+    float mFieldOfView;
 
     // depth of field settings
     DOFSettings mDOF;
 
     // camera lens distortion (0.0 - no distortion)
-    Float barrelDistortionConstFactor;
-    Float barrelDistortionVariableFactor;
+    float barrelDistortionConstFactor;
+    float barrelDistortionVariableFactor;
     bool enableBarellDistortion;
 
 private:
-    Float mTanHalfFoV;
+    float mTanHalfFoV;
 
     math::Matrix4 mLocalToWorld;
     math::Matrix4 mWorldToScreen;

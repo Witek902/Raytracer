@@ -28,7 +28,7 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     const Vector4 cross = Vector4::Cross3(edge1, edge0);
     normal = cross.Normalized3();
 
-    Float surfaceArea = cross.Length3();
+    float surfaceArea = cross.Length3();
     if (isTriangle)
     {
         surfaceArea *= 0.5f;
@@ -48,9 +48,9 @@ const Box AreaLight::GetBoundingBox() const
     return box;
 }
 
-bool AreaLight::TestRayHit(const Ray& ray, Float& outDistance) const
+bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
 {
-    Float u, v; // unused
+    float u, v; // unused
 
     if (Intersect_TriangleRay(ray, p0, edge0, edge1, u, v, outDistance))
     {
@@ -104,7 +104,7 @@ const RayColor AreaLight::Illuminate(IlluminateParam& param) const
     return RayColor::Resolve(param.context.wavelength, color);
 }
 
-const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& rayDirection, const Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
+const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& rayDirection, const Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
     if (cosNormalDir < RT_EPSILON)
@@ -127,8 +127,8 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& 
     if (mTexture)
     {
         const Vector4 lightSpaceHitPoint = hitPoint - p0;
-        const Float u = Vector4::Dot3(lightSpaceHitPoint, edge0 * edgeLengthInv0) * edgeLengthInv0;
-        const Float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
+        const float u = Vector4::Dot3(lightSpaceHitPoint, edge0 * edgeLengthInv0) * edgeLengthInv0;
+        const float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
         const Vector4 textureCoords(u, v, 0.0f, 0.0f);
 
         color.rgbValues *= mTexture->Evaluate(textureCoords, SamplerDesc());

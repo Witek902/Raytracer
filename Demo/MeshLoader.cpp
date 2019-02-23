@@ -98,7 +98,7 @@ MaterialPtr CreateDefaultMaterial(MaterialsMap& outMaterials)
     return material;
 }
 
-MeshPtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const Float scale)
+MeshPtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const float scale)
 {
     RT_LOG_DEBUG("Loading mesh file: '%s'...", filePath.c_str());
 

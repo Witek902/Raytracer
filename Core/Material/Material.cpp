@@ -164,7 +164,7 @@ const RayColor Material::Evaluate(
     const Wavelength& wavelength,
     const ShadingData& shadingData,
     const Vector4& incomingDirWorldSpace,
-    Float* outPdfW, Float* outReversePdfW) const
+    float* outPdfW, float* outReversePdfW) const
 {
     RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
 
@@ -187,7 +187,7 @@ const RayColor Material::Sample(
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
     Random& randomGenerator,
-    Float* outPdfW,
+    float* outPdfW,
     BSDF::EventType* outSampledEvent) const
 {
     RT_ASSERT(mBSDF, "Material must have a BSDF assigned");

@@ -50,11 +50,11 @@ public:
 
     // If incoming/outgoing direction is at extremely grazing angle, the BSDF will early-return zero value
     // in order to avoid potential divisions by zero.
-    static constexpr Float CosEpsilon = 1.0e-5f;
+    static constexpr float CosEpsilon = 1.0e-5f;
 
     // If the roughness value of an material is below this treshold we fallback to perfectly specular event.
     // If we didn't do this, we would end up with an extremely high values of sampling PDF.
-    static constexpr Float SpecularEventRoughnessTreshold = 0.005f;
+    static constexpr float SpecularEventRoughnessTreshold = 0.005f;
 
     virtual ~BSDF() = default;
 
@@ -70,7 +70,7 @@ public:
         // outputs
         RayColor outColor = RayColor::Zero();
         math::Vector4 outIncomingDir = math::Vector4::Zero();
-        Float outPdf = 0.0f;
+        float outPdf = 0.0f;
         EventType outEventType = NullEvent;
     };
 
@@ -98,10 +98,10 @@ public:
     // Evaluate BSDF
     // Optionally returns probability of sampling this direction
     // NOTE: the result is NdotL multiplied
-    virtual const RayColor Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW = nullptr, Float* outReversePdfW = nullptr) const = 0;
+    virtual const RayColor Evaluate(const EvaluationContext& ctx, float* outDirectPdfW = nullptr, float* outReversePdfW = nullptr) const = 0;
 
     // Compute probability of scaterring event
-    virtual Float Pdf(const EvaluationContext& ctx, PdfDirection dir = ForwardPdf) const = 0;
+    virtual float Pdf(const EvaluationContext& ctx, PdfDirection dir = ForwardPdf) const = 0;
 };
 
 } // namespace rt

@@ -17,8 +17,8 @@ Uint32 Bitmap::BitsPerPixel(Format format)
     case Format::R8_Uint:               return 8;
     case Format::B8G8R8_Uint:           return 8 * 3;
     case Format::B8G8R8A8_Uint:         return 8 * 4;
-    case Format::R32G32B32_Float:       return 8 * sizeof(Float) * 3;
-    case Format::R32G32B32A32_Float:    return 8 * sizeof(Float) * 4;
+    case Format::R32G32B32_Float:       return 8 * sizeof(float) * 3;
+    case Format::R32G32B32A32_Float:    return 8 * sizeof(float) * 4;
     case Format::R16G16B16_Half:        return 8 * sizeof(Uint16) * 3;
     case Format::BC1:                   return 4;
     case Format::BC4:                   return 4;
@@ -131,7 +131,7 @@ bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
-    mFloatSize = Vector4((Float)width, (Float)height, (Float)width, (Float)height);
+    mFloatSize = Vector4((float)width, (float)height, (float)width, (float)height);
     mSize = VectorInt4(width, height, width, height);
     mFormat = format;
     mLinearSpace = linearSpace;

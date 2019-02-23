@@ -7,9 +7,9 @@ namespace rt {
 
 using namespace math;
 
-static constexpr const Float CosEpsilon = 0.999f;
+static constexpr const float CosEpsilon = 0.999f;
 
-DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const Float angle)
+DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const float angle)
     : ILight(color)
     , mDirection(direction.Normalized3())
 {
@@ -25,7 +25,7 @@ const Box DirectionalLight::GetBoundingBox() const
     return Box::Full();
 }
 
-bool DirectionalLight::TestRayHit(const math::Ray& ray, Float& outDistance) const
+bool DirectionalLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 {
     if (mCosAngle < CosEpsilon)
     {
@@ -44,7 +44,7 @@ const RayColor DirectionalLight::Illuminate(IlluminateParam& param) const
     if (mCosAngle < CosEpsilon)
     {
         const Float2 uv = param.context.randomGenerator.GetFloat2();
-        const Float phi = RT_2PI * uv.y;
+        const float phi = RT_2PI * uv.y;
 
         float cosTheta = Lerp(mCosAngle, 1.0f, uv.x);
         float sinThetaSqr = 1.0f - Sqr(cosTheta);
@@ -70,7 +70,7 @@ const RayColor DirectionalLight::Illuminate(IlluminateParam& param) const
     return RayColor::Resolve(param.context.wavelength, mColor);
 }
 
-const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, Float* outDirectPdfA, Float* outEmissionPdfW) const
+const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 

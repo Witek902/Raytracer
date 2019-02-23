@@ -35,8 +35,8 @@ static bool ParseVector2(const rapidjson::Value& value, Vector4& outVector)
         return false;
     }
 
-    const Float x = value[0].GetFloat();
-    const Float y = value[1].GetFloat();
+    const float x = value[0].GetFloat();
+    const float y = value[1].GetFloat();
 
     outVector = Vector4(x, y, 0.0f, 0.0f);
 
@@ -57,9 +57,9 @@ static bool ParseVector3(const rapidjson::Value& value, Vector4& outVector)
         return false;
     }
 
-    const Float x = value[0].GetFloat();
-    const Float y = value[1].GetFloat();
-    const Float z = value[2].GetFloat();
+    const float x = value[0].GetFloat();
+    const float y = value[1].GetFloat();
+    const float z = value[2].GetFloat();
 
     outVector = Vector4(x, y, z, 0.0f);
 
@@ -91,7 +91,7 @@ static bool TryParseBool(const rapidjson::Value& value, const char* name, bool o
     return true;
 }
 
-static bool TryParseFloat(const rapidjson::Value& value, const char* name, bool optional, Float& outValue)
+static bool TryParseFloat(const rapidjson::Value& value, const char* name, bool optional, float& outValue)
 {
     if (!value.HasMember(name))
     {
@@ -333,12 +333,12 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
             return false;
         }
 
-        Float angle = 0.0f;
+        float angle = 0.0f;
         if (!TryParseFloat(value, "angle", true, angle))
         {
             return false;
         }
-        const Float angleRad = angle / 180.0f * RT_PI;
+        const float angleRad = angle / 180.0f * RT_PI;
 
         scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor, angleRad));
     }
@@ -359,7 +359,7 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
             return false;
         }
 
-        Float radius = 0.0f;
+        float radius = 0.0f;
         if (!TryParseFloat(value, "radius", false, radius))
         {
             return false;
@@ -479,7 +479,7 @@ static bool ParseCamera(const rapidjson::Value& value, rt::Camera& camera)
     if (!TryParseTransform(value, "transform", transform))
         return false;
 
-    Float fov = 60.0f;
+    float fov = 60.0f;
     if (!TryParseFloat(value, "fieldOfView", true, fov))
         return false;
 

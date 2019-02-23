@@ -85,11 +85,11 @@ public:
 
     // 0.0 - smooth, perfect mirror
     // 1.0 - rough, maximum diffusion
-    MaterialParameter<Float> roughness = 0.1f;
+    MaterialParameter<float> roughness = 0.1f;
 
     // TODO move to "Principled BSDF"
     // blends between dielectric/metal models
-    MaterialParameter<Float> metalness = 0.0f;
+    MaterialParameter<float> metalness = 0.0f;
 
     // normal map lerp value
     float normalMapStrength = 1.0f;
@@ -127,7 +127,7 @@ public:
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
         math::Random& randomGenerator,
-        Float* outPdfW = nullptr,
+        float* outPdfW = nullptr,
         BSDF::EventType* outSampledEvent = nullptr) const;
 
     // calculate amount of light reflected from incoming direction to outgoing direction
@@ -135,8 +135,8 @@ public:
         const Wavelength& wavelength,
         const ShadingData& shadingData,
         const math::Vector4& incomingDirWorldSpace,
-        Float* outPdfW = nullptr,
-        Float* outReversePdfW = nullptr) const;
+        float* outPdfW = nullptr,
+        float* outReversePdfW = nullptr) const;
 
 private:
     Material(const Material&) = delete;

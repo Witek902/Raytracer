@@ -49,9 +49,9 @@ public:
         RayColor throughput;            // TODO should be Float3
 
         // quantities for MIS weight calculation
-        Float dVC;
-        Float dVM;
-        Float dVCM;
+        float dVC;
+        float dVM;
+        float dVCM;
 
         Uint8 pathLength;
 
@@ -68,9 +68,9 @@ private:
         RayColor throughput = RayColor::One();
 
         // quantities for MIS weight calculation
-        Float dVC = 0.0f;
-        Float dVM = 0.0f;
-        Float dVCM = 0.0f;
+        float dVC = 0.0f;
+        float dVM = 0.0f;
+        float dVCM = 0.0f;
 
         Uint32 length = 1u;
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
@@ -85,7 +85,7 @@ private:
     const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, Float dist, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(const PathState& pathState, RenderingContext& ctx) const;

@@ -26,7 +26,7 @@ Vector8::Vector8(const __m256& m)
     : v(m)
 {}
 
-Vector8::Vector8(Float e0, Float e1, Float e2, Float e3, Float e4, Float e5, Float e6, Float e7)
+Vector8::Vector8(float e0, float e1, float e2, float e3, float e4, float e5, float e6, float e7)
     : v(_mm256_set_ps(e7, e6, e5, e4, e3, e2, e1, e0))
 {}
 
@@ -38,11 +38,11 @@ Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e
     : v(_mm256_castsi256_ps(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0)))
 {}
 
-Vector8::Vector8(const Float* src)
+Vector8::Vector8(const float* src)
     : v(_mm256_loadu_ps(src))
 {}
 
-Vector8::Vector8(const Float scalar)
+Vector8::Vector8(const float scalar)
     : v(_mm256_set1_ps(scalar))
 {}
 
@@ -70,7 +70,7 @@ const Vector8 Vector8::Select(const Vector8& a, const Vector8& b, const VectorBo
     return _mm256_blendv_ps(a, b, sel.v);
 }
 
-bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, Float epsilon)
+bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, float epsilon)
 {
     return (Abs(v1 - v2) < Vector8(epsilon)).All();
 }
@@ -148,17 +148,17 @@ const Vector8 Vector8::operator/ (const Vector8& b) const
     return _mm256_div_ps(v, b);
 }
 
-const Vector8 Vector8::operator* (Float b) const
+const Vector8 Vector8::operator* (float b) const
 {
     return _mm256_mul_ps(v, _mm256_set1_ps(b));
 }
 
-const Vector8 Vector8::operator/ (Float b) const
+const Vector8 Vector8::operator/ (float b) const
 {
     return _mm256_div_ps(v, _mm256_set1_ps(b));
 }
 
-const Vector8 operator*(Float a, const Vector8& b)
+const Vector8 operator*(float a, const Vector8& b)
 {
     return _mm256_mul_ps(b, _mm256_set1_ps(a));
 }
@@ -188,13 +188,13 @@ Vector8& Vector8::operator/= (const Vector8& b)
     return *this;
 }
 
-Vector8& Vector8::operator*= (Float b)
+Vector8& Vector8::operator*= (float b)
 {
     v = _mm256_mul_ps(v, _mm256_set1_ps(b));
     return *this;
 }
 
-Vector8& Vector8::operator/= (Float b)
+Vector8& Vector8::operator/= (float b)
 {
     v = _mm256_div_ps(v, _mm256_set1_ps(b));
     return *this;
@@ -236,22 +236,22 @@ const Vector8 Vector8::NegMulAndSub(const Vector8& a, const Vector8& b, const Ve
 #endif
 }
 
-const Vector8 Vector8::MulAndAdd(const Vector8& a, const Float b, const Vector8& c)
+const Vector8 Vector8::MulAndAdd(const Vector8& a, const float b, const Vector8& c)
 {
     return MulAndAdd(a, Vector8(b), c);
 }
 
-const Vector8 Vector8::MulAndSub(const Vector8& a, const Float b, const Vector8& c)
+const Vector8 Vector8::MulAndSub(const Vector8& a, const float b, const Vector8& c)
 {
     return MulAndSub(a, Vector8(b), c);
 }
 
-const Vector8 Vector8::NegMulAndAdd(const Vector8& a, const Float b, const Vector8& c)
+const Vector8 Vector8::NegMulAndAdd(const Vector8& a, const float b, const Vector8& c)
 {
     return NegMulAndAdd(a, Vector8(b), c);
 }
 
-const Vector8 Vector8::NegMulAndSub(const Vector8& a, const Float b, const Vector8& c)
+const Vector8 Vector8::NegMulAndSub(const Vector8& a, const float b, const Vector8& c)
 {
     return NegMulAndSub(a, Vector8(b), c);
 }
@@ -287,7 +287,7 @@ const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, const Vector8&
     return MulAndAdd(v2 - v1, weight, v1);
 }
 
-const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, Float weight)
+const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, float weight)
 {
     return MulAndAdd(v2 - v1, weight, v1);
 }

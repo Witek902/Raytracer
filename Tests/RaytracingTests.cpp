@@ -66,7 +66,7 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
 
     const float n = reverseNormal ? -1.0f : 1.0f;
 
-    const Float vertices[] =
+    const float vertices[] =
     {
         size, -size, -size,
         size,  size, -size,
@@ -99,7 +99,7 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
         -size,  size, -size,
     };
 
-    const Float normals[] =
+    const float normals[] =
     {
         n, 0.0f, 0.0f,
         n, 0.0f, 0.0f,
@@ -132,7 +132,7 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
         0.0f, 0.0f, -n,
     };
 
-    const Float tangents[] =
+    const float tangents[] =
     {
         0.0f, 1.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
@@ -165,7 +165,7 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
         0.0f, 1.0f, 0.0f,
     };
 
-    const Float texCoords[] =
+    const float texCoords[] =
     {
         0.0f, 0.0f,
         1.0f, 0.0f,

@@ -19,7 +19,7 @@ struct ShadingData;
 class RT_ALIGN(16) ILight : public Aligned<16>
 {
 public:
-    static constexpr Float BackgroundLightDistance = 1.0e+36f;
+    static constexpr float BackgroundLightDistance = 1.0e+36f;
 
     struct IlluminateParam
     {
@@ -37,9 +37,9 @@ public:
     {
         math::Vector4 position;
         math::Vector4 direction;
-        Float directPdfA;
-        Float emissionPdfW;
-        Float cosAtLight;
+        float directPdfA;
+        float emissionPdfW;
+        float cosAtLight;
     };
 
     RAYLIB_API ILight(const math::Vector4 color);
@@ -49,7 +49,7 @@ public:
     virtual const math::Box GetBoundingBox() const = 0;
 
     // check if a ray hits the light
-    virtual bool TestRayHit(const math::Ray& ray, Float& outDistance) const = 0;
+    virtual bool TestRayHit(const math::Ray& ray, float& outDistance) const = 0;
 
     // Illuminate a point in the scene.
     // Returns probability of sampling the returned direction.
@@ -67,7 +67,7 @@ public:
         RenderingContext& context,
         const math::Vector4& rayDirection,
         const math::Vector4& hitPoint,
-        Float* outDirectPdfA = nullptr, Float* outEmissionPdfW = nullptr) const;
+        float* outDirectPdfA = nullptr, float* outEmissionPdfW = nullptr) const;
 
     // Returs true if the light has finite extent.
     // E.g. point or area light.

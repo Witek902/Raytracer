@@ -18,7 +18,7 @@ Box LightSceneObject::GetBoundingBox() const
 
 void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    Float lightDistance;
+    float lightDistance;
     if (mLight.TestRayHit(context.ray, lightDistance))
     {
         if (lightDistance < context.hitPoint.distance)
@@ -32,7 +32,7 @@ void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, co
 
 bool LightSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 {
-    Float lightDistance;
+    float lightDistance;
     if (mLight.TestRayHit(context.ray, lightDistance))
     {
         if (lightDistance < context.hitPoint.distance)

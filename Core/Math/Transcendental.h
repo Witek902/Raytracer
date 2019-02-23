@@ -23,7 +23,7 @@ RAYLIB_API const Vector8 Sin(Vector8 x);
 RAYLIB_API const Vector8 Cos(Vector8 x);
 
 // Compute sine and cosine in one go
-RT_FORCE_INLINE const Vector4 SinCos(const Float x)
+RT_FORCE_INLINE const Vector4 SinCos(const float x)
 {
     const Vector4 offset(0.0f, RT_PI / 2.0f, 0.0f, 0.0f);
     return Sin(Vector4(x) + offset) & Vector4::MakeMask<1,1,0,0>();

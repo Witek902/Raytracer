@@ -16,7 +16,7 @@ const char* RoughMetalBSDF::GetName() const
 
 bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
 {
-    const Float roughness = ctx.materialParam.roughness;
+    const float roughness = ctx.materialParam.roughness;
 
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)
@@ -62,9 +62,9 @@ bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
-    const Float roughness = ctx.materialParam.roughness;
+    const float roughness = ctx.materialParam.roughness;
 
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)
@@ -106,11 +106,11 @@ const RayColor RoughMetalBSDF::Evaluate(const EvaluationContext& ctx, Float* out
     return ctx.materialParam.baseColor * RayColor(F * G * D / (4.0f * NdotV));
 }
 
-Float RoughMetalBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float RoughMetalBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     RT_UNUSED(dir);
 
-    const Float roughness = ctx.materialParam.roughness;
+    const float roughness = ctx.materialParam.roughness;
 
     // fallback to specular event
     if (roughness < SpecularEventRoughnessTreshold)

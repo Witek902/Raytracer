@@ -51,7 +51,7 @@ static void Benchmark_Geometry_RayTriIntersection(benchmark::State& state)
     }
 
     Uint32 i = 0;
-    Float tmin = FLT_MAX;
+    float tmin = FLT_MAX;
     for (auto _ : state)
     {
         Uint32 rayIndex = i % numRays;

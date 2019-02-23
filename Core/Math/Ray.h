@@ -38,7 +38,7 @@ public:
         return ray;
     }
 
-    RT_FORCE_INLINE const Vector4 GetAtDistance(const Float t) const
+    RT_FORCE_INLINE const Vector4 GetAtDistance(const float t) const
     {
         return Vector4::MulAndAdd(dir, t, origin);
     }
@@ -52,8 +52,8 @@ public:
 class RayBoxSegment
 {
 public:
-    Float nearDist;
-    Float farDist;
+    float nearDist;
+    float farDist;
 };
 
 

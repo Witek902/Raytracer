@@ -20,7 +20,7 @@ const char* PathTracer::GetName() const
     return "Path Tracer";
 }
 
-const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, RenderingContext& context) const
+const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, RenderingContext& context) const
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);
 
@@ -102,11 +102,11 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // Russian roulette algorithm
         if (depth >= context.params->minRussianRouletteDepth)
         {
-            Float threshold = throughput.Max();
+            float threshold = throughput.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {
-                threshold *= 1.0f / static_cast<Float>(Wavelength::NumComponents);
+                threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
             if (context.randomGenerator.GetFloat() > threshold)

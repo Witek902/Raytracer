@@ -107,7 +107,7 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
     return true;
 }
 
-const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float* outDirectPdfW, Float* outReversePdfW) const
+const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, float* outDirectPdfW, float* outReversePdfW) const
 {
     const float NdotV = ctx.outgoingDir.z; // wi
     const float NdotL = -ctx.incomingDir.z; // wo
@@ -186,7 +186,7 @@ const RayColor RoughDielectricBSDF::Evaluate(const EvaluationContext& ctx, Float
     return RayColor(color);
 }
 
-Float RoughDielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
+float RoughDielectricBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) const
 {
     // TODO is this correct for reverse direction?
     RT_UNUSED(dir);

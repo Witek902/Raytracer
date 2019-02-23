@@ -77,12 +77,12 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
                 goto exrImageError;
             }
 
-            Float* typedData = reinterpret_cast<Float*>(mData);
+            float* typedData = reinterpret_cast<float*>(mData);
             for (size_t i = 0; i < numPixels; ++i)
             {
-                typedData[3 * i    ] = reinterpret_cast<const Float*>(exrImage.images[2])[i];
-                typedData[3 * i + 1] = reinterpret_cast<const Float*>(exrImage.images[1])[i];
-                typedData[3 * i + 2] = reinterpret_cast<const Float*>(exrImage.images[0])[i];
+                typedData[3 * i    ] = reinterpret_cast<const float*>(exrImage.images[2])[i];
+                typedData[3 * i + 1] = reinterpret_cast<const float*>(exrImage.images[1])[i];
+                typedData[3 * i + 2] = reinterpret_cast<const float*>(exrImage.images[0])[i];
             }
         }
         else if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_HALF)
@@ -121,7 +121,7 @@ exrImageError:
     return false;
 }
 
-bool Bitmap::SaveEXR(const char* path, const Float exposure) const
+bool Bitmap::SaveEXR(const char* path, const float exposure) const
 {
     if (mFormat != Format::R32G32B32_Float)
     {

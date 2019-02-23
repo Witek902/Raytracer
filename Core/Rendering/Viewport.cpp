@@ -433,8 +433,8 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 #endif
 
             // TODO
-            const Float pixelScaling = 1.0f / (1 + mProgress.passesFinished);
-            //const Float pixelScaling = 1.0f / static_cast<Float>(mPassesPerPixel[pixelIndex]);
+            const float pixelScaling = 1.0f / (1 + mProgress.passesFinished);
+            //const float pixelScaling = 1.0f / static_cast<float>(mPassesPerPixel[pixelIndex]);
 
             const Vector4 toneMapped = ToneMap(rgbColor * mPostprocessParams.colorScale * pixelScaling);
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
@@ -444,11 +444,11 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
     }
 }
 
-Float Viewport::ComputeBlockError(const Block& block) const
+float Viewport::ComputeBlockError(const Block& block) const
 {
     if (mProgress.passesFinished == 0)
     {
-        return std::numeric_limits<Float>::max();
+        return std::numeric_limits<float>::max();
     }
 
     RT_ASSERT(mProgress.passesFinished % 2 == 0, "This funcion can be only called after even number of passes");
@@ -456,19 +456,19 @@ Float Viewport::ComputeBlockError(const Block& block) const
     const Float3* sumPixels = mSum.GetDataAs<Float3>();
     const Float3* secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
 
-    const Float imageScalingFactor = 1.0f / (Float)mProgress.passesFinished;
+    const float imageScalingFactor = 1.0f / (float)mProgress.passesFinished;
 
-    Float totalError = 0.0f;
+    float totalError = 0.0f;
     for (Uint32 y = block.minY; y < block.maxY; ++y)
     {
-        Float rowError = 0.0f;
+        float rowError = 0.0f;
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
             const size_t pixelIndex = GetWidth() * y + x;
             const Vector4 a = imageScalingFactor * Vector4(sumPixels[pixelIndex]);
             const Vector4 b = (2.0f * imageScalingFactor) * Vector4(secondarySumPixels[pixelIndex]);
             const Vector4 diff = Vector4::Abs(a - b);
-            const Float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * a.y + a.z);
+            const float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * a.y + a.z);
             rowError += error;
         }
         totalError += rowError;
@@ -476,7 +476,7 @@ Float Viewport::ComputeBlockError(const Block& block) const
 
     const Uint32 totalArea = GetWidth() * GetHeight();
     const Uint32 blockArea = block.Width() * block.Height();
-    return totalError * Sqrt((Float)blockArea / (Float)totalArea) / (Float)blockArea;
+    return totalError * Sqrt((float)blockArea / (float)totalArea) / (float)blockArea;
 }
 
 void Viewport::GenerateRenderingTiles()
@@ -554,7 +554,7 @@ void Viewport::UpdateBlocksList()
     for (size_t i = 0; i < mBlocks.size(); ++i)
     {
         const Block block = mBlocks[i];
-        const Float blockError = ComputeBlockError(block);
+        const float blockError = ComputeBlockError(block);
 
         if (blockError < settings.convergenceTreshold)
         {
@@ -626,7 +626,7 @@ void Viewport::UpdateBlocksList()
         }
     }
 
-    mProgress.converged = 1.0f - (Float)mProgress.activePixels / (Float)(GetWidth() * GetHeight());
+    mProgress.converged = 1.0f - (float)mProgress.activePixels / (float)(GetWidth() * GetHeight());
     mProgress.activeBlocks = (Uint32)mBlocks.size();
 }
 

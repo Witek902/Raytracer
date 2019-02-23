@@ -11,17 +11,17 @@ namespace rt {
 
 using namespace math;
 
-RT_FORCE_INLINE static constexpr Float Mis(const Float samplePdf)
+RT_FORCE_INLINE static constexpr float Mis(const float samplePdf)
 {
     return samplePdf;
 }
 
-RT_FORCE_INLINE static constexpr Float CombineMis(const Float samplePdf, const Float otherPdf)
+RT_FORCE_INLINE static constexpr float CombineMis(const float samplePdf, const float otherPdf)
 {
     return Mis(samplePdf) / (Mis(samplePdf) + Mis(otherPdf));
 }
 
-RT_FORCE_INLINE static constexpr Float PdfAtoW(const Float pdfA, const Float distance, const Float cosThere)
+RT_FORCE_INLINE static constexpr float PdfAtoW(const float pdfA, const float distance, const float cosThere)
 {
     return pdfA * Sqr(distance) / Abs(cosThere);
 }
@@ -116,7 +116,7 @@ const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const
     return accumulatedColor;
 }
 
-const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray& ray, Float dist, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context) const
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);
     const Vector4 normal = light.GetNormal(hitPos);
@@ -244,11 +244,11 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // Russian roulette algorithm
         if (pathState.depth >= context.params->minRussianRouletteDepth)
         {
-            Float threshold = throughput.Max();
+            float threshold = throughput.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {
-                threshold *= 1.0f / static_cast<Float>(Wavelength::NumComponents);
+                threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
             if (context.randomGenerator.GetFloat() > threshold)

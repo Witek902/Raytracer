@@ -65,8 +65,8 @@ public:
     struct Stats
     {
         Uint32 maxDepth;    // max leaf depth
-        Double totalNodesArea;
-        Double totalNodesVolume;
+        double totalNodesArea;
+        double totalNodesVolume;
         std::vector<Uint32> leavesCountHistogram;
 
         // TODO overlap factor, etc.
