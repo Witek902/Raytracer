@@ -2,6 +2,7 @@
 #include "Microfacet.h"
 #include "RoughDielectricBSDF.h"
 #include "DielectricBSDF.h"
+#include "../Material.h"
 #include "Math/Utils.h"
 
 namespace rt {
@@ -96,6 +97,11 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
         const float denom = Sqr(eta * VdotH + LdotH);
         ctx.outPdf = (1.0f - F) * microfacetPdf * Abs(LdotH) / denom;
         ctx.outColor *= ctx.materialParam.baseColor;
+
+        //if (!ctx.lightPath)
+        //{
+        //    ctx.outColor *= Sqr(eta);
+        //}
     }
 
     if (fallbackToSingleWavelength)

@@ -14,7 +14,7 @@ class Random;
 class Film
 {
 public:
-    Film::Film(Bitmap& sum, Bitmap& secondarySum, const math::Vector4 filmSize);
+    Film::Film(Bitmap& sum, Bitmap* secondarySum = nullptr);
 
     RT_FORCE_INLINE Uint32 GetWidth() const
     {
@@ -33,10 +33,10 @@ private:
     math::Vector4 mFilmSize;
 
     Bitmap& mSum;
-    Bitmap& mSecondarySum;
+    Bitmap* mSecondarySum;
 
-    Uint32 mWidth;
-    Uint32 mHeight;
+    const Uint32 mWidth;
+    const Uint32 mHeight;
 };
 
 } // namespace rt

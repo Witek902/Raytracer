@@ -11,6 +11,21 @@
 namespace rt {
 namespace math {
 
+RT_FORCE_INLINE constexpr float UniformHemispherePdf()
+{
+    return RT_INV_PI / 2.0f;
+}
+
+RT_FORCE_INLINE constexpr float UniformSpherePdf()
+{
+    return RT_INV_PI / 4.0f;
+}
+
+RT_FORCE_INLINE constexpr float UniformCirclePdf(const float radius)
+{
+    return 1.0f / (RT_PI * Sqr(radius));
+}
+
 RT_FORCE_INLINE constexpr float SphereCapPdf(const float cosTheta)
 {
     return 1.0f / (RT_2PI * (1.0f - cosTheta));
@@ -34,6 +49,12 @@ RT_INLINE void BuildOrthonormalBasis(const Vector4& n, Vector4& u, Vector4& v)
         n.x * n.y * a,
         sign + n.y * n.y * a,
         -n.y);
+}
+
+RT_INLINE float PointLineDistanceSqr(const Vector4& pointOnLine, const Vector4& lineDir, const Vector4& testPoint)
+{
+    const Vector4 t = testPoint - pointOnLine;
+    return Vector4::Cross3(lineDir, t).SqrLength3() / lineDir.SqrLength3();
 }
 
 RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)

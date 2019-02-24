@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "Wavelength.h"
+#include "../Math/Random.h"
 
 namespace rt {
 

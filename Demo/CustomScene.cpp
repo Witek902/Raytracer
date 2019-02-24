@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "Demo.h"
+#include "MeshLoader.h"
 
 #include "../Core/Scene/Light/DirectionalLight.h"
 #include "../Core/Scene/Object/SceneObject_Box.h"
@@ -18,23 +19,26 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
         material->debugName = "floor";
         material->SetBsdf("diffuse");
         material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f);
+        material->baseColor.texture = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/default.bmp");
         material->roughness = 0.2f;
         material->Compile();
 
-
-        SceneObjectPtr instance = std::make_unique<PlaneSceneObject>();
+        const Float2 size(1000.0f, 1000.0f);
+        const Float2 texScale(0.1f, 0.1f);
+        std::unique_ptr<PlaneSceneObject> instance = std::make_unique<PlaneSceneObject>(size, texScale);
         instance->mDefaultMaterial = material;
         scene.AddObject(std::move(instance));
     }
 
     Random random;
 
-    for (Int32 i = 0; i < 10000; ++i)
+    for (Int32 i = 0; i < 2000; ++i)
     {
         auto material = Material::Create();
         material->debugName = "default";
-        material->SetBsdf("roughPlastic");
-        material->baseColor = Vector4(0.1f, 0.1f, 0.1f) + random.GetVector4() * Vector4(0.85f, 0.85f, 0.85f);
+        material->SetBsdf("dielectric");
+        material->baseColor = Vector4(1.0f);
+        //material->baseColor = Vector4(0.1f, 0.1f, 0.1f) + random.GetVector4() * Vector4(0.85f, 0.85f, 0.85f);
         material->roughness = random.GetFloat() * 0.6f;
         material->Compile();
 
@@ -51,9 +55,9 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     }
 
     {
-        const Vector4 lightColor(20.0f, 20.0f, 20.0f);
+        const Vector4 lightColor(3.0f, 3.0f, 3.0f);
         const Vector4 lightDirection(1.1f, -0.7f, 0.9f);
-        auto background = std::make_unique<DirectionalLight>(lightDirection, lightColor, 0.15f);
+        auto background = std::make_unique<DirectionalLight>(lightDirection, lightColor, 0.0f);
         scene.AddLight(std::move(background));
     }
 

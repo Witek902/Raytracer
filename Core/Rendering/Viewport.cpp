@@ -6,6 +6,7 @@
 #include "Utils/Logger.h"
 #include "Scene/Camera.h"
 #include "Color/LdrColor.h"
+#include "Color/ColorHelpers.h"
 
 namespace rt {
 
@@ -144,6 +145,7 @@ bool Viewport::Render(const Camera& camera)
     {
         ctx.counters.Reset();
         ctx.params = &mParams;
+        ctx.camera = &camera;
 
         mRenderer->PreRender(ctx);
     }
@@ -167,7 +169,7 @@ bool Viewport::Render(const Camera& camera)
 
         {
             const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
-            const Film film(mSum, mSecondarySum, filmSize);
+            const Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
             mRenderer->PreRender(film);
         }
 
@@ -206,7 +208,7 @@ bool Viewport::Render(const Camera& camera)
         }
         else
         {
-            //ComputeError();
+            ComputeError();
         }
     }
 
@@ -227,9 +229,7 @@ void Viewport::PreRenderTile(const TileRenderingContext& tileContext, RenderingC
     RT_ASSERT(tile.maxX <= GetWidth());
     RT_ASSERT(tile.maxY <= GetHeight());
 
-    const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
-
-    Film film(mSum, mSecondarySum, filmSize);
+    Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
 
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {
@@ -261,7 +261,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     const Vector4 invSize = VECTOR_ONE2 / filmSize;
     const Uint32 tileSize = renderingContext.params->tileSize;
 
-    Film film(mSum, mSecondarySum, filmSize);
+    Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
 
     if (renderingContext.params->traversalMode == TraversalMode::Single)
     {

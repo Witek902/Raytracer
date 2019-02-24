@@ -13,6 +13,7 @@ namespace rt {
 
 struct PathDebugData;
 
+class Camera;
 class IRendererContext;
 using RendererContextPtr = std::unique_ptr<IRendererContext>;
 
@@ -68,6 +69,8 @@ struct RT_ALIGN(64) RenderingContext
     : public Aligned<64>
     , public NoCopyable
 {
+    const Camera* camera = nullptr;
+
     Wavelength wavelength;
 
     // per-thread pseudo-random number generator

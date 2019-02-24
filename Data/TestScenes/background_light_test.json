@@ -4,8 +4,8 @@
         {
             "name": "ground",
             "bsdf": "diffuse",
-            "baseColor": [0.9, 0.9, 0.9],
-            "baseColorTexture": "TEXTURES/default.bmp"
+            "baseColorTexture": "TEXTURES/default.bmp",
+            "baseColor": [0.9, 0.9, 0.9]
         },
         {
             "name": "plastic",
@@ -16,6 +16,11 @@
             "name": "glass",
             "bsdf": "dielectric",
             "baseColor": [1.0, 1.0, 1.0]
+        },
+        {
+            "name": "metal",
+            "bsdf": "metal",
+            "baseColor": [1.0, 1.0, 1.0]
         }
     ],
     "objects":
@@ -23,13 +28,21 @@
         {
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0] },
+			"size": [4.0, 4.0],
             "textureScale" : [0.4, 0.4],
             "material": "ground"
         },
         {
             "type": "sphere",
+			"transform": { "translation": [0.0, 0.0, -1.0] },
             "radius": 1.0,
             "material": "glass"
+        },
+        {
+            "type": "sphere",
+			"transform": { "translation": [0.0, 0.0, 1.0] },
+            "radius": 1.0,
+            "material": "metal"
         }
     ],
     "lights":
@@ -37,16 +50,19 @@
         {
             "type": "background",
             "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
+            "texture": "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [-2.4, 4.03, 3.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "translation": [-4.15, 0.03, -3.11],
+            "orientation": [0.06, 0.9, 0.0]
         },
-        "fieldOfView": 45.0
+        "fieldOfView": 45.0,
+		"enableDOF": true,
+		"focalPlaneDistance": 4.8,
+		"aperture": 0.15
     }
 }

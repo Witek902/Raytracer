@@ -156,6 +156,9 @@ struct RT_ALIGN(16) Vector4
     // Calculate 3D cross product
     RT_FORCE_INLINE static const Vector4 Cross3(const Vector4& v1, const Vector4& v2);
 
+    // Square length of a 2D vector (scalar result)
+    RT_FORCE_INLINE float SqrLength2() const;
+
     // Length of a 2D vector (scalar result)
     RT_FORCE_INLINE float Length2() const;
 
@@ -165,7 +168,7 @@ struct RT_ALIGN(16) Vector4
     // Length of a 3D vector (scalar result)
     RT_FORCE_INLINE float Length3() const;
 
-    // Square length of a 2D vector (scalar result)
+    // Square length of a 3D vector (scalar result)
     RT_FORCE_INLINE float SqrLength3() const;
 
     // Length of a 3D vector (vector result)

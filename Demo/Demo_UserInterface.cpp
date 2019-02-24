@@ -5,6 +5,7 @@
 #include "../Core/Rendering/PathTracerMIS.h"
 #include "../Core/Rendering/VertexConnectionAndMerging.h"
 #include "../Core/Rendering/DebugRenderer.h"
+#include "../Core/Color/ColorHelpers.h"
 
 using namespace rt;
 using namespace math;

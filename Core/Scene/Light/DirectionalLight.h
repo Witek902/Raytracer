@@ -19,9 +19,12 @@ public:
     virtual bool IsFinite() const override final;
     virtual bool IsDelta() const override final;
 
+    const math::Vector4 SampleDirection(RenderingContext& context, float& outPdf) const;
+
 private:
     math::Vector4 mDirection; // incident light direction
     float mCosAngle;
+    bool mIsDelta;
 };
 
 } // namespace rt

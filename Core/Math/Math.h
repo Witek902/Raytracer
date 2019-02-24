@@ -13,6 +13,7 @@
 
 #define RT_EPSILON (0.000001f)
 #define RT_PI (3.14159265359f)
+#define RT_SQRT_PI (1.77245385091f)
 #define RT_INV_PI (0.31830988618f)
 #define RT_2PI (6.28318530718f)
 #define RT_E (2.7182818f)

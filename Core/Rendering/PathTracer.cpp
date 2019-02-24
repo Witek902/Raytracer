@@ -118,7 +118,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator);
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, false);
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;

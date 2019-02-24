@@ -61,6 +61,12 @@ public:
 
 private:
 
+    enum class PathType
+    {
+        Camera,
+        Light,
+    };
+
     // describes current state of path coming from camera or a light
     struct PathState
     {
@@ -98,7 +104,7 @@ private:
     void TraceLightPath(const Camera& camera, Film& film, RenderingContext& ctx) const;
 
     // evaluate BSDF at ray's intersection and generate scattered ray
-    bool AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx) const;
+    bool AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx, PathType pathType) const;
 
     // connect a camera path end to a light path end and return contribution
     const RayColor ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const;
@@ -112,7 +118,11 @@ private:
     Uint32 mMaxPathLength;
 
     Uint32 mLightPathsCount;
+
     float mMergingRadius;
+    float mMinMergingRadius;
+    float mMergingRadiusMultiplier;
+
     float mVertexMergingNormalizationFactor;
     float mMisVertexMergingWeightFactor;
     float mMisVertexConnectionWeightFactor;

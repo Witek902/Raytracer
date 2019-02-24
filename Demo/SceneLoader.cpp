@@ -486,6 +486,9 @@ static bool ParseCamera(const rapidjson::Value& value, rt::Camera& camera)
     camera.SetTransform(transform);
     camera.SetPerspective(1.0f, fov / 180.0f * RT_PI);
 
+    if (!TryParseBool(value, "enableDOF", true, camera.mDOF.enable))
+        return false;
+
     if (!TryParseFloat(value, "aperture", true, camera.mDOF.aperture))
         return false;
 

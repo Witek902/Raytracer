@@ -4,10 +4,15 @@
 #include "../../Rendering/ShadingData.h"
 #include "../../Utils/Bitmap.h"
 #include "../../Math/Transcendental.h"
+#include "../../Math/Geometry.h"
+#include "../Camera.h"
 
 namespace rt {
 
 using namespace math;
+
+// TODO this should be calculated
+static const float SceneRadius = 5.8f;
 
 const Box BackgroundLight::GetBoundingBox() const
 {
@@ -49,8 +54,8 @@ const RayColor BackgroundLight::Illuminate(IlluminateParam& param) const
 {
     const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
     param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
-    param.outDirectPdfW = RT_INV_PI / 2.0f; // hemisphere area
-    param.outEmissionPdfW = 0.0f;
+    param.outDirectPdfW = UniformHemispherePdf();
+    param.outEmissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     param.outDistance = BackgroundLightDistance;
     param.outCosAtLight = 1.0f;
 
@@ -63,12 +68,12 @@ const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const mat
 
     if (outDirectPdfA)
     {
-        *outDirectPdfA = RT_INV_PI / 2.0f; // hemisphere area
+        *outDirectPdfA = UniformHemispherePdf();
     }
 
     if (outEmissionPdfW)
     {
-        *outEmissionPdfW = 0.0f;
+        *outEmissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     }
 
     return GetBackgroundColor(rayDirection, context);
@@ -76,15 +81,24 @@ const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const mat
 
 const RayColor BackgroundLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
 {
-    // TODO how to generate ray for background light?
+    // generate random direction on sphere
+    // TODO texture importance sampling
+    outResult.direction = ctx.randomGenerator.GetSphere();
 
-    RT_UNUSED(ctx);
+    // generate random origin
+    const Vector4 uv = ctx.randomGenerator.GetCircle();
+    {
+        Vector4 u, v;
+        BuildOrthonormalBasis(outResult.direction, u, v);
 
-    outResult.emissionPdfW = 0.0f;
-    outResult.directPdfA = RT_INV_PI / 2.0f; // hemisphere area
+        outResult.position = SceneRadius * (u * uv.x + v * uv.y - outResult.direction);
+    }
+
+    outResult.directPdfA = UniformHemispherePdf();
+    outResult.emissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     outResult.cosAtLight = 1.0f;
 
-    return RayColor::Zero();
+    return GetBackgroundColor(-outResult.direction, ctx);
 }
 
 bool BackgroundLight::IsFinite() const

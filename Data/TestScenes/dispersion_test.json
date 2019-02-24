@@ -4,18 +4,13 @@
         {
             "name": "ground",
             "baseColor": [0.8, 0.8, 0.8],
-			"baseColorTexture": "TEXTURES/default.bmp",
-            "metalness": 0.0,
-            "roughness": 0.8
+			"baseColorTexture": "TEXTURES/default.bmp"
         },
         {
             "name": "glass",
             "bsdf": "dielectric",
             "baseColor": [1.0, 1.0, 1.0],
-            "transparent": true,
-			"dispersive": true,
-            "metalness": 0.0,
-            "roughness": 0.0
+			"dispersive": true
         }
     ],
     "objects":
@@ -23,30 +18,34 @@
         {
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0] },
+            "size": [10.0, 10.0],
             "textureScale" : [0.4, 0.4],
             "material": "ground"
         },
         {
             "type": "sphere",
-            "radius": 0.5,
-            "transform": { "translation": [0.0, 0.5, 0.0] },
+            "radius": 1.0,
+            "transform": { "translation": [0.0, 0.0, 0.0] },
             "material": "glass"
         }
     ],
     "lights":
     [
         {
-            "type": "background",
-            "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/HdrOutdoorCityParkingLotEveningClear001/2K/HdrOutdoorCityParkingLotEveningClear001_HDR_2K.exr"
+            "type": "area",
+            "color": [4.0, 4.0, 4.0],
+            "position": [5.0, 5.0, 5.0],
+            "edge1": [-4.0, 0.0, 4.0],
+            "edge0": [-4.0, 4.0, -4.0],
+            "radius": 1.0
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [-2.08, 4.03, 4.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "translation": [-4.5, 2.3, -3.5],
+            "orientation": [0.4, 1.0, 0.0]
         },
         "fieldOfView": 45.0
     }

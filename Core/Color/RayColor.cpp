@@ -1,6 +1,9 @@
 #include "PCH.h"
 #include "RayColor.h"
 #include "Spectrum.h"
+#include "../Math/VectorInt8.h"
+#include "../Math/Vector3x8.h"
+#include "../Math/Constants.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4305) // truncation from 'double' to 'const float'

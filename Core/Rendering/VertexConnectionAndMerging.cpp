@@ -13,8 +13,6 @@ namespace rt {
 
 using namespace math;
 
-static_assert(sizeof(VertexConnectionAndMerging::LightVertex) <= 128, "Don't make this struct even bigger");
-
 RT_FORCE_INLINE static constexpr float Mis(const float samplePdf)
 {
     return samplePdf;
@@ -59,7 +57,9 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
 
     mMaxPathLength = 15;
 
-    mMergingRadius = 0.02f;
+    mMinMergingRadius = 0.005f;
+    mMergingRadius = 0.05f;
+    mMergingRadiusMultiplier = 0.98f;
 }
 
 VertexConnectionAndMerging::~VertexConnectionAndMerging() = default;
@@ -78,8 +78,8 @@ void VertexConnectionAndMerging::PreRender(const Film& film)
 {
     mLightPathsCount = film.GetHeight() * film.GetWidth();
 
-    mMergingRadius *= 0.98f;
-    mMergingRadius = Max(mMergingRadius, 0.005f);
+    mMergingRadius *= mMergingRadiusMultiplier;
+    mMergingRadius = Max(mMergingRadius, mMinMergingRadius);
 
     // Factor used to normalize vertex merging contribution.
     // We divide the summed up energy by disk radius and number of light paths
@@ -284,7 +284,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         }
 
         // continue random walk
-        if (!AdvancePath(pathState, shadingData, ctx))
+        if (!AdvancePath(pathState, shadingData, ctx, PathType::Camera))
         {
             break;
         }
@@ -375,7 +375,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
             break; // check if the ray depth won't be exeeded in the next iteration
         }
 
-        if (!AdvancePath(pathState, shadingData, ctx))
+        if (!AdvancePath(pathState, shadingData, ctx, PathType::Light))
         {
             break;
         }
@@ -409,7 +409,12 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
 
     emitResult.directPdfA *= lightPickProbability;
     emitResult.emissionPdfW *= lightPickProbability;
-    RT_ASSERT(emitResult.emissionPdfW > 0.0f);
+    
+    if (emitResult.emissionPdfW < FLT_EPSILON)
+    {
+        return false;
+    }
+
     const float emissionInvPdfW = 1.0f / emitResult.emissionPdfW;
 
     outPath.ray = Ray(emitResult.position, emitResult.direction);
@@ -437,8 +442,10 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     return true;
 }
 
-bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx) const
+bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx, PathType pathType) const
 {
+    RT_UNUSED(pathType);
+
     // sample BSDF
     Vector4 incomingDirWorldSpace;
     float bsdfDirPdf;
@@ -519,7 +526,6 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
 const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
 {
     const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
-    const Vector4 normal = light.GetNormal(hitPos);
 
     float directPdfA, emissionPdfW;
     RayColor lightContribution = light.GetRadiance(ctx, pathState.ray.dir, hitPos, &directPdfA, &emissionPdfW);

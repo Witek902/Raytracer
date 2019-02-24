@@ -587,6 +587,11 @@ const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
     return NegMulAndAdd(vTemp1, vTemp2, vResult);
 }
 
+float Vector4::SqrLength2() const
+{
+    return Dot2(*this, *this);
+}
+
 float Vector4::Length2() const
 {
     float result;

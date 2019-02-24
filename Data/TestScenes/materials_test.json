@@ -3,7 +3,7 @@
     [
         {
             "name": "ground",
-            "bsdf": "roughDiffuse",
+            "bsdf": "diffuse",
             "baseColor": [0.9, 0.9, 0.9],
             "baseColorTexture": "TEXTURES/default.bmp",
             "metalness": 0.0,
@@ -219,10 +219,10 @@
     [
         {
             "type": "area",
-            "color": [10.0, 10.0, 10.0],
+            "color": [3.0, 3.0, 3.0],
             "position": [5.0, 5.0, 5.0],
-            "edge1": [-2.0, 0.0, 2.0],
-            "edge0": [-2.0, 2.0, -2.0],
+            "edge1": [-4.0, 0.0, 4.0],
+            "edge0": [-4.0, 4.0, -4.0],
             "radius": 1.0
         }
     ],
