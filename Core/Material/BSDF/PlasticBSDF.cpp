@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "PlasticBSDF.h"
-#include "Math/Random.h"
+#include "Math/SamplingHelpers.h"
 #include "Math/Utils.h"
 
 namespace rt {
@@ -24,13 +24,18 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
 
     const float Fi = FresnelDielectric(NdotV, ior);
 
-    const float specularWeight = Fi;
+    // increase probability of sampling reflection
+    // this helps reducing noise in bright reflections
+    const float minSpecularWeight = 0.25f;
+
+    const float specularWeight = minSpecularWeight + Fi * (1.0f - minSpecularWeight);
     const float diffuseWeight = (1.0f - Fi) * ctx.materialParam.baseColor.Max();
 
     // importance sample specular reflectivity
     const float specularProbability = specularWeight / (specularWeight + diffuseWeight);
     const float diffuseProbability = 1.0f - specularProbability;
-    const bool specular = ctx.randomGenerator.GetFloat() < specularProbability;
+
+    const bool specular = (specularProbability >= 1.0f) || (ctx.sample.z < specularProbability);
 
     if (specular)
     {
@@ -41,7 +46,9 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     }
     else // diffuse reflection
     {
-        ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
+        RT_ASSERT(diffuseProbability > 0.0f);
+
+        ctx.outIncomingDir = SamplingHelpers::GetHemishpereCos(ctx.sample);
         const float NdotL = ctx.outIncomingDir.z;
 
         ctx.outPdf = ctx.outIncomingDir.z * RT_INV_PI * diffuseProbability;

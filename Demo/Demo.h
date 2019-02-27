@@ -92,19 +92,20 @@ private:
     rt::Material* mSelectedMaterial;
     rt::ISceneObject* mSelectedObject;
     bool mFocalDistancePicking = false;
+    bool mPixelDebuggingPicking = false;
 
     void InitializeUI();
 
     void SwitchScene(const std::string& sceneName);
 
-    void RenderUI();
+    bool RenderUI();
     void RenderUI_Stats();
 
     void RenderUI_Debugging();
     void RenderUI_Debugging_Path();
     void RenderUI_Debugging_Color();
 
-    void RenderUI_Settings();
+    bool RenderUI_Settings();
     bool RenderUI_Settings_Rendering();
     bool RenderUI_Settings_AdaptiveRendering();
     bool RenderUI_Settings_Camera();

@@ -1,7 +1,6 @@
 #include "PCH.h"
 #include "DielectricBSDF.h"
 #include "../Material.h"
-#include "Math/Random.h"
 #include "Math/Utils.h"
 
 namespace rt {
@@ -48,12 +47,12 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
 
     // increase probability of sampling refraction
     // this helps reducing noise in reflections in dielectrics when refracted ray returns dark color
-    const float minRefractionProbability = 0.25f;
-    const float reflectionProbability = minRefractionProbability + (1.0f - minRefractionProbability) * F;
+    const float minReflectionProbability = 0.25f;
+    const float reflectionProbability = minReflectionProbability + (1.0f - minReflectionProbability) * F;
     const float refractionProbability = 1.0f - reflectionProbability;
 
     // sample event
-    const bool reflection = (reflectionProbability >= 1.0f) || ctx.randomGenerator.GetFloat() < reflectionProbability;
+    const bool reflection = (reflectionProbability >= 1.0f) || ctx.sample.x < reflectionProbability;
     if (reflection) 
     {
         ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, VECTOR_Z);
@@ -78,7 +77,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
         ctx.outPdf = reflectionProbability;
         ctx.outColor = RayColor::One();
 
-        if (minRefractionProbability > 0.0f)
+        if (minReflectionProbability > 0.0f)
         {
             ctx.outColor *= F / reflectionProbability;
         }
@@ -88,7 +87,7 @@ bool DielectricBSDF::Sample(SamplingContext& ctx) const
         ctx.outPdf = refractionProbability;
         ctx.outColor = ctx.materialParam.baseColor;
 
-        if (minRefractionProbability > 0.0f)
+        if (minReflectionProbability > 0.0f)
         {
             ctx.outColor *= (1.0f - F) / refractionProbability;
         }

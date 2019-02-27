@@ -11,6 +11,7 @@
 namespace rt {
 namespace math {
 
+// Pseudorandom number generator
 class RT_ALIGN(32) RAYLIB_API Random
 {
 public:
@@ -27,6 +28,7 @@ public:
 
     // Generate random float with uniform distribution from range [0.0f, 1.0f)
     float GetFloat();
+    double GetDouble();
     const Float2 GetFloat2();
     const Float3 GetFloat3();
 
@@ -48,33 +50,6 @@ public:
     // generate random vector of 8 elements from range [-1.0f, 1.0f)
     const Vector8 GetVector8Bipolar();
 
-    // generate random UV triangle coordinates (barycentric)
-    const Float2 GetTriangle();
-
-    // get random point on a circle (uniform distribution)
-    const Vector4 GetCircle();
-    const Vector2x8 GetCircle_Simd8();
-
-    // get random point on a regular hexagon (uniform distribution)
-    const Vector4 GetHexagon();
-    const Vector2x8 GetHexagon_Simd8();
-
-    // get random point inside a regular polygon
-    const Vector4 GetRegularPolygon(const Uint32 n);
-    const Vector2x8 GetRegularPolygon_Simd8(const Uint32 n);
-
-    // generate random vector on a sphere (uniform sampling)
-    const Vector4 GetSphere();
-
-    // generate random vector on a hemisphere (uniform sampling, Z+ oriented)
-    const Vector4 GetHemishpere();
-
-    // generate random vector on a hemisphere with cosine distribution (0 at equator, 1 at pole)
-    // typical usage: Lambertian BRDF sampling
-    const Vector4 GetHemishpereCos();
-
-    const Vector4 GetFloatNormal2();
-
 private:
     RT_FORCE_INLINE VectorInt8 GetIntVector8();
     RT_FORCE_INLINE VectorInt4 GetIntVector4();
@@ -89,5 +64,5 @@ private:
 };
 
 
-} // namespace Math
-} // namespace NFE
+} // namespace math
+} // namespace rt

@@ -5,6 +5,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Scene/Light/Light.h"
+#include "Sampling/GenericSampler.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 
@@ -37,8 +38,15 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     const Uint32 lightIndex = ctx.randomGenerator.GetInt() % (Uint32)allLocalLights.size();
     const LightPtr& light = allLocalLights[lightIndex];
 
+    const ILight::EmitParam emitParam =
+    {
+        ctx.wavelength,
+        ctx.sampler->GetFloat2(),
+        ctx.sampler->GetFloat2(),
+    };
+
     ILight::EmitResult emitResult;
-    RayColor throughput = light->Emit(ctx, emitResult);
+    RayColor throughput = light->Emit(emitParam, emitResult);
 
     if (throughput.AlmostZero())
     {
@@ -144,7 +152,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.randomGenerator);
+        const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.sampler->GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;

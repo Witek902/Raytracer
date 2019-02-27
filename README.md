@@ -23,6 +23,7 @@ General
 Rendering
 ---------
 
+* Low discrepancy sampling (scrambled Halton sequence)
 * Adaptive sampling (using more samples in noisy image areas)
 * Spectral rendering using _hero wavelength_ method (_Note: disabled with a macro by default_)
 * Debug rendering mode (for visualizing depth, normal vectors, material parameters, etc.)

@@ -42,7 +42,7 @@ void Film::AccumulateColor(const Vector4 pos, const Vector4 sampleColor, Random&
     // Note: could just splat to 4 nearest pixels, but may be slower
     {
         const Vector4 coordFraction = filmCoords - intFilmCoords.ConvertToFloat();
-        const Float2 u = randomGenerator.GetFloat2();
+        const Vector4 u = randomGenerator.GetVector4();
 
         if (u.x < coordFraction.x)
         {

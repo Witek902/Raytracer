@@ -92,7 +92,11 @@ struct RayColor
 
     RT_FORCE_INLINE float Max() const
     {
-        return value.HorizontalMax()[0];
+        Wavelength::ValueType maskedValue = value;
+#ifndef RT_ENABLE_SPECTRAL_RENDERING
+        maskedValue &= math::Vector4::MakeMask<1,1,1,0>();
+#endif
+        return maskedValue.HorizontalMax()[0];
     }
 
     RT_FORCE_INLINE bool IsValid() const

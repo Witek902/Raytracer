@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "DiffuseBSDF.h"
-#include "Math/Random.h"
+#include "Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -20,7 +20,7 @@ bool DiffuseBSDF::Sample(SamplingContext& ctx) const
         return false;
     }
 
-    ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
+    ctx.outIncomingDir = SamplingHelpers::GetHemishpereCos(ctx.sample);
     ctx.outPdf = ctx.outIncomingDir.z * RT_INV_PI;
     ctx.outColor = ctx.materialParam.baseColor;
     ctx.outEventType = DiffuseReflectionEvent;

@@ -5,6 +5,7 @@
 #include "../../Utils/Bitmap.h"
 #include "../../Math/Transcendental.h"
 #include "../../Math/Geometry.h"
+#include "../../Math/SamplingHelpers.h"
 #include "../Camera.h"
 
 namespace rt {
@@ -28,7 +29,7 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, float& outDistance) const
     return true;
 }
 
-const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, RenderingContext& context) const
+const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, const Wavelength& wavelength) const
 {
     Spectrum color = mColor;
 
@@ -47,19 +48,19 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, Rendering
         color.rgbValues *= textureColor;
     }
 
-    return RayColor::Resolve(context.wavelength, color);
+    return RayColor::Resolve(wavelength, color);
 }
 
-const RayColor BackgroundLight::Illuminate(IlluminateParam& param) const
+const RayColor BackgroundLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    const Vector4 randomDirLocalSpace = param.context.randomGenerator.GetHemishpere();
-    param.outDirectionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
-    param.outDirectPdfW = UniformHemispherePdf();
-    param.outEmissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
-    param.outDistance = BackgroundLightDistance;
-    param.outCosAtLight = 1.0f;
+    const Vector4 randomDirLocalSpace = SamplingHelpers::GetHemishpere(param.sample);
+    outResult.directionToLight = param.shadingData.LocalToWorld(randomDirLocalSpace);
+    outResult.directPdfW = UniformHemispherePdf();
+    outResult.emissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
+    outResult.distance = BackgroundLightDistance;
+    outResult.cosAtLight = 1.0f;
 
-    return GetBackgroundColor(param.outDirectionToLight, param.context);
+    return GetBackgroundColor(outResult.directionToLight, param.wavelength);
 }
 
 const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -76,17 +77,17 @@ const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const mat
         *outEmissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     }
 
-    return GetBackgroundColor(rayDirection, context);
+    return GetBackgroundColor(rayDirection, context.wavelength);
 }
 
-const RayColor BackgroundLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+const RayColor BackgroundLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
     // generate random direction on sphere
     // TODO texture importance sampling
-    outResult.direction = ctx.randomGenerator.GetSphere();
+    outResult.direction = SamplingHelpers::GetSphere(param.sample);
 
     // generate random origin
-    const Vector4 uv = ctx.randomGenerator.GetCircle();
+    const Vector4 uv = SamplingHelpers::GetCircle(param.sample2);
     {
         Vector4 u, v;
         BuildOrthonormalBasis(outResult.direction, u, v);
@@ -98,7 +99,7 @@ const RayColor BackgroundLight::Emit(RenderingContext& ctx, EmitResult& outResul
     outResult.emissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     outResult.cosAtLight = 1.0f;
 
-    return GetBackgroundColor(-outResult.direction, ctx);
+    return GetBackgroundColor(-outResult.direction, param.wavelength);
 }
 
 bool BackgroundLight::IsFinite() const

@@ -28,7 +28,6 @@
         {
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0] },
-			"size": [4.0, 4.0],
             "textureScale" : [0.4, 0.4],
             "material": "ground"
         },
@@ -36,13 +35,13 @@
             "type": "sphere",
 			"transform": { "translation": [0.0, 0.0, -1.0] },
             "radius": 1.0,
-            "material": "glass"
+            "material": "plastic"
         },
         {
             "type": "sphere",
 			"transform": { "translation": [0.0, 0.0, 1.0] },
             "radius": 1.0,
-            "material": "metal"
+            "material": "plastic"
         }
     ],
     "lights":
@@ -61,7 +60,7 @@
             "orientation": [0.06, 0.9, 0.0]
         },
         "fieldOfView": 45.0,
-		"enableDOF": true,
+		"enableDOF": false,
 		"focalPlaneDistance": 4.8,
 		"aperture": 0.15
     }

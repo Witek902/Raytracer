@@ -64,7 +64,7 @@ TEST(MathTest, Vector4_VectorLoadAndStore)
     EXPECT_TRUE((Vector4(4.0f, 4.0f, 4.0f, 4.0f) == vecB.SplatW()).All());
 }
 
-TEST(MathTest, Vector4_Select)
+TEST(MathTest, Vector4_Select_Variable)
 {
     Vector4 vA(1.0f, 2.0f, 3.0f, 4.0f);
     Vector4 vB(5.0f, 6.0f, 7.0f, 8.0f);
@@ -75,6 +75,20 @@ TEST(MathTest, Vector4_Select)
     EXPECT_TRUE((Vector4(1.0f, 2.0f, 7.0f, 4.0f) == Vector4::Select(vA, vB, VectorBool4(false, false, true, false))).All());
     EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 8.0f) == Vector4::Select(vA, vB, VectorBool4(false, false, false, true))).All());
     EXPECT_TRUE((Vector4(5.0f, 6.0f, 7.0f, 8.0f) == Vector4::Select(vA, vB, VectorBool4(true, true, true, true))).All());
+}
+
+TEST(MathTest, Vector4_Select_Immediate)
+{
+    const Vector4 a(1.0f, 2.0f, 3.0f, 4.0f);
+    const Vector4 b(5.0f, 6.0f, 7.0f, 8.0f);
+
+    EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 4.0f) == Vector4::Select<0, 0, 0, 0>(a, b)).All());
+    EXPECT_TRUE((Vector4(5.0f, 6.0f, 7.0f, 8.0f) == Vector4::Select<1, 1, 1, 1>(a, b)).All());
+
+    EXPECT_TRUE((Vector4(1.0f, 2.0f, 3.0f, 8.0f) == Vector4::Select<0, 0, 0, 1>(a, b)).All());
+    EXPECT_TRUE((Vector4(1.0f, 2.0f, 7.0f, 4.0f) == Vector4::Select<0, 0, 1, 0>(a, b)).All());
+    EXPECT_TRUE((Vector4(1.0f, 6.0f, 3.0f, 4.0f) == Vector4::Select<0, 1, 0, 0>(a, b)).All());
+    EXPECT_TRUE((Vector4(5.0f, 2.0f, 3.0f, 4.0f) == Vector4::Select<1, 0, 0, 0>(a, b)).All());
 }
 
 //////////////////////////////////////////////////////////////////////////

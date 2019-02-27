@@ -5,6 +5,7 @@
 #include "Scene/Light/Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
+#include "Sampling/GenericSampler.h"
 
 namespace rt {
 
@@ -102,14 +103,14 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // Russian roulette algorithm
         if (depth >= context.params->minRussianRouletteDepth)
         {
-            float threshold = throughput.Max();
+            const float threshold = shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {
                 threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
-            if (context.randomGenerator.GetFloat() > threshold)
+            if (context.sampler->GetFloat() > threshold)
             {
                 break;
             }
@@ -118,7 +119,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator);
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;

@@ -4,12 +4,13 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
+#include "../../Math/SamplingHelpers.h"
 
 namespace rt {
 
 using namespace math;
 
-static constexpr const float CosEpsilon = 0.999f;
+static constexpr const float CosEpsilon = 0.9999f;
 static constexpr const float SceneRadius = 5.8f;
 
 DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const float angle)
@@ -43,7 +44,7 @@ bool DirectionalLight::TestRayHit(const math::Ray& ray, float& outDistance) cons
     return false;
 }
 
-const Vector4 DirectionalLight::SampleDirection(RenderingContext& context, float& outPdf) const
+const Vector4 DirectionalLight::SampleDirection(const Float2 sample, float& outPdf) const
 {
     Vector4 sampledDirection;
 
@@ -56,10 +57,9 @@ const Vector4 DirectionalLight::SampleDirection(RenderingContext& context, float
     {
         outPdf = SphereCapPdf(mCosAngle);
 
-        const Float2 uv = context.randomGenerator.GetFloat2();
-        const float phi = RT_2PI * uv.y;
+        const float phi = RT_2PI * sample.y;
 
-        float cosTheta = Lerp(mCosAngle, 1.0f, uv.x);
+        float cosTheta = Lerp(mCosAngle, 1.0f, sample.x);
         float sinThetaSqr = 1.0f - Sqr(cosTheta);
         float sinTheta = sqrtf(sinThetaSqr);
 
@@ -69,19 +69,21 @@ const Vector4 DirectionalLight::SampleDirection(RenderingContext& context, float
         BuildOrthonormalBasis(w, u, v);
         sampledDirection = (u * cosf(phi) + v * sinf(phi)) * sinTheta + w * cosTheta;
         sampledDirection.Normalize3();
+
+        RT_ASSERT(sampledDirection.IsValid());
     }
 
     return sampledDirection;
 }
 
-const RayColor DirectionalLight::Illuminate(IlluminateParam& param) const
+const RayColor DirectionalLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    param.outDirectionToLight = SampleDirection(param.context, param.outDirectPdfW);
-    param.outEmissionPdfW = param.outDirectPdfW * UniformCirclePdf(SceneRadius);
-    param.outCosAtLight = 1.0f;
-    param.outDistance = BackgroundLightDistance;
+    outResult.directionToLight = SampleDirection(param.sample, outResult.directPdfW);
+    outResult.emissionPdfW = outResult.directPdfW * UniformCirclePdf(SceneRadius);
+    outResult.cosAtLight = 1.0f;
+    outResult.distance = BackgroundLightDistance;
 
-    return RayColor::Resolve(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, mColor);
 }
 
 const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -114,12 +116,12 @@ const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const ma
     return RayColor::Resolve(context.wavelength, mColor);
 }
 
-const RayColor DirectionalLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+const RayColor DirectionalLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
-    outResult.direction = -SampleDirection(ctx, outResult.directPdfA);
+    outResult.direction = -SampleDirection(param.sample, outResult.directPdfA);
 
     // generate random origin
-    const Vector4 uv = ctx.randomGenerator.GetCircle();
+    const Vector4 uv = SamplingHelpers::GetCircle(param.sample2);
     {
         Vector4 u, v;
         BuildOrthonormalBasis(mDirection, u, v);
@@ -129,7 +131,7 @@ const RayColor DirectionalLight::Emit(RenderingContext& ctx, EmitResult& outResu
     outResult.cosAtLight = 1.0f;
     outResult.emissionPdfW = outResult.directPdfA * UniformCirclePdf(SceneRadius);
 
-    return RayColor::Resolve(ctx.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, mColor);
 }
 
 bool DirectionalLight::IsFinite() const

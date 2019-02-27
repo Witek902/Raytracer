@@ -36,9 +36,8 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     {
         auto material = Material::Create();
         material->debugName = "default";
-        material->SetBsdf("dielectric");
+        material->SetBsdf("diffuse");
         material->baseColor = Vector4(1.0f);
-        //material->baseColor = Vector4(0.1f, 0.1f, 0.1f) + random.GetVector4() * Vector4(0.85f, 0.85f, 0.85f);
         material->roughness = random.GetFloat() * 0.6f;
         material->Compile();
 
@@ -55,9 +54,9 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     }
 
     {
-        const Vector4 lightColor(3.0f, 3.0f, 3.0f);
+        const Vector4 lightColor(10.0f, 10.0f, 10.0f);
         const Vector4 lightDirection(1.1f, -0.7f, 0.9f);
-        auto background = std::make_unique<DirectionalLight>(lightDirection, lightColor, 0.0f);
+        auto background = std::make_unique<DirectionalLight>(lightDirection, lightColor, 0.15f);
         scene.AddLight(std::move(background));
     }
 

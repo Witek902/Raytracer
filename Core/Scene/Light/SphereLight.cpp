@@ -53,7 +53,7 @@ bool SphereLight::TestRayHit(const math::Ray& ray, float& outDistance) const
     return false;
 }
 
-const RayColor SphereLight::Illuminate(IlluminateParam& param) const
+const RayColor SphereLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
     const Vector4 centerDir = mPosition - param.shadingData.frame.GetTranslation(); // direction to light center
     const float centerDistSqr = centerDir.SqrLength3();
@@ -65,12 +65,11 @@ const RayColor SphereLight::Illuminate(IlluminateParam& param) const
         return RayColor::Zero();
     }
 
-    const Float2 uv = param.context.randomGenerator.GetFloat2();
-    const float phi = RT_2PI * uv.y;
+    const float phi = RT_2PI * param.sample.y;
 
     float sinThetaMaxSqr = mRadiusSqr / centerDistSqr;
     float cosThetaMax = sqrtf(1.0f - Clamp(sinThetaMaxSqr, 0.0f, 1.0f));
-    float cosTheta = Lerp(cosThetaMax, 1.0f, uv.x);
+    float cosTheta = Lerp(cosThetaMax, 1.0f, param.sample.x);
     float sinThetaSqr = 1.0f - Sqr(cosTheta);
     float sinTheta = sqrtf(sinThetaSqr);
 
@@ -78,24 +77,24 @@ const RayColor SphereLight::Illuminate(IlluminateParam& param) const
     const Vector4 w = centerDir / centerDist;
     Vector4 u, v;
     BuildOrthonormalBasis(w, u, v);
-    param.outDirectionToLight = (u * cosf(phi) + v * sinf(phi)) * sinTheta + w * cosTheta;
-    param.outDirectionToLight.Normalize3();
+    outResult.directionToLight = (u * cosf(phi) + v * sinf(phi)) * sinTheta + w * cosTheta;
+    outResult.directionToLight.Normalize3();
 
     // calculate distance to hit point
-    param.outDistance = centerDist * cosTheta - sqrtf(Max(0.0f, mRadiusSqr - centerDistSqr * sinThetaSqr));
+    outResult.distance = centerDist * cosTheta - sqrtf(Max(0.0f, mRadiusSqr - centerDistSqr * sinThetaSqr));
 
     if (cosThetaMax > 0.999999f)
     {
-        param.outDirectPdfW = FLT_MAX;
+        outResult.directPdfW = FLT_MAX;
     }
     else
     {
-        param.outDirectPdfW = SphereCapPdf(cosThetaMax);
+        outResult.directPdfW = SphereCapPdf(cosThetaMax);
     }
 
-    param.outEmissionPdfW = 0.0f; // TODO BDPT
+    outResult.emissionPdfW = 0.0f; // TODO BDPT
 
-    return RayColor::Resolve(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, mColor);
 }
 
 const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -121,10 +120,10 @@ const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::V
     return RayColor::Resolve(context.wavelength, mColor);
 }
 
-const RayColor SphereLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+const RayColor SphereLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
     // TODO
-    RT_UNUSED(ctx);
+    RT_UNUSED(param);
     RT_UNUSED(outResult);
     return RayColor::Zero();
 }

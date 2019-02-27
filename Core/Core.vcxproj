@@ -243,6 +243,7 @@
     <ClInclude Include="Math\Random.h" />
     <ClInclude Include="Math\Ray.h" />
     <ClInclude Include="Math\Rectangle.h" />
+    <ClInclude Include="Math\SamplingHelpers.h" />
     <ClInclude Include="Math\Simd8Box.h" />
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
@@ -283,6 +284,8 @@
     <ClInclude Include="Rendering\RendererContext.h" />
     <ClInclude Include="Rendering\ShadingData.h" />
     <ClInclude Include="Rendering\Viewport.h" />
+    <ClInclude Include="Sampling\GenericSampler.h" />
+    <ClInclude Include="Sampling\HaltonSampler.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Light\AreaLight.h" />
     <ClInclude Include="Scene\Light\BackgroundLight.h" />
@@ -340,6 +343,7 @@
     <ClCompile Include="Math\Matrix4.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Math\Random.cpp" />
+    <ClCompile Include="Math\SamplingHelpers.cpp" />
     <ClCompile Include="Math\Transcendental.cpp" />
     <ClCompile Include="Math\Transform.cpp" />
     <ClCompile Include="Math\Utils.cpp" />
@@ -352,6 +356,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Rendering\Context.cpp" />
     <ClCompile Include="Rendering\ShadingData.cpp" />
     <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
@@ -363,6 +368,8 @@
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RendererContext.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
+    <ClCompile Include="Sampling\GenericSampler.cpp" />
+    <ClCompile Include="Sampling\HaltonSampler.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\Light\AreaLight.cpp" />
     <ClCompile Include="Scene\Light\BackgroundLight.cpp" />

@@ -4,6 +4,7 @@
 #include "PlasticBSDF.h"
 #include "../Material.h"
 #include "Math/Utils.h"
+#include "Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -41,13 +42,13 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     // importance sample specular reflectivity
     const float specularProbability = specularWeight / (specularWeight + diffuseWeight);
     const float diffuseProbability = 1.0f - specularProbability;
-    const bool specular = ctx.randomGenerator.GetFloat() < specularProbability;
+    const bool specular = ctx.sample.z < specularProbability;
 
     if (specular)
     {
         // microfacet normal (aka. half vector)
         const Microfacet microfacet(roughness * roughness);
-        const Vector4 m = microfacet.Sample(ctx.randomGenerator);
+        const Vector4 m = microfacet.Sample(ctx.sample);
 
         // compute reflected direction
         ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, m);
@@ -74,7 +75,7 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     }
     else // diffuse reflection
     {
-        ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
+        ctx.outIncomingDir = SamplingHelpers::GetHemishpereCos(ctx.sample);
         const float NdotL = ctx.outIncomingDir.z;
 
         ctx.outPdf = ctx.outIncomingDir.z * RT_INV_PI * diffuseProbability;

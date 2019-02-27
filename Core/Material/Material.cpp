@@ -186,7 +186,7 @@ const RayColor Material::Sample(
     Wavelength& wavelength,
     Vector4& outIncomingDirWorldSpace,
     const ShadingData& shadingData,
-    Random& randomGenerator,
+    const Float3& sample,
     float* outPdfW,
     BSDF::EventType* outSampledEvent) const
 {
@@ -196,9 +196,9 @@ const RayColor Material::Sample(
     {
         *this,
         shadingData.materialParams,
+        sample,
         shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
         wavelength,
-        randomGenerator,
     };
 
     // BSDF sampling (in local space)
@@ -210,7 +210,7 @@ const RayColor Material::Sample(
             *outSampledEvent = BSDF::NullEvent;
         }
 
-        return RayColor();
+        return RayColor::Zero();
     }
 
     RT_ASSERT(IsValid(samplingContext.outPdf));

@@ -7,6 +7,8 @@
 #include "PostProcess.h"
 
 #include "../Math/Random.h"
+#include "../Sampling/HaltonSampler.h"
+#include "../Sampling/GenericSampler.h"
 #include "../Math/Rectangle.h"
 #include "../Utils/Bitmap.h"
 #include "../Utils/ThreadPool.h"
@@ -41,6 +43,8 @@ public:
     RAYLIB_API bool SetPostprocessParams(const PostprocessParams& params);
     RAYLIB_API bool Render(const Camera& camera);
     RAYLIB_API void Reset();
+
+    RAYLIB_API void SetPixelBreakpoint(Uint32 x, Uint32 y);
 
     RT_FORCE_INLINE const Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
     RT_FORCE_INLINE const Bitmap& GetSumBuffer() const { return mSum; }
@@ -100,12 +104,17 @@ private:
 
     RendererPtr mRenderer;
 
+    math::Random mRandomGenerator;
+    HaltonSequence mHaltonSequence;
+
+    std::vector<GenericSampler, AlignmentAllocator<GenericSampler, 64>> mSamplers;
     std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
 
     Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
     Bitmap mSecondarySum;   // contains image with every second sample - required for adaptive rendering
     Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
     std::vector<Uint32> mPassesPerPixel;
+    std::vector<math::Float2> mPixelSalt; // salt value for each pixel
 
     RenderingParams mParams;
     PostprocessParamsInternal mPostprocessParams;
@@ -116,6 +125,8 @@ private:
 
     std::vector<Block> mBlocks;
     std::vector<Block> mRenderingTiles;
+
+    PixelBreakpoint mPendingPixelBreakpoint;
 };
 
 } // namespace rt

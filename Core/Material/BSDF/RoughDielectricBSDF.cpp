@@ -53,13 +53,13 @@ bool RoughDielectricBSDF::Sample(SamplingContext& ctx) const
 
     // microfacet normal (aka. half vector)
     const Microfacet microfacet(roughness * roughness);
-    const Vector4 m = microfacet.Sample(ctx.randomGenerator);
+    const Vector4 m = microfacet.Sample(ctx.sample);
     const float microfacetPdf = microfacet.Pdf(m);
     const float VdotH = Vector4::Dot3(m, ctx.outgoingDir);
 
     // compute Fresnel term
     const float F = FresnelDielectric(VdotH, ior);
-    const bool reflection = ctx.randomGenerator.GetFloat() < F;
+    const bool reflection = ctx.sample.z < F;
 
     if (reflection)
     {

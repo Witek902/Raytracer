@@ -52,6 +52,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE operator __m128() const { return v; }
     RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
     RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
+    RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
 
     // simple arithmetics
     RT_FORCE_INLINE const Vector4 operator- () const;
@@ -134,6 +135,9 @@ struct RT_ALIGN(16) Vector4
 
     // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b, const VectorBool4& sel);
+
+    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selkW>
+    RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b);
 
     // Calculate 2D dot product (scalar result)
     RT_FORCE_INLINE static float Dot2(const Vector4& v1, const Vector4& v2);

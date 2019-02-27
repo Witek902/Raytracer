@@ -24,13 +24,24 @@ public:
     struct IlluminateParam
     {
         const ShadingData& shadingData;
-        RenderingContext& context;
+        Wavelength& wavelength;
+        math::Float2 sample;
+    };
 
-        math::Vector4 outDirectionToLight = math::Vector4::Zero();
-        float outDistance = 0.0f;
-        float outDirectPdfW = 0.0f;
-        float outEmissionPdfW = 0.0f;
-        float outCosAtLight = -1.0f;
+    struct IlluminateResult
+    {
+        math::Vector4 directionToLight = math::Vector4::Zero();
+        float distance = 0.0f;
+        float directPdfW = 0.0f;
+        float emissionPdfW = 0.0f;
+        float cosAtLight = -1.0f;
+    };
+
+    struct EmitParam
+    {
+        Wavelength& wavelength;
+        math::Float2 sample;
+        math::Float2 sample2;
     };
 
     struct EmitResult
@@ -53,13 +64,13 @@ public:
 
     // Illuminate a point in the scene.
     // Returns probability of sampling the returned direction.
-    virtual const RayColor Illuminate(IlluminateParam& param) const = 0;
+    virtual const RayColor Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const = 0;
 
     // get normal vector at intersection point
     virtual const math::Vector4 GetNormal(const math::Vector4& hitPoint) const;
 
     // Emit random light photon from the light
-    virtual const RayColor Emit(RenderingContext& context, EmitResult& outResult) const = 0;
+    virtual const RayColor Emit(const EmitParam& param, EmitResult& outResult) const = 0;
 
     // Returns radiance for ray hitting the light directly
     // Optionally returns probability of hitting this point and emitting a photon in that direction

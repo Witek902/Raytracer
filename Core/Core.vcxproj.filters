@@ -296,6 +296,9 @@
     <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Rendering\RendererContext.h" />
     <ClInclude Include="Rendering\VertexConnectionAndMerging.h" />
+    <ClInclude Include="Math\SamplingHelpers.h" />
+    <ClInclude Include="Sampling\HaltonSampler.h" />
+    <ClInclude Include="Sampling\GenericSampler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -474,6 +477,10 @@
     <ClCompile Include="Rendering\RendererContext.cpp" />
     <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
     <ClCompile Include="Rendering\ShadingData.cpp" />
+    <ClCompile Include="Math\SamplingHelpers.cpp" />
+    <ClCompile Include="Sampling\HaltonSampler.cpp" />
+    <ClCompile Include="Sampling\GenericSampler.cpp" />
+    <ClCompile Include="Rendering\Context.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

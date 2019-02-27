@@ -74,11 +74,20 @@
 #define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);
 #define RT_PREFETCH_L3(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T2);
 
-// debug break
+// fatal error
 #if defined(WIN32)
 #define RT_FATAL(...) __debugbreak()
 #elif defined(__LINUX__) | defined(__linux__)
 #define RT_FATAL(...) __builtin_trap()
+#else
+#error "Target system not supported!"
+#endif // defined(WIN32)
+
+// debug break
+#if defined(WIN32)
+#define RT_BREAK() __debugbreak()
+#elif defined(__LINUX__) | defined(__linux__)
+#define RT_BREAK() __builtin_trap()
 #else
 #error "Target system not supported!"
 #endif // defined(WIN32)

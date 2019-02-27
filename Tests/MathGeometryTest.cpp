@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "../Core/Math/Geometry.h"
 #include "../Core/Math/Random.h"
+#include "../Core/Math/SamplingHelpers.h"
 
 #include "gtest/gtest.h"
 
@@ -16,7 +17,7 @@ TEST(MathTest, Geometry_BuildOrthonormalBasis)
 
     for (Uint32 i = 0; i < numIterations; ++i)
     {
-        const Vector4 x = random.GetSphere();
+        const Vector4 x = SamplingHelpers::GetSphere(random.GetFloat2());
 
         Vector4 u, v;
         BuildOrthonormalBasis(x, u, v);

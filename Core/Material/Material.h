@@ -10,11 +10,6 @@
 
 namespace rt {
 
-namespace math
-{
-class Random;
-}
-
 struct ShadingData;
 
 class ITexture;
@@ -126,7 +121,7 @@ public:
         Wavelength& wavelength,
         math::Vector4& outIncomingDirWorldSpace,
         const ShadingData& shadingData,
-        math::Random& randomGenerator,
+        const math::Float3& sample,
         float* outPdfW = nullptr,
         BSDF::EventType* outSampledEvent = nullptr) const;
 

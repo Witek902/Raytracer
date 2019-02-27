@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "../Core/Math/Geometry.h"
 #include "../Core/Math/Random.h"
+#include "../Core/Math/SamplingHelpers.h"
 
 #include <benchmark/benchmark.h>
 
@@ -11,7 +12,7 @@ static void Benchmark_Geometry_BuildOrthonormalBasis(benchmark::State& state)
 {
     Random random;
 
-    Vector4 x = random.GetSphere();
+    Vector4 x = SamplingHelpers::GetSphere(random.GetFloat2());
 
     for (auto _ : state)
     {

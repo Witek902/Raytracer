@@ -33,7 +33,7 @@ bool RoughMetalBSDF::Sample(SamplingContext& ctx) const
 
     // microfacet normal (aka. half vector)
     const Microfacet microfacet(roughness * roughness);
-    const Vector4 m = microfacet.Sample(ctx.randomGenerator);
+    const Vector4 m = microfacet.Sample(ctx.sample);
 
     // compute reflected direction
     ctx.outIncomingDir = -Vector4::Reflect3(ctx.outgoingDir, m);

@@ -6,6 +6,7 @@
 #include "Scene/Light/Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
+#include "Sampling/GenericSampler.h"
 
 namespace rt {
 
@@ -40,24 +41,29 @@ const char* PathTracerMIS::GetName() const
 
 const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
 {
-    ILight::IlluminateParam illuminateParam = { shadingData, context };
+    const ILight::IlluminateParam illuminateParam =
+    {
+        shadingData,
+        context.wavelength,
+        context.sampler->GetFloat2(),
+    };
 
     // calculate light contribution
-    RayColor radiance = light.Illuminate(illuminateParam);
+    ILight::IlluminateResult illuminateResult;
+    RayColor radiance = light.Illuminate(illuminateParam, illuminateResult);
     if (radiance.AlmostZero())
     {
         return RayColor::Zero();
     }
 
     RT_ASSERT(radiance.IsValid());
-    RT_ASSERT(IsValid(illuminateParam.outDirectPdfW));
-    RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
-    RT_ASSERT(IsValid(illuminateParam.outDistance));
-    RT_ASSERT(illuminateParam.outDirectPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.directPdfW) && illuminateResult.directPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.distance) && illuminateResult.directPdfW >= 0.0f);
+    RT_ASSERT(illuminateResult.directionToLight.IsValid());
 
     // calculate BSDF contribution
     float bsdfPdfW;
-    const RayColor factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW);
+    const RayColor factor = shadingData.material->Evaluate(context.wavelength, shadingData, -illuminateResult.directionToLight, &bsdfPdfW);
     RT_ASSERT(factor.IsValid());
 
     if (factor.AlmostZero())
@@ -65,14 +71,14 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
         return RayColor::Zero();
     }
 
-    RT_ASSERT(bsdfPdfW > 0.0f && IsValid(bsdfPdfW));
+    RT_ASSERT(bsdfPdfW >= 0.0f && IsValid(bsdfPdfW));
 
     // cast shadow ray
     {
         HitPoint hitPoint;
-        hitPoint.distance = illuminateParam.outDistance * 0.999f;
+        hitPoint.distance = illuminateResult.distance * 0.999f;
 
-        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateParam.outDirectionToLight);
+        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateResult.directionToLight);
         shadowRay.origin += shadingData.frame[2] * 0.0001f;
 
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
@@ -94,10 +100,10 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
         const float continuationProbability = 1.0f;
 
         bsdfPdfW *= continuationProbability;
-        weight = CombineMis(illuminateParam.outDirectPdfW, bsdfPdfW);
+        weight = CombineMis(illuminateResult.directPdfW, bsdfPdfW);
     }
 
-    return (radiance * factor) * (weight / illuminateParam.outDirectPdfW);
+    return (radiance * factor) * (weight / illuminateResult.directPdfW);
 }
 
 const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
@@ -244,14 +250,14 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // Russian roulette algorithm
         if (pathState.depth >= context.params->minRussianRouletteDepth)
         {
-            float threshold = throughput.Max();
+            const float threshold = shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {
                 threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
-            if (context.randomGenerator.GetFloat() > threshold)
+            if (context.sampler->GetFloat() > threshold)
             {
                 pathTerminationReason = PathTerminationReason::RussianRoulette;
                 break;
@@ -263,7 +269,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         float pdf;
         Vector4 incomingDirWorldSpace;
         pathState.lastSampledBsdfEvent = BSDF::NullEvent;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.randomGenerator, &pdf, &pathState.lastSampledBsdfEvent);
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3(), &pdf, &pathState.lastSampledBsdfEvent);
 
         if (pathState.lastSampledBsdfEvent == BSDF::NullEvent)
         {

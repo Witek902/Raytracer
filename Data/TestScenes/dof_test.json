@@ -4,7 +4,7 @@
         {
             "type": "background",
             "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/HdrOutdoorCityParkingLotEveningClear001/2K/HdrOutdoorCityParkingLotEveningClear001_HDR_2K.exr"
+            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
         }
     ],
     "camera":
@@ -15,6 +15,7 @@
             "orientation": [-0.3, 0.46, 0.0]
         },
         "aperture": 0.1,
+        "enableDOF": true,
         "focalDistance": 2.0,
         "fieldOfView": 55.0
     }

@@ -3,6 +3,7 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
+#include "../../Math/SamplingHelpers.h"
 #include "../../Utils/Texture.h"
 
 namespace rt {
@@ -70,38 +71,38 @@ bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
     return false;
 }
 
-const RayColor AreaLight::Illuminate(IlluminateParam& param) const
+const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    const Float2 uv = isTriangle ? param.context.randomGenerator.GetTriangle() : param.context.randomGenerator.GetFloat2();
+    const Vector4 uv = isTriangle ? SamplingHelpers::GetTriangle(param.sample) : Vector4(param.sample);
 
     Spectrum color = mColor;
 
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Evaluate(Vector4(uv), SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(uv, SamplerDesc());
     }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
-    param.outDirectionToLight = lightPoint - param.shadingData.frame.GetTranslation();
-    const float sqrDistance = param.outDirectionToLight.SqrLength3();
+    outResult.directionToLight = lightPoint - param.shadingData.frame.GetTranslation();
+    const float sqrDistance = outResult.directionToLight.SqrLength3();
 
-    param.outDistance = sqrtf(sqrDistance);
-    param.outDirectionToLight /= param.outDistance;
+    outResult.distance = sqrtf(sqrDistance);
+    outResult.directionToLight /= outResult.distance;
 
-    const float cosNormalDir = Vector4::Dot3(normal, -param.outDirectionToLight);
+    const float cosNormalDir = Vector4::Dot3(normal, -outResult.directionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
         return RayColor::Zero();
     }
 
-    param.outCosAtLight = cosNormalDir;
-    param.outDirectPdfW = invArea * sqrDistance / cosNormalDir;
-    param.outEmissionPdfW = cosNormalDir * invArea * RT_INV_PI;
+    outResult.cosAtLight = cosNormalDir;
+    outResult.directPdfW = invArea * sqrDistance / cosNormalDir;
+    outResult.emissionPdfW = cosNormalDir * invArea * RT_INV_PI;
 
-    return RayColor::Resolve(param.context.wavelength, color);
+    return RayColor::Resolve(param.wavelength, color);
 }
 
 const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& rayDirection, const Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -137,15 +138,15 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& 
     return RayColor::Resolve(context.wavelength, color);
 }
 
-const RayColor AreaLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
     // generate random point on the light surface
-    const Float2 uv = isTriangle ? ctx.randomGenerator.GetTriangle() : ctx.randomGenerator.GetFloat2();
+    const Vector4 uv = isTriangle ? SamplingHelpers::GetTriangle(param.sample) : Vector4(param.sample);
     // p0 + edge0 * uv.x + edge1 * uv.y;
     outResult.position = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
     // generate random direction
-    Vector4 dirLocalSpace = ctx.randomGenerator.GetHemishpereCos();
+    Vector4 dirLocalSpace = SamplingHelpers::GetHemishpereCos(param.sample2);
     dirLocalSpace.z = Max(dirLocalSpace.z, 0.001f);
     outResult.direction = dirLocalSpace.x * edge0 * edgeLengthInv0 + dirLocalSpace.y * edge1 * edgeLengthInv1 + dirLocalSpace.z * normal;
 
@@ -162,7 +163,7 @@ const RayColor AreaLight::Emit(RenderingContext& ctx, EmitResult& outResult) con
     }
 
     // TODO texture
-    return RayColor::Resolve(ctx.wavelength, color) * dirLocalSpace.z;
+    return RayColor::Resolve(param.wavelength, color) * dirLocalSpace.z;
 }
 
 const Vector4 AreaLight::GetNormal(const Vector4&) const

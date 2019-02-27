@@ -78,13 +78,6 @@
 
         {
             "type": "box",
-            "size": [1.0, 0.1, 1.0],
-            "transform": { "translation": [0.0, 3.8, 0.0] },
-            "material": "white"
-        },
-
-        {
-            "type": "box",
             "size": [1.2, 2.0, 1.2],
             "transform": { "translation": [-2.2, -3.5, -0.8], "orientation": [0.0, 0.74, 0.0] },
             "material": "white"
@@ -115,10 +108,10 @@
     [
         {
             "type": "area",
-            "color": [20.0, 20.0, 20.0],
-            "position": [-1.0, 3.91, -1.0],
-            "edge0": [2.0, 0.0, 0.0],
-            "edge1": [0.0, 0.0, 2.0]
+            "color": [5.0, 5.0, 5.0],
+            "position": [2.0, 4.45, -2.0],
+            "edge0": [-4.0, 0.0, 0.0],
+            "edge1": [0.0, 0.0, 4.0]
         }
     ],
     "camera":

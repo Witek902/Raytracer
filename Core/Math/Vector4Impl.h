@@ -281,6 +281,12 @@ const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBo
     return _mm_blendv_ps(a, b, sel.v);
 }
 
+template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+const Vector4 Vector4::Select(const Vector4& a, const Vector4& b)
+{
+    return _mm_blend_ps(a, b, selX | (selY << 1) | (selZ << 2) | (selW << 3));
+}
+
 // Logical operations =============================================================================
 
 const Vector4 Vector4::operator& (const Vector4& b) const

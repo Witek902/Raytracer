@@ -1,6 +1,6 @@
 #include "PCH.h"
 #include "RoughDiffuseBSDF.h"
-#include "Math/Random.h"
+#include "Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -31,7 +31,7 @@ bool RoughDiffuseBSDF::Sample(SamplingContext& ctx) const
         return false;
     }
 
-    ctx.outIncomingDir = ctx.randomGenerator.GetHemishpereCos();
+    ctx.outIncomingDir = SamplingHelpers::GetHemishpereCos(ctx.sample);
 
     const float NdotL = ctx.outIncomingDir.z;
     const float LdotV = Max(0.0f, Vector4::Dot3(ctx.outgoingDir, -ctx.outIncomingDir));

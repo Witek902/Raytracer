@@ -62,10 +62,10 @@ public:
     {
         // inputs
         const Material& material;
-        SampledMaterialParameters materialParam;
-        const math::Vector4 outgoingDir;
-        Wavelength& wavelength; // non-const, because can trigger dispersion
-        math::Random& randomGenerator;
+        SampledMaterialParameters materialParam;    // evaluated material parameters
+        const math::Float3 sample;                  // random sample
+        const math::Vector4 outgoingDir;            // fixed ray direction
+        Wavelength& wavelength;                     // non-const, because can trigger dispersion
 
         // outputs
         RayColor outColor = RayColor::Zero();

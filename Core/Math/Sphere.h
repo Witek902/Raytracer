@@ -32,5 +32,5 @@ public:
 };
 
 
-} // namespace Math
-} // namespace NFE
+} // namespace math
+} // namespace rt

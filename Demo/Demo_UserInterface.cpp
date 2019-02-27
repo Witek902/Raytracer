@@ -76,6 +76,17 @@ void DemoWindow::RenderUI_Debugging()
         RenderUI_Debugging_Color();
         ImGui::TreePop();
     }
+
+    if (ImGui::Button("Debug pixel"))
+    {
+        mPixelDebuggingPicking = true;
+    }
+
+    if (mPixelDebuggingPicking)
+    {
+        ImGui::SameLine();
+        ImGui::Text("Picking...");
+    }
 }
 
 void DemoWindow::RenderUI_Debugging_Path()
@@ -206,7 +217,7 @@ void DemoWindow::RenderUI_Debugging_Color()
     ImGui::Text("  B: %u", (Uint32)(255.0f * ldrColor.z + 0.5f));
 }
 
-void DemoWindow::RenderUI_Settings()
+bool DemoWindow::RenderUI_Settings()
 {
     bool resetFrame = false;
 
@@ -252,11 +263,6 @@ void DemoWindow::RenderUI_Settings()
         }
     }
 
-    if (resetFrame)
-    {
-        ResetFrame();
-    }
-
     // screenshot saving
     {
         if (ImGui::Button("LDR screenshot"))
@@ -273,6 +279,8 @@ void DemoWindow::RenderUI_Settings()
             mViewport->GetSumBuffer().SaveEXR("screenshot.exr", colorScale);
         }
     }
+
+    return resetFrame;
 }
 
 bool DemoWindow::RenderUI_Settings_Rendering()
@@ -360,6 +368,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
     ImGui::SliderInt("Tile size", (int*)&tileOrder, 1, 1024);
 
+    resetFrame |= ImGui::SliderInt("Sample dimensions", (int*)&mRenderingParams.sampleDimensions, 0, 256);
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 200);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
@@ -578,8 +587,10 @@ bool DemoWindow::RenderUI_Settings_Material()
     return changed;
 }
 
-void DemoWindow::RenderUI()
+bool DemoWindow::RenderUI()
 {
+    bool resetFrame = false;
+
     Uint32 width, height;
     GetSize(width, height);
 
@@ -637,7 +648,7 @@ void DemoWindow::RenderUI()
         {
             if (ImGui::Begin("Settings", &showRenderSettings))
             {
-                RenderUI_Settings();
+                resetFrame = RenderUI_Settings();
             }
             ImGui::End();
         }
@@ -647,4 +658,6 @@ void DemoWindow::RenderUI()
     ImGui::Render();
 
     memset(io.KeysDown, 0, sizeof(io.KeysDown));
+
+    return resetFrame;
 }

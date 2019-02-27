@@ -7,6 +7,7 @@
 #include "Scene/Camera.h"
 #include "Color/LdrColor.h"
 #include "Color/ColorHelpers.h"
+#include "Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -26,15 +27,19 @@ void Viewport::InitThreadData()
     const size_t numThreads = mThreadPool.GetNumThreads();
 
     mThreadData.resize(numThreads);
+    mSamplers.reserve(numThreads);
+
     for (size_t i = 0; i < numThreads; ++i)
     {
-        RenderingContext& renderingContext = mThreadData[i];
-        renderingContext.randomGenerator.Reset();
+        RenderingContext& ctx = mThreadData[i];
+        ctx.randomGenerator.Reset();
 
         if (mRenderer)
         {
-            renderingContext.rendererContext = mRenderer->CreateContext();
+            ctx.rendererContext = mRenderer->CreateContext();
         }
+
+        mSamplers.emplace_back(ctx.randomGenerator);
     }
 }
 
@@ -60,9 +65,21 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
 
     mPassesPerPixel.resize(width * height);
 
+    mPixelSalt.resize(width * height);
+    for (Uint32 i = 0; i < width * height; ++i)
+    {
+        mPixelSalt[i] = mRandomGenerator.GetVector4().ToFloat2();
+    }
+
     Reset();
 
     return true;
+}
+
+void Viewport::SetPixelBreakpoint(Uint32 x, Uint32 y)
+{
+    mPendingPixelBreakpoint.x = x;
+    mPendingPixelBreakpoint.y = y;
 }
 
 void Viewport::Reset()
@@ -70,6 +87,8 @@ void Viewport::Reset()
     mPostprocessParams.fullUpdateRequired = true;
 
     mProgress = RenderingProgress();
+
+    mHaltonSequence.Initialize(mParams.sampleDimensions);
 
     mSum.Clear();
     mSecondarySum.Clear();
@@ -141,14 +160,28 @@ bool Viewport::Render(const Camera& camera)
         return false;
     }
 
-    for (RenderingContext& ctx : mThreadData)
+    mHaltonSequence.NextSample();
+    std::vector<float> seed(mHaltonSequence.GetNumDimensions());
+    for (size_t i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
     {
+        seed[i] = (float)(mHaltonSequence.GetValue(i));
+    }
+
+    for (size_t i = 0; i < mThreadData.size(); ++i)
+    {
+        RenderingContext& ctx = mThreadData[i];
         ctx.counters.Reset();
         ctx.params = &mParams;
         ctx.camera = &camera;
+        ctx.pixelBreakpoint = mPendingPixelBreakpoint;
+        ctx.sampler = &mSamplers[i];
+        ctx.sampler->ResetFrame(seed);
 
         mRenderer->PreRender(ctx);
     }
+
+    mPendingPixelBreakpoint.x = UINT32_MAX;
+    mPendingPixelBreakpoint.y = UINT32_MAX;
 
     if (mRenderingTiles.empty() || mProgress.passesFinished == 0)
     {
@@ -158,7 +191,7 @@ bool Viewport::Render(const Camera& camera)
     // render
     {
         // randomize pixel offset
-        const Vector4 u = mThreadData[0].randomGenerator.GetFloatNormal2();
+        const Vector4 u = SamplingHelpers::GetFloatNormal2(mRandomGenerator.GetFloat2());
 
         const TileRenderingContext tileContext =
         {
@@ -221,7 +254,7 @@ bool Viewport::Render(const Camera& camera)
     return true;
 }
 
-void Viewport::PreRenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
+void Viewport::PreRenderTile(const TileRenderingContext& tileCtx, RenderingContext& ctx, const Block& tile)
 {
     RT_ASSERT(tile.minX < tile.maxX);
     RT_ASSERT(tile.minY < tile.maxY);
@@ -230,26 +263,26 @@ void Viewport::PreRenderTile(const TileRenderingContext& tileContext, RenderingC
 
     Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
 
-    if (renderingContext.params->traversalMode == TraversalMode::Single)
+    if (ctx.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 y = tile.minY; y < tile.maxY; ++y)
         {
             for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
                 // TODO this won't work with bidirectional path tracing
-                renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
-                renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
+                ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
+                ctx.wavelength.Randomize(ctx.randomGenerator);
 
                 const Uint32 pixelIndex = y * GetHeight() + x;
-                const IRenderer::RenderParam renderParam = { pixelIndex, tileContext.camera, film };
+                const IRenderer::RenderParam renderParam = { pixelIndex, tileCtx.camera, film };
 
-                tileContext.renderer.PreRenderPixel(renderParam, renderingContext);
+                tileCtx.renderer.PreRenderPixel(renderParam, ctx);
             }
         }
     }
 }
 
-void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile)
+void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& ctx, const Block& tile)
 {
     RT_ASSERT(tile.minX < tile.maxX);
     RT_ASSERT(tile.minY < tile.maxY);
@@ -258,11 +291,11 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
     const Vector4 invSize = VECTOR_ONE2 / filmSize;
-    const Uint32 tileSize = renderingContext.params->tileSize;
+    const Uint32 tileSize = ctx.params->tileSize;
 
     Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
 
-    if (renderingContext.params->traversalMode == TraversalMode::Single)
+    if (ctx.params->traversalMode == TraversalMode::Single)
     {
         for (Uint32 y = tile.minY; y < tile.maxY; ++y)
         {
@@ -270,20 +303,25 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
             for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
-                const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
-
-                renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
-                renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
-
-                // generate primary ray
-                const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
+                if (ctx.pixelBreakpoint.x == x && ctx.pixelBreakpoint.y == y)
+                {
+                    RT_BREAK();
+                }
 
                 const Uint32 pixelIndex = y * GetHeight() + x;
+                const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
+
+                ctx.sampler->ResetPixel(pixelIndex);
+                ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
+                ctx.wavelength.Randomize(ctx.randomGenerator);
+
+                // generate primary ray
+                const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
+
                 const IRenderer::RenderParam renderParam = { pixelIndex, tileContext.camera, film };
+                const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx);
 
-                const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, renderingContext);
-                const Vector4 sampleColor = color.ConvertToTristimulus(renderingContext.wavelength);
-
+                const Vector4 sampleColor = color.ConvertToTristimulus(ctx.wavelength);
                 RT_ASSERT(sampleColor.IsValid());
 
 #ifndef RT_ENABLE_SPECTRAL_RENDERING
@@ -295,12 +333,12 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
             }
         }
     }
-    else if (renderingContext.params->traversalMode == TraversalMode::Packet)
+    else if (ctx.params->traversalMode == TraversalMode::Packet)
     {
-        renderingContext.time = renderingContext.randomGenerator.GetFloat() * renderingContext.params->motionBlurStrength;
-        renderingContext.wavelength.Randomize(renderingContext.randomGenerator);
+        ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
+        ctx.wavelength.Randomize(ctx.randomGenerator);
 
-        RayPacket& primaryPacket = renderingContext.rayPacket;
+        RayPacket& primaryPacket = ctx.rayPacket;
         primaryPacket.Clear();
 
         // TODO multisampling
@@ -319,7 +357,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 for (Uint32 s = 0; s < samplesPerPixel; ++s)
                 {
                     // generate primary ray
-                    const Ray ray = tileContext.camera.GenerateRay(coords, renderingContext);
+                    const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
 
                     const ImageLocationInfo location = { (Uint16)x, (Uint16)y };
                     primaryPacket.PushRay(ray, Vector4(sampleScale), location);
@@ -354,17 +392,17 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                     { x + 0, y + 1 }, { x + 1, y + 1 }, { x + 2, y + 1 }, { x + 3, y + 1 },
                 };
 
-                const Ray_Simd8 simdRay = tileContext.camera.GenerateRay_Simd8(coords, renderingContext);
+                const Ray_Simd8 simdRay = tileContext.camera.GenerateRay_Simd8(coords, ctx);
                 primaryPacket.PushRays(simdRay, Vector3x8(1.0f), locations);
             }
         }
 
-        renderingContext.localCounters.Reset();
-        tileContext.renderer.Raytrace_Packet(primaryPacket, tileContext.camera, film, renderingContext);
-        renderingContext.counters.Append(renderingContext.localCounters);
+        ctx.localCounters.Reset();
+        tileContext.renderer.Raytrace_Packet(primaryPacket, tileContext.camera, film, ctx);
+        ctx.counters.Append(ctx.localCounters);
     }
 
-    renderingContext.counters.numPrimaryRays += tileSize * tileSize;
+    ctx.counters.numPrimaryRays += tileSize * tileSize;
 }
 
 void Viewport::PerformPostProcess()

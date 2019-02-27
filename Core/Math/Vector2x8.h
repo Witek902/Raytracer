@@ -30,6 +30,10 @@ public:
         return { Vector8(1.0f), Vector8(1.0f) };
     }
 
+    RT_FORCE_INLINE explicit Vector2x8(const float scalar)
+        : x(scalar), y(scalar)
+    { }
+
     RT_FORCE_INLINE Vector2x8(const Vector8& x, const Vector8& y)
         : x(x), y(y)
     { }
@@ -220,6 +224,12 @@ public:
     }
 
 };
+
+
+RT_FORCE_INLINE const Vector2x8 operator * (const float lhs, const Vector2x8 rhs)
+{
+    return { lhs * rhs.x, lhs * rhs.y };
+}
 
 
 } // namespace math

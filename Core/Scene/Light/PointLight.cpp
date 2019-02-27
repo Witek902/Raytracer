@@ -2,6 +2,7 @@
 #include "PointLight.h"
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
+#include "../../Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -28,30 +29,30 @@ bool PointLight::TestRayHit(const math::Ray& ray, float& outDistance) const
     return false;
 }
 
-const RayColor PointLight::Illuminate(IlluminateParam& param) const
+const RayColor PointLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    param.outDirectionToLight = mPosition - param.shadingData.frame.GetTranslation();
-    const float sqrDistance = param.outDirectionToLight.SqrLength3();
+    outResult.directionToLight = mPosition - param.shadingData.frame.GetTranslation();
+    const float sqrDistance = outResult.directionToLight.SqrLength3();
 
-    param.outDirectPdfW = sqrDistance;
-    param.outEmissionPdfW = RT_INV_PI / 4.0f;
-    param.outDistance = std::sqrt(sqrDistance);
-    param.outDirectionToLight /= param.outDistance;
-    param.outCosAtLight = 1.0f;
+    outResult.directPdfW = sqrDistance;
+    outResult.emissionPdfW = RT_INV_PI / 4.0f;
+    outResult.distance = std::sqrt(sqrDistance);
+    outResult.directionToLight /= outResult.distance;
+    outResult.cosAtLight = 1.0f;
 
-    return RayColor::Resolve(param.context.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, mColor);
 }
 
-const RayColor PointLight::Emit(RenderingContext& ctx, EmitResult& outResult) const
+const RayColor PointLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
     outResult.position = mPosition;
-    outResult.direction = ctx.randomGenerator.GetSphere();
+    outResult.direction = SamplingHelpers::GetSphere(param.sample);
     outResult.emissionPdfW = RT_INV_PI / 4.0f;
     outResult.directPdfA = 1.0f;
     outResult.cosAtLight = 1.0f;
 
     // TODO texture
-    return RayColor::Resolve(ctx.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, mColor);
 }
 
 bool PointLight::IsFinite() const

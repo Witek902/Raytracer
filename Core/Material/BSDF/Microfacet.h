@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../Math/Random.h"
 #include "../../Math/Transcendental.h"
 
 namespace rt {
@@ -44,10 +43,9 @@ public:
         return 4.0f / ((1.0f + math::Sqrt(1.0f + mAlphaSqr * tanThetaSqV)) * (1.0f + math::Sqrt(1.0f + mAlphaSqr * tanThetaSqL)));
     }
 
-    const math::Vector4 Sample(math::Random& randomGenerator) const
+    const math::Vector4 Sample(const math::Float2 u) const
     {
         // generate microfacet normal vector using GGX distribution function (Trowbridge-Reitz)
-        const math::Float2 u = randomGenerator.GetFloat2();
         const float cosThetaSqr = (1.0f - u.x) / (1.0f + (mAlphaSqr - 1.0f) * u.x);
         const float cosTheta = math::Sqrt(cosThetaSqr);
         const float sinTheta = math::Sqrt(1.0f - cosThetaSqr);

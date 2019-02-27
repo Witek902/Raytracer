@@ -8,6 +8,7 @@
 #include "Scene/Light/Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
+#include "Sampling/GenericSampler.h"
 
 namespace rt {
 
@@ -55,7 +56,7 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mCameraConnectingWeight = Vector4(1.0f);
     mVertexMergingWeight = Vector4(1.0f);
 
-    mMaxPathLength = 15;
+    mMaxPathLength = 6;
 
     mMinMergingRadius = 0.005f;
     mMergingRadius = 0.05f;
@@ -398,8 +399,15 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     const Uint32 lightIndex = ctx.randomGenerator.GetInt() % (Uint32)allLocalLights.size(); // TODO get rid of division
     const LightPtr& light = allLocalLights[lightIndex];
 
+    const ILight::EmitParam emitParam =
+    {
+        ctx.wavelength,
+        ctx.sampler->GetFloat2(),
+        ctx.sampler->GetFloat2(),
+    };
+
     ILight::EmitResult emitResult;
-    const RayColor throughput = light->Emit(ctx, emitResult);
+    const RayColor throughput = light->Emit(emitParam, emitResult);
 
     if (throughput.AlmostZero())
     {
@@ -444,13 +452,25 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
 
 bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData& shadingData, RenderingContext& ctx, PathType pathType) const
 {
-    RT_UNUSED(pathType);
+    Float3 sample;
+    if (pathType == PathType::Camera)
+    {
+        sample = ctx.sampler->GetFloat3();
+    }
+    else
+    {
+        sample = ctx.randomGenerator.GetFloat3();
+    }
+
+    RT_ASSERT(sample.x >= 0.0f && sample.x < 1.0f);
+    RT_ASSERT(sample.y >= 0.0f && sample.y < 1.0f);
+    RT_ASSERT(sample.z >= 0.0f && sample.z < 1.0f);
 
     // sample BSDF
     Vector4 incomingDirWorldSpace;
     float bsdfDirPdf;
     BSDF::EventType sampledEvent = BSDF::NullEvent;
-    const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.randomGenerator, &bsdfDirPdf, &sampledEvent);
+    const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, sample, &bsdfDirPdf, &sampledEvent);
 
     const float cosThetaOut = Abs(Vector4::Dot3(incomingDirWorldSpace, shadingData.frame[2]));
 
@@ -569,24 +589,30 @@ const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, fl
 
 const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
 {
-    ILight::IlluminateParam illuminateParam = { shadingData, ctx };
+    const ILight::IlluminateParam illuminateParam =
+    {
+        shadingData,
+        ctx.wavelength,
+        ctx.sampler->GetFloat2(),
+    };
 
     // calculate light contribution
-    RayColor radiance = light.Illuminate(illuminateParam);
+    ILight::IlluminateResult illuminateResult;
+    RayColor radiance = light.Illuminate(illuminateParam, illuminateResult);
     if (radiance.AlmostZero())
     {
         return RayColor::Zero();
     }
 
     RT_ASSERT(radiance.IsValid());
-    RT_ASSERT(IsValid(illuminateParam.outDirectPdfW) && illuminateParam.outDirectPdfW >= 0.0f);
-    RT_ASSERT(IsValid(illuminateParam.outEmissionPdfW) && illuminateParam.outEmissionPdfW >= 0.0f);
-    RT_ASSERT(IsValid(illuminateParam.outDistance) && illuminateParam.outDistance >= 0.0f);
-    RT_ASSERT(IsValid(illuminateParam.outCosAtLight) && illuminateParam.outCosAtLight >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.directPdfW) && illuminateResult.directPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.emissionPdfW) && illuminateResult.emissionPdfW >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.distance) && illuminateResult.distance >= 0.0f);
+    RT_ASSERT(IsValid(illuminateResult.cosAtLight) && illuminateResult.cosAtLight >= 0.0f);
 
     // calculate BSDF contribution
     float bsdfPdfW, bsdfRevPdfW;
-    const RayColor bsdfFactor = shadingData.material->Evaluate(ctx.wavelength, shadingData, -illuminateParam.outDirectionToLight, &bsdfPdfW, &bsdfRevPdfW);
+    const RayColor bsdfFactor = shadingData.material->Evaluate(ctx.wavelength, shadingData, -illuminateResult.directionToLight, &bsdfPdfW, &bsdfRevPdfW);
     RT_ASSERT(bsdfFactor.IsValid());
 
     if (bsdfFactor.AlmostZero())
@@ -599,9 +625,9 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     // cast shadow ray
     {
         HitPoint hitPoint;
-        hitPoint.distance = illuminateParam.outDistance * 0.999f;
+        hitPoint.distance = illuminateResult.distance * 0.999f;
 
-        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateParam.outDirectionToLight);
+        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateResult.directionToLight);
         shadowRay.origin += shadowRay.dir * 0.001f;
 
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, ctx }))
@@ -621,18 +647,18 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     bsdfPdfW *= light.IsDelta() ? 0.0f : continuationProbability;
     bsdfRevPdfW *= continuationProbability;
 
-    const float cosToLight = Vector4::Dot3(shadingData.frame[2], illuminateParam.outDirectionToLight);
+    const float cosToLight = Vector4::Dot3(shadingData.frame[2], illuminateResult.directionToLight);
     if (cosToLight <= FLT_EPSILON)
     {
         return RayColor::Zero();
     }
 
-    const float wLight = Mis(bsdfPdfW / (lightPickProbability * illuminateParam.outDirectPdfW));
-    const float wCamera = Mis(illuminateParam.outEmissionPdfW * cosToLight / (illuminateParam.outDirectPdfW * illuminateParam.outCosAtLight)) * (mMisVertexMergingWeightFactor + pathState.dVCM + pathState.dVC * Mis(bsdfRevPdfW));
+    const float wLight = Mis(bsdfPdfW / (lightPickProbability * illuminateResult.directPdfW));
+    const float wCamera = Mis(illuminateResult.emissionPdfW * cosToLight / (illuminateResult.directPdfW * illuminateResult.cosAtLight)) * (mMisVertexMergingWeightFactor + pathState.dVCM + pathState.dVC * Mis(bsdfRevPdfW));
     const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
     RT_ASSERT(misWeight >= 0.0f);
 
-    return (radiance * bsdfFactor) * (misWeight / (lightPickProbability * illuminateParam.outDirectPdfW));
+    return (radiance * bsdfFactor) * (misWeight / (lightPickProbability * illuminateResult.directPdfW));
 }
 
 const RayColor VertexConnectionAndMerging::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const

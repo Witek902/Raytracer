@@ -92,7 +92,7 @@ public:
     virtual const math::Vector4 Evaluate(math::Vector4 coords, const SamplerDesc& sampler) const override;
 
     // fill with zeros
-    void Clear();
+    RAYLIB_API void Clear();
 
 private:
 

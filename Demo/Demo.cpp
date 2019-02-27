@@ -227,6 +227,11 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
 
         mFocalDistancePicking = false;
     }
+    else if (mPixelDebuggingPicking)
+    {
+        mPixelDebuggingPicking = false;
+        mViewport->SetPixelBreakpoint(x, y);
+    }
     else if (button == MouseButton::Left)
     {
         rt::RenderingParams params = mRenderingParams;
@@ -331,23 +336,31 @@ bool DemoWindow::Loop()
 
         UpdateCamera();
 
+        bool resetFrame = false;
+
         if (IsPreview() && mViewport)
         {
             mPreviewRenderingParams = mRenderingParams;
             mPreviewRenderingParams.antiAliasingSpread = 0.0f;
+            resetFrame |= true;
+        }
+
+        if (mEnableUI)
+        {
+            resetFrame |= RenderUI();
+        }
+
+        mViewport->SetRenderingParams(IsPreview() ? mPreviewRenderingParams : mRenderingParams);
+
+        if (resetFrame)
+        {
             ResetFrame();
         }
 
         //// render
-        mViewport->SetRenderingParams(IsPreview() ? mPreviewRenderingParams : mRenderingParams);
         localTimer.Start();
         mViewport->Render(mCamera);
         mRenderDeltaTime = localTimer.Stop();
-
-        if (mEnableUI)
-        {
-            RenderUI();
-        }
 
         rt::Bitmap::Copy(mImage, mViewport->GetFrontBuffer());
 
