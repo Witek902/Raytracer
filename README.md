@@ -6,6 +6,7 @@ A side project which aims to build an efficient photorealistic software renderer
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/2.jpg">
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/sponza.jpg">
     <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/rough_glass.jpg">
+    <img width="49%" src="https://raw.githubusercontent.com/Witek902/Raytracer/master/Gallery/caustics.jpg">
 </p>
 
 Features
@@ -40,14 +41,18 @@ Geometry
 
 Lighting
 --------
-* Algorithm: unidirectional path tracing
-* Multiple importance sampling (sampling both lights and material BSDF)
+* Supported light transport algorithms:
+ * Naive Path Tracing (sampling only BSDF)
+ * Path Tracing with multiple importance sampling (sampling both lights and material BSDF)
+ * Bidirectional Path Tracing (with MIS)
+ * Vertex Connection and Merging (_Note: work in progress, not all lights and BSDFs are working properly_)
+ * Light Tracing (for debugging) 
 * Supported light types: point, area (triangle or quad), spherical, directional, background
 
 Materials
 ---------
 
-* Physically based BSDFs: (_rough_)diffuse, (_rough_)metal, (_rough_)dielectric, plastic
+* Physically based BSDFs: diffuse, metal, dielectric, plastic
 * Cook-Torrance BSDF for specular reflection with GGX normal distribution
 * Transparency and refraction
 * Normal mapping support
@@ -63,7 +68,6 @@ Textures
 TODO list
 =========
 
-* Better light transport algorithm (e.g. Vertex Connection and Merging)
 * Better material model and multilayer materials (e.g. introduce Disney-like "principled" material)
 * Procedural textures
 * Volumetric rendering
