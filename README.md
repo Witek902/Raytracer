@@ -42,11 +42,11 @@ Geometry
 Lighting
 --------
 * Supported light transport algorithms:
- * Naive Path Tracing (sampling only BSDF)
- * Path Tracing with multiple importance sampling (sampling both lights and material BSDF)
- * Bidirectional Path Tracing (with MIS)
- * Vertex Connection and Merging (_Note: work in progress, not all lights and BSDFs are working properly_)
- * Light Tracing (for debugging) 
+  * Naive Path Tracing (sampling only BSDF)
+  * Path Tracing with multiple importance sampling (sampling both lights and material BSDF)
+  * Bidirectional Path Tracing (with MIS)
+  * Vertex Connection and Merging (_Note: work in progress, not all lights and BSDFs are working properly_)
+  * Light Tracing (for debugging) 
 * Supported light types: point, area (triangle or quad), spherical, directional, background
 
 Materials
