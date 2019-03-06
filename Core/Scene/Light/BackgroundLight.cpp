@@ -63,7 +63,7 @@ const RayColor BackgroundLight::Illuminate(const IlluminateParam& param, Illumin
     return GetBackgroundColor(outResult.directionToLight, param.wavelength);
 }
 
-const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
+const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 
@@ -77,7 +77,7 @@ const RayColor BackgroundLight::GetRadiance(RenderingContext& context, const mat
         *outEmissionPdfW = UniformSpherePdf() * UniformCirclePdf(SceneRadius);
     }
 
-    return GetBackgroundColor(rayDirection, context.wavelength);
+    return GetBackgroundColor(ray.dir, context.wavelength);
 }
 
 const RayColor BackgroundLight::Emit(const EmitParam& param, EmitResult& outResult) const

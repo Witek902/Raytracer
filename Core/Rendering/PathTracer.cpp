@@ -25,7 +25,7 @@ const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& r
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);
 
-    RayColor lightContribution = light.GetRadiance(context, ray.dir, hitPos);
+    RayColor lightContribution = light.GetRadiance(context, ray, hitPos);
     RT_ASSERT(lightContribution.IsValid());
 
     return lightContribution;
@@ -37,7 +37,7 @@ const RayColor PathTracer::EvaluateGlobalLights(const Ray& ray, RenderingContext
 
     for (const ILight* globalLight : mScene.GetGlobalLights())
     {
-        RayColor lightContribution = globalLight->GetRadiance(context, ray.dir, Vector4::Zero());
+        RayColor lightContribution = globalLight->GetRadiance(context, ray, Vector4::Zero());
         RT_ASSERT(lightContribution.IsValid());
 
         result += lightContribution;

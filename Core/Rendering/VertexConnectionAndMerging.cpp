@@ -58,8 +58,8 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
 
     mMaxPathLength = 6;
 
-    mMinMergingRadius = 0.005f;
-    mMergingRadius = 0.05f;
+    mMinMergingRadius = 0.01f;
+    mMergingRadius = 0.01f;
     mMergingRadiusMultiplier = 0.98f;
 }
 
@@ -548,7 +548,7 @@ const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, fl
     const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
 
     float directPdfA, emissionPdfW;
-    RayColor lightContribution = light.GetRadiance(ctx, pathState.ray.dir, hitPos, &directPdfA, &emissionPdfW);
+    RayColor lightContribution = light.GetRadiance(ctx, pathState.ray, hitPos, &directPdfA, &emissionPdfW);
     RT_ASSERT(lightContribution.IsValid());
 
     if (lightContribution.AlmostZero())

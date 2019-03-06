@@ -76,7 +76,7 @@ public:
     // Optionally returns probability of hitting this point and emitting a photon in that direction
     virtual const RayColor GetRadiance(
         RenderingContext& context,
-        const math::Vector4& rayDirection,
+        const math::Ray& ray,
         const math::Vector4& hitPoint,
         float* outDirectPdfA = nullptr, float* outEmissionPdfW = nullptr) const;
 

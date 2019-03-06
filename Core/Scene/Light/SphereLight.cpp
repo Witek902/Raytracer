@@ -3,6 +3,7 @@
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
+#include "../../Math/SamplingHelpers.h"
 
 namespace rt {
 
@@ -12,7 +13,7 @@ SphereLight::SphereLight(const math::Vector4& pos, float radius, const math::Vec
     : ILight(color)
     , mPosition(pos)
     , mRadius(Abs(radius))
-    , mRadiusSqr(radius * radius)
+    , mRadiusSqr(Sqr(radius))
 {
     RT_ASSERT(pos.IsValid());
     RT_ASSERT(IsValid(radius));
@@ -92,29 +93,36 @@ const RayColor SphereLight::Illuminate(const IlluminateParam& param, IlluminateR
         outResult.directPdfW = SphereCapPdf(cosThetaMax);
     }
 
-    outResult.emissionPdfW = 0.0f; // TODO BDPT
+    outResult.cosAtLight = cosTheta;
+    //outResult.emissionPdfW = UniformSpherePdf(mRadius) * (cosTheta * RT_INV_PI);
 
     return RayColor::Resolve(param.wavelength, mColor);
 }
 
-const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
+const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
-    RT_UNUSED(rayDirection);
+    RT_UNUSED(hitPoint);
 
-    const Vector4 centerDir = mPosition - hitPoint; // direction to light center
+    const Vector4 centerDir = mPosition - ray.origin; // direction to light center
     const float centerDistSqr = centerDir.SqrLength3();
+    const float centerDist = sqrtf(centerDistSqr);
+
+    const float cosAtLight = Max(0.0f, Vector4::Dot3(-ray.dir, GetNormal(hitPoint)));
 
     if (outDirectPdfA)
     {
-        const float sinThetaSqr = Clamp(mRadiusSqr / centerDistSqr, 0.0f, 1.0f);
-        const float cosTheta = sqrtf(1.0f - sinThetaSqr);
-        *outDirectPdfA = SphereCapPdf(cosTheta);
+        const float sinThetaMaxSqr = Clamp(mRadiusSqr / centerDistSqr, 0.0f, 1.0f);
+        const float cosThetaMax = sqrtf(1.0f - sinThetaMaxSqr);
+        const float pdfW = SphereCapPdf(cosThetaMax);
+
+        // TODO may convert W->A unnecessary
+        *outDirectPdfA = pdfW * cosAtLight / (hitPoint - ray.origin).SqrLength3();
     }
 
     if (outEmissionPdfW)
     {
-        // TODO
         RT_FATAL("Not implemented");
+        //*outEmissionPdfW = UniformSpherePdf(mRadius) * (cosAtLight * RT_INV_PI);
     }
 
     return RayColor::Resolve(context.wavelength, mColor);
@@ -122,9 +130,27 @@ const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::V
 
 const RayColor SphereLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
-    // TODO
+    RT_FATAL("Not implemented");
+
     RT_UNUSED(param);
     RT_UNUSED(outResult);
+
+    //const Vector4 normal = SamplingHelpers::GetSphere(param.sample);
+    //outResult.position = Vector4::MulAndAdd(normal, mRadius, mPosition);
+
+    //const Vector4 dirLocalSpace = SamplingHelpers::GetHemishpereCos(param.sample2);
+    //{
+    //    Vector4 u, v;
+    //    BuildOrthonormalBasis(normal, u, v);
+    //    outResult.direction = u * dirLocalSpace.x + v * dirLocalSpace.y + normal * dirLocalSpace.z;
+    //}
+
+    //outResult.directPdfA = UniformSpherePdf(mRadius);
+    //outResult.emissionPdfW = UniformSpherePdf(mRadius) * (dirLocalSpace.z * RT_INV_PI);
+    //outResult.cosAtLight = dirLocalSpace.z;
+
+    //return RayColor::Resolve(param.wavelength, mColor) * dirLocalSpace.z;
+
     return RayColor::Zero();
 }
 

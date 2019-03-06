@@ -21,6 +21,11 @@ RT_FORCE_INLINE constexpr float UniformSpherePdf()
     return RT_INV_PI / 4.0f;
 }
 
+RT_FORCE_INLINE constexpr float UniformSpherePdf(const float radius)
+{
+    return RT_INV_PI / (4.0f * radius * radius);
+}
+
 RT_FORCE_INLINE constexpr float UniformCirclePdf(const float radius)
 {
     return 1.0f / (RT_PI * Sqr(radius));

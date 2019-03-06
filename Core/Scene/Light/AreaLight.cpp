@@ -105,9 +105,9 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     return RayColor::Resolve(param.wavelength, color);
 }
 
-const RayColor AreaLight::GetRadiance(RenderingContext& context, const Vector4& rayDirection, const Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
+const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray, const Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
-    const float cosNormalDir = Vector4::Dot3(normal, -rayDirection);
+    const float cosNormalDir = Vector4::Dot3(normal, -ray.dir);
     if (cosNormalDir < RT_EPSILON)
     {
         return RayColor::Zero();
@@ -152,7 +152,7 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
 
     outResult.cosAtLight = dirLocalSpace.z;
     outResult.directPdfA = invArea;
-    outResult.emissionPdfW = dirLocalSpace.z * (invArea * RT_INV_PI);
+    outResult.emissionPdfW = invArea * dirLocalSpace.z * RT_INV_PI;
 
     Spectrum color = mColor;
 

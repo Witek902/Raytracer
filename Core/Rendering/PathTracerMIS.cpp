@@ -128,7 +128,7 @@ const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray
     const Vector4 normal = light.GetNormal(hitPos);
 
     float directPdfA;
-    RayColor lightContribution = light.GetRadiance(context, ray.dir, hitPos, &directPdfA);
+    RayColor lightContribution = light.GetRadiance(context, ray, hitPos, &directPdfA);
     RT_ASSERT(lightContribution.IsValid());
 
     if (lightContribution.AlmostZero())
@@ -158,7 +158,7 @@ const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathSta
     for (const ILight* globalLight : mScene.GetGlobalLights())
     {
         float directPdfW;
-        RayColor lightContribution = globalLight->GetRadiance(context, ray.dir, Vector4::Zero(), &directPdfW);
+        RayColor lightContribution = globalLight->GetRadiance(context, ray, Vector4::Zero(), &directPdfW);
         RT_ASSERT(lightContribution.IsValid());
 
         if (!lightContribution.AlmostZero())

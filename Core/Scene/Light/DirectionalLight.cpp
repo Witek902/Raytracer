@@ -86,7 +86,7 @@ const RayColor DirectionalLight::Illuminate(const IlluminateParam& param, Illumi
     return RayColor::Resolve(param.wavelength, mColor);
 }
 
-const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Vector4& rayDirection, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
+const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
 {
     RT_UNUSED(hitPoint);
 
@@ -96,7 +96,7 @@ const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const ma
         return RayColor::Zero();
     }
 
-    if (Vector4::Dot3(rayDirection, mDirection) > -mCosAngle)
+    if (Vector4::Dot3(ray.dir, mDirection) > -mCosAngle)
     {
         return RayColor::Zero();
     }
