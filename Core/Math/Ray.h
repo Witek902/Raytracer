@@ -22,10 +22,10 @@ public:
 
     RT_FORCE_INLINE Ray(const Vector4& origin, const Vector4& direction)
         : origin(origin)
-        , dir(direction.Normalized3())
-        , invDir(Vector4::Reciprocal(dir))
-        , originDivDir(origin * invDir)
-    {}
+    {
+        dir = direction.InvNormalized(invDir);
+        originDivDir = origin * invDir;
+    }
 
     // same as constructor, but direction must be already normalized
     RT_FORCE_INLINE static const Ray BuildUnsafe(const Vector4& origin, const Vector4& direction)

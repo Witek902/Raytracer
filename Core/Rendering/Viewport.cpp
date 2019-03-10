@@ -27,6 +27,8 @@ void Viewport::InitThreadData()
     const size_t numThreads = mThreadPool.GetNumThreads();
 
     mThreadData.resize(numThreads);
+
+    mSamplers.clear();
     mSamplers.reserve(numThreads);
 
     for (size_t i = 0; i < numThreads; ++i)

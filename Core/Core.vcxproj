@@ -314,6 +314,7 @@
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\Texture.h" />
+    <ClInclude Include="Utils\TextureEvaluator.h" />
     <ClInclude Include="Utils\Timer.h" />
     <ClInclude Include="Utils\ThreadPool.h" />
   </ItemGroup>
@@ -394,6 +395,7 @@
     <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\Texture.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
   </ItemGroup>

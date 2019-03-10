@@ -3,7 +3,7 @@
 #include "Logger.h"
 #include "BlockCompression.h"
 #include "Timer.h"
-
+#include "TextureEvaluator.h"
 
 namespace rt {
 
@@ -211,21 +211,21 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 
         case Format::B8G8R8_Uint:
         {
-            const Uint8* source = mData + (3 * offset);
+            const Uint8* source = mData + (3u * offset);
             color = Vector4::LoadBGR_UNorm(source);
             break;
         }
 
         case Format::B8G8R8A8_Uint:
         {
-            const Uint8* source = mData + (4 * offset);
+            const Uint8* source = mData + (4u * offset);
             color = Vector4::Load4(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
             break;
         }
 
         case Format::R32G32B32_Float:
         {
-            const float* source = reinterpret_cast<const float*>(mData) + 3 * offset;
+            const float* source = reinterpret_cast<const float*>(mData) + 3u * offset;
             color = Vector4(source) & Vector4::MakeMask<1,1,1,0>();
             break;
         }
@@ -241,8 +241,15 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 
         case Format::R16G16B16_Half:
         {
-            const Half* source = reinterpret_cast<const Half*>(mData) + 3 * offset;
+            const Half* source = reinterpret_cast<const Half*>(mData) + 3u * offset;
             color = Vector4::FromHalves(source) & Vector4::MakeMask<1,1,1,0>();
+            break;
+        }
+
+        case Format::R16G16B16A16_Half:
+        {
+            const Half* source = reinterpret_cast<const Half*>(mData) + 4u * offset;
+            color = Vector4::FromHalves(source);
             break;
         }
 
@@ -362,6 +369,19 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             break;
         }
 
+        case Format::R16G16B16A16_Half:
+        {
+            const Half* source0 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.x;
+            const Half* source1 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.y;
+            const Half* source2 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.z;
+            const Half* source3 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.w;
+            outColors[0] = Vector4::FromHalves(source0);
+            outColors[1] = Vector4::FromHalves(source1);
+            outColors[2] = Vector4::FromHalves(source2);
+            outColors[3] = Vector4::FromHalves(source3);
+            break;
+        }
+
         case Format::BC1:
         {
             const Int32 heightMinusOne = (Int32)mHeight - 1;
@@ -388,10 +408,10 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     }
 }
 
-const Vector4 Bitmap::Evaluate(Vector4 coords, const SamplerDesc& sampler) const
+const Vector4 Bitmap::Evaluate(Vector4 coords, const TextureEvaluator& evaluator) const
 {
     // wrap to 0..1 range
-    const Vector4 warpedCoords = coords - Vector4::Floor(coords);
+    const Vector4 warpedCoords = Vector4::Mod1(coords);
 
     // compute texel coordinates
     const Vector4 scaledCoords = warpedCoords * mFloatSize;
@@ -401,11 +421,11 @@ const Vector4 Bitmap::Evaluate(Vector4 coords, const SamplerDesc& sampler) const
 
     Vector4 result;
 
-    if (sampler.filter == TextureFilterMode::NearestNeighbor)
+    if (evaluator.filter == TextureFilterMode::NearestNeighbor)
     {
-        result = GetPixel(texelCoords.x, texelCoords.y, sampler.forceLinearSpace);
+        result = GetPixel(texelCoords.x, texelCoords.y, evaluator.forceLinearSpace);
     }
-    else if (sampler.filter == TextureFilterMode::Bilinear)
+    else if (evaluator.filter == TextureFilterMode::Bilinear)
     {
         texelCoords = texelCoords.Swizzle<0, 1, 0, 1>();
         texelCoords += VectorInt4(0, 0, 1, 1);
@@ -414,7 +434,7 @@ const Vector4 Bitmap::Evaluate(Vector4 coords, const SamplerDesc& sampler) const
         texelCoords = texelCoords.SetIfGreaterOrEqual(mSize, texelCoords - mSize);
 
         Vector4 colors[4];
-        GetPixelBlock(texelCoords, sampler.forceLinearSpace, colors);
+        GetPixelBlock(texelCoords, evaluator.forceLinearSpace, colors);
 
         // bilinear interpolation
         const Vector4 weights = scaledCoords - intCoords.ConvertToFloat();

@@ -5,6 +5,7 @@
 #include "../../Math/Geometry.h"
 #include "../../Math/SamplingHelpers.h"
 #include "../../Utils/Texture.h"
+#include "../../Utils/TextureEvaluator.h"
 
 namespace rt {
 
@@ -80,7 +81,7 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Evaluate(uv, SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(uv, TextureEvaluator());
     }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
@@ -132,7 +133,7 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray,
         const float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
         const Vector4 textureCoords(u, v, 0.0f, 0.0f);
 
-        color.rgbValues *= mTexture->Evaluate(textureCoords, SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(textureCoords, TextureEvaluator());
     }
 
     return RayColor::Resolve(context.wavelength, color);
@@ -159,7 +160,7 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Evaluate(Vector4(uv), SamplerDesc());
+        color.rgbValues *= mTexture->Evaluate(Vector4(uv), TextureEvaluator());
     }
 
     // TODO texture

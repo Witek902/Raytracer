@@ -330,6 +330,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
         const char* renderingModeItems[] =
         {
+            "CameraLight",
             "TriangleID", "Depth", "Position", "Normals", "Tangents", "Bitangents", "TexCoords",
             "Material Base Color",
             "Material Emission Color",
@@ -472,10 +473,10 @@ bool DemoWindow::RenderUI_Settings_Object()
     bool positionChanged = false;
 
     {
-        Float3 position = mSelectedObject->mTransform.GetTranslation().ToFloat3();
+        Float3 position = mSelectedObject->GetTransform().GetTranslation().ToFloat3();
         if (ImGui::InputFloat3("Position", &position.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
-            mSelectedObject->mTransform = Matrix4::MakeTranslation(Vector4(position));
+            mSelectedObject->SetTransform(Matrix4::MakeTranslation(Vector4(position)));
             positionChanged = true;
         }
     }

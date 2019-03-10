@@ -6,6 +6,8 @@ namespace rt {
 
 enum class DebugRenderingMode : Uint8
 {
+    CameraLight = 0,            // simple shading based on normal vector orientation
+
     // geometry
     TriangleID,                 // draw every triangle with random color
     Depth,                      // visualize depth

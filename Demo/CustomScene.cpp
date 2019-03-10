@@ -26,7 +26,7 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
         const Float2 size(1000.0f, 1000.0f);
         const Float2 texScale(0.1f, 0.1f);
         std::unique_ptr<PlaneSceneObject> instance = std::make_unique<PlaneSceneObject>(size, texScale);
-        instance->mDefaultMaterial = material;
+        instance->SetDefaultMaterial(material);
         scene.AddObject(std::move(instance));
     }
 
@@ -48,8 +48,8 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
         const Matrix4 rotationMatrix = Quaternion::RotationY(pos.z * RT_2PI).ToMatrix4();
 
         SceneObjectPtr instance = std::make_unique<BoxSceneObject>(size);
-        instance->mDefaultMaterial = material;
-        instance->mTransform = rotationMatrix * translationMatrix;
+        instance->SetDefaultMaterial(material);
+        instance->SetTransform(rotationMatrix * translationMatrix);
         scene.AddObject(std::move(instance));
     }
 

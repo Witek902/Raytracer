@@ -29,10 +29,6 @@ void Scene::AddLight(LightPtr object)
 
 void Scene::AddObject(SceneObjectPtr object)
 {
-    RT_ASSERT(object->mTransform.IsValid());
-    //RT_ASSERT(object->mLinearVelocity.IsValid());
-    //RT_ASSERT(object->mAngularVelocity.IsValid());
-
     mObjects.push_back(std::move(object));
 }
 
@@ -89,12 +85,12 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
 {
     const ISceneObject* object = mObjects[objectID].get();
 
-    const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
+    const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
 
     // transform ray to local-space
     const Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
 
-    SingleTraversalContext objectContext =
+    const SingleTraversalContext objectContext =
     {
         transformedRay,
         context.hitPoint,
@@ -108,13 +104,13 @@ bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context,
 {
     const ISceneObject* object = mObjects[objectID].get();
 
-    const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
+    const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
 
     // transform ray to local-space
     Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
     transformedRay.originDivDir = transformedRay.origin * transformedRay.invDir;
 
-    SingleTraversalContext objectContext =
+    const SingleTraversalContext objectContext =
     {
         transformedRay,
         context.hitPoint,
@@ -157,7 +153,7 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
     {
         const Uint32 objectIndex = node.childIndex + i;
         const ISceneObject* object = mObjects[objectIndex].get();
-        const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
+        const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
 
         // transform ray to local-space
         for (Uint32 j = 0; j < numActiveGroups; ++j)
@@ -232,7 +228,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     else if (numObjects == 1) // bypass BVH
     {
         const ISceneObject* object = mObjects.front().get();
-        const Matrix4 invTransform = object->ComputeTransform(context.context.time).FastInverseNoScale();
+        const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
 
         for (Uint32 j = 0; j < numRayGroups; ++j)
         {

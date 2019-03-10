@@ -401,6 +401,11 @@ Vector4& Vector4::operator/= (float b)
     return *this;
 }
 
+const Vector4 Vector4::Mod1(const Vector4 x)
+{
+    return x - Vector4::Floor(x);
+}
+
 const Vector4 Vector4::MulAndAdd(const Vector4& a, const Vector4& b, const Vector4& c)
 {
 #ifdef RT_USE_FMA
@@ -649,6 +654,16 @@ const Vector4 Vector4::Normalized3() const
     Vector4 result = *this;
     result.Normalize3();
     return result;
+}
+
+const Vector4 Vector4::InvNormalized(Vector4& outInvNormalized) const
+{
+    const Vector4 len = Length3V();
+    const Vector4 temp = Vector4::Select<0, 0, 0, 1>(*this, len);
+    const Vector4 invTemp = Vector4::Reciprocal(temp); // [1/x, 1/y, 1/y, 1/length]
+
+    outInvNormalized = len * invTemp;
+    return (*this) * invTemp.w;
 }
 
 const Vector4 Vector4::FastNormalized3() const

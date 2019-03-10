@@ -18,7 +18,7 @@ Box SphereSceneObject::GetBoundingBox() const
 {
     const Vector4 radius = Vector4(mRadius, mRadius, mRadius, 0.0f);
 
-    const Box localBox(mTransform.GetTranslation() - radius, mTransform.GetTranslation() + radius);
+    const Box localBox(ComputeTransform(0.0f).GetTranslation() - radius, ComputeTransform(0.0f).GetTranslation() + radius);
 
     // TODO motion blur
 
@@ -105,7 +105,10 @@ void SphereSceneObject::Traverse_Packet(const PacketTraversalContext& context, c
 
         const VectorBool8 distMask = detSign & (t > Vector8::Zero()) & (t < rayGroup.maxDistances);
 
-        context.StoreIntersection(rayGroup, t, distMask, objectID);
+        const Vector8 uCoord = Vector8::Zero(); // TODO
+        const Vector8 vCoord = Vector8::Zero(); // TODO
+
+        context.StoreIntersection(rayGroup, t, uCoord, vCoord, distMask, objectID);
     }
 }
 
@@ -113,7 +116,7 @@ void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Sha
 {
     RT_UNUSED(hitPoint);
 
-    outShadingData.material = mDefaultMaterial.get();
+    outShadingData.material = GetDefaultMaterial();
 
     outShadingData.texCoord = Vector4::Zero(); // TODO
     outShadingData.frame[2] = outShadingData.frame.GetTranslation() * mInvRadius;

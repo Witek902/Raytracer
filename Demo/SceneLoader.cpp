@@ -454,14 +454,15 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
 
     // TODO velocity
 
-    if (!TryParseMaterialName(materials, value, "material", sceneObject->mDefaultMaterial))
+    MaterialPtr material;
+    if (!TryParseMaterialName(materials, value, "material", material))
         return false;
+    sceneObject->SetDefaultMaterial(material);
 
     Transform transform;
     if (!TryParseTransform(value, "transform", transform))
         return false;
-
-    sceneObject->mTransform = transform.ToMatrix4();
+    sceneObject->SetTransform(transform.ToMatrix4());
 
     scene.AddObject(std::move(sceneObject));
     return true;

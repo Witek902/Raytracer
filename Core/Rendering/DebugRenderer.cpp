@@ -20,7 +20,7 @@ static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4 x)
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::TriangleID)
+    , mRenderingMode(DebugRenderingMode::CameraLight)
 {
 }
 
@@ -58,6 +58,13 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
 
     switch (mRenderingMode)
     {
+        case DebugRenderingMode::CameraLight:
+        {
+            const float NdotL = Vector4::Dot3(ray.dir, shadingData.frame[2]);
+            resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord) * Abs(NdotL);
+            break;
+        }
+
         // Geometry
         case DebugRenderingMode::Depth:
         {
@@ -73,7 +80,6 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
             resultColor = HSVtoRGB(hue, saturation, 1.0f);
             break;
         }
-
         case DebugRenderingMode::Tangents:
         {
             resultColor = ScaleBipolarRange(shadingData.frame[0]);
@@ -96,41 +102,29 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         }
         case DebugRenderingMode::TexCoords:
         {
-            resultColor = Vector4(fmodf(shadingData.texCoord[0], 1.0f), fmodf(shadingData.texCoord[1], 1.0f), 0.0f, 0.0f);
+            resultColor = Vector4::Mod1(shadingData.texCoord & Vector4::MakeMask<1,1,0,0>());
             break;
         }
 
         // Material
         case DebugRenderingMode::BaseColor:
         {
-            if (shadingData.material)
-            {
-                resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord);
-            }
+            resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord);
             break;
         }
         case DebugRenderingMode::Emission:
         {
-            if (shadingData.material)
-            {
-                resultColor = shadingData.material->emission.Evaluate(shadingData.texCoord);
-            }
+            resultColor = shadingData.material->emission.Evaluate(shadingData.texCoord);
             break;
         }
         case DebugRenderingMode::Roughness:
         {
-            if (shadingData.material)
-            {
-                resultColor = Vector4(shadingData.material->roughness.Evaluate(shadingData.texCoord));
-            }
+            resultColor = Vector4(shadingData.material->roughness.Evaluate(shadingData.texCoord));
             break;
         }
         case DebugRenderingMode::Metalness:
         {
-            if (shadingData.material)
-            {
-                resultColor = Vector4(shadingData.material->metalness.Evaluate(shadingData.texCoord));
-            }
+            resultColor = Vector4(shadingData.material->metalness.Evaluate(shadingData.texCoord));
             break;
         }
 
@@ -201,6 +195,13 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
 
                 switch (mRenderingMode)
                 {
+                    case DebugRenderingMode::CameraLight:
+                    {
+                        const float NdotL = Vector4::Dot3(rayDirs[j], shadingData.frame[2]);
+                        color = shadingData.material->baseColor.Evaluate(shadingData.texCoord) * Abs(NdotL);
+                        break;
+                    }
+
                     case DebugRenderingMode::Depth:
                     {
                         const float logDepth = std::max<float>(0.0f, (log2f(hitPoint.distance) + 5.0f) / 10.0f);
@@ -225,6 +226,11 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
                     case DebugRenderingMode::Position:
                     {
                         color = ScaleBipolarRange(shadingData.frame.GetTranslation());
+                        break;
+                    }
+                    case DebugRenderingMode::TexCoords:
+                    {
+                        color = ScaleBipolarRange(shadingData.texCoord);
                         break;
                     }
                     case DebugRenderingMode::TriangleID:

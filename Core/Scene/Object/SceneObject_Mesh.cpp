@@ -17,7 +17,7 @@ Box MeshSceneObject::GetBoundingBox() const
     const Box localBox = mMesh->GetBoundingBox();
 
     // TODO just transformed box may be bigger that bounding box of rotated triangles
-    const Box box0 = mTransform.TransformBox(localBox);
+    const Box box0 = ComputeTransform(0.0f).TransformBox(localBox);
     const Box box1 = ComputeTransform(1.0f).TransformBox(localBox);
 
     return Box(box0, box1);
@@ -40,7 +40,7 @@ void MeshSceneObject::Traverse_Packet(const PacketTraversalContext& context, con
 
 void MeshSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const
 {
-    mMesh->EvaluateShadingData_Single(hitPoint, outShadingData, mDefaultMaterial.get());
+    mMesh->EvaluateShadingData_Single(hitPoint, outShadingData, GetDefaultMaterial());
 }
 
 

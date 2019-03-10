@@ -13,6 +13,7 @@
 
 #include "Color/Spectrum.h"
 #include "Utils/Logger.h"
+#include "Utils/TextureEvaluator.h"
 
 namespace rt {
 
@@ -90,10 +91,10 @@ static std::unique_ptr<Material> CreateDefaultMaterial()
     return material;
 }
 
-const Material* Material::GetDefaultMaterial()
+const MaterialPtr& Material::GetDefaultMaterial()
 {
-    static std::unique_ptr<Material> sDefaultMaterial = CreateDefaultMaterial();
-    return sDefaultMaterial.get();
+    static MaterialPtr sDefaultMaterial = CreateDefaultMaterial();
+    return sDefaultMaterial;
 }
 
 Material::~Material()
@@ -123,10 +124,10 @@ const Vector4 Material::GetNormalVector(const Vector4 uv) const
 
     if (normalMap)
     {
-        SamplerDesc sampler;
-        sampler.forceLinearSpace = true;
+        TextureEvaluator evaluator;
+        evaluator.forceLinearSpace = true;
 
-        normal = normalMap->Evaluate(uv, sampler);
+        normal = normalMap->Evaluate(uv, evaluator);
 
         // scale from [0...1] to [-1...1]
         normal += normal;
@@ -146,7 +147,7 @@ bool Material::GetMaskValue(const Vector4 uv) const
     if (maskMap)
     {
         const float maskTreshold = 0.5f;
-        return maskMap->Evaluate(uv, SamplerDesc()).x > maskTreshold;
+        return maskMap->Evaluate(uv, TextureEvaluator()).x > maskTreshold;
     }
 
     return true;

@@ -16,7 +16,7 @@ PlaneSceneObject::PlaneSceneObject(const Float2 size, const Float2 texScale)
 Box PlaneSceneObject::GetBoundingBox() const
 {
     const Box localBox(Vector4(-mSize.x, 0.0f, -mSize.y, 0.0f), Vector4(mSize.x, 0.0f, mSize.y, 0.0f));
-    return mTransform.TransformBox(localBox); // TODO motion blur
+    return ComputeTransform(0.0f).TransformBox(localBox); // TODO motion blur
 }
 
 bool PlaneSceneObject::Traverse_Single_Internal(const SingleTraversalContext& context, float& outDist) const
@@ -75,7 +75,10 @@ void PlaneSceneObject::Traverse_Packet(const PacketTraversalContext& context, co
         const Vector8 z = Vector8::MulAndAdd(rayGroup.rays[1].dir.z, t, rayGroup.rays[1].origin.z);
         mask = mask & (Vector8::Abs(x) < Vector8(mSize.x)) & (Vector8::Abs(z) < Vector8(mSize.y));
 
-        context.StoreIntersection(rayGroup, t, mask, objectID);
+        const Vector8 u = Vector8::Zero(); // TODO
+        const Vector8 v = Vector8::Zero(); // TODO
+
+        context.StoreIntersection(rayGroup, t, u, v, mask, objectID);
     }
 }
 
@@ -83,7 +86,7 @@ void PlaneSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shad
 {
     RT_UNUSED(hitPoint);
 
-    outShadingData.material = mDefaultMaterial.get();
+    outShadingData.material = GetDefaultMaterial();
     outShadingData.texCoord = (outShadingData.frame.GetTranslation().Swizzle<0,2,0,0>() & Vector4::MakeMask<1,1,0,0>()) * Vector4(mTextureScale);
     outShadingData.frame[0] = VECTOR_X;
     outShadingData.frame[1] = VECTOR_Z;

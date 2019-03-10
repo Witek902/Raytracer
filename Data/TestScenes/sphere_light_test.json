@@ -1,0 +1,41 @@
+{
+    "materials":
+    [
+        {
+            "name": "ground",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "TEXTURES/default.bmp",
+            "metalness": 0.0,
+            "roughness": 0.5
+        }
+    ],
+    "objects":
+    [
+        {
+            "type": "plane",
+            "transform": { "translation": [0.0, -1.0, 0.0] },
+            "textureScale" : [0.4, 0.4],
+            "size": [20.0, 20.0],
+            "material": "ground"
+        }
+    ],
+    "lights":
+    [
+        {
+            "type": "sphere",
+            "color": [3.0, 3.0, 3.0],
+            "position": [0.0, 1.0, 0.0],
+            "radius": 1.0
+        }
+    ],
+    "camera":
+    {
+        "transform":
+        {
+            "translation": [-2.4, 4.03, 3.49],
+            "orientation": [0.69, 2.76, 0.0]
+        },
+        "fieldOfView": 45.0
+    }
+}

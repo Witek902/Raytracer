@@ -180,6 +180,8 @@ const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathSta
     return result;
 }
 
+#pragma optimize("", off)
+
 const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const RenderParam&, RenderingContext& context) const
 {
     HitPoint hitPoint;
@@ -263,6 +265,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
                 break;
             }
             throughput *= 1.0f / threshold;
+            RT_ASSERT(throughput.IsValid());
         }
 
         // sample BSDF

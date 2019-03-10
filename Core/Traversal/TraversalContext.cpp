@@ -6,7 +6,7 @@ namespace rt {
 
 using namespace math;
 
-void PacketTraversalContext::StoreIntersection(RayGroup& rayGroup, const Vector8& t, const VectorBool8& mask, Uint32 objectID, Uint32 subObjectID) const
+void PacketTraversalContext::StoreIntersection(RayGroup& rayGroup, const Vector8& t, const Vector8& u, const Vector8& v, const VectorBool8& mask, Uint32 objectID, Uint32 subObjectID) const
 {
     const int intMask = mask.GetMask();
 
@@ -25,6 +25,8 @@ void PacketTraversalContext::StoreIntersection(RayGroup& rayGroup, const Vector8
                 HitPoint& hitPointRef = hitPoints[rayGroup.rayOffsets[k]];
 
                 hitPointRef.distance = t[k];
+                hitPointRef.u = u[k];
+                hitPointRef.v = v[k];
                 hitPointRef.combinedObjectId = combinedObjectId;
             }
         }

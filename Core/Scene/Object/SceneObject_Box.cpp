@@ -86,7 +86,7 @@ BoxSceneObject::BoxSceneObject(const Vector4& size)
 Box BoxSceneObject::GetBoundingBox() const
 {
     const Box localBox(-mSize, mSize);
-    const Box box0 = mTransform.TransformBox(localBox);
+    const Box box0 = ComputeTransform(0.0f).TransformBox(localBox);
     const Box box1 = ComputeTransform(1.0f).TransformBox(localBox);
     return Box(box0, box1);
 }
@@ -157,8 +157,10 @@ void BoxSceneObject::Traverse_Packet(const PacketTraversalContext& context, cons
         const VectorBool8 mask = Intersect_BoxRay_TwoSided_Simd8(ray.invDir, ray.origin * ray.invDir, box, rayGroup.maxDistances, nearDist, farDist);
 
         const Vector8 t = Vector8::Select(nearDist, farDist, nearDist < Vector8::Zero());
+        const Vector8 u = Vector8::Zero(); // TODO
+        const Vector8 v = Vector8::Zero(); // TODO
 
-        context.StoreIntersection(rayGroup, t, mask, objectID);
+        context.StoreIntersection(rayGroup, t, u, v, mask, objectID);
     }
 }
 
@@ -176,7 +178,7 @@ void BoxSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Shadin
         Vector4(0.0f, 0.0f, +1.0f, 0.0f),   Vector4(+1.0f, 0.0f, 0.0f, 0.0f),
     };
 
-    outShadingData.material = mDefaultMaterial.get();
+    outShadingData.material = GetDefaultMaterial();
 
     const Int32 side = helper::ConvertXYZtoCubeUV(outShadingData.frame.GetTranslation() * mInvSize, outShadingData.texCoord);
     outShadingData.frame[2] = normalsAndTangnts[2 * side];

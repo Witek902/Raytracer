@@ -25,6 +25,9 @@ public:
     RAYLIB_API ISceneObject();
     RAYLIB_API virtual ~ISceneObject();
 
+    RAYLIB_API void SetDefaultMaterial(const MaterialPtr& material);
+    RAYLIB_API void SetTransform(const math::Matrix4& matrix);
+
     // traverse the object and return hit points
     virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
     virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
@@ -39,10 +42,29 @@ public:
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
 
-    const math::Matrix4 ComputeTransform(const float t) const;
+    RT_FORCE_INLINE const math::Matrix4& GetTransform() const { return mTransform; }
 
-    // local->world transform at time=0.0
-    math::Matrix4 mTransform;
+    RT_FORCE_INLINE const Material* GetDefaultMaterial() const { return mDefaultMaterial.get(); }
+
+    RT_FORCE_INLINE const math::Matrix4 ComputeTransform(const float t) const
+    {
+        // TODO motion blur
+        RT_UNUSED(t);
+
+        return mTransform;
+    }
+
+    RT_FORCE_INLINE const math::Matrix4 ComputeInverseTransform(const float t) const
+    {
+        // TODO motion blur
+        RT_UNUSED(t);
+
+        return mInverseTranform;
+    }
+
+private:
+    math::Matrix4 mTransform; // local->world transform at time=0.0
+    math::Matrix4 mInverseTranform;
 
     // TODO velocity
 

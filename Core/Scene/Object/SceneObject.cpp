@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "SceneObject.h"
+#include "Material/Material.h"
 
 namespace rt {
 
@@ -9,32 +10,24 @@ ISceneObject::ISceneObject() = default;
 
 ISceneObject::~ISceneObject() = default;
 
-const Matrix4 ISceneObject::ComputeTransform(const float t) const
+void ISceneObject::SetDefaultMaterial(const MaterialPtr& material)
 {
-    RT_UNUSED(t);
+    mDefaultMaterial = material;
 
-    return mTransform;
-
-    // TODO
-    /*
-    const Vector4 position = Vector4::MulAndAdd(mLinearVelocity, t, mTransform.GetTranslation());
-    const Quaternion rotation0 = mTransform.GetRotation();
-    Quaternion rotation;
-
-    if (Quaternion::AlmostEqual(mAngularVelocity, Quaternion::Identity()))
+    if (!mDefaultMaterial)
     {
-        rotation = rotation0;
+        mDefaultMaterial = Material::GetDefaultMaterial();
     }
-    else
-    {
-        const Quaternion rotation1 = rotation0 * mAngularVelocity;
-        rotation = Quaternion::Interpolate(rotation0, rotation1, t);
-    }
-
-    // TODO motion blur
-    return Transform(position, rotation);
-    */
 }
 
+void ISceneObject::SetTransform(const math::Matrix4& matrix)
+{
+    RT_ASSERT(matrix.IsValid());
+
+    mTransform = matrix;
+
+    // TODO scaling support
+    mInverseTranform = matrix.FastInverseNoScale();
+}
 
 } // namespace rt

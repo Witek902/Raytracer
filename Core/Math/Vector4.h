@@ -69,6 +69,9 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4& operator*= (float b);
     RT_FORCE_INLINE Vector4& operator/= (float b);
 
+    // modulo 1
+    RT_FORCE_INLINE static const Vector4 Mod1(const Vector4 x);
+
     RT_FORCE_INLINE const VectorBool4 operator == (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator < (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator <= (const Vector4& b) const;
@@ -197,6 +200,9 @@ struct RT_ALIGN(16) Vector4
     // Return normalized 3D vector
     RT_FORCE_INLINE const Vector4 Normalized3() const;
     RT_FORCE_INLINE const Vector4 FastNormalized3() const;
+
+    // Return normalized 3D vector and its inverse
+    RT_FORCE_INLINE const Vector4 InvNormalized(Vector4& outInvNormalized) const;
 
     // Return normalized 4D vector
     RT_FORCE_INLINE const Vector4 Normalized4() const;

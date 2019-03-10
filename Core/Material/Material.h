@@ -2,6 +2,7 @@
 
 #include "BSDF/BSDF.h"
 #include "../Utils/Texture.h"
+#include "../Utils/TextureEvaluator.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Color/RayColor.h"
 #include "../Math/Ray.h"
@@ -42,7 +43,7 @@ struct MaterialParameter
 
         if (texture)
         {
-            value = static_cast<T>(value * texture->Evaluate(uv, SamplerDesc()));
+            value = static_cast<T>(value * texture->Evaluate(uv, TextureEvaluator()));
         }
 
         return value;
@@ -65,7 +66,7 @@ public:
 
     RAYLIB_API static MaterialPtr Create();
 
-    static const Material* GetDefaultMaterial();
+    static const MaterialPtr& GetDefaultMaterial();
 
     std::string debugName;
 

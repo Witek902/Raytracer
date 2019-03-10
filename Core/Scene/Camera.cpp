@@ -75,10 +75,15 @@ const Matrix4 Camera::SampleTransform(const float time) const
     //return Transform(position, rotation);
 }
 
+RT_FORCE_INLINE const Vector4 UnipolarToBipolar(const Vector4 x)
+{
+    return Vector4::MulAndSub(x, 2.0f, VECTOR_ONE);
+}
+
 Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
 {
     const Matrix4 transform = SampleTransform(context.time);
-    Vector4 offsetedCoords = 2.0f * coords - VECTOR_ONE;
+    Vector4 offsetedCoords = UnipolarToBipolar(coords);
 
     // barrel distortion
     if (barrelDistortionVariableFactor)
@@ -89,18 +94,20 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     }
 
     // calculate ray direction (ideal, without DoF)
-    Vector4 direction = transform[2] +  (transform[0] * (offsetedCoords.x * mAspectRatio) + transform[1] * offsetedCoords.y) * mTanHalfFoV;
     Vector4 origin = transform.GetTranslation();
+    Vector4 direction = Vector4::MulAndAdd(
+        Vector4::MulAndAdd(transform[0], offsetedCoords.x * mAspectRatio, transform[1] * offsetedCoords.y),
+        mTanHalfFoV,
+        transform[2]);
 
     // depth of field
-    if (mDOF.enable)
+    if (mDOF.enable && context.sampler)
     {
         const Vector4 focusPoint = Vector4::MulAndAdd(direction, mDOF.focalPlaneDistance, origin);
 
         const Vector4 right = transform[0];
         const Vector4 up = transform[1];
 
-        // TODO different bokeh shapes, texture, etc.
         const Vector4 randomPointOnCircle = GenerateBokeh(context.sampler->GetFloat3()) * mDOF.aperture;
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), right, origin);
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), up, origin);

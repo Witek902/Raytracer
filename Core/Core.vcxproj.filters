@@ -299,6 +299,7 @@
     <ClInclude Include="Math\SamplingHelpers.h" />
     <ClInclude Include="Sampling\HaltonSampler.h" />
     <ClInclude Include="Sampling\GenericSampler.h" />
+    <ClInclude Include="Utils\TextureEvaluator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -481,6 +482,7 @@
     <ClCompile Include="Sampling\HaltonSampler.cpp" />
     <ClCompile Include="Sampling\GenericSampler.cpp" />
     <ClCompile Include="Rendering\Context.cpp" />
+    <ClCompile Include="Utils\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

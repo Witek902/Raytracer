@@ -236,7 +236,7 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 
             const VectorBool8 mask = Intersect_TriangleRay_Simd8(rayGroup.rays[1].dir, rayGroup.rays[1].origin, tri, rayGroup.maxDistances, u, v, distance);
 
-            context.StoreIntersection(rayGroup, distance, mask, objectID, triangleIndex);
+            context.StoreIntersection(rayGroup, distance, u, v, mask, objectID, triangleIndex);
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
             context.context.localCounters.numPassedRayTriangleTests += PopCount(mask.GetMask());
