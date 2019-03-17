@@ -5,7 +5,7 @@ namespace rt {
 
 using namespace math;
 
-ILight::ILight(const Vector4 color)
+ILight::ILight(const Vector4& color)
 {
     // TODO generic spectrum
     RT_ASSERT(color.IsValid());

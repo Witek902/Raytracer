@@ -46,14 +46,14 @@ float Sin(float x)
     return (i & 1) ? -y : y;
 }
 
-const Vector4 Sin(Vector4 x)
+const Vector4 Sin(const Vector4& a)
 {
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
     // range reduction
-    const VectorInt4 i = VectorInt4::Convert(x * (1.0f / RT_PI));
-    x = Vector4::NegMulAndAdd(i.ConvertToFloat(), RT_PI, x);
+    const VectorInt4 i = VectorInt4::Convert(a * (1.0f / RT_PI));
+    const Vector4 x = Vector4::NegMulAndAdd(i.ConvertToFloat(), RT_PI, a);
 
     const Vector4 x2 = x * x;
 
@@ -75,15 +75,15 @@ const Vector4 Sin(Vector4 x)
     return y ^ (i << 31).CastToFloat();
 }
 
-const Vector8 Sin(Vector8 x)
+const Vector8 Sin(const Vector8& a)
 {
 #ifdef RT_USE_AVX2
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
     // range reduction
-    const VectorInt8 i = VectorInt8::Convert(x * (1.0f / RT_PI));
-    x = Vector8::NegMulAndAdd(i.ConvertToFloat(), RT_PI, x);
+    const VectorInt8 i = VectorInt8::Convert(a * (1.0f / RT_PI));
+    const Vector8 x = Vector8::NegMulAndAdd(i.ConvertToFloat(), RT_PI, a);
 
     const Vector8 x2 = x * x;
 
@@ -113,12 +113,12 @@ float Cos(float x)
     return Sin(x + RT_PI / 2.0f);
 }
 
-const Vector4 Cos(Vector4 x)
+const Vector4 Cos(const Vector4& x)
 {
     return Sin(x + Vector4(RT_PI / 2.0f));
 }
 
-const Vector8 Cos(Vector8 x)
+const Vector8 Cos(const Vector8& x)
 {
     return Sin(x + Vector8(RT_PI / 2.0f));
 }

@@ -42,7 +42,7 @@ public:
         float cosAtLight;
     };
 
-    RAYLIB_API ILight(const math::Vector4 color);
+    ILight(const math::Vector4& color);
     RAYLIB_API virtual ~ILight() = default;
 
     // get light's surface bounding box
