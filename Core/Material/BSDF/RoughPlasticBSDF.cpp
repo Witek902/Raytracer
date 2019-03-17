@@ -31,7 +31,6 @@ bool RoughPlasticBSDF::Sample(SamplingContext& ctx) const
     }
 
     const float ior = ctx.materialParam.IoR;
-    const float eta = 1.0f / ior;
 
     const float Fi = FresnelDielectric(NdotV, ior);
 
@@ -205,8 +204,6 @@ float RoughPlasticBSDF::Pdf(const EvaluationContext& ctx, PdfDirection dir) cons
     if (VdotH >= CosEpsilon)
     {
         const Microfacet microfacet(roughness * roughness);
-        const float F = FresnelDielectric(VdotH, ctx.material.IoR);
-
         specularPdf = microfacet.Pdf(m) / (4.0f * VdotH);
     }
 

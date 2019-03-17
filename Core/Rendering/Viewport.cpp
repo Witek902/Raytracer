@@ -168,7 +168,6 @@ bool Viewport::Render(const Camera& camera)
         };
 
         {
-            const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
             const Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
             mRenderer->PreRender(film);
         }

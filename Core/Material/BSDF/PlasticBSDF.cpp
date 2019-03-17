@@ -21,7 +21,6 @@ bool PlasticBSDF::Sample(SamplingContext& ctx) const
     }
 
     const float ior = ctx.materialParam.IoR;
-    const float eta = 1.0f / ior;
 
     const float Fi = FresnelDielectric(NdotV, ior);
 

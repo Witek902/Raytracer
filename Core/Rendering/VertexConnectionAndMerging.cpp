@@ -752,8 +752,8 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
             : mRenderer(renderer)
             , mShadingData(shadingData)
             , mCameraPathState(cameraPathState)
-            , mContribution(RayColor::Zero())
             , mContext(ctx)
+            , mContribution(RayColor::Zero())
         {}
 
         RT_FORCE_INLINE const RayColor& GetContribution() const { return mContribution; }
@@ -796,10 +796,10 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
         }
 
     private:
-        RenderingContext& mContext;
         const VertexConnectionAndMerging& mRenderer;
         const ShadingData& mShadingData;
         const PathState& mCameraPathState;
+        RenderingContext& mContext;
         RayColor mContribution;
     };
 

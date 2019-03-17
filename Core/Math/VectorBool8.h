@@ -32,7 +32,7 @@ struct RT_ALIGN(32) VectorBool8
     RT_FORCE_INLINE bool Get() const
     {
         static_assert(index < 8, "Invalid index");
-        return _mm_extract_ps(v, index) != 0;
+        return _mm256_extract_epi32(_mm256_castps_si256(v), index) != 0;
     }
 
     // combine into 8-bit mask

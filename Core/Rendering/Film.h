@@ -14,7 +14,7 @@ class Random;
 class Film
 {
 public:
-    Film::Film(Bitmap& sum, Bitmap* secondarySum = nullptr);
+    Film(Bitmap& sum, Bitmap* secondarySum = nullptr);
 
     RT_FORCE_INLINE Uint32 GetWidth() const
     {

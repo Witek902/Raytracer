@@ -81,7 +81,7 @@ private:
         Uint32 length = 1u;
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
         bool lastSpecular = true;
-        bool isFiniteLight;
+        bool isFiniteLight = false;
     };
 
     // importance sample light sources

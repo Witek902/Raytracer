@@ -8,9 +8,9 @@ namespace rt {
 using namespace math;
 
 Film::Film(Bitmap& sum, Bitmap* secondarySum)
-    : mSum(sum)
-    , mSecondarySum(secondarySum)
-    , mFilmSize((float)sum.GetWidth(), (float)sum.GetHeight())
+    : mFilmSize((float)sum.GetWidth(), (float)sum.GetHeight())
+    , mSum(sum)
+    , mSecondarySum(secondarySum) 
     , mWidth(mSum.GetWidth())
     , mHeight(mSum.GetHeight())
 {

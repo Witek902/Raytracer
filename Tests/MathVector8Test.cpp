@@ -72,3 +72,17 @@ TEST(MathTest, Vector8_Transpose8x8)
     EXPECT_TRUE((Vector8(06.0f, 16.0f, 26.0f, 36.0f, 46.0f, 56.0f, 66.0f, 76.0f) == v6).All());
     EXPECT_TRUE((Vector8(07.0f, 17.0f, 27.0f, 37.0f, 47.0f, 57.0f, 67.0f, 77.0f) == v7).All());
 }
+
+TEST(MathTest, Vector8Bool_Get)
+{
+    const VectorBool8 vec(true, false, false, false, true, true, false, true);
+
+    EXPECT_EQ(true, vec.Get<0>());
+    EXPECT_EQ(false, vec.Get<1>());
+    EXPECT_EQ(false, vec.Get<2>());
+    EXPECT_EQ(false, vec.Get<3>());
+    EXPECT_EQ(true, vec.Get<4>());
+    EXPECT_EQ(true, vec.Get<5>());
+    EXPECT_EQ(false, vec.Get<6>());
+    EXPECT_EQ(false, vec.Get<7>());
+}

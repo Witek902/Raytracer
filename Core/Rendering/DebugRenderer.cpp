@@ -54,7 +54,7 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
     }
 
-    Vector4 resultColor;
+    Vector4 resultColor = Vector4::Zero();
 
     switch (mRenderingMode)
     {

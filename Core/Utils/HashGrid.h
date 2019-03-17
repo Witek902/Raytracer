@@ -20,7 +20,7 @@ public:
         //Timer timer;
 
         mRadius = radius;
-        mRadiusSqr = Sqr(radius);
+        mRadiusSqr = math::Sqr(radius);
         mCellSize = radius * 2.0f;
         mInvCellSize = 1.0f / mCellSize;
 
@@ -37,7 +37,7 @@ public:
         // determine number of particles in each hash table entry
         {
             // TODO tweak this
-            Uint32 hashTableSize = NextPowerOfTwo(Uint32(particles.size()));
+            Uint32 hashTableSize = math::NextPowerOfTwo(Uint32(particles.size()));
             mHashTableMask = hashTableSize - 1;
             mCellEnds.resize(hashTableSize);
 
@@ -56,7 +56,7 @@ public:
             for (size_t i = 0; i < mCellEnds.size(); i++)
             {
                 Uint32 temp = mCellEnds[i];
-                maxPerticlesPerCell = Max(maxPerticlesPerCell, temp);
+                maxPerticlesPerCell = math::Max(maxPerticlesPerCell, temp);
                 mCellEnds[i] = sum;
                 sum += temp;
             }
