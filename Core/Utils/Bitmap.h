@@ -16,9 +16,10 @@ public:
     enum class Format : Uint8
     {
         Unknown = 0,
-        R8_Uint,
-        B8G8R8_Uint,
-        B8G8R8A8_Uint,
+        R8_UNorm,
+        B8G8R8_UNorm,
+        B8G8R8A8_UNorm,
+        R16G16B16A16_UNorm,
         R32G32B32_Float,
         R32G32B32A32_Float,
         R16G16B16_Half,
@@ -34,6 +35,8 @@ public:
     RAYLIB_API ~Bitmap();
     RAYLIB_API Bitmap(Bitmap&&);
     RAYLIB_API Bitmap& operator = (Bitmap&&);
+
+    const char* GetName() const override;
 
     template<typename T>
     RT_FORCE_INLINE T* GetDataAs()

@@ -180,8 +180,6 @@ const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathSta
     return result;
 }
 
-#pragma optimize("", off)
-
 const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const RenderParam&, RenderingContext& context) const
 {
     HitPoint hitPoint;
@@ -252,7 +250,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // Russian roulette algorithm
         if (pathState.depth >= context.params->minRussianRouletteDepth)
         {
-            const float threshold = shadingData.materialParams.baseColor.Max();
+            const float threshold = 0.125f + 0.875f * shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {

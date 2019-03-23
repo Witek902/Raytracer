@@ -4,13 +4,15 @@
         {
             "name": "ground",
             "bsdf": "diffuse",
-            "baseColorTexture": "TEXTURES/default.bmp",
+            "baseColorTexture": "TEXTURES/Poliigon/Marble13/Marble13_COL_6K.bmp",
             "baseColor": [0.9, 0.9, 0.9]
         },
         {
             "name": "plastic",
-            "bsdf": "plastic",
-            "baseColor": [0.6, 0.6, 0.6]
+            "bsdf": "roughDielectric",
+            "baseColor": [1.0, 1.0, 1.0],
+            "roughness": 0.5,
+            "roughnessTexture": "TEXTURES/earth_mask.bmp"
         },
         {
             "name": "glass",
@@ -28,18 +30,12 @@
         {
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0] },
-            "textureScale" : [0.4, 0.4],
+            "textureScale" : [0.1, 0.1],
             "material": "ground"
         },
         {
             "type": "sphere",
 			"transform": { "translation": [0.0, 0.0, -1.0] },
-            "radius": 1.0,
-            "material": "plastic"
-        },
-        {
-            "type": "sphere",
-			"transform": { "translation": [0.0, 0.0, 1.0] },
             "radius": 1.0,
             "material": "plastic"
         }
@@ -56,12 +52,12 @@
     {
         "transform":
         {
-            "translation": [-4.15, 0.03, -3.11],
-            "orientation": [0.06, 0.9, 0.0]
+            "translation": [-6.4, 0.726, -5.65],
+            "orientation": [0.046, 0.914, 0.0]
         },
-        "fieldOfView": 45.0,
-		"enableDOF": false,
-		"focalPlaneDistance": 4.8,
-		"aperture": 0.15
+        "fieldOfView": 11.8,
+		"enableDOF": true,
+		"focalPlaneDistance": 7.19,
+		"aperture": 0.12
     }
 }

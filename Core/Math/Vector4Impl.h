@@ -96,11 +96,11 @@ const Vector4 Vector4::FromHalves(const Half* src)
 
 // Load & store ===================================================================================
 
-const Vector4 Vector4::Load4(const Uint8* src)
+const Vector4 Vector4::Load_4xUint8(const Uint8* src)
 {
-    const Vector4 mask = { 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
-    const Vector4 LoadUByte4Mul = {1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f)};
-    const Vector4 unsignedOffset = { 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
+    const Vector4 mask{ 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
+    const Vector4 LoadUByte4Mul{ 1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f) };
+    const Vector4 unsignedOffset{ 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
 
     __m128 vTemp = _mm_load_ps1((const float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
@@ -112,10 +112,25 @@ const Vector4 Vector4::Load4(const Uint8* src)
     return _mm_mul_ps(vTemp, LoadUByte4Mul);
 }
 
+const Vector4 Vector4::Load_4xUint16(const Uint16* src)
+{
+    const Vector4 maskX16Y16Z16W16{ 0x0000FFFFu, 0x0000FFFFu, 0xFFFF0000u, 0xFFFF0000u };
+    const __m128i shufflePattern = _mm_set_epi8(3, 2, 15, 14, 3, 2, 5, 4, 3, 2, 11, 10, 3, 2, 1, 0);
+
+    // XXYYZZWWXXYYZZWW
+    __m128d vIntd = _mm_load1_pd(reinterpret_cast<const double *>(src));
+    // XX--ZZ----YY--WW
+    __m128 masked = _mm_and_ps(_mm_castpd_ps(vIntd), maskX16Y16Z16W16);
+    // --WW--ZZ--YY--XX
+    __m128i reordered = _mm_shuffle_epi8(_mm_castps_si128(masked), shufflePattern);
+
+    return _mm_cvtepi32_ps(reordered);
+}
+
 const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 {
-    const Vector4 mask = { 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
-    const Vector4 LoadUByte4Mul = { 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
+    const Vector4 mask{ 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
+    const Vector4 LoadUByte4Mul{ 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
     __m128 vTemp = _mm_load_ps1((const float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
@@ -159,27 +174,6 @@ void Vector4::Store4_NonTemporal(Uint8* dest) const
     _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
 }
 
-void Vector4::Store(float* dest) const
-{
-    _mm_store_ss(dest, v);
-}
-
-void Vector4::Store(Float2* dest) const
-{
-    __m128 vy = _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1));
-    _mm_store_ss(&dest->x, v);
-    _mm_store_ss(&dest->y, vy);
-}
-
-void Vector4::Store(Float3* dest) const
-{
-    __m128 vy = _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1));
-    __m128 vz = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2));
-    _mm_store_ss(&dest->x, v);
-    _mm_store_ss(&dest->y, vy);
-    _mm_store_ss(&dest->z, vz);
-}
-
 Float2 Vector4::ToFloat2() const
 {
     return Float2{ x, y };
@@ -200,7 +194,7 @@ const Vector4 Vector4::ChangeSign() const
     }
 
     // generate bit negation mask
-    const Vector4 mask = {flipX ? 0x80000000 : 0, flipY ? 0x80000000 : 0, flipZ ? 0x80000000 : 0, flipW ? 0x80000000 : 0};
+    const Vector4 mask{ flipX ? 0x80000000 : 0, flipY ? 0x80000000 : 0, flipZ ? 0x80000000 : 0, flipW ? 0x80000000 : 0 };
 
     // flip sign bits
     return _mm_xor_ps(v, mask);
@@ -213,9 +207,7 @@ RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
     static_assert(!(maskX && maskY && maskZ && maskW), "Useless mask");
 
     // generate bit negation mask
-    const Vector4 mask = { maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
-
-    return mask;
+    return Vector4{ maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
 }
 
 // Elements rearrangement =========================================================================
@@ -254,6 +246,15 @@ const Vector4 Vector4::Swizzle() const
     }
 
     return _mm_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
+}
+
+const Vector4 Vector4::Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const
+{
+#ifdef RT_USE_AVX
+    return _mm_permutevar_ps(v, _mm_set_epi32(iw, iz, iy, ix));
+#else
+    return Vector4{ f[ix], f[iy], f[iz], f[iw] };
+#endif
 }
 
 const Vector4 Vector4::SplatX() const

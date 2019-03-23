@@ -37,10 +37,7 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, const Wav
     // sample environment map
     if (mTexture)
     {
-        const float theta = FastACos(Clamp(dir.y, -1.0f, 1.0f));
-        const float phi = Abs(dir.x) > FLT_EPSILON ? FastATan2(dir.z, dir.x) : 0.0f;
-        const Vector4 coords(phi / (2.0f * RT_PI) + 0.5f, theta / RT_PI, 0.0f, 0.0f);
-
+        const Vector4 coords = CartesianToSphericalCoordinates(dir);
         RT_ASSERT(coords.IsValid());
 
         const Vector4 textureColor = mTexture->Evaluate(coords, TextureEvaluator());

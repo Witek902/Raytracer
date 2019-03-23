@@ -34,9 +34,9 @@ public:
 
     RT_FORCE_INLINE ProcessedTriangle(const Vector4& v0, const Vector4& v1, const Vector4& v2)
     {
-        v0.Store(&this->v0);
-        (v1 - v0).Store(&edge1);
-        (v2 - v0).Store(&edge2);
+        this->v0 = v0.ToFloat3();
+        edge1 = (v1 - v0).ToFloat3();
+        edge2 = (v2 - v0).ToFloat3();
     }
 };
 

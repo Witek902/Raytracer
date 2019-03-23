@@ -84,5 +84,5 @@ TEST(MathTest, Vector8Bool_Get)
     EXPECT_EQ(true, vec.Get<4>());
     EXPECT_EQ(true, vec.Get<5>());
     EXPECT_EQ(false, vec.Get<6>());
-    EXPECT_EQ(false, vec.Get<7>());
+    EXPECT_EQ(true, vec.Get<7>());
 }

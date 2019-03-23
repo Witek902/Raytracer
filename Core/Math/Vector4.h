@@ -100,12 +100,18 @@ struct RT_ALIGN(16) Vector4
     template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
     RT_FORCE_INLINE static const Vector4 MakeMask();
 
-    // Rearrange vector elements
+    // Rearrange vector elements (immediate)
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
     RT_FORCE_INLINE const Vector4 Swizzle() const;
 
-    // Convert 4 uint8 to a Vector4
-    RT_FORCE_INLINE static const Vector4 Load4(const Uint8* src);
+    // Rearrange vector elements (variable)
+    RT_FORCE_INLINE const Vector4 Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const;
+
+    // Convert 4 Uint8 to a Vector4
+    RT_FORCE_INLINE static const Vector4 Load_4xUint8(const Uint8* src);
+
+    // Convert 4 Uint16 to a Vector4
+    RT_FORCE_INLINE static const Vector4 Load_4xUint16(const Uint16* src);
 
     // Convert 3 uint8 to a Vector4 and scale to 0...1 range
     RT_FORCE_INLINE static const Vector4 LoadBGR_UNorm(const Uint8* src);
@@ -116,9 +122,6 @@ struct RT_ALIGN(16) Vector4
     // Convert a Vector4 to 4 unsigned chars
     RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
 
-    RT_FORCE_INLINE void Store(float* dest) const;
-    RT_FORCE_INLINE void Store(Float2* dest) const;
-    RT_FORCE_INLINE void Store(Float3* dest) const;
     RT_FORCE_INLINE Float2 ToFloat2() const;
     RT_FORCE_INLINE Float3 ToFloat3() const;
 

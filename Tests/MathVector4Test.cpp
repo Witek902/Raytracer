@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "../Core/Math/Vector4.h"
+#include "../Core/Math/VectorInt4.h"
 
 #include "gtest/gtest.h"
 
@@ -47,21 +48,66 @@ TEST(MathTest, Vector4_Invalid)
     EXPECT_FALSE(Vector4(-1.0f, -std::numeric_limits<float>::infinity(), 3.0f, 4.0f).IsValid());
 }
 
-TEST(MathTest, Vector4_VectorLoadAndStore)
+TEST(MathTest, Vector4_ToFromFloat2)
 {
-    Float2 f2;
-    Float3 f3;
-
-    vecB.Store(&f2);
-    vecB.Store(&f3);
+    const Float2 f2 = vecB.ToFloat2();
     EXPECT_TRUE(f2.x == 1.0f && f2.y == 2.0f);
-    EXPECT_TRUE(f3.x == 1.0f && f3.y == 2.0f && f3.z == 3.0f);
     EXPECT_TRUE((Vector4(f2) == Vector4(1.0f, 2.0f, 0.0f, 0.0f)).All());
+}
+
+TEST(MathTest, Vector4_ToFromFloat3)
+{
+    const Float3 f3 = vecB.ToFloat3();
+    EXPECT_TRUE(f3.x == 1.0f && f3.y == 2.0f && f3.z == 3.0f);
     EXPECT_TRUE((Vector4(f3) == Vector4(1.0f, 2.0f, 3.0f, 0.0f)).All());
+}
+
+TEST(MathTest, Vector4_Splat)
+{
     EXPECT_TRUE((Vector4(1.0f, 1.0f, 1.0f, 1.0f) == vecB.SplatX()).All());
     EXPECT_TRUE((Vector4(2.0f, 2.0f, 2.0f, 2.0f) == vecB.SplatY()).All());
     EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 3.0f) == vecB.SplatZ()).All());
     EXPECT_TRUE((Vector4(4.0f, 4.0f, 4.0f, 4.0f) == vecB.SplatW()).All());
+}
+
+TEST(MathTest, Vector4_Load_4xUint8_Norm)
+{
+    {
+        const Uint8 data[4] = { 0, 0, 0, 0 };
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_4xUint8(data)).All());
+    }
+    {
+        const Uint8 data[4] = { 255, 0, 0, 255 };
+        EXPECT_TRUE((Vector4(255.0f, 0.0f, 0.0f, 255.0f) == Vector4::Load_4xUint8(data)).All());
+    }
+    {
+        const Uint8 data[4] = { 255, 255, 255, 255 };
+        EXPECT_TRUE((Vector4(255.0f, 255.0f, 255.0f, 255.0f) == Vector4::Load_4xUint8(data)).All());
+    }
+    {
+        const Uint8 data[4] = { 35, 86, 241, 13 };
+        EXPECT_TRUE((Vector4(35.0f, 86.0f, 241.0f, 13.0f) == Vector4::Load_4xUint8(data)).All());
+    }
+}
+
+TEST(MathTest, Vector4_Load_4xUint16_Norm)
+{
+    {
+        const Uint16 data[4] = { 0, 0, 0, 0 };
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_4xUint16(data)).All());
+    }
+    {
+        const Uint16 data[4] = { 65535, 0, 0, 65535 };
+        EXPECT_TRUE((Vector4(65535.0f, 0.0f, 0.0f, 65535.0f) == Vector4::Load_4xUint16(data)).All());
+    }
+    {
+        const Uint16 data[4] = { 65535, 65535, 65535, 65535 };
+        EXPECT_TRUE((Vector4(65535.0f, 65535.0f, 65535.0f, 65535.0f) == Vector4::Load_4xUint16(data)).All());
+    }
+    {
+        const Uint16 data[4] = { 31351, 8135, 12, 57964 };
+        EXPECT_TRUE((Vector4(31351.0f, 8135.0f, 12.0f, 57964.0f) == Vector4::Load_4xUint16(data)).All());
+    }
 }
 
 TEST(MathTest, Vector4_Select_Variable)
@@ -93,7 +139,7 @@ TEST(MathTest, Vector4_Select_Immediate)
 
 //////////////////////////////////////////////////////////////////////////
 
-TEST(MathTest, Vector4_VectorArithmetics)
+TEST(MathTest, Vector4_Arithmetics)
 {
     EXPECT_TRUE(Vector4::AlmostEqual(vecA + vecB, vecC));
     EXPECT_TRUE(Vector4::AlmostEqual(vecA - vecB, Vector4(0.0f, -1.0f, -2.0f, -3.0f)));
@@ -104,14 +150,14 @@ TEST(MathTest, Vector4_VectorArithmetics)
     EXPECT_TRUE((Vector4::Abs(Vector4(-1.0f, -2.0f, 0.0f, 3.0f)) == Vector4(1.0f, 2.0f, 0.0f, 3.0f)).All());
 }
 
-TEST(MathTest, Vector4_VectorLerp)
+TEST(MathTest, Vector4_Lerp)
 {
     EXPECT_TRUE((Vector4::Lerp(vecA, vecB, 0.0f) == vecA).All());
     EXPECT_TRUE((Vector4::Lerp(vecA, vecB, 1.0f) == vecB).All());
     EXPECT_TRUE((Vector4::Lerp(vecA, vecB, 0.5f) == Vector4(1.0f, 1.5f, 2.0f, 2.5f)).All());
 }
 
-TEST(MathTest, Vector4_VectorMinMax)
+TEST(MathTest, Vector4_MinMax)
 {
     EXPECT_TRUE((Vector4::Min(vecB, vecE) == Vector4(1.0f, 2.0f, 2.0f, 1.0f)).All());
     EXPECT_TRUE((Vector4::Min(vecE, vecB) == Vector4(1.0f, 2.0f, 2.0f, 1.0f)).All());
@@ -119,7 +165,7 @@ TEST(MathTest, Vector4_VectorMinMax)
     EXPECT_TRUE((Vector4::Max(vecB, vecE) == Vector4(4.0f, 3.0f, 3.0f, 4.0f)).All());
 }
 
-TEST(MathTest, Vector4_VectorDotProduct)
+TEST(MathTest, Vector4_DotProduct)
 {
     EXPECT_EQ(8.0f, Vector4::Dot2(vecB, vecC));
     EXPECT_EQ(20.0f, Vector4::Dot3(vecB, vecC));
@@ -130,13 +176,13 @@ TEST(MathTest, Vector4_VectorDotProduct)
     EXPECT_TRUE((Vector4::Dot4V(vecB, vecC) == Vector4(40.0f)).All());
 }
 
-TEST(MathTest, Vector4_VectorCrossProduct)
+TEST(MathTest, Vector4_CrossProduct)
 {
     EXPECT_TRUE((Vector4::Cross3(vecB, vecC) == Vector4(-1.0f, 2.0f, -1.0f, 0.0f)).All());
     EXPECT_TRUE((Vector4::Cross3(vecC, vecB) == Vector4(1.0f, -2.0f, 1.0f, 0.0f)).All());
 }
 
-TEST(MathTest, Vector4_VectorNormalized)
+TEST(MathTest, Vector4_Normalized)
 {
     EXPECT_TRUE(Vector4::AlmostEqual(Vector4(1.0f, 2.0f, 3.0f, 4.0f).Normalized3() & Vector4::MakeMask<1,1,1,0>(),
                                     Vector4(1.0f / sqrtf(14.0f), 2.0f / sqrtf(14.0f), 3.0f / sqrtf(14.0f), 0.0f)));
@@ -144,7 +190,7 @@ TEST(MathTest, Vector4_VectorNormalized)
                                     Vector4(1.0f / sqrtf(30.0f), 2.0f / sqrtf(30.0f), 3.0f / sqrtf(30.0f), 4.0f / sqrtf(30.0f))));
 }
 
-TEST(MathTest, Vector4_VectorNormalize3)
+TEST(MathTest, Vector4_Normalize3)
 {
     Vector4 v = Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
@@ -154,7 +200,7 @@ TEST(MathTest, Vector4_VectorNormalize3)
                                     Vector4(1.0f / sqrtf(14.0f), 2.0f / sqrtf(14.0f), 3.0f / sqrtf(14.0f), 0.0f)));
 }
 
-TEST(MathTest, Vector4_VectorNormalize4)
+TEST(MathTest, Vector4_Normalize4)
 {
     Vector4 v = Vector4(1.0f, 2.0f, 3.0f, 4.0f);
 
@@ -178,7 +224,7 @@ TEST(MathTest, Vector4_FusedMultiplyAndAdd)
 
 //////////////////////////////////////////////////////////////////////////
 
-TEST(MathTest, Vector4_VectorLess)
+TEST(MathTest, Vector4_Less)
 {
     EXPECT_EQ(VectorBool4(false, false, false, false), Vector4(2.0f, 3.0f, 4.0f, 5.0f) < vecC);
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(1.0f, 2.0f, 3.0f, 4.0f) < vecC);
@@ -192,7 +238,7 @@ TEST(MathTest, Vector4_VectorLess)
     EXPECT_EQ(VectorBool4(true, true, true, false), Vector4(1.0f, 2.0f, 3.0f, 5.0f) < vecC);
 }
 
-TEST(MathTest, Vector4_VectorLessOrEqual)
+TEST(MathTest, Vector4_LessOrEqual)
 {
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(2.0f, 3.0f, 4.0f, 5.0f) <= vecC);
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(1.0f, 2.0f, 3.0f, 4.0f) <= vecC);
@@ -206,7 +252,7 @@ TEST(MathTest, Vector4_VectorLessOrEqual)
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(1.0f, 2.0f, 3.0f, 5.0f) <= vecC);
 }
 
-TEST(MathTest, Vector4_VectorGreater)
+TEST(MathTest, Vector4_Greater)
 {
     EXPECT_EQ(VectorBool4(false, false, false, false), Vector4(2.0f, 3.0f, 4.0f, 5.0f) > vecC);
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(3.0f, 4.0f, 5.0f, 6.0f) > vecC);
@@ -220,7 +266,7 @@ TEST(MathTest, Vector4_VectorGreater)
     EXPECT_EQ(VectorBool4(true, true, true, false), Vector4(3.0f, 4.0f, 5.0f, 5.0f) > vecC);
 }
 
-TEST(MathTest, Vector4_VectorGreaterOrEqual)
+TEST(MathTest, Vector4_GreaterOrEqual)
 {
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(2.0f, 3.0f, 4.0f, 5.0f) >= vecC);
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(3.0f, 4.0f, 5.0f, 6.0f) >= vecC);
@@ -234,7 +280,7 @@ TEST(MathTest, Vector4_VectorGreaterOrEqual)
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(3.0f, 4.0f, 5.0f, 5.0f) >= vecC);
 }
 
-TEST(MathTest, Vector4_VectorEqual)
+TEST(MathTest, Vector4_Equal)
 {
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(1.0f, 2.0f, 3.0f, 4.0f) == Vector4(1.0f, 2.0f, 3.0f, 4.0f));
     EXPECT_EQ(VectorBool4(false, true, true, true), Vector4(10.0f, 2.0f, 3.0f, 4.0f) == Vector4(1.0f, 2.0f, 3.0f, 4.0f));
@@ -243,7 +289,7 @@ TEST(MathTest, Vector4_VectorEqual)
     EXPECT_EQ(VectorBool4(true, true, true, false), Vector4(1.0f, 2.0f, 3.0f, 40.0f) == Vector4(1.0f, 2.0f, 3.0f, 4.0f));
 }
 
-TEST(MathTest, Vector4_VectorNotEqual)
+TEST(MathTest, Vector4_NotEqual)
 {
     EXPECT_EQ(VectorBool4(true, true, true, true), Vector4(4.0f, 3.0f, 2.0f, 1.0f) != Vector4(1.0f, 2.0f, 3.0f, 4.0f));
     EXPECT_EQ(VectorBool4(false, true, true, true), Vector4(1.0f, 3.0f, 2.0f, 1.0f) != Vector4(1.0f, 2.0f, 3.0f, 4.0f));
@@ -254,7 +300,31 @@ TEST(MathTest, Vector4_VectorNotEqual)
 
 //////////////////////////////////////////////////////////////////////////
 
-TEST(MathTest, Vector4_VectorSwizzle)
+TEST(MathTest, Vector4_Swizzle_Variable)
+{
+    const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);
+
+    for (Int32 x = 0; x < 4; ++x)
+    {
+        for (Int32 y = 0; y < 4; ++y)
+        {
+            for (Int32 z = 0; z < 4; ++z)
+            {
+                for (Int32 w = 0; w < 4; ++w)
+                {
+                    const Vector4 s = v.Swizzle(x, y, z, w);
+                    EXPECT_EQ(v[x], s.x);
+                    EXPECT_EQ(v[y], s.y);
+                    EXPECT_EQ(v[z], s.z);
+                    EXPECT_EQ(v[w], s.w);
+                }
+            }
+        }
+    }
+}
+
+/*
+TEST(MathTest, Vector4_Swizzle_Immediate)
 {
     const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);
 
@@ -538,6 +608,7 @@ TEST(MathTest, Vector4_VectorSwizzle)
         EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<3, 3, 3, 3>())).All());
     }
 }
+*/
 
 TEST(MathTest, Vector4_ChangeSign)
 {

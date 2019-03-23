@@ -3,6 +3,7 @@
 #include "Rendering/ShadingData.h"
 #include "Rendering/Context.h"
 #include "Traversal/TraversalContext.h"
+#include "Math/Geometry.h"
 
 namespace rt {
 
@@ -118,7 +119,7 @@ void SphereSceneObject::EvaluateShadingData_Single(const HitPoint& hitPoint, Sha
 
     outShadingData.material = GetDefaultMaterial();
 
-    outShadingData.texCoord = Vector4::Zero(); // TODO
+    outShadingData.texCoord = CartesianToSphericalCoordinates(-outShadingData.frame.GetTranslation());
     outShadingData.frame[2] = outShadingData.frame.GetTranslation() * mInvRadius;
 
     // equivalent of: Vector4::Cross3(outShadingData.normal, VECTOR_Y);

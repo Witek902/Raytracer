@@ -72,11 +72,11 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
     Format format = Format::Unknown;
     if (infoHeader.biBitCount == 24)
     {
-        format = Format::B8G8R8_Uint;
+        format = Format::B8G8R8_UNorm;
     }
     else if (infoHeader.biBitCount == 8)
     {
-        format = Format::R8_Uint;
+        format = Format::R8_UNorm;
     }
     else
     {
@@ -131,7 +131,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
     std::vector<Uint8> tmpData(dataSize);
     const Uint8* dataPtr = nullptr;
 
-    if (mFormat == Format::B8G8R8A8_Uint)
+    if (mFormat == Format::B8G8R8A8_UNorm)
     {
         const Uint8* rawData = reinterpret_cast<const Uint8*>(mData);
 
@@ -150,7 +150,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
 
         dataPtr = tmpData.data();
     }
-    else if (mFormat == Format::B8G8R8_Uint)
+    else if (mFormat == Format::B8G8R8_UNorm)
     {
         dataPtr = reinterpret_cast<const Uint8*>(mData);
     }

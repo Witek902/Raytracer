@@ -1,11 +1,10 @@
 #include "PCH.h"
 
 #include "Mesh.h"
-#include "Material/Material.h"
-
 #include "BVH/BVHBuilder.h"
 
 #include "Rendering/Context.h"
+#include "Rendering/ShadingData.h"
 #include "Traversal/TraversalContext.h"
 
 #include "Math/Geometry.h"
@@ -290,27 +289,6 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     outData.frame[2] = Vector4::MulAndAdd(coeff2, normal2, outData.frame[2]);
     outData.frame[2] = Vector4::MulAndAdd(coeff0, normal0, outData.frame[2]);
     outData.frame[2].Normalize3();
-
-    if (outData.material->normalMap)
-    {
-        Vector4 localNormal = outData.material->GetNormalVector(outData.texCoord);
-
-        // transform normal vector
-        {
-            Vector4 newNormal = outData.frame[0] * localNormal.x;
-            newNormal = Vector4::MulAndAdd(outData.frame[1], localNormal.y, newNormal);
-            newNormal = Vector4::MulAndAdd(outData.frame[2], localNormal.z, newNormal);
-            outData.frame[2] = newNormal.FastNormalized3();
-        }
-    }
-
-    // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
-    // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
-    // and normal mapping is disabled
-    outData.frame[0] = Vector4::Orthogonalize(outData.frame[0], outData.frame[2]).Normalized3();
-
-    // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
-    outData.frame[1] = Vector4::Cross3(outData.frame[0], outData.frame[2]);
 }
 
 const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const

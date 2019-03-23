@@ -62,7 +62,7 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32_Float))
         return false;
 
-    if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_Uint))
+    if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm))
         return false;
 
     mPassesPerPixel.resize(width * height);

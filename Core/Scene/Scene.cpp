@@ -4,6 +4,7 @@
 #include "Object/SceneObject_Light.h"
 #include "Rendering/ShadingData.h"
 #include "BVH/BVHBuilder.h"
+#include "Material/Material.h"
 
 #include "Traversal/Traversal_Single.h"
 #include "Traversal/Traversal_Packet.h"
@@ -263,6 +264,28 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
+
+    // apply normal mapping
+    if (outShadingData.material->normalMap)
+    {
+        Vector4 localNormal = outShadingData.material->GetNormalVector(outShadingData.texCoord);
+
+        // transform normal vector
+        {
+            Vector4 newNormal = outShadingData.frame[0] * localNormal.x;
+            newNormal = Vector4::MulAndAdd(outShadingData.frame[1], localNormal.y, newNormal);
+            newNormal = Vector4::MulAndAdd(outShadingData.frame[2], localNormal.z, newNormal);
+            outShadingData.frame[2] = newNormal.FastNormalized3();
+        }
+    }
+
+    // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
+    // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
+    // and normal mapping is disabled
+    outShadingData.frame[0] = Vector4::Orthogonalize(outShadingData.frame[0], outShadingData.frame[2]).Normalized3();
+
+    // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
+    outShadingData.frame[1] = Vector4::Cross3(outShadingData.frame[0], outShadingData.frame[2]);
 
     // TODO uncomment this after ExtractShadingData() is not called for light objects
     //RT_ASSERT(Abs(1.0f - outShadingData.frame[0].SqrLength3()) < 0.001f);

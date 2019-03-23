@@ -17,6 +17,9 @@ class ITexture
 public:
     RAYLIB_API virtual ~ITexture();
 
+    // get human-readable description
+    virtual const char* GetName() const = 0;
+
     // evaluate texture color at given coordinates
     virtual const math::Vector4 Evaluate(math::Vector4 coords, const TextureEvaluator& evaluator) const = 0;
 };

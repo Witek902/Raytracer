@@ -340,6 +340,7 @@
     <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp" />
     <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Matrix4.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />

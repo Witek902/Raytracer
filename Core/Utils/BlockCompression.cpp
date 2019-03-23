@@ -79,7 +79,7 @@ const Vector4 DecodeBC1(const Uint8* data, Uint32 x, Uint32 y, const Uint32 widt
 namespace helper
 {
 
-RT_FORCE_INLINE static float DecodeBC_Grayscale(const Uint8* blockData, const Uint32 x, const Uint32 y)
+static float DecodeBC_Grayscale(const Uint8* blockData, const Uint32 x, const Uint32 y)
 {
     const float intColor0 = blockData[0];
     const float intColor1 = blockData[1];

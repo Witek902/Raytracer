@@ -68,7 +68,7 @@ bool DemoWindow::Initialize()
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
-    mImage.Init(gOptions.windowWidth, gOptions.windowHeight, Bitmap::Format::B8G8R8A8_Uint);
+    mImage.Init(gOptions.windowWidth, gOptions.windowHeight, Bitmap::Format::B8G8R8A8_UNorm);
 
     mCamera.mDOF.aperture = 0.0f;
 
@@ -182,7 +182,7 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
     if (mViewport)
     {
         mViewport->Resize(width, height);
-        mImage.Init(width, height, Bitmap::Format::B8G8R8A8_Uint);
+        mImage.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm);
     }
 
     UpdateCamera();
