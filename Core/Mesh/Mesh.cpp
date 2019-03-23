@@ -291,7 +291,7 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
     outData.frame[2].Normalize3();
 }
 
-const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
+const Vector4 ShadingData::LocalToWorld(const Vector4& localCoords) const
 {
     Vector4 result = frame[0] * localCoords.x;
     result = Vector4::MulAndAdd(frame[1], localCoords.y, result);
@@ -299,7 +299,7 @@ const Vector4 ShadingData::LocalToWorld(const Vector4 localCoords) const
     return result;
 }
 
-const Vector4 ShadingData::WorldToLocal(const Vector4 worldCoords) const
+const Vector4 ShadingData::WorldToLocal(const Vector4& worldCoords) const
 {
     Vector4 worldToLocalX = frame[0];
     Vector4 worldToLocalY = frame[1];

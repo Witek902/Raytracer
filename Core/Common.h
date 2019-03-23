@@ -22,9 +22,6 @@
 #endif // _MSC_VER
 
 
-// TODO assertions should be disabled in "Final" build
-#define RT_ENABLE_ASSERTS
-
 // TODO #define RT_USE_SSE
 
 #define RT_USE_AVX
@@ -93,7 +90,7 @@
 #endif // defined(WIN32)
 
 
-#ifdef RT_ENABLE_ASSERTS
+#ifndef RT_CONFIGURATION_FINAL
 #define RT_ASSERT(expression, ...) \
 do { \
     if (!(expression)) \
@@ -103,7 +100,7 @@ do { \
 } while (0)
 #else
 #define RT_ASSERT(expression, ...)
-#endif // RT_ENABLE_ASSERTS
+#endif // RT_CONFIGURATION_FINAL
 
 
 #if defined(__LINUX__) | defined(__linux__)

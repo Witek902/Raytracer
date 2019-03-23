@@ -12,7 +12,7 @@ enum class TextureFilterMode : Uint8
 
 struct TextureEvaluator
 {
-    TextureFilterMode filter = TextureFilterMode::Bilinear;
+    TextureFilterMode filter = TextureFilterMode::NearestNeighbor;
     bool forceLinearSpace = false;
 };
 

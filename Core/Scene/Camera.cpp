@@ -75,12 +75,12 @@ const Matrix4 Camera::SampleTransform(const float time) const
     //return Transform(position, rotation);
 }
 
-RT_FORCE_INLINE const Vector4 UnipolarToBipolar(const Vector4 x)
+RT_FORCE_INLINE const Vector4 UnipolarToBipolar(const Vector4& x)
 {
     return Vector4::MulAndSub(x, 2.0f, VECTOR_ONE);
 }
 
-Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
+const Ray Camera::GenerateRay(const Vector4& coords, RenderingContext& context) const
 {
     const Matrix4 transform = SampleTransform(context.time);
     Vector4 offsetedCoords = UnipolarToBipolar(coords);
@@ -118,7 +118,7 @@ Ray Camera::GenerateRay(const Vector4 coords, RenderingContext& context) const
     return Ray(origin, direction);
 }
 
-bool Camera::WorldToFilm(const Vector4 worldPosition, Vector4& outFilmCoords) const
+bool Camera::WorldToFilm(const Vector4& worldPosition, Vector4& outFilmCoords) const
 {
     // TODO motion blur
     const Vector4 cameraSpacePosition = mWorldToScreen.TransformPoint(worldPosition);
@@ -138,7 +138,7 @@ bool Camera::WorldToFilm(const Vector4 worldPosition, Vector4& outFilmCoords) co
     return false;
 }
 
-float Camera::PdfW(const math::Vector4 direction) const
+float Camera::PdfW(const math::Vector4& direction) const
 {
     const float cosAtCamera = Vector4::Dot3(GetLocalToWorld()[2], direction);
 
@@ -152,7 +152,7 @@ float Camera::PdfW(const math::Vector4 direction) const
 }
 
 
-Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& context) const
+const Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingContext& context) const
 {
     const Matrix4 transform = SampleTransform(context.time);
 

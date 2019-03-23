@@ -305,10 +305,10 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 
 void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const
 {
-    RT_ASSERT(coords.x < (Int32)mWidth);
-    RT_ASSERT(coords.y < (Int32)mHeight);
-    RT_ASSERT(coords.z < (Int32)mWidth);
-    RT_ASSERT(coords.w < (Int32)mHeight);
+    RT_ASSERT(coords.x >= 0 && coords.x < (Int32)mWidth);
+    RT_ASSERT(coords.y >= 0 && coords.y < (Int32)mHeight);
+    RT_ASSERT(coords.z >= 0 && coords.z < (Int32)mWidth);
+    RT_ASSERT(coords.w >= 0 && coords.w < (Int32)mHeight);
 
     // calculate offsets in pixels array for each corner
     const VectorInt4 offsets = coords.Swizzle<1,1,3,3>() * (Int32)mWidth + coords.Swizzle<0,2,0,2>();
@@ -466,7 +466,7 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     outColors[3] = color3;
 }
 
-const Vector4 Bitmap::Evaluate(Vector4 coords, const TextureEvaluator& evaluator) const
+const Vector4 Bitmap::Evaluate(const Vector4& coords, const TextureEvaluator& evaluator) const
 {
     // wrap to 0..1 range
     const Vector4 warpedCoords = Vector4::Mod1(coords);

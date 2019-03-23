@@ -134,7 +134,7 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE const Vector8 HorizontalMax() const;
 
     // Compute fmodf(x, 1.0f)
-    RT_FORCE_INLINE static const Vector8 Fmod1(const Vector8 x);
+    RT_FORCE_INLINE static const Vector8 Fmod1(const Vector8& x);
 
     // transpose 8x8 matrix
     RT_FORCE_INLINE static void Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, Vector8& v4, Vector8& v5, Vector8& v6, Vector8& v7);

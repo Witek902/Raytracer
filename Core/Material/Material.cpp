@@ -118,7 +118,7 @@ void Material::Compile()
     baseColor.baseValue = Vector4::Max(Vector4::Zero(), Vector4::Min(VECTOR_ONE, baseColor.baseValue));
 }
 
-const Vector4 Material::GetNormalVector(const Vector4 uv) const
+const Vector4 Material::GetNormalVector(const Vector4& uv) const
 {
     Vector4 normal(0.0f, 0.0f, 1.0f, 0.0f);
 
@@ -142,7 +142,7 @@ const Vector4 Material::GetNormalVector(const Vector4 uv) const
     return normal;
 }
 
-bool Material::GetMaskValue(const Vector4 uv) const
+bool Material::GetMaskValue(const Vector4& uv) const
 {
     if (maskMap)
     {

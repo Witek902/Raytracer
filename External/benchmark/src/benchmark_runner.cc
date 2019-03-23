@@ -255,7 +255,7 @@ class BenchmarkRunner {
 
     // So what seems to be the sufficiently-large iteration count? Round up.
     const size_t max_next_iters =
-        0.5 + std::max(multiplier * i.iters, i.iters + 1.0);
+        static_cast<size_t>(0.5 + std::max(multiplier * i.iters, i.iters + 1.0));
     // But we do have *some* sanity limits though..
     const size_t next_iters = std::min(max_next_iters, kMaxIterations);
 

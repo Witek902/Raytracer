@@ -6,7 +6,7 @@
 namespace rt {
 namespace math {
 
-const Vector2x8 SamplingHelpers::GetCircle_Simd8(const Vector2x8 u)
+const Vector2x8 SamplingHelpers::GetCircle_Simd8(const Vector2x8& u)
 {
     // angle (uniform distribution)
     const Vector8 theta = u.x * (2.0f * RT_PI);
@@ -56,7 +56,7 @@ const Vector4 SamplingHelpers::GetHexagon(const Float3 u)
     return Vector4(u.x * a.x + u.y * b.x, u.x * a.y + u.y * b.y, 0.0f, 0.0f);
 }
 
-const Vector2x8 SamplingHelpers::GetHexagon_Simd8(const Vector2x8 u1, const Vector8 u2)
+const Vector2x8 SamplingHelpers::GetHexagon_Simd8(const Vector2x8& u1, const Vector8& u2)
 {
     // TODO uint vector
     const VectorInt8 i = VectorInt8::Convert(3.0f * u2);
@@ -71,7 +71,7 @@ const Vector2x8 SamplingHelpers::GetHexagon_Simd8(const Vector2x8 u1, const Vect
 }
 
 /*
-const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4 u)
+const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4& u)
 {
     RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
 
@@ -95,7 +95,7 @@ const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4 u
     return Vector4(sinCosAlpha.y * base.x - sinCosAlpha.x * base.y, sinCosAlpha.y * base.y + sinCosAlpha.x * base.x, 0.0f, 0.0f);
 }
 
-const Vector2x8 SamplingHelpers::GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8 u)
+const Vector2x8 SamplingHelpers::GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8& u)
 {
     RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
 

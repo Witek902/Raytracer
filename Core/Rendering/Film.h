@@ -26,7 +26,7 @@ public:
         return mHeight;
     }
 
-    void AccumulateColor(const math::Vector4 pos, const math::Vector4 sampleColor, math::Random& randomGenerator);
+    void AccumulateColor(const math::Vector4& pos, const math::Vector4& sampleColor, math::Random& randomGenerator);
     void AccumulateColor(const Uint32 x, const Uint32 y, const math::Vector4& sampleColor);
 
 private:

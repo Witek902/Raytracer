@@ -265,6 +265,8 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
 
+    RT_ASSERT(outShadingData.texCoord.IsValid());
+
     // apply normal mapping
     if (outShadingData.material->normalMap)
     {

@@ -66,16 +66,16 @@ public:
 
     // Generate ray for the camera for a given time
     // x and y coordinates should be in [0.0f, 1.0f) range.
-    RAYLIB_API RT_FORCE_NOINLINE math::Ray GenerateRay(const math::Vector4 coords, RenderingContext& context) const;
-    RT_FORCE_NOINLINE math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2x8& coords, RenderingContext& context) const;
+    RAYLIB_API RT_FORCE_NOINLINE const math::Ray GenerateRay(const math::Vector4& coords, RenderingContext& context) const;
+    RT_FORCE_NOINLINE const math::Ray_Simd8 GenerateRay_Simd8(const math::Vector2x8& coords, RenderingContext& context) const;
 
     RT_FORCE_INLINE const math::Vector4 GenerateBokeh(const math::Float3 sample) const;
     RT_FORCE_INLINE const math::Vector2x8 GenerateBokeh_Simd8(RenderingContext& context) const;
 
     // Convert world-space coordinates to film-space coordinates including camera projection (0...1 range)
-    bool WorldToFilm(const math::Vector4 worldPosition, math::Vector4& outFilmCoords) const;
+    bool WorldToFilm(const math::Vector4& worldPosition, math::Vector4& outFilmCoords) const;
 
-    float PdfW(const math::Vector4 direction) const;
+    float PdfW(const math::Vector4& direction) const;
 
     // camera placement
     math::Transform mTransform;

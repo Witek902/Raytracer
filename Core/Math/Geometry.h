@@ -12,7 +12,7 @@ namespace rt {
 namespace math {
 
 // convert cartesian (x,y,z) to spherical coordinates (phi,theta)
-const Vector4 CartesianToSphericalCoordinates(const Vector4 input);
+const Vector4 CartesianToSphericalCoordinates(const Vector4& input);
 
 RT_FORCE_INLINE constexpr float UniformHemispherePdf()
 {

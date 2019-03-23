@@ -36,7 +36,7 @@ private:
 
     size_t mDimensions;
     std::vector<Uint64> mStarts;
-    std::vector<Uint64> mBase;
+    std::vector<Uint32> mBase;
     std::vector<std::vector<double>> rnd;
     std::vector<std::vector<Uint64>> digit;
     std::vector<std::vector<Uint64>> mPowerBuffer;

@@ -18,18 +18,18 @@ public:
 
     // get point on a circle (radius = 1.0)
     RAYLIB_API static const Vector4 GetCircle(const Float2 u);
-    RAYLIB_API static const Vector2x8 GetCircle_Simd8(const Vector2x8 u);
+    RAYLIB_API static const Vector2x8 GetCircle_Simd8(const Vector2x8& u);
 
     // get point on a regular hexagon
     // Note: 3 sample components are required
     RAYLIB_API static const Vector4 GetHexagon(const Float3 u);
-    RAYLIB_API static const Vector2x8 GetHexagon_Simd8(const Vector2x8 u1, const Vector8 u2);
+    RAYLIB_API static const Vector2x8 GetHexagon_Simd8(const Vector2x8& u1, const Vector8& u2);
 
     // TODO
     /*
     // get point on a regular polygon
-    RAYLIB_API static const Vector4 GetRegularPolygon(const Uint32 n, const Vector4 u);
-    RAYLIB_API static const Vector2x8 GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8 u);
+    RAYLIB_API static const Vector4 GetRegularPolygon(const Uint32 n, const Vector4& u);
+    RAYLIB_API static const Vector2x8 GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8& u);
     */
 
     // get point on a sphere (radius = 1.0)

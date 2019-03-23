@@ -138,7 +138,7 @@ void HaltonSequence::InitPermutation()
 void HaltonSequence::InitPrimes()
 {
     Int64 n = mDimensions;
-    Uint64 prime = 1;
+    Uint32 prime = 1;
     size_t m = 0;
     do
     {

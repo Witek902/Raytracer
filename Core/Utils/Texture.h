@@ -21,7 +21,7 @@ public:
     virtual const char* GetName() const = 0;
 
     // evaluate texture color at given coordinates
-    virtual const math::Vector4 Evaluate(math::Vector4 coords, const TextureEvaluator& evaluator) const = 0;
+    virtual const math::Vector4 Evaluate(const math::Vector4& coords, const TextureEvaluator& evaluator) const = 0;
 };
 
 using TexturePtr = std::shared_ptr<ITexture>;

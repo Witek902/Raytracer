@@ -70,7 +70,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4& operator/= (float b);
 
     // modulo 1
-    RT_FORCE_INLINE static const Vector4 Mod1(const Vector4 x);
+    RT_FORCE_INLINE static const Vector4 Mod1(const Vector4& x);
 
     RT_FORCE_INLINE const VectorBool4 operator == (const Vector4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator < (const Vector4& b) const;

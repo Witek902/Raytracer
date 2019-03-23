@@ -326,7 +326,7 @@ const Vector8 Vector8::HorizontalMax() const
     return temp;
 }
 
-const Vector8 Vector8::Fmod1(const Vector8 x)
+const Vector8 Vector8::Fmod1(const Vector8& x)
 {
     return _mm256_sub_ps(x, _mm256_round_ps(x, _MM_FROUND_TO_ZERO));
 }

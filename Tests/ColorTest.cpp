@@ -17,7 +17,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-static void TestColor(const math::Vector4 originalRGB)
+static void TestColor(const math::Vector4& originalRGB)
 {
     math::Random random;
     const size_t maxIterations = 20;

@@ -23,6 +23,9 @@ Film::Film(Bitmap& sum, Bitmap* secondarySum)
 
 void Film::AccumulateColor(const Uint32 x, const Uint32 y, const Vector4& sampleColor)
 {
+    RT_ASSERT(x < mSum.GetWidth());
+    RT_ASSERT(y < mSum.GetHeight());
+
     const size_t pixelIndex = mWidth * y + x;
 
     mSum.GetDataAs<Float3>()[pixelIndex] += sampleColor.ToFloat3();
@@ -33,7 +36,7 @@ void Film::AccumulateColor(const Uint32 x, const Uint32 y, const Vector4& sample
     }
 }
 
-void Film::AccumulateColor(const Vector4 pos, const Vector4 sampleColor, Random& randomGenerator)
+void Film::AccumulateColor(const Vector4& pos, const Vector4& sampleColor, Random& randomGenerator)
 {
     const Vector4 filmCoords = pos * mFilmSize + Vector4(0.0f, 0.5f);
     VectorInt4 intFilmCoords = VectorInt4::Convert(filmCoords);

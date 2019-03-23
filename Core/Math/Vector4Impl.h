@@ -402,7 +402,7 @@ Vector4& Vector4::operator/= (float b)
     return *this;
 }
 
-const Vector4 Vector4::Mod1(const Vector4 x)
+const Vector4 Vector4::Mod1(const Vector4& x)
 {
     return x - Vector4::Floor(x);
 }

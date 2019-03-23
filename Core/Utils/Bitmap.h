@@ -93,7 +93,7 @@ public:
     void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;
 
     // evaluate the bitmap color (including filtering and coordinates wrapping)
-    virtual const math::Vector4 Evaluate(math::Vector4 coords, const TextureEvaluator& evaluator) const override;
+    virtual const math::Vector4 Evaluate(const math::Vector4& coords, const TextureEvaluator& evaluator) const override;
 
     // fill with zeros
     RAYLIB_API void Clear();

@@ -11,7 +11,7 @@ RT_GLOBAL_CONST math::Vector4 XYZtoRGB_g = { -0.969256f,  1.875991f,  0.041556f,
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_b = {  0.055648f, -0.204043f,  1.057311f, 0.0f };
 
 // Convert CIE XYZ to linear RGB (Rec. BT.709)
-RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4 xyzColor)
+RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4& xyzColor)
 {
     math::Vector4 r = XYZtoRGB_r * xyzColor;
     math::Vector4 g = XYZtoRGB_g * xyzColor;
@@ -23,7 +23,7 @@ RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4 xyzColor)
 }
 
 // Convert linear RGB (Rec. BT.709) to CIE XYZ
-RT_FORCE_INLINE math::Vector4 ConvertRGBtoXYZ(const math::Vector4 rgbColor)
+RT_FORCE_INLINE math::Vector4 ConvertRGBtoXYZ(const math::Vector4& rgbColor)
 {
     const float mapping[3][3] =
     {

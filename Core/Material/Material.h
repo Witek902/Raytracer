@@ -37,7 +37,7 @@ struct MaterialParameter
         : baseValue(baseValue)
     {}
 
-    RT_FORCE_INLINE const T Evaluate(const math::Vector4 uv) const
+    RT_FORCE_INLINE const T Evaluate(const math::Vector4& uv) const
     {
         T value = baseValue;
 
@@ -112,8 +112,8 @@ public:
 
     RAYLIB_API void Compile();
 
-    const math::Vector4 GetNormalVector(const math::Vector4 uv) const;
-    bool GetMaskValue(const math::Vector4 uv) const;
+    const math::Vector4 GetNormalVector(const math::Vector4& uv) const;
+    bool GetMaskValue(const math::Vector4& uv) const;
 
     void EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const;
 
