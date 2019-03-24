@@ -1,0 +1,90 @@
+{
+    "materials":
+    [
+        {
+            "name": "ground",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "TEXTURES/default.bmp",
+            "metalness": 0.0,
+            "roughness": 0.5
+        },
+
+        {
+            "name": "wall",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9]
+        },
+
+        {
+            "name": "plastic_0",
+            "bsdf": "plastic",
+            "baseColor": [0.6, 0.1, 0.1],
+            "metalness": 0.0,
+            "roughness": 0.0
+        },
+        {
+            "name": "aluminium_0",
+            "bsdf": "metal",
+            "baseColor": [1.0, 1.0, 1.0],
+            "IoR": 1.0972,
+            "K": 6.7942,
+            "metalness": 1.0,
+            "roughness": 0.0
+        },
+        {
+            "name": "gold",
+            "bsdf": "metal",
+            "baseColor": [1.0, 0.6, 0.1],
+            "IoR": 1.0972,
+            "K": 6.7942
+        },
+        {
+            "name": "glass",
+            "bsdf": "dielectric",
+            "baseColor": [1.0, 1.0, 1.0]
+        }
+    ],
+    "objects":
+    [
+        {
+            "type": "plane",
+            "size": [50.0, 50.0],
+            "transform": { "translation": [0.0, 0.0, 0.0] },
+            "textureScale" : [0.4, 0.4],
+            "material": "ground"
+        },
+        {
+            "type": "sphere",
+            "radius": 2.0,
+            "transform": { "translation": [-1.5, 2.0, 0.0] },
+            "material": "glass"
+        },
+        {
+            "type": "box",
+            "size": [6.0, 5.0, 1.0],
+            "transform": { "translation": [-3.0, 5.0, -5.0] },
+            "material": "gold"
+        }
+    ],
+    "lights":
+    [
+        {
+            "type": "area",
+            "color": [150.0, 150.0, 150.0],
+            "position": [3.0, 5.0, 3.0],
+            "edge1": [-0.5, 0.0, 0.5],
+            "edge0": [-0.5, 0.5, -0.5],
+            "radius": 1.0
+        }
+    ],
+    "camera":
+    {
+        "transform":
+        {
+            "translation": [-13.87, 8.19, 9.19],
+            "orientation": [0.35, 2.44, 0.0]
+        },
+        "fieldOfView": 40.0
+    }
+}

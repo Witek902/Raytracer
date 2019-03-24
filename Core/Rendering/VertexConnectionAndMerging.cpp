@@ -56,7 +56,7 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mCameraConnectingWeight = Vector4(1.0f);
     mVertexMergingWeight = Vector4(1.0f);
 
-    mMaxPathLength = 6;
+    mMaxPathLength = 7;
     mInitialMergingRadius = mCurrentMergingRadius = 0.05f;
     mMinMergingRadius = 0.005f;
     mMergingRadiusMultiplier = 0.98f;
