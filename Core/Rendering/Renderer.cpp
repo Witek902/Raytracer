@@ -20,7 +20,7 @@ RendererContextPtr IRenderer::CreateContext() const
     return nullptr;
 }
 
-void IRenderer::PreRender(const Film&)
+void IRenderer::PreRender(Uint32, const Film&)
 {
 }
 

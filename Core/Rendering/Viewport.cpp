@@ -204,7 +204,7 @@ bool Viewport::Render(const Camera& camera)
 
         {
             const Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
-            mRenderer->PreRender(film);
+            mRenderer->PreRender(mProgress.passesFinished, film);
         }
 
         const auto preRenderCallback = [&](Uint32 id, Uint32 threadID)

@@ -57,9 +57,8 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mVertexMergingWeight = Vector4(1.0f);
 
     mMaxPathLength = 6;
-
-    mMinMergingRadius = 0.01f;
-    mMergingRadius = 0.01f;
+    mInitialMergingRadius = mCurrentMergingRadius = 0.05f;
+    mMinMergingRadius = 0.005f;
     mMergingRadiusMultiplier = 0.98f;
 }
 
@@ -75,18 +74,30 @@ RendererContextPtr VertexConnectionAndMerging::CreateContext() const
     return std::make_unique<BidirectionalPathTracerContext>();
 }
 
-void VertexConnectionAndMerging::PreRender(const Film& film)
+void VertexConnectionAndMerging::PreRender(Uint32 passNumber, const Film& film)
 {
+    RT_ASSERT(mInitialMergingRadius >= mMinMergingRadius);
+    RT_ASSERT(mMergingRadiusMultiplier > 0.0f);
+    RT_ASSERT(mMergingRadiusMultiplier < 1.0f);
+    RT_ASSERT(mMaxPathLength > 0);
+
     mLightPathsCount = film.GetHeight() * film.GetWidth();
 
-    mMergingRadius *= mMergingRadiusMultiplier;
-    mMergingRadius = Max(mMergingRadius, mMinMergingRadius);
+    if (passNumber == 0)
+    {
+        mCurrentMergingRadius = mInitialMergingRadius;
+    }
+    else
+    {
+        mCurrentMergingRadius *= mMergingRadiusMultiplier;
+        mCurrentMergingRadius = Max(mCurrentMergingRadius, mMinMergingRadius);
+    }
 
     // Factor used to normalize vertex merging contribution.
     // We divide the summed up energy by disk radius and number of light paths
-    mVertexMergingNormalizationFactor = 1.0f / (Sqr(mMergingRadius) * RT_PI * mLightPathsCount);
+    mVertexMergingNormalizationFactor = 1.0f / (Sqr(mCurrentMergingRadius) * RT_PI * mLightPathsCount);
 
-    const float etaVCM = RT_PI * Sqr(mMergingRadius) * mLightPathsCount;
+    const float etaVCM = RT_PI * Sqr(mCurrentMergingRadius) * mLightPathsCount;
     mMisVertexMergingWeightFactor = mUseVertexMerging ? Mis(etaVCM) : 0.0f;
     mMisVertexConnectionWeightFactor = mUseVertexConnection ?  Mis(1.f / etaVCM) : 0.0f;
 }
@@ -141,7 +152,7 @@ void VertexConnectionAndMerging::PreRenderGlobal()
     // TODO make it multithreaded
     if (mUseVertexMerging)
     {
-        mHashGrid.Build(mLightVertices, mMergingRadius);
+        mHashGrid.Build(mLightVertices, mCurrentMergingRadius);
     }
 }
 

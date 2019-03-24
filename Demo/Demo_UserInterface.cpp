@@ -352,13 +352,23 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     else if (mRendererName == "VCM")
     {
         rt::VertexConnectionAndMerging* renderer = (VertexConnectionAndMerging*)mRenderer.get();
-        resetFrame |= ImGui::Checkbox("Use vertex connection", &renderer->mUseVertexConnection);
-        resetFrame |= ImGui::Checkbox("Use vertex merging", &renderer->mUseVertexMerging);
-        resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-        resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-        resetFrame |= ImGui::ColorEdit3("Vertex connecting weight", &renderer->mVertexConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-        resetFrame |= ImGui::ColorEdit3("Vertex merging weight", &renderer->mVertexMergingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
-        resetFrame |= ImGui::ColorEdit3("Camera connecting weight", &renderer->mCameraConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        resetFrame |= ImGui::Checkbox("Vertex connection", &renderer->mUseVertexConnection);
+        ImGui::SameLine();
+        resetFrame |= ImGui::Checkbox("Vertex merging", &renderer->mUseVertexMerging);
+        resetFrame |= ImGui::SliderInt("Max path length", (Int32*)&renderer->mMaxPathLength, 1, 20);
+        resetFrame |= ImGui::SliderFloat("Initial merging radius", &renderer->mInitialMergingRadius, renderer->mMinMergingRadius, 10.0f, "%.4f", 10.0f);
+        resetFrame |= ImGui::SliderFloat("Min merging radius", &renderer->mMinMergingRadius, 0.0001f, renderer->mInitialMergingRadius, "%.4f", 10.0f);
+        resetFrame |= ImGui::SliderFloat("Merging radius multiplier", &renderer->mMergingRadiusMultiplier, 0.5f, 0.9999f);
+
+        if (ImGui::TreeNode("Debug coloring"))
+        {
+            resetFrame |= ImGui::ColorEdit3("Light sampling weight", &renderer->mLightSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            resetFrame |= ImGui::ColorEdit3("BSDF sampling weight", &renderer->mBSDFSamplingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            resetFrame |= ImGui::ColorEdit3("Vertex connecting weight", &renderer->mVertexConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            resetFrame |= ImGui::ColorEdit3("Vertex merging weight", &renderer->mVertexMergingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            resetFrame |= ImGui::ColorEdit3("Camera connecting weight", &renderer->mCameraConnectingWeight.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            ImGui::TreePop(); // Transform
+        }
     }
 
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);

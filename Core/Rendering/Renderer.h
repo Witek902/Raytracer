@@ -40,8 +40,10 @@ public:
     // TODO clean this up...
     // idea: each renderer should report what passes it requires, etc.
 
-    // optional rendering pre-pass, called once for every thread
-    virtual void PreRender(const Film& film);
+    // optional rendering pre-pass, called once per frame
+    virtual void PreRender(Uint32 passNumber, const Film& film);
+
+    // optional rendering pre-pass, called once per frame for every thread
     virtual void PreRender(RenderingContext& ctx);
 
     // optional rendering pre-pass, called for every pixel on screen

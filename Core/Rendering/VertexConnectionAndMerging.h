@@ -26,7 +26,7 @@ public:
     virtual const char* GetName() const override;
     virtual RendererContextPtr CreateContext() const;
 
-    virtual void PreRender(const Film& film) override;
+    virtual void PreRender(Uint32 passNumber, const Film& film) override;
     virtual void PreRender(RenderingContext& ctx) override;
     virtual void PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const override;
     virtual void PreRenderGlobal(RenderingContext& ctx) override;
@@ -39,6 +39,11 @@ public:
     math::Vector4 mVertexConnectingWeight;
     math::Vector4 mVertexMergingWeight;
     math::Vector4 mCameraConnectingWeight;
+
+    Uint32 mMaxPathLength;
+    float mInitialMergingRadius;
+    float mMinMergingRadius;
+    float mMergingRadiusMultiplier;
 
     bool mUseVertexConnection = true;
     bool mUseVertexMerging = true;
@@ -115,14 +120,11 @@ private:
     // connect a light path to camera directly and splat the contribution onto film
     void ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const;
 
-    Uint32 mMaxPathLength;
-
     Uint32 mLightPathsCount;
 
-    float mMergingRadius;
-    float mMinMergingRadius;
-    float mMergingRadiusMultiplier;
+    float mCurrentMergingRadius;
 
+    // computed based on merging radius and configuration
     float mVertexMergingNormalizationFactor;
     float mMisVertexMergingWeightFactor;
     float mMisVertexConnectionWeightFactor;
