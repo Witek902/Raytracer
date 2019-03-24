@@ -62,6 +62,7 @@ private:
     rt::RenderingParams mPreviewRenderingParams;
     rt::PostprocessParams mPostprocessParams;
     CameraSetup mCameraSetup;
+    float mCameraSpeed;
 
     Materials mMaterials;
     Meshes mMeshes;
@@ -79,7 +80,8 @@ private:
     double mRenderDeltaTime;
     double mTotalRenderTime;
 
-    float mCameraSpeed;
+    std::string mSceneFileName;
+    time_t mSceneFileModificationTime;
 
     std::string mRendererName;
     rt::RendererPtr mRenderer;
@@ -96,6 +98,7 @@ private:
 
     void InitializeUI();
 
+    void CheckSceneFileModificationTime();
     void SwitchScene(const std::string& sceneName);
 
     bool RenderUI();
@@ -121,6 +124,7 @@ private:
     virtual void OnResize(Uint32 width, Uint32 height) override;
     virtual void OnKeyPress(KeyCode key) override;
     virtual void OnCharTyped(const char* charUTF8) override;
+    virtual void OnFileDrop(const std::string& filePath) override;
 
     bool IsPreview() const;
     void ResetCounters();

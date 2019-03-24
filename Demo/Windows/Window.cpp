@@ -3,7 +3,6 @@
 
 #include "../Core/Utils/Logger.h"
 
-
 namespace {
 
 const DWORD gWindowedExStyle = WS_EX_WINDOWEDGE;
@@ -58,6 +57,36 @@ bool UTF8ToUTF16(const std::string& in, std::wstring& out)
         return false;
 
     out = buffer;
+    return true;
+}
+
+bool UTF16ToUTF8(const std::wstring& in, std::string& out)
+{
+    if (in.empty())
+    {
+        out.clear();
+        return true;
+    }
+
+    int numChars = ::WideCharToMultiByte(CP_UTF8, 0, in.c_str(), static_cast<int>(in.length()), nullptr, 0, 0, 0);
+    if (numChars <= 0)
+    {
+        // conversion failed
+        return false;
+    }
+
+    std::vector<char> buffer;
+    buffer.resize(numChars);
+
+    int wideChars = ::WideCharToMultiByte(CP_UTF8, 0, in.c_str(), static_cast<int>(in.length()), buffer.data(), numChars, 0, 0);
+    if (wideChars <= 0)
+    {
+        // conversion failed
+        return false;
+    }
+
+    buffer.push_back(0);
+    out = buffer.data();
     return true;
 }
 
@@ -198,6 +227,7 @@ bool Window::Open()
     if (!mInvisible)
         ShowWindow(mHandle, SW_SHOW);
 
+    DragAcceptFiles(mHandle, TRUE);
     UpdateWindow(mHandle);
     SetFocus(mHandle);
 
@@ -405,6 +435,29 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
             return 0;
         }
+
+        case WM_DROPFILES:
+        {
+            const Uint32 bufferSize = 1024;
+            wchar_t buffer[bufferSize] = { 0 };
+            HDROP hDropInfo = (HDROP)wParam;
+            if (0 != ::DragQueryFile(hDropInfo, 0, buffer, bufferSize))
+            {
+                std::string filePath;
+                if (UTF16ToUTF8(std::wstring(buffer), filePath))
+                {
+                    RT_LOG_INFO("File dropped: '%s'", filePath.c_str());
+                    window->OnFileDrop(filePath);
+                }
+                else
+                {
+                    RT_LOG_ERROR("Failed to convert UTF-16 file path to UTF-8 string");
+                }
+                return 0;
+            }
+
+            break;
+        }
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -487,6 +540,10 @@ void Window::OnMouseMove(int, int, int, int)
 }
 
 void Window::OnMouseUp(MouseButton)
+{
+}
+
+void Window::OnFileDrop(const std::string&)
 {
 }
 

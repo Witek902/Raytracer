@@ -77,6 +77,7 @@ public:
     virtual void OnMouseDown(MouseButton button, int x, int y);
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY);
     virtual void OnMouseUp(MouseButton button);
+    virtual void OnFileDrop(const std::string& filePath);
 
     bool DrawPixels(const void* sourceData);
 

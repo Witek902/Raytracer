@@ -11,6 +11,7 @@
     #define NOMINMAX
     #include <Windows.h>
     #include <windowsx.h>
+    #include <shellapi.h>
     #include <strsafe.h>
 #elif defined(__linux__) | defined(__LINUX__)
 #else

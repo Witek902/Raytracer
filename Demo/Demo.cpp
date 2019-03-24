@@ -12,6 +12,8 @@
 using namespace rt;
 using namespace math;
 
+#pragma optimize("", off)
+
 namespace helpers
 {
 extern bool LoadCustomScene(Scene& scene, rt::Camera& camera);
@@ -127,6 +129,23 @@ void DemoWindow::InitializeUI()
     imgui_sw::bind_imgui_painting();
 }
 
+void DemoWindow::CheckSceneFileModificationTime()
+{
+    if (!mSceneFileName.empty())
+    {
+        // read modification time
+        struct stat fileStat;
+        if (stat(mSceneFileName.c_str(), &fileStat) == 0)
+        {
+            if (mSceneFileModificationTime != fileStat.st_mtime)
+            {
+                RT_LOG_INFO("Scene file '%s' modified, reloading", mSceneFileName.c_str());
+                SwitchScene(mSceneFileName);
+            }
+        }
+    }
+}
+
 void DemoWindow::SwitchScene(const std::string& sceneName)
 {
     mScene = std::make_unique<Scene>();
@@ -135,11 +154,26 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
 
     if (!sceneName.empty())
     {
-        helpers::LoadScene(sceneName, *mScene, mCamera);
+        if (helpers::LoadScene(sceneName, *mScene, mCamera))
+        {
+            mSceneFileName = sceneName;
+   
+            // read modification time
+            struct stat fileStat;
+            if (stat(sceneName.c_str(), &fileStat) == 0)
+            {
+                mSceneFileModificationTime = fileStat.st_mtime;
+            }
+        }
+        else
+        {
+            mSceneFileName.clear();
+        }
     }
     else
     {
         helpers::LoadCustomScene(*mScene, mCamera);
+        mSceneFileName.clear();
     }
 
     mCameraSetup.position = mCamera.mTransform.GetTranslation();
@@ -318,6 +352,11 @@ void DemoWindow::OnCharTyped(const char* charUTF8)
     io.AddInputCharactersUTF8(charUTF8);
 }
 
+void DemoWindow::OnFileDrop(const std::string& filePath)
+{
+    SwitchScene(filePath);
+}
+
 bool DemoWindow::Loop()
 {
     Timer localTimer;
@@ -328,6 +367,8 @@ bool DemoWindow::Loop()
 
     while (!IsClosed())
     {
+        CheckSceneFileModificationTime();
+
         const rt::RenderingProgress& progress = mViewport->GetProgress();
         sprintf(buffer, "Raytracer Demo [%.1f%% converged, pass %u, dt: %.2f]", 100.0f * progress.converged, progress.passesFinished, 1000.0f * mDeltaTime);
         SetTitle(buffer);
