@@ -70,6 +70,30 @@ TEST(MathTest, Vector4_Splat)
     EXPECT_TRUE((Vector4(4.0f, 4.0f, 4.0f, 4.0f) == vecB.SplatW()).All());
 }
 
+TEST(MathTest, Vector4_Load_2xUint8_Norm)
+{
+    {
+        const Uint8 data[2] = { 0, 0 };
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_2xUint8_Norm(data)).All());
+    }
+    {
+        const Uint8 data[2] = { 0, 255 };
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 0.0f) == Vector4::Load_2xUint8_Norm(data)).All());
+    }
+    {
+        const Uint8 data[2] = { 255, 255 };
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 0.0f) == Vector4::Load_2xUint8_Norm(data)).All());
+    }
+    {
+        const Uint8 data[2] = { 255, 0 };
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_2xUint8_Norm(data)).All());
+    }
+    {
+        const Uint8 data[2] = { 35, 86 };
+        EXPECT_TRUE((Vector4(35.0f / 255.0f, 86.0f / 255.0f, 0.0f, 0.0f) == Vector4::Load_2xUint8_Norm(data)).All());
+    }
+}
+
 TEST(MathTest, Vector4_Load_4xUint8_Norm)
 {
     {
@@ -90,7 +114,31 @@ TEST(MathTest, Vector4_Load_4xUint8_Norm)
     }
 }
 
-TEST(MathTest, Vector4_Load_4xUint16_Norm)
+TEST(MathTest, Vector4_Load_2xUint16_Norm)
+{
+    {
+        const Uint16 data[2] = { 0, 0 };
+        EXPECT_TRUE((Vector4(0.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_2xUint16_Norm(data)).All());
+    }
+    {
+        const Uint16 data[2] = { 0, 65535 };
+        EXPECT_TRUE((Vector4(0.0f, 1.0f, 0.0f, 0.0f) == Vector4::Load_2xUint16_Norm(data)).All());
+    }
+    {
+        const Uint16 data[2] = { 65535, 0 };
+        EXPECT_TRUE((Vector4(1.0f, 0.0f, 0.0f, 0.0f) == Vector4::Load_2xUint16_Norm(data)).All());
+    }
+    {
+        const Uint16 data[2] = { 65535, 65535 };
+        EXPECT_TRUE((Vector4(1.0f, 1.0f, 0.0f, 0.0f) == Vector4::Load_2xUint16_Norm(data)).All());
+    }
+    {
+        const Uint16 data[2] = { 31351, 8135 };
+        EXPECT_TRUE((Vector4(31351.0f / 65535.0f, 8135.0f / 65535.0f, 0.0f, 0.0f) == Vector4::Load_2xUint16_Norm(data)).All());
+    }
+}
+
+TEST(MathTest, Vector4_Load_4xUint16)
 {
     {
         const Uint16 data[4] = { 0, 0, 0, 0 };

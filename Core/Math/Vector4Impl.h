@@ -96,10 +96,10 @@ const Vector4 Vector4::FromHalves(const Half* src)
 
 // Load & store ===================================================================================
 
-const Vector4 Vector4::Load_4xUint8(const Uint8* src)
+const Vector4 Vector4::Load_2xUint8_Norm(const Uint8* src)
 {
-    const Vector4 mask{ 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
-    const Vector4 LoadUByte4Mul{ 1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f) };
+    const Vector4 mask{ 0xFFu, 0xFF00u, 0u, 0u };
+    const Vector4 scale{ 1.0f / 255.0f, 1.0f / (256.0f * 255.0f), 0.0f, 0.0f };
     const Vector4 unsignedOffset{ 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
 
     __m128 vTemp = _mm_load_ps1((const float*)src);
@@ -109,7 +109,45 @@ const Vector4 Vector4::Load_4xUint8(const Uint8* src)
     // convert to float
     vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
     vTemp = _mm_add_ps(vTemp, unsignedOffset);
-    return _mm_mul_ps(vTemp, LoadUByte4Mul);
+    return _mm_mul_ps(vTemp, scale);
+}
+
+const Vector4 Vector4::Load_4xUint8(const Uint8* src)
+{
+    const Vector4 mask{ 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
+    const Vector4 scale{ 1.0f, 1.0f / 256.0f, 1.0f / 65536.0f, 1.0f / (65536.0f * 256.0f) };
+    const Vector4 unsignedOffset{ 0.0f, 0.0f, 0.0f, 32768.0f * 65536.0f };
+
+    __m128 vTemp = _mm_load_ps1((const float*)src);
+    vTemp = _mm_and_ps(vTemp, mask.v);
+    vTemp = _mm_xor_ps(vTemp, VECTOR_MASK_SIGN_W);
+
+    // convert to float
+    vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
+    vTemp = _mm_add_ps(vTemp, unsignedOffset);
+    return _mm_mul_ps(vTemp, scale);
+}
+
+const Vector4 Vector4::Load_2xUint16_Norm(const Uint16* src)
+{
+    const Vector4 maskX16Y16{ 0x0000FFFFu, 0xFFFF0000u, 0u, 0u };
+    const Vector4 flipY{ 0u, 0x80000000u, 0u, 0u };
+    const Vector4 fixUpY16{ 1.0f / 65535.0f, 1.0f / (65535.0f * 65536.0f), 0.0f, 0.0f };
+    const Vector4 fixAddY16{ 0.0f, 32768.0f * 65536.0f, 0.0f, 0.0f };
+
+    __m128 vTemp = _mm_load_ps1(reinterpret_cast<const float *>(src));
+    // Mask x&0xFFFF, y&0xFFFF0000,z&0,w&0
+    vTemp = _mm_and_ps(vTemp, maskX16Y16);
+    // y needs to be sign flipped
+    vTemp = _mm_xor_ps(vTemp, flipY);
+    // Convert to floating point numbers
+    vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
+    // y + 0x8000 to undo the signed order.
+    vTemp = _mm_add_ps(vTemp, fixAddY16);
+    // Y is 65536 times too large
+    vTemp = _mm_mul_ps(vTemp, fixUpY16);
+
+    return vTemp;
 }
 
 const Vector4 Vector4::Load_4xUint16(const Uint16* src)
@@ -130,14 +168,14 @@ const Vector4 Vector4::Load_4xUint16(const Uint16* src)
 const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
 {
     const Vector4 mask{ 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };
-    const Vector4 LoadUByte4Mul{ 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
+    const Vector4 scale{ 1.0f / 65536.0f / 255.0f, 1.0f / 256.0f / 255.0f, 1.0f / 255.0f, 0.0f };
 
     __m128 vTemp = _mm_load_ps1((const float*)src);
     vTemp = _mm_and_ps(vTemp, mask.v);
 
     // convert to float
     vTemp = _mm_cvtepi32_ps(_mm_castps_si128(vTemp));
-    return _mm_mul_ps(vTemp, LoadUByte4Mul);
+    return _mm_mul_ps(vTemp, scale);
 }
 
 void Vector4::StoreBGR_NonTemporal(Uint8* dest) const

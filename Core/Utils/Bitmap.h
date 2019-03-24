@@ -17,18 +17,22 @@ public:
     {
         Unknown = 0,
         R8_UNorm,
+        R8G8_UNorm,
         B8G8R8_UNorm,
         B8G8R8A8_UNorm,
+        R16_UNorm,
+        R16G16_UNorm,
         R16G16B16A16_UNorm,
+        R32_Float,
         R32G32B32_Float,
         R32G32B32A32_Float,
+        R16_Half,
+        R16G16_Half,
         R16G16B16_Half,
         R16G16B16A16_Half,
         BC1,
         BC4,
         BC5,
-
-        // TODO monochromatic, compressed, half-float, etc.
     };
 
     RAYLIB_API Bitmap(const char* debugName = "<unnamed>");

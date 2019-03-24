@@ -134,7 +134,7 @@ const Vector4 Material::GetNormalVector(const Vector4& uv) const
         normal -= VECTOR_ONE;
 
         // reconstruct Z
-        normal.z = Sqrt(Max(0.0f, 1.0f - normal.x * normal.x - normal.y * normal.y));
+        normal.z = Sqrt(Max(0.0f, 1.0f - normal.SqrLength2()));
 
         normal = Vector4::Lerp(VECTOR_Z, normal, normalMapStrength);
     }

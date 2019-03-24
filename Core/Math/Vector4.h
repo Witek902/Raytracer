@@ -107,8 +107,14 @@ struct RT_ALIGN(16) Vector4
     // Rearrange vector elements (variable)
     RT_FORCE_INLINE const Vector4 Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const;
 
+    // Convert 2 Uint8 to a Vector4 (normalized range)
+    RT_FORCE_INLINE static const Vector4 Load_2xUint8_Norm(const Uint8* src);
+
     // Convert 4 Uint8 to a Vector4
     RT_FORCE_INLINE static const Vector4 Load_4xUint8(const Uint8* src);
+
+    // Convert 2 Uint16 to a Vector4 (normalized range)
+    RT_FORCE_INLINE static const Vector4 Load_2xUint16_Norm(const Uint16* src);
 
     // Convert 4 Uint16 to a Vector4
     RT_FORCE_INLINE static const Vector4 Load_4xUint16(const Uint16* src);

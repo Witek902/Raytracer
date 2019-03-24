@@ -14,13 +14,20 @@ Uint32 Bitmap::BitsPerPixel(Format format)
     switch (format)
     {
     case Format::Unknown:               return 0;
-    case Format::R8_UNorm:              return 8;
-    case Format::B8G8R8_UNorm:          return 8 * 3;
-    case Format::B8G8R8A8_UNorm:        return 8 * 4;
-    case Format::R16G16B16A16_UNorm:    return 16 * 4;
+    case Format::R8_UNorm:              return 8 * sizeof(Uint8);
+    case Format::R8G8_UNorm:            return 8 * sizeof(Uint8) * 2;
+    case Format::B8G8R8_UNorm:          return 8 * sizeof(Uint8) * 3;
+    case Format::B8G8R8A8_UNorm:        return 8 * sizeof(Uint8) * 4;
+    case Format::R16_UNorm:             return 8 * sizeof(Uint16);
+    case Format::R16G16_UNorm:          return 8 * sizeof(Uint16) * 2;
+    case Format::R16G16B16A16_UNorm:    return 8 * sizeof(Uint16) * 4;
+    case Format::R32_Float:             return 8 * sizeof(float);
     case Format::R32G32B32_Float:       return 8 * sizeof(float) * 3;
     case Format::R32G32B32A32_Float:    return 8 * sizeof(float) * 4;
-    case Format::R16G16B16_Half:        return 8 * sizeof(Uint16) * 3;
+    case Format::R16_Half:              return 8 * sizeof(Half) * 1;
+    case Format::R16G16_Half:           return 8 * sizeof(Half) * 2;
+    case Format::R16G16B16_Half:        return 8 * sizeof(Half) * 3;
+    case Format::R16G16B16A16_Half:     return 8 * sizeof(Half) * 4;
     case Format::BC1:                   return 4;
     case Format::BC4:                   return 4;
     case Format::BC5:                   return 8;
@@ -34,12 +41,19 @@ const char* Bitmap::FormatToString(Format format)
     switch (format)
     {
     case Format::R8_UNorm:              return "R8_UNorm";
+    case Format::R8G8_UNorm:            return "R8G8_UNorm";
     case Format::B8G8R8_UNorm:          return "B8G8R8_UNorm";
     case Format::B8G8R8A8_UNorm:        return "B8G8R8A8_UNorm";
+    case Format::R16_UNorm:             return "R16_UNorm";
+    case Format::R16G16_UNorm:          return "R16G16_UNorm";
     case Format::R16G16B16A16_UNorm:    return "R16G16B16A16_UNorm";
+    case Format::R32_Float:             return "R32_Float";
     case Format::R32G32B32_Float:       return "R32G32B32_Float";
     case Format::R32G32B32A32_Float:    return "R32G32B32A32_Float";
+    case Format::R16_Half:              return "R16_Half";
+    case Format::R16G16_Half:           return "R16G16_Half";
     case Format::R16G16B16_Half:        return "R16G16B16_Half";
+    case Format::R16G16B16A16_Half:     return "R16G16B16A16_Half";
     case Format::BC1:                   return "BC1";
     case Format::BC4:                   return "BC4";
     case Format::BC5:                   return "BC5";
@@ -216,6 +230,12 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
             break;
         }
 
+        case Format::R8G8_UNorm:
+        {
+            color = Vector4::Load_2xUint8_Norm(mData + (2u * offset));
+            break;
+        }
+
         case Format::B8G8R8_UNorm:
         {
             const Uint8* source = mData + (3u * offset);
@@ -230,10 +250,31 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
             break;
         }
 
+        case Format::R16_UNorm:
+        {
+            const Uint16* source = reinterpret_cast<const Uint16*>(mData) + offset;
+            color = Vector4::FromInteger(*source) * (1.0f / 65535.0f);
+            break;
+        }
+
+        case Format::R16G16_UNorm:
+        {
+            const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 2u * offset;
+            color = Vector4::Load_2xUint16_Norm(source);
+            break;
+        }
+
         case Format::R16G16B16A16_UNorm:
         {
             const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 4u * offset;
             color = Vector4::Load_4xUint16(source) * (1.0f / 65535.0f);
+            break;
+        }
+
+        case Format::R32_Float:
+        {
+            const float* source = reinterpret_cast<const float*>(mData) + offset;
+            color = Vector4(*source);
             break;
         }
 
@@ -250,6 +291,20 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
             RT_PREFETCH_L2(source - mWidth);
             RT_PREFETCH_L2(source + mWidth);
             color = *source;
+            break;
+        }
+
+        case Format::R16_Half:
+        {
+            const Half* source = reinterpret_cast<const Half*>(mData) + offset;
+            color = Vector4(ConvertHalfToFloat(*source));
+            break;
+        }
+
+        case Format::R16G16_Half:
+        {
+            const Half* source = reinterpret_cast<const Half*>(mData) + 2u * offset;
+            color = Vector4::FromHalves(source) & Vector4::MakeMask<1,1,0,0>();
             break;
         }
 
@@ -324,10 +379,20 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             const Uint32 value1 = mData[(Uint32)offsets.y];
             const Uint32 value2 = mData[(Uint32)offsets.z];
             const Uint32 value3 = mData[(Uint32)offsets.w];
-            color0 = Vector4::FromInteger(value0) * scale;
-            color1 = Vector4::FromInteger(value1) * scale;
-            color2 = Vector4::FromInteger(value2) * scale;
-            color3 = Vector4::FromInteger(value3) * scale;
+            const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
+            color0 = values.SplatX();
+            color1 = values.SplatY();
+            color2 = values.SplatZ();
+            color3 = values.SplatW();
+            break;
+        }
+
+        case Format::R8G8_UNorm:
+        {
+            color0 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.x);
+            color1 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.y);
+            color2 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.z);
+            color3 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.w);
             break;
         }
 
@@ -350,6 +415,34 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             break;
         }
 
+        case Format::R16_UNorm:
+        {
+            constexpr float scale = 1.0f / 65535.0f;
+            const Uint32 value0 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.x];
+            const Uint32 value1 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.y];
+            const Uint32 value2 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.z];
+            const Uint32 value3 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.w];
+            const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
+            color0 = values.SplatX();
+            color1 = values.SplatY();
+            color2 = values.SplatZ();
+            color3 = values.SplatW();
+            break;
+        }
+
+        case Format::R16G16_UNorm:
+        {
+            const Uint16* source0 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.x;
+            const Uint16* source1 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.y;
+            const Uint16* source2 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.z;
+            const Uint16* source3 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.w;
+            color0 = Vector4::Load_2xUint16_Norm(source0);
+            color1 = Vector4::Load_2xUint16_Norm(source1);
+            color2 = Vector4::Load_2xUint16_Norm(source2);
+            color3 = Vector4::Load_2xUint16_Norm(source3);
+            break;
+        }
+
         case Format::R16G16B16A16_UNorm:
         {
             constexpr float scale = 1.0f / 65535.0f;
@@ -361,6 +454,19 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             color1 = Vector4::Load_4xUint16(source1) * scale;
             color2 = Vector4::Load_4xUint16(source2) * scale;
             color3 = Vector4::Load_4xUint16(source3) * scale;
+            break;
+        }
+
+        case Format::R32_Float:
+        {
+            const float* source0 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.x;
+            const float* source1 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.y;
+            const float* source2 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.z;
+            const float* source3 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.w;
+            color0 = Vector4(*source0);
+            color1 = Vector4(*source1);
+            color2 = Vector4(*source2);
+            color3 = Vector4(*source3);
             break;
         }
 
@@ -383,6 +489,32 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
             color1 = reinterpret_cast<const Vector4*>(mData)[offsets.y];
             color2 = reinterpret_cast<const Vector4*>(mData)[offsets.z];
             color3 = reinterpret_cast<const Vector4*>(mData)[offsets.w];
+            break;
+        }
+
+        case Format::R16_Half:
+        {
+            const Half* source0 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.x;
+            const Half* source1 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.y;
+            const Half* source2 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.z;
+            const Half* source3 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.w;
+            color0 = Vector4(ConvertHalfToFloat(*source0));
+            color1 = Vector4(ConvertHalfToFloat(*source1));
+            color2 = Vector4(ConvertHalfToFloat(*source2));
+            color3 = Vector4(ConvertHalfToFloat(*source3));
+            break;
+        }
+
+        case Format::R16G16_Half:
+        {
+            const Half* source0 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.x;
+            const Half* source1 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.y;
+            const Half* source2 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.z;
+            const Half* source3 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.w;
+            color0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1,1,0,0>();
+            color1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1,1,0,0>();
+            color2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1,1,0,0>();
+            color3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1,1,0,0>();
             break;
         }
 

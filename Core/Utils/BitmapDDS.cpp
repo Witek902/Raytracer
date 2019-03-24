@@ -36,38 +36,38 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
 {
     struct DDS_PIXELFORMAT
     {
-        Uint32 dwSize;
-        Uint32 dwFlags;
-        Uint32 dwFourCC;
-        Uint32 dwRGBBitCount;
-        Uint32 dwRBitMask;
-        Uint32 dwGBitMask;
-        Uint32 dwBBitMask;
-        Uint32 dwAlphaBitMask;
+        Uint32 size;
+        Uint32 flags;
+        Uint32 fourCC;
+        Uint32 rgbBitCount;
+        Uint32 rBitMask;
+        Uint32 gBitMask;
+        Uint32 bBitMask;
+        Uint32 aBitMask;
     };
 
     struct Header
     {
-        Uint32 dwMagic;
-        Uint32 dwSize;
-        Uint32 dwFlags;
-        Uint32 dwHeight;
-        Uint32 dwWidth;
-        Uint32 dwPitchOrLinearSize;
-        Uint32 dwDepth;
-        Uint32 dwMipMapCount;
-        Uint32 dwReserved1[11];
+        Uint32 magic;
+        Uint32 size;
+        Uint32 flags;
+        Uint32 height;
+        Uint32 width;
+        Uint32 pitchOrLinearSize;
+        Uint32 depth;
+        Uint32 mipMapCount;
+        Uint32 reserved1[11];
 
         //  DDPIXELFORMAT
-        DDS_PIXELFORMAT sPixelFormat;
+        DDS_PIXELFORMAT pixelFormat;
 
         //  DDCAPS2
         struct
         {
-            Uint32 dwCaps1;
-            Uint32 dwCaps2;
-            Uint32 dwDDSX;
-            Uint32 dwReserved;
+            Uint32 caps1;
+            Uint32 caps2;
+            Uint32 DDSX;
+            Uint32 reserved;
         } sCaps;
 
         Uint32 dwReserved2;
@@ -90,13 +90,13 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
     }
 
     //check magic number
-    if (header.dwMagic != DDS_MAGIC_NUMBER)
+    if (header.magic != DDS_MAGIC_NUMBER)
     {
         return false;
     }
 
-    Uint32 width = header.dwWidth;
-    Uint32 height = header.dwHeight;
+    Uint32 width = header.width;
+    Uint32 height = header.height;
     if (width < 1 || height < 1 || width >= std::numeric_limits<Uint16>::max() || height >= std::numeric_limits<Uint16>::max())
     {
         RT_LOG_ERROR("Unsupported DDS format in file '%hs'", path);
@@ -105,50 +105,65 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
 
     bool linearSpace = false;
     Format format = Format::Unknown;
-    const DDS_PIXELFORMAT& pf = header.sPixelFormat;
-    if (pf.dwFlags & DDPF_RGB)
+    const DDS_PIXELFORMAT& pf = header.pixelFormat;
+    if (pf.flags & DDPF_RGB)
     {
-        if (pf.dwRBitMask == 0xFF && pf.dwGBitMask == 0xFF && pf.dwBBitMask == 0xFF && pf.dwAlphaBitMask == 0xFF)
+        if (pf.rgbBitCount == 32)
         {
-            format = Format::B8G8R8A8_UNorm; // DXGI_FORMAT_R8G8B8A8_UNORM;
-        }
-        if (pf.dwRBitMask == 0xFFFFFFFF && pf.dwGBitMask == 0 && pf.dwBBitMask == 0 && pf.dwAlphaBitMask == 0)
-        {
-            // format = Format::R32_Float; // DXGI_FORMAT_R32_FLOAT;
+            if (pf.rBitMask == 0xFF && pf.gBitMask == 0xFF && pf.bBitMask == 0xFF && pf.aBitMask == 0xFF)
+            {
+                format = Format::B8G8R8A8_UNorm; // DXGI_FORMAT_R8G8B8A8_UNORM;
+            }
+            else if (pf.rBitMask == 0xFFFFFFFF && pf.gBitMask == 0 && pf.bBitMask == 0 && pf.aBitMask == 0)
+            {
+                format = Format::R32_Float; // DXGI_FORMAT_R32_FLOAT;
+            }
+            if (pf.rBitMask == 0xFFFF && pf.gBitMask == 0xFFFF0000 && pf.bBitMask == 0 && pf.aBitMask == 0)
+            {
+                format = Format::R16G16_UNorm; // DXGI_FORMAT_R16G16_UNORM;
+            }
         }
     }
-    else if (pf.dwFlags & DDPF_FOURCC)
+    else if (pf.flags & DDPF_FOURCC)
     {
-        if (pf.dwFourCC == 113) // D3DFMT_A16B16G16R16F
+        if (pf.fourCC == 111) // D3DFMT_R16F
         {
-            // format = Format::R16G16B16A16_Float;
+            format = Format::R16_Half;
         }
-        else if (pf.dwFourCC == 114) // DXGI_FORMAT_R32_FLOAT
+        else if (pf.fourCC == 112) // D3DFMT_G16R16F
         {
-            // format = Format::R32_Float;
+            format = Format::R16G16_Half;
         }
-        else if (pf.dwFourCC == 116) // D3DFMT_A32B32G32R32F
+        else if (pf.fourCC == 113) // D3DFMT_A16B16G16R16F
+        {
+            format = Format::R16G16B16A16_Half;
+        }
+        else if (pf.fourCC == 114) // DXGI_FORMAT_R32_FLOAT
+        {
+            format = Format::R32_Float;
+        }
+        else if (pf.fourCC == 116) // D3DFMT_A32B32G32R32F
         {
             format = Format::R32G32B32A32_Float;
             linearSpace = true;
         }
-        else if (pf.dwFourCC == 36) // D3DFMT_A16B16G16R16
+        else if (pf.fourCC == 36) // D3DFMT_A16B16G16R16
         {
             format = Format::R16G16B16A16_UNorm;
         }
-        else if (MAKEFOURCC('D', 'X', 'T', '1') == pf.dwFourCC)
+        else if (MAKEFOURCC('D', 'X', 'T', '1') == pf.fourCC)
             format = Format::BC1; //DXGI_FORMAT_BC1_UNORM
-        else if (MAKEFOURCC('A', 'T', 'I', '1') == pf.dwFourCC)
+        else if (MAKEFOURCC('A', 'T', 'I', '1') == pf.fourCC)
             format = Format::BC4; //DXGI_FORMAT_BC4_UNORM
-        else if (MAKEFOURCC('B', 'C', '4', 'U') == pf.dwFourCC)
+        else if (MAKEFOURCC('B', 'C', '4', 'U') == pf.fourCC)
             format = Format::BC4; //DXGI_FORMAT_BC4_UNORM
-        else if (MAKEFOURCC('B', 'C', '4', 'S') == pf.dwFourCC)
+        else if (MAKEFOURCC('B', 'C', '4', 'S') == pf.fourCC)
             format = Format::BC4; //DXGI_FORMAT_BC4_SNORM
-        else if (MAKEFOURCC('A', 'T', 'I', '2') == pf.dwFourCC)
+        else if (MAKEFOURCC('A', 'T', 'I', '2') == pf.fourCC)
             format = Format::BC5; //DXGI_FORMAT_BC5_UNORM
-        else if (MAKEFOURCC('B', 'C', '5', 'U') == pf.dwFourCC)
+        else if (MAKEFOURCC('B', 'C', '5', 'U') == pf.fourCC)
             format = Format::BC5; //DXGI_FORMAT_BC5_UNORM
-        else if (MAKEFOURCC('D', 'X', '1', '0') == pf.dwFourCC)
+        else if (MAKEFOURCC('D', 'X', '1', '0') == pf.fourCC)
         {
             // read DX10 header
             HeaderDX10 headerDX10;
@@ -167,6 +182,31 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
             {
                 format = Format::B8G8R8A8_UNorm;
                 linearSpace = true;
+            }
+        }
+    }
+    else if (pf.flags & DDPF_LUMINANCE)
+    {
+        if (pf.rgbBitCount == 8)
+        {
+            if (pf.rBitMask == 0xFF && pf.gBitMask == 0x0 && pf.bBitMask == 0x0 && pf.aBitMask == 0x0)
+            {
+                format = Format::R8_UNorm; // D3DX10/11 writes this out as DX10 extension
+            }
+            else if (pf.rBitMask == 0xFF && pf.gBitMask == 0x0 && pf.bBitMask == 0x0 && pf.aBitMask == 0xFF00)
+            {
+                format = Format::R8G8_UNorm; // Some DDS writers assume the bitcount should be 8 instead of 16
+            }
+        }
+        else if (pf.rgbBitCount == 16)
+        {
+            if (pf.rBitMask == 0xFFFF && pf.gBitMask == 0x0 && pf.bBitMask == 0x0 && pf.aBitMask == 0x0)
+            {
+                format = Format::R16_UNorm; // D3DX10/11 writes this out as DX10 extension
+            }
+            else if (pf.rBitMask == 0xFF && pf.gBitMask == 0 && pf.bBitMask == 0 && pf.aBitMask == 0xFF00)
+            {
+                format = Format::R8G8_UNorm; // Some DDS writers assume the bitcount should be 8 instead of 16
             }
         }
     }
