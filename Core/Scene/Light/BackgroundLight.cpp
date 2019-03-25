@@ -14,7 +14,7 @@ namespace rt {
 using namespace math;
 
 // TODO this should be calculated
-static const float SceneRadius = 5.8f;
+static const float SceneRadius = 30.0f; // TODO
 
 const Box BackgroundLight::GetBoundingBox() const
 {

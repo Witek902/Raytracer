@@ -11,7 +11,7 @@ namespace rt {
 using namespace math;
 
 static constexpr const float CosEpsilon = 0.9999f;
-static constexpr const float SceneRadius = 5.8f;
+static constexpr const float SceneRadius = 30.0f; // TODO
 
 DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const float angle)
     : ILight(color)
