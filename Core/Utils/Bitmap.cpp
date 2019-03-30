@@ -324,22 +324,19 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 
         case Format::BC1:
         {
-            const Uint32 flippedY = mHeight - 1 - y;
-            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
             break;
         }
 
         case Format::BC4:
         {
-            const Uint32 flippedY = mHeight - 1 - y;
-            color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
             break;
         }
 
         case Format::BC5:
         {
-            const Uint32 flippedY = mHeight - 1 - y;
-            color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, flippedY, mWidth);
+            color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
             break;
         }
 
@@ -546,34 +543,28 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
 
         case Format::BC1:
         {
-            const Int32 heightMinusOne = (Int32)mHeight - 1;
-            const VectorInt4 flippedCoords = VectorInt4(heightMinusOne) - coords;
-            color0 = DecodeBC1(mData, coords.x, flippedCoords.y, mWidth);
-            color1 = DecodeBC1(mData, coords.z, flippedCoords.y, mWidth);
-            color2 = DecodeBC1(mData, coords.x, flippedCoords.w, mWidth);
-            color3 = DecodeBC1(mData, coords.z, flippedCoords.w, mWidth);
+            color0 = DecodeBC1(mData, coords.x, coords.y, mWidth);
+            color1 = DecodeBC1(mData, coords.z, coords.y, mWidth);
+            color2 = DecodeBC1(mData, coords.x, coords.w, mWidth);
+            color3 = DecodeBC1(mData, coords.z, coords.w, mWidth);
             break;
         }
 
         case Format::BC4:
         {
-            const Int32 heightMinusOne = (Int32)mHeight - 1;
-            const VectorInt4 flippedCoords = VectorInt4(heightMinusOne) - coords;
-            color0 = DecodeBC4(mData, coords.x, flippedCoords.y, mWidth);
-            color1 = DecodeBC4(mData, coords.z, flippedCoords.y, mWidth);
-            color2 = DecodeBC4(mData, coords.x, flippedCoords.w, mWidth);
-            color3 = DecodeBC4(mData, coords.z, flippedCoords.w, mWidth);
+            color0 = DecodeBC4(mData, coords.x, coords.y, mWidth);
+            color1 = DecodeBC4(mData, coords.z, coords.y, mWidth);
+            color2 = DecodeBC4(mData, coords.x, coords.w, mWidth);
+            color3 = DecodeBC4(mData, coords.z, coords.w, mWidth);
             break;
         }
 
         case Format::BC5:
         {
-            const Int32 heightMinusOne = (Int32)mHeight - 1;
-            const VectorInt4 flippedCoords = VectorInt4(heightMinusOne) - coords;
-            color0 = DecodeBC5(mData, coords.x, flippedCoords.y, mWidth);
-            color1 = DecodeBC5(mData, coords.z, flippedCoords.y, mWidth);
-            color2 = DecodeBC5(mData, coords.x, flippedCoords.w, mWidth);
-            color3 = DecodeBC5(mData, coords.z, flippedCoords.w, mWidth);
+            color0 = DecodeBC5(mData, coords.x, coords.y, mWidth);
+            color1 = DecodeBC5(mData, coords.z, coords.y, mWidth);
+            color2 = DecodeBC5(mData, coords.x, coords.w, mWidth);
+            color3 = DecodeBC5(mData, coords.z, coords.w, mWidth);
             break;
         }
 

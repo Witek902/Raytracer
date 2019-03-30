@@ -30,7 +30,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
 {
     mBoundingBox = Box::Empty();
 
-    const Float3* positions = (const Float3*)desc.vertexBufferDesc.positions;
+    const Float3* positions = desc.vertexBufferDesc.positions;
     const Uint32* indexBuffer = desc.vertexBufferDesc.vertexIndexBuffer;
 
     std::vector<Box, AlignmentAllocator<Box>> boxes;
@@ -265,30 +265,36 @@ void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& out
 
     const Vector4 coeff1 = Vector4(hitPoint.u);
     const Vector4 coeff2 = Vector4(hitPoint.v);
-    const Vector4 coeff0 = Vector4(VECTOR_ONE) - coeff1 - coeff2;
+    const Vector4 coeff0 = Vector4(VECTOR_ONE) - (coeff1 + coeff2);
 
     const Vector4 texCoord0(&vertexShadingData[0].texCoord.x);
     const Vector4 texCoord1(&vertexShadingData[1].texCoord.x);
     const Vector4 texCoord2(&vertexShadingData[2].texCoord.x);
-    outData.texCoord = coeff1 * texCoord1;
-    outData.texCoord = Vector4::MulAndAdd(coeff2, texCoord2, outData.texCoord);
-    outData.texCoord = Vector4::MulAndAdd(coeff0, texCoord0, outData.texCoord);
+    Vector4 texCoord = coeff1 * texCoord1;
+    texCoord = Vector4::MulAndAdd(coeff2, texCoord2, texCoord);
+    texCoord = Vector4::MulAndAdd(coeff0, texCoord0, texCoord);
+    RT_ASSERT(texCoord.IsValid());
+    outData.texCoord = texCoord;
 
     const Vector4 tangent0(&vertexShadingData[0].tangent.x);
     const Vector4 tangent1(&vertexShadingData[1].tangent.x);
     const Vector4 tangent2(&vertexShadingData[2].tangent.x);
-    outData.frame[0] = coeff1 * tangent1;
-    outData.frame[0] = Vector4::MulAndAdd(coeff2, tangent2, outData.frame[1]);
-    outData.frame[0] = Vector4::MulAndAdd(coeff0, tangent0, outData.frame[1]);
-    outData.frame[0].FastNormalize3();
+    Vector4 tangent = coeff1 * tangent1;
+    tangent = Vector4::MulAndAdd(coeff2, tangent2, tangent);
+    tangent = Vector4::MulAndAdd(coeff0, tangent0, tangent);
+    tangent.FastNormalize3();
+    RT_ASSERT(tangent.IsValid());
+    outData.frame[0] = tangent;
 
     const Vector4 normal0(&vertexShadingData[0].normal.x);
     const Vector4 normal1(&vertexShadingData[1].normal.x);
     const Vector4 normal2(&vertexShadingData[2].normal.x);
-    outData.frame[2] = coeff1 * normal1;
-    outData.frame[2] = Vector4::MulAndAdd(coeff2, normal2, outData.frame[2]);
-    outData.frame[2] = Vector4::MulAndAdd(coeff0, normal0, outData.frame[2]);
-    outData.frame[2].Normalize3();
+    Vector4 normal = coeff1 * normal1;
+    normal = Vector4::MulAndAdd(coeff2, normal2, normal);
+    normal = Vector4::MulAndAdd(coeff0, normal0, normal);
+    normal.Normalize3();
+    RT_ASSERT(normal.IsValid());
+    outData.frame[2] = normal;
 }
 
 const Vector4 ShadingData::LocalToWorld(const Vector4& localCoords) const

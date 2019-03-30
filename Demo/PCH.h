@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <float.h>
+#include <unordered_map>
 
 #include "../External/cxxopts.hpp"
 #include "../External/tiny_obj_loader.h"

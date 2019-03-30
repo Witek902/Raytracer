@@ -14,7 +14,6 @@ static_assert(alignof(VertexShadingData) == 32, "Invalid alignment");
 
 using namespace math;
 
-
 VertexBuffer::VertexBuffer()
     : mBuffer(nullptr)
     , mPreprocessedTriangles(nullptr)
@@ -102,7 +101,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     {
         for (Uint32 i = 0; i < desc.numVertices; ++i)
         {
-            RT_ASSERT(((const Float3*)desc.positions)[i].IsValid(), "Corrupted vertex position");
+            RT_ASSERT(desc.positions[i].IsValid(), "Corrupted vertex position");
         }
     }
 
@@ -115,7 +114,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
             return false;
         }
 
-        const Float3* positions = (const Float3*)desc.positions;
+        const Float3* positions = desc.positions;
         const Uint32* indexBuffer = desc.vertexIndexBuffer;
 
         for (Uint32 i = 0; i < desc.numTriangles; ++i)
@@ -156,9 +155,9 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         VertexShadingData* buffer = reinterpret_cast<VertexShadingData*>(mBuffer + mShadingDataBufferOffset);
         for (Uint32 i = 0; i < desc.numVertices; ++i)
         {
-            buffer[i].normal = desc.normals ? Float3(desc.normals + 3 * i) : Float3();
-            buffer[i].tangent = desc.tangents ? Float3(desc.tangents + 3 * i) : Float3();
-            buffer[i].texCoord = desc.texCoords ? Float2(desc.texCoords + 2 * i) : Float2();
+            buffer[i].normal = desc.normals ? desc.normals[i] : Float3();
+            buffer[i].tangent = desc.tangents ? desc.tangents[i] : Float3();
+            buffer[i].texCoord = desc.texCoords ? desc.texCoords[i] : Float2();
 
             RT_ASSERT(buffer[i].normal.IsValid(), "Corrupted normal vector");
             RT_ASSERT(buffer[i].tangent.IsValid(), "Corrupted tangent vector");
@@ -190,7 +189,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
 void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const
 {
-    // RT_ASSERT(triangleIndex < mNumTriangles);
+    RT_ASSERT(triangleIndex < mNumTriangles);
 
     const VertexIndices* buffer = reinterpret_cast<const VertexIndices*>(mBuffer + mVertexIndexBufferOffset);
     indices = buffer[triangleIndex];
@@ -198,7 +197,7 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
 
 const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
 {
-    // RT_ASSERT(materialIndex < mNumMaterials);
+    RT_ASSERT(materialIndex < mNumMaterials);
 
     const Material** materialBufferData = reinterpret_cast<const Material**>(mBuffer + mMaterialBufferOffset);
     return materialBufferData[materialIndex];

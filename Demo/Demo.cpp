@@ -12,8 +12,6 @@
 using namespace rt;
 using namespace math;
 
-#pragma optimize("", off)
-
 namespace helpers
 {
 extern bool LoadCustomScene(Scene& scene, rt::Camera& camera);
@@ -157,7 +155,7 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
         if (helpers::LoadScene(sceneName, *mScene, mCamera))
         {
             mSceneFileName = sceneName;
-   
+
             // read modification time
             struct stat fileStat;
             if (stat(sceneName.c_str(), &fileStat) == 0)

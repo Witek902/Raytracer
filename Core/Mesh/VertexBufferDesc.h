@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../RayLib.h"
+#include "../Math/Float3.h"
 
 namespace rt {
 
@@ -17,10 +18,10 @@ struct VertexBufferDesc
     Uint32 numMaterials = 0;
 
     const Uint32* vertexIndexBuffer = nullptr;
-    const float* positions = nullptr;
-    const float* normals = nullptr;
-    const float* tangents = nullptr;
-    const float* texCoords = nullptr;
+    const math::Float3* positions = nullptr;
+    const math::Float3* normals = nullptr;
+    const math::Float3* tangents = nullptr;
+    const math::Float2* texCoords = nullptr;
     const Uint32* materialIndexBuffer = nullptr;
     const MaterialPtr* materials = nullptr;
 };

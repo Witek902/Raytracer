@@ -65,6 +65,12 @@ RT_INLINE float PointLineDistanceSqr(const Vector4& pointOnLine, const Vector4& 
     return Vector4::Cross3(lineDir, t).SqrLength3() / lineDir.SqrLength3();
 }
 
+RT_INLINE float TriangleSurfaceArea(const Vector4& edge0, const Vector4& edge1)
+{
+    const Vector4 cross = Vector4::Cross3(edge1, edge0);
+    return cross.Length3() * 0.5f;
+}
+
 RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)
 {
     // The algorithm is based on "slabs" method. More info can be found here:
