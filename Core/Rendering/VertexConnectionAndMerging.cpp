@@ -185,7 +185,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            resultColor += pathState.throughput * EvaluateGlobalLights(pathState, ctx);
+            resultColor.MulAndAccumulate(pathState.throughput, EvaluateGlobalLights(pathState, ctx));
             break;
         }
 
@@ -205,7 +205,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
                 pathState.dVM /= Mis(Abs(cosTheta));
             }
 
-            resultColor += pathState.throughput * EvaluateLight(light, hitPoint.distance, pathState, ctx);
+            resultColor.MulAndAccumulate(pathState.throughput, EvaluateLight(light, hitPoint.distance, pathState, ctx));
             break;
         }
 
@@ -234,7 +234,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
             const Spectrum emissionSpectrum(shadingData.material->emission.Evaluate(shadingData.texCoord));
             const RayColor emissionColor = RayColor::Resolve(ctx.wavelength, emissionSpectrum);
             RT_ASSERT(emissionColor.IsValid());
-            resultColor += pathState.throughput * emissionColor;
+            resultColor.MulAndAccumulate(pathState.throughput, emissionColor);
         }
 
         if (pathState.length >= mMaxPathLength)
@@ -248,7 +248,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // Vertex Connection -sample lights directly (a.k.a. next event estimation)
         if (!isDeltaBsdf && mUseVertexConnection)
         {
-            resultColor += pathState.throughput * SampleLights(shadingData, pathState, ctx);
+            resultColor.MulAndAccumulate(pathState.throughput, SampleLights(shadingData, pathState, ctx));
         }
 
         // Vertex Connection - connect camera vertex to light vertices (bidirectional path tracing)
@@ -273,12 +273,12 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
                     break;
                 }
 
-                vertexConnectionColor += lightVertex.throughput * ConnectVertices(pathState, shadingData, lightVertex, ctx);
+                vertexConnectionColor.MulAndAccumulate(lightVertex.throughput, ConnectVertices(pathState, shadingData, lightVertex, ctx));
             }
 
             vertexConnectionColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexConnectingWeight));
 
-            resultColor += pathState.throughput * vertexConnectionColor;
+            resultColor.MulAndAccumulate(pathState.throughput, vertexConnectionColor);
         }
 
         // Vertex Merging - merge camera vertex to light vertices nearby
@@ -286,7 +286,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         {
             RayColor vertexMergingColor = MergeVertices(pathState, shadingData, ctx);
             vertexMergingColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexMergingWeight));
-            resultColor += (pathState.throughput * vertexMergingColor) * mVertexMergingNormalizationFactor;
+            resultColor.MulAndAccumulate(pathState.throughput * vertexMergingColor, mVertexMergingNormalizationFactor);
         }
 
         // check if the ray depth won't be exeeded in the next iteration
@@ -829,7 +829,7 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
             const float wCamera = mCameraPathState.dVCM * mRenderer.mMisVertexConnectionWeightFactor + mCameraPathState.dVM * Mis(cameraBsdfRevPdfW);
             const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
 
-            mContribution += (cameraBsdfFactor * lightVertex.throughput) * (misWeight / cosToLight);
+            mContribution.MulAndAccumulate(cameraBsdfFactor * lightVertex.throughput, misWeight / cosToLight);
         }
 
     private:

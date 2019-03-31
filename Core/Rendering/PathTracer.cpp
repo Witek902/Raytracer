@@ -68,7 +68,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            resultColor += throughput * EvaluateGlobalLights(ray, context);
+            resultColor.MulAndAccumulate(throughput, EvaluateGlobalLights(ray, context));
             break;
         }
 
@@ -76,7 +76,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
             const ILight& light = mScene.Internal_GetLightByObjectId(hitPoint.objectId);
-            resultColor += throughput * EvaluateLight(light, ray, hitPoint.distance, context);
+            resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, context));
             break;
         }
 
@@ -91,7 +91,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // accumulate emission color
         const RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(shadingData.material->emission.Evaluate(shadingData.texCoord)));
         RT_ASSERT(emissionColor.IsValid());
-        resultColor += throughput * emissionColor;
+        resultColor.MulAndAccumulate(throughput, emissionColor);
         RT_ASSERT(resultColor.IsValid());
 
         // check if the ray depth won't be exeeded in the next iteration
@@ -103,7 +103,8 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // Russian roulette algorithm
         if (depth >= context.params->minRussianRouletteDepth)
         {
-            const float threshold = shadingData.materialParams.baseColor.Max();
+            const float minColorValue = 0.125f;
+            const float threshold = minColorValue + (1.0f - minColorValue) * shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {
@@ -114,7 +115,9 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
             {
                 break;
             }
+
             throughput *= 1.0f / threshold;
+            RT_ASSERT(throughput.IsValid());
         }
 
         // sample BSDF

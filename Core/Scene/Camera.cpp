@@ -14,6 +14,8 @@ Camera::Camera()
     , barrelDistortionConstFactor(0.01f)
     , barrelDistortionVariableFactor(0.0f)
     , enableBarellDistortion(false)
+    , mLocalToWorld(Matrix4::Identity())
+    , mWorldToScreen(Matrix4::Identity())
 { }
 
 void Camera::SetTransform(const math::Transform& transform)

@@ -23,16 +23,13 @@ public:
         float m[4][4];
     };
 
-    // Default constructor - create identity matrix.
-    RT_FORCE_INLINE Matrix4()
+    RT_FORCE_INLINE Matrix4() { }
+
+    RT_FORCE_INLINE static const Matrix4 Identity()
     {
-        r[0] = VECTOR_X;
-        r[1] = VECTOR_Y;
-        r[2] = VECTOR_Z;
-        r[3] = VECTOR_W;
+        return { VECTOR_X, VECTOR_Y, VECTOR_Z, VECTOR_W };
     }
 
-    // Create matrix from rows.
     RT_FORCE_INLINE Matrix4(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3)
     {
         r[0] = r0;

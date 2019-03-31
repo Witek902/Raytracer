@@ -34,7 +34,7 @@ TEST(MathMatrix4, Simple)
 
     EXPECT_TRUE(matA[2][2] == -1.0f); // rows access
     EXPECT_FALSE(matA == matB);
-    EXPECT_TRUE(matI == Matrix4());
+    EXPECT_TRUE(matI == Matrix4::Identity());
     EXPECT_TRUE(matTransposeA == matA.Transposed());
 }
 

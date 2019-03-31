@@ -63,10 +63,14 @@ void ThreadPool::ThreadCallback(Uint32 threadID)
         {
             Lock lock(mMutex);
             while (!mFinishThreads && (mNumTasks == 0))
+            {
                 mNewTaskCV.wait(lock);
+            }
 
             if (mFinishThreads)
+            {
                 break;
+            }
 
             taskID = mCurrentTask++;
 
@@ -79,9 +83,9 @@ void ThreadPool::ThreadCallback(Uint32 threadID)
 
         mTask(taskID, threadID);
 
+        if (--mTasksLeft == 0)
         {
-            if (--mTasksLeft == 0)
-                mTileFinishedCV.notify_all();
+            mTileFinishedCV.notify_all();
         }
     }
 }
@@ -97,6 +101,7 @@ void ThreadPool::SetNumThreads(const Uint32 numThreads)
 
 void ThreadPool::RunParallelTask(const ParallelTask& task, Uint32 num)
 {
+    if (num > 0u)
     {
         Lock lock(mMutex);
 

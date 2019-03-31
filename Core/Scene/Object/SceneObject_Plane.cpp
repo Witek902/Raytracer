@@ -21,20 +21,17 @@ Box PlaneSceneObject::GetBoundingBox() const
 
 bool PlaneSceneObject::Traverse_Single_Internal(const SingleTraversalContext& context, float& outDist) const
 {
-    if (Abs(context.ray.dir.y) > RT_EPSILON)
+    const float t = -context.ray.origin.y * context.ray.invDir.y;
+
+    if (t > 0.0f && t < context.hitPoint.distance)
     {
-        const float t = -context.ray.origin.y * context.ray.invDir.y;
+        const Vector4 pos = context.ray.GetAtDistance(t);
 
-        if (t > 0.0f && t < context.hitPoint.distance)
+        const Vector4 texCoords = pos.Swizzle<0,2,0,0>();
+        if ((Vector4::Abs(texCoords) < Vector4(mSize)).GetMask() == 0x3)
         {
-            const Vector4 pos = context.ray.GetAtDistance(t);
-
-            const Vector4 texCoords = pos.Swizzle<0,2,0,0>();
-            if ((Vector4::Abs(texCoords) < Vector4(mSize)).GetMask() == 0x3)
-            {
-                outDist = t;
-                return true;
-            }
+            outDist = t;
+            return true;
         }
     }
 
@@ -46,9 +43,7 @@ void PlaneSceneObject::Traverse_Single(const SingleTraversalContext& context, co
     float t;
     if (Traverse_Single_Internal(context, t))
     {
-        context.hitPoint.distance = t;
-        context.hitPoint.objectId = objectID;
-        context.hitPoint.subObjectId = 0;
+        context.hitPoint.Set(t, objectID);
     }
 }
 

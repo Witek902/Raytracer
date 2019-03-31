@@ -322,9 +322,9 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 const IRenderer::RenderParam renderParam = { pixelIndex, tileContext.camera, film };
                 const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx);
+                RT_ASSERT(color.IsValid());
 
                 const Vector4 sampleColor = color.ConvertToTristimulus(ctx.wavelength);
-                RT_ASSERT(sampleColor.IsValid());
 
 #ifndef RT_ENABLE_SPECTRAL_RENDERING
                 // exception: in spectral rendering these values can get below zero due to RGB->Spectrum conversion
@@ -458,6 +458,8 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
     const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
     Uint8* __restrict frontBufferPixels = mFrontBuffer.GetDataAs<Uint8>();
 
+    const float pixelScaling = 1.0f / (1u + mProgress.passesFinished);
+
     for (Uint32 y = block.minY; y < block.maxY; ++y)
     {
         for (Uint32 x = block.minX; x < block.maxX; ++x)
@@ -472,7 +474,6 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 #endif
 
             // TODO
-            const float pixelScaling = 1.0f / (1 + mProgress.passesFinished);
             //const float pixelScaling = 1.0f / static_cast<float>(mPassesPerPixel[pixelIndex]);
 
             const Vector4 toneMapped = ToneMap(rgbColor * mPostprocessParams.colorScale * pixelScaling);

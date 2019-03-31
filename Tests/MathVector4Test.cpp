@@ -34,6 +34,32 @@ TEST(MathTest, Vector4_Constructor2)
     EXPECT_EQ(7.0f, v.w);
 }
 
+TEST(MathTest, Vector4_IsInfinite)
+{
+    EXPECT_FALSE(Vector4(0.0f, 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(1234.0f, 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::signaling_NaN(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::max(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(-std::numeric_limits<float>::max(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::min(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_TRUE(Vector4(-std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+    EXPECT_TRUE(Vector4(-std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f).IsInfinite().Any());
+}
+
+TEST(MathTest, Vector4_IsNAN)
+{
+    EXPECT_FALSE(Vector4(0.0f, 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(1234.0f, 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_TRUE(Vector4(std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_TRUE(Vector4(std::numeric_limits<float>::signaling_NaN(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::max(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(-std::numeric_limits<float>::max(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(std::numeric_limits<float>::min(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(-std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+    EXPECT_FALSE(Vector4(-std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f).IsNaN().Any());
+}
+
 TEST(MathTest, Vector4_Invalid)
 {
     EXPECT_TRUE(Vector4(0.0f).IsValid());

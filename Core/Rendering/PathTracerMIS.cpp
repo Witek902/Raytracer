@@ -171,7 +171,7 @@ const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathSta
                 misWeight = CombineMis(pathState.lastPdfW, directPdfW);
             }
 
-            result += lightContribution * misWeight;
+            result.MulAndAccumulate(lightContribution, misWeight);
         }
     }
 
@@ -204,7 +204,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            resultColor += throughput * EvaluateGlobalLights(ray, pathState, context);
+            resultColor.MulAndAccumulate(throughput, EvaluateGlobalLights(ray, pathState, context));
             pathTerminationReason = PathTerminationReason::HitBackground;
             break;
         }
@@ -213,7 +213,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
             const ILight& light = mScene.Internal_GetLightByObjectId(hitPoint.objectId);
-            resultColor += throughput * EvaluateLight(light, ray, hitPoint.distance, pathState, context);
+            resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, pathState, context));
             pathTerminationReason = PathTerminationReason::HitLight;
             break;
         }
@@ -233,12 +233,12 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
 
             emissionColor *= RayColor::Resolve(context.wavelength, Spectrum(mBSDFSamplingWeight));
 
-            resultColor += throughput * emissionColor;
+            resultColor.MulAndAccumulate(throughput, emissionColor);
             RT_ASSERT(resultColor.IsValid());
         }
 
         // sample lights directly (a.k.a. next event estimation)
-        resultColor += throughput * SampleLights(shadingData, pathState, context);
+        resultColor.MulAndAccumulate(throughput, SampleLights(shadingData, pathState, context));
 
         // check if the ray depth won't be exeeded in the next iteration
         if (pathState.depth >= context.params->maxRayDepth)
@@ -250,7 +250,8 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // Russian roulette algorithm
         if (pathState.depth >= context.params->minRussianRouletteDepth)
         {
-            const float threshold = 0.125f + 0.875f * shadingData.materialParams.baseColor.Max();
+            const float minColorValue = 0.125f;
+            const float threshold = minColorValue + (1.0f - minColorValue) * shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {

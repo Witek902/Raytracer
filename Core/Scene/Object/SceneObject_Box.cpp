@@ -104,9 +104,7 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
         {       
             //if (hitPoint.filterObjectId != objectID || hitPoint.filterSubObjectId != side)
             {
-                hitPoint.distance = nearDist;
-                hitPoint.objectId = objectID;
-                hitPoint.subObjectId = 0;
+                hitPoint.Set(nearDist, objectID);
                 return;
             }
         }
@@ -115,9 +113,7 @@ void BoxSceneObject::Traverse_Single(const SingleTraversalContext& context, cons
         {
             //if (hitPoint.filterObjectId != objectID || hitPoint.filterSubObjectId != side)
             {
-                hitPoint.distance = farDist;
-                hitPoint.objectId = objectID;
-                hitPoint.subObjectId = 0;
+                hitPoint.Set(farDist, objectID);
                 return;
             }
         }

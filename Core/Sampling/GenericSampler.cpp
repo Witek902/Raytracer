@@ -8,13 +8,16 @@ using namespace math;
 
 GenericSampler::GenericSampler(Random& fallbackGenerator)
     : mFallbackGenerator(fallbackGenerator)
+    , mDimension(0)
 {}
 
 GenericSampler::~GenericSampler() = default;
 
 void GenericSampler::ResetFrame(const std::vector<float>& seed)
 {
-    mSeed = seed;
+    RT_ASSERT(seed.size() < MaxDimension);
+    mDimension = static_cast<Uint32>(seed.size());
+    memcpy(mSeed, seed.data(), seed.size() * sizeof(float));
 }
 
 void GenericSampler::ResetPixel(const Uint32 salt)
@@ -26,7 +29,7 @@ void GenericSampler::ResetPixel(const Uint32 salt)
 float GenericSampler::GetFloat()
 {
     Uint32 currentSample = mSamplesGenerated++;
-    if (currentSample < mSeed.size())
+    if (currentSample < mDimension)
     {
         // xorshift
         Uint32 salt = mSalt;

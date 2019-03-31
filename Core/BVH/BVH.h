@@ -23,17 +23,16 @@ public:
     {
         // TODO revisit this structure: keeping a pointer to child would be faster than index
         math::Float3 min;
-        math::Float3 max;
         Uint32 childIndex; // first child node / leaf index
-        Uint32 splitAxis : 2;
+        math::Float3 max;
         Uint32 numLeaves : 30;
+        Uint32 splitAxis : 2;
 
-        RT_FORCE_INLINE math::Box GetBox() const
+        RT_FORCE_INLINE const math::Box GetBox() const
         {
-            return math::Box(
-                math::Vector4(&min.x) & math::Vector4::MakeMask<1,1,1,0>(),
-                math::Vector4(&max.x) & math::Vector4::MakeMask<1,1,1,0>()
-            );
+            const math::Vector4 mask = math::Vector4::MakeMask<1,1,1,0>();
+
+            return { math::Vector4(&min.x) & mask, math::Vector4(&max.x) & mask };
         }
 
         RT_FORCE_INLINE math::Box_Simd8 GetBox_Simd8() const

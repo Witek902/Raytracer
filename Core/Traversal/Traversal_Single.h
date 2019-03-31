@@ -42,15 +42,15 @@ void GenericTraverse_Single(const SingleTraversalContext& context, const Uint32 
             const BVH::Node* __restrict childA = nodes + currentNode->childIndex;
             const BVH::Node* __restrict childB = childA + 1;
 
+            bool hitA = Intersect_BoxRay(context.ray, childA->GetBox(), distanceA);
+
             // prefetch grand-children
             RT_PREFETCH_L1(nodes + childA->childIndex);
 
-            bool hitA = Intersect_BoxRay(context.ray, childA->GetBox(), distanceA);
+            bool hitB = Intersect_BoxRay(context.ray, childB->GetBox(), distanceB);
 
             // Note: according to Intel manuals, prefetch instructions should not be grouped together
             RT_PREFETCH_L1(nodes + childB->childIndex);
-
-            bool hitB = Intersect_BoxRay(context.ray, childB->GetBox(), distanceB);
 
             // box occlusion
             hitA &= (distanceA < context.hitPoint.distance);
@@ -69,8 +69,8 @@ void GenericTraverse_Single(const SingleTraversalContext& context, const Uint32 
                 {
                     std::swap(childA, childB);
                 }
-                nodesStack[stackSize++] = childB;
                 currentNode = childA;
+                nodesStack[stackSize++] = childB;
                 continue;
             }
             if (hitA)
@@ -150,8 +150,8 @@ bool GenericTraverse_Shadow_Single(const SingleTraversalContext& context, const 
 
             if (hitA && hitB)
             {
-                nodesStack[stackSize++] = childB;
                 currentNode = childA;
+                nodesStack[stackSize++] = childB;
                 continue;
             }
             if (hitA)

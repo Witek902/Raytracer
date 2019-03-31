@@ -12,6 +12,8 @@ class Random;
 class GenericSampler
 {
 public:
+    static constexpr Uint32 MaxDimension = 1024;
+
     GenericSampler(math::Random& fallbackGenerator);
     ~GenericSampler();
 
@@ -26,12 +28,13 @@ public:
 
 private:
 
-    std::vector<float> mSeed;
-
+    Uint32 mDimension;
     Uint32 mSalt;
     Uint32 mSamplesGenerated;
 
     math::Random& mFallbackGenerator;
+
+    float mSeed[MaxDimension];
 };
 
 

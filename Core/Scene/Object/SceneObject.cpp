@@ -6,7 +6,11 @@ namespace rt {
 
 using namespace math;
 
-ISceneObject::ISceneObject() = default;
+ISceneObject::ISceneObject()
+{
+    mTransform = Matrix4::Identity();
+    mInverseTranform = Matrix4::Identity();
+}
 
 ISceneObject::~ISceneObject() = default;
 

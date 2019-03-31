@@ -75,6 +75,7 @@ private:
     friend struct VectorInt4;
 
     RT_FORCE_INLINE VectorBool4(const __m128 other) : v(other) { }
+    RT_FORCE_INLINE VectorBool4(const __m128i other) : v(_mm_castsi128_ps(other)) { }
 
     __m128 v;
 };

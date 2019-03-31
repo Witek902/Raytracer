@@ -23,9 +23,8 @@ void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, co
     {
         if (lightDistance < context.hitPoint.distance)
         {
-            context.hitPoint.distance = lightDistance;
-            context.hitPoint.objectId = objectID;
-            context.hitPoint.subObjectId = RT_LIGHT_OBJECT; // mark as light
+            // mark as light
+            context.hitPoint.Set(lightDistance, objectID, RT_LIGHT_OBJECT);
         }
     }
 }

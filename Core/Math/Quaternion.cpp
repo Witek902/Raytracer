@@ -184,6 +184,7 @@ const Matrix4 Quaternion::ToMatrix4() const
     m.r[0] = GetAxisX();
     m.r[1] = GetAxisY();
     m.r[2] = GetAxisZ();
+    m.r[3] = VECTOR_W;
     return m;
 }
 

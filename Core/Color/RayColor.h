@@ -73,6 +73,18 @@ struct RayColor
         return *this;
     }
 
+    RT_FORCE_INLINE RayColor& MulAndAccumulate(const RayColor& a, const RayColor& b)
+    {
+        value = Wavelength::ValueType::MulAndAdd(a.value, b.value, value);
+        return *this;
+    }
+
+    RT_FORCE_INLINE RayColor& MulAndAccumulate(const RayColor& a, const float b)
+    {
+        value = Wavelength::ValueType::MulAndAdd(a.value, b, value);
+        return *this;
+    }
+
     RT_FORCE_INLINE RayColor& operator *= (const RayColor& other)
     {
         value *= other.value;

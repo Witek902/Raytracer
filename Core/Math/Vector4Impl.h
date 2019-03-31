@@ -767,8 +767,14 @@ const VectorBool4 Vector4::IsZero() const
 // Check if any component is NaN
 const VectorBool4 Vector4::IsNaN() const
 {
-    // Test against itself. NaN is always not equal
-    return _mm_cmpneq_ps(v, v);
+    // check if exponent is all ones
+    const __m128i epxMask = _mm_set1_epi32(0x7F800000);
+    const __m128i expCheck = _mm_cmpeq_epi32(_mm_and_si128(vi, epxMask), epxMask);
+    // check if mantissa is not zero
+    const __m128i mantissaMask = _mm_set1_epi32(0x007FFFFF);
+    const __m128i mantissaCheck = _mm_cmpeq_epi32(_mm_and_si128(vi, mantissaMask), _mm_setzero_si128());
+
+    return _mm_andnot_si128(mantissaCheck, expCheck);
 }
 
 const VectorBool4 Vector4::IsInfinite() const
@@ -781,7 +787,10 @@ const VectorBool4 Vector4::IsInfinite() const
 
 bool Vector4::IsValid() const
 {
-    return IsNaN().None() && IsInfinite().None();
+    // check if exponent is all ones
+    const __m128i epxMask = _mm_set1_epi32(0x7F800000);
+    const __m128i expCheck = _mm_cmpeq_epi32(_mm_and_si128(vi, epxMask), epxMask);
+    return _mm_movemask_ps(_mm_castsi128_ps(expCheck)) == 0;
 }
 
 void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)

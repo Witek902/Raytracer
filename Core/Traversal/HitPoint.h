@@ -24,7 +24,6 @@ struct HitPoint
         Uint64 combinedObjectId;
     };
 
-
     float distance;
     float u;
     float v;
@@ -33,6 +32,20 @@ struct HitPoint
         : objectId(RT_INVALID_OBJECT)
         , distance(FLT_MAX)
     {}
+
+    RT_FORCE_INLINE void Set(float newDistance, Uint32 newObjectId, Uint32 newSubObjectId)
+    {
+        distance = newDistance;
+        objectId = newObjectId;
+        subObjectId = newSubObjectId;
+    }
+
+    // optimization: perform single 64-bit write instead of two 32-bit writes
+    RT_FORCE_INLINE void Set(float newDistance, Uint32 newObjectId)
+    {
+        distance = newDistance;
+        combinedObjectId = newObjectId;
+    }
 };
 
 // Ray-scene intersection data (SIMD-8)

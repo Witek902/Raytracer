@@ -17,6 +17,8 @@ struct Options
     Uint32 windowHeight = 720;
     std::string dataPath;
 
+    Uint32 numThreads = 0;
+
     bool enablePacketTracing = false;
     std::string rendererName = "Path Tracer";
 

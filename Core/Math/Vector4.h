@@ -20,6 +20,7 @@ struct RT_ALIGN(16) Vector4
         Int32 i[4];
         Uint32 u[4];
         __m128 v;
+        __m128i vi;
 
         struct
         {
@@ -279,6 +280,8 @@ RT_GLOBAL_CONST Vector4 VECTOR_ONE3 = { 1.0f, 1.0f, 1.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE2 = { 1.0f, 1.0f, 0.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_MINUS_ONE = { -1.0f, -1.0f, -1.0f, -1.0f };
 
+RT_GLOBAL_CONST Vector4 VECTOR_EXPONENT_MASK = { 0x7F800000u, 0x7F800000u, 0x7F800000u, 0x7F800000u };
+RT_GLOBAL_CONST Vector4 VECTOR_MANTISSA_MASK = { 0x007FFFFFu, 0x007FFFFFu, 0x007FFFFFu, 0x007FFFFFu };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_ABS = { 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN_W = { 0u, 0u, 0u, 0x80000000u };
 

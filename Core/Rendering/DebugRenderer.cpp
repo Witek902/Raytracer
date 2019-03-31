@@ -20,7 +20,7 @@ static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4& x)
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::CameraLight)
+    , mRenderingMode(DebugRenderingMode::TriangleID)
 {
 }
 
