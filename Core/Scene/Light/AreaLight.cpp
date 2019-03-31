@@ -4,8 +4,7 @@
 #include "../../Rendering/ShadingData.h"
 #include "../../Math/Geometry.h"
 #include "../../Math/SamplingHelpers.h"
-#include "../../Utils/Texture.h"
-#include "../../Utils/TextureEvaluator.h"
+#include "../../Textures/Texture.h"
 
 namespace rt {
 
@@ -31,11 +30,6 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     normal = cross.Normalized3();
 
     float surfaceArea = cross.Length3();
-    if (isTriangle)
-    {
-        surfaceArea *= 0.5f;
-    }
-
     invArea = 1.0f / surfaceArea;
 }
 
@@ -47,16 +41,14 @@ ILight::Type AreaLight::GetType() const
 const Box AreaLight::GetBoundingBox() const
 {
     Box box(p0, p0 + edge0, p0 + edge1);
-    if (!isTriangle)
-    {
-        box.AddPoint(p0 + edge0 + edge1);
-    }
-
+    box.AddPoint(p0 + edge0 + edge1);
     return box;
 }
 
 bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
 {
+    // TODO optimize (ray - quad intersection)
+
     float u, v; // unused
 
     if (Intersect_TriangleRay(ray, p0, edge0, edge1, u, v, outDistance))
@@ -64,14 +56,11 @@ bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
         return true;
     }
 
-    if (!isTriangle)
-    {
-        const Vector4 oppositePoint = p0 + edge0 + edge1;
+    const Vector4 oppositePoint = p0 + edge0 + edge1;
 
-        if (Intersect_TriangleRay(ray, oppositePoint, -edge0, -edge1, u, v, outDistance))
-        {
-            return true;
-        }
+    if (Intersect_TriangleRay(ray, oppositePoint, -edge0, -edge1, u, v, outDistance))
+    {
+        return true;
     }
 
     return false;
@@ -79,14 +68,16 @@ bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
 
 const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    const Vector4 uv = isTriangle ? SamplingHelpers::GetTriangle(param.sample) : Vector4(param.sample);
+    Vector4 uv = Vector4(param.sample);
 
     Spectrum color = GetColor();
 
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Evaluate(uv, TextureEvaluator());
+        float pdf;
+        const Vector4 textureColor = mTexture->Sample(param.sample, uv, &pdf);
+        color.rgbValues *= textureColor / pdf;
     }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
@@ -138,7 +129,7 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray,
         const float v = Vector4::Dot3(lightSpaceHitPoint, edge1 * edgeLengthInv1) * edgeLengthInv1;
         const Vector4 textureCoords(u, v, 0.0f, 0.0f);
 
-        color.rgbValues *= mTexture->Evaluate(textureCoords, TextureEvaluator());
+        color.rgbValues *= mTexture->Evaluate(textureCoords);
     }
 
     return RayColor::Resolve(context.wavelength, color);
@@ -147,7 +138,7 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray,
 const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
     // generate random point on the light surface
-    const Vector4 uv = isTriangle ? SamplingHelpers::GetTriangle(param.sample) : Vector4(param.sample);
+    const Vector4 uv = Vector4(param.sample);
     // p0 + edge0 * uv.x + edge1 * uv.y;
     outResult.position = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
@@ -165,7 +156,7 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
     // sample texture map
     if (mTexture)
     {
-        color.rgbValues *= mTexture->Evaluate(Vector4(uv), TextureEvaluator());
+        color.rgbValues *= mTexture->Evaluate(Vector4(uv));
     }
 
     // TODO texture

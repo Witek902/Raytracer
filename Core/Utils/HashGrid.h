@@ -103,8 +103,8 @@ public:
             math::VectorInt4(1, 1, 1, 0),
         };
 
-        Uint32 numCellsToVisit = 0;
-        Uint32 cellsToVisit[8];
+        Uint32 numVisitedCells = 0;
+        Uint32 visitedCells[8];
 
         // find neigboring (potential) cells - 2x2x2 block
         for (Uint32 i = 0; i < 8; ++i)
@@ -112,32 +112,31 @@ public:
             const Uint32 cellIndex = GetCellIndex(coordI + offsets[i]);
 
             // check if the cell is not already marked to visit
-            for (Uint32 j = 0; j < numCellsToVisit; ++j)
+            for (Uint32 j = 0; j < numVisitedCells; ++j)
             {
-                if (cellsToVisit[j] == cellIndex)
+                if (visitedCells[j] == cellIndex)
                 {
                     continue;
                 }
             }
 
-            cellsToVisit[numCellsToVisit++] = cellIndex;
-        }
+            visitedCells[numVisitedCells++] = cellIndex;
 
-        // collect particles from potential cells
-        for (Uint32 j = 0; j < numCellsToVisit; j++)
-        {
-            Uint32 rangeStart, rangeEnd;
-            GetCellRange(cellsToVisit[j], rangeStart, rangeEnd);
-
-            for (Uint32 i = rangeStart; i < rangeEnd; ++i)
+            // collect particles from potential cells
             {
-                const Uint32 particleIndex = mIndices[i];
-                const ParticleType& particle = particles[particleIndex];
+                Uint32 rangeStart, rangeEnd;
+                GetCellRange(cellIndex, rangeStart, rangeEnd);
 
-                const float distSqr = (queryPos - particle.GetPosition()).SqrLength3();
-                if (distSqr <= mRadiusSqr)
+                for (Uint32 j = rangeStart; j < rangeEnd; ++j)
                 {
-                    query(particleIndex);
+                    const Uint32 particleIndex = mIndices[j];
+                    const ParticleType& particle = particles[particleIndex];
+
+                    const float distSqr = (queryPos - particle.GetPosition()).SqrLength3();
+                    if (distSqr <= mRadiusSqr)
+                    {
+                        query(particleIndex);
+                    }
                 }
             }
         }
@@ -147,16 +146,8 @@ private:
 
     void GetCellRange(Uint32 cellIndex, Uint32& outStart, Uint32& outEnd) const
     {
-        if (cellIndex == 0)
-        {
-            outStart = 0;
-            outEnd = mCellEnds[0];
-        }
-        else
-        {
-            outStart = mCellEnds[cellIndex - 1];
-            outEnd = mCellEnds[cellIndex];
-        }
+        outStart = cellIndex == 0 ? 0 : mCellEnds[cellIndex - 1];
+        outEnd = mCellEnds[cellIndex];
     }
 
     Uint32 GetCellIndex(const math::VectorInt4& p) const

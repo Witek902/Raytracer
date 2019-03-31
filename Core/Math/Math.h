@@ -61,7 +61,7 @@ RT_FORCE_INLINE constexpr const T Min(const T a, const T b, const Types ... r)
 
 // Maximum.
 template<typename T>
-RT_FORCE_INLINE constexpr T Max(const T a, const T b)
+RT_FORCE_INLINE constexpr const T Max(const T a, const T b)
 {
     return (a < b) ? b : a;
 }
@@ -74,8 +74,10 @@ RT_FORCE_INLINE constexpr const T Max(const T a, const T b, const Types ... r)
 
 // Absolute value.
 template<typename T>
-RT_FORCE_INLINE constexpr T Abs(const T x)
+RT_FORCE_INLINE constexpr const T Abs(const T x)
 {
+    static_assert(!std::is_integral<T>::value || std::is_signed<T>::value, "Abs() must be used with signed types");
+
     if (x < static_cast<T>(0))
     {
         return -x;
@@ -84,16 +86,23 @@ RT_FORCE_INLINE constexpr T Abs(const T x)
     return x;
 }
 
+// compute floor and convert to integer
+RT_FORCE_INLINE constexpr Int32 FloorInt(float fp)
+{
+    const Int32 i = static_cast<Int32>(fp);
+    return fp < i ? (i - 1) : i;
+}
+
 // x^2
 template<typename T>
-RT_FORCE_INLINE constexpr T Sqr(const T x)
+RT_FORCE_INLINE constexpr const T Sqr(const T x)
 {
     return x * x;
 }
 
 // x^3
 template<typename T>
-RT_FORCE_INLINE constexpr T Cube(const T x)
+RT_FORCE_INLINE constexpr const T Cube(const T x)
 {
     return x * x * x;
 }
@@ -116,7 +125,7 @@ RT_FORCE_INLINE float CopySign(const float x, const float y)
 }
 
 template<typename T>
-RT_FORCE_INLINE T Signum(const T x)
+RT_FORCE_INLINE const T Signum(const T x)
 {
     if (x > T(0))
     {
@@ -134,7 +143,7 @@ RT_FORCE_INLINE T Signum(const T x)
 
 // Clamp to range.
 template<typename T>
-RT_FORCE_INLINE constexpr T Clamp(const T x, const T min, const T max)
+RT_FORCE_INLINE constexpr const T Clamp(const T x, const T min, const T max)
 {
     if (x > max)
         return max;
@@ -144,9 +153,28 @@ RT_FORCE_INLINE constexpr T Clamp(const T x, const T min, const T max)
         return x;
 }
 
+template<typename T>
+RT_FORCE_INLINE constexpr const T SmoothStep(const T x)
+{
+    return x * x * (T(3.0f) - x * T(2.0f));
+}
+
+template<typename T>
+RT_FORCE_INLINE static constexpr const T Step(const T a, const T b, T x)
+{
+    return Clamp((x - a) / (b - a), T(0.0f), T(1.0f));
+}
+
+
+template<typename T>
+RT_FORCE_INLINE static constexpr float SmoothStep(const T a, const T b, T x)
+{
+    return SmoothStep(Step(a, b, x));
+}
+
 // Linear interpolation.
 template<typename T>
-RT_FORCE_INLINE constexpr T Lerp(const T a, const T b, const T w)
+RT_FORCE_INLINE constexpr const T Lerp(const T a, const T b, const T w)
 {
     return a + w * (b - a);
 }

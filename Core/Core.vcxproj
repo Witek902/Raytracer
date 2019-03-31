@@ -342,6 +342,7 @@
     <ClInclude Include="Material\Material.h" />
     <ClInclude Include="Math\Box.h" />
     <ClInclude Include="Math\Constants.h" />
+    <ClInclude Include="Math\Distribution.h" />
     <ClInclude Include="Math\Float2.h" />
     <ClInclude Include="Math\Float2Impl.h" />
     <ClInclude Include="Math\Float3.h" />
@@ -412,6 +413,12 @@
     <ClInclude Include="Scene\Object\SceneObject_Plane.h" />
     <ClInclude Include="Scene\Object\SceneObject_Sphere.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Textures\BitmapTexture.h" />
+    <ClInclude Include="Textures\CheckerboardTexture.h" />
+    <ClInclude Include="Textures\ConstTexture.h" />
+    <ClInclude Include="Textures\MixTexture.h" />
+    <ClInclude Include="Textures\NoiseTexture.h" />
+    <ClInclude Include="Textures\Texture.h" />
     <ClInclude Include="Traversal\HitPoint.h" />
     <ClInclude Include="Traversal\RayPacket.h" />
     <ClInclude Include="Traversal\RayStream.h" />
@@ -455,6 +462,7 @@
     <ClCompile Include="Material\BSDF\RoughDiffuseBSDF.cpp" />
     <ClCompile Include="Material\BSDF\RoughPlasticBSDF.cpp" />
     <ClCompile Include="Material\Material.cpp" />
+    <ClCompile Include="Math\Distribution.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="Math\Matrix4.cpp" />
@@ -503,6 +511,12 @@
     <ClCompile Include="Scene\Object\SceneObject_Plane.cpp" />
     <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Textures\BitmapTexture.cpp" />
+    <ClCompile Include="Textures\CheckerboardTexture.cpp" />
+    <ClCompile Include="Textures\ConstTexture.cpp" />
+    <ClCompile Include="Textures\MixTexture.cpp" />
+    <ClCompile Include="Textures\NoiseTexture.cpp" />
+    <ClCompile Include="Textures\Texture.cpp" />
     <ClCompile Include="Traversal\RayPacket.cpp" />
     <ClCompile Include="Traversal\RayStream.cpp" />
     <ClCompile Include="Traversal\TraversalContext.cpp" />
@@ -513,7 +527,6 @@
     <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
-    <ClCompile Include="Utils\Texture.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
   </ItemGroup>

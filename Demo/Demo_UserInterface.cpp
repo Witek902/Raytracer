@@ -451,11 +451,11 @@ bool DemoWindow::RenderUI_Settings_Camera()
             ImGui::Columns(1);
         }
 
-        const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box", "n-gon" };
-        int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehType);
+        const char* bokehTypeNames[] = { "Circle", "Hexagon", "Box", "n-gon", "Texture" };
+        int bokehTypeIndex = static_cast<int>(mCamera.mDOF.bokehShape);
 
         resetFrame |= ImGui::Combo("Bokeh Shape", &bokehTypeIndex, bokehTypeNames, IM_ARRAYSIZE(bokehTypeNames));
-        if (mCamera.mDOF.bokehType == BokehShape::NGon)
+        if (mCamera.mDOF.bokehShape == BokehShape::NGon)
         {
             resetFrame |= ImGui::SliderInt("No. of blades", (int*)&mCamera.mDOF.apertureBlades, 3, 20);
         }
@@ -464,7 +464,7 @@ bool DemoWindow::RenderUI_Settings_Camera()
         resetFrame |= ImGui::SliderFloat("Barrel distortion", &mCamera.barrelDistortionConstFactor, 0.0f, 0.2f);
         resetFrame |= ImGui::SliderFloat("Lens distortion", &mCamera.barrelDistortionVariableFactor, 0.0f, 0.2f);
 
-        mCamera.mDOF.bokehType = static_cast<BokehShape>(bokehTypeIndex);
+        mCamera.mDOF.bokehShape = static_cast<BokehShape>(bokehTypeIndex);
 
         ImGui::TreePop(); // Lens
     }

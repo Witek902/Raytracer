@@ -313,7 +313,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 const Uint32 pixelIndex = y * GetHeight() + x;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                ctx.sampler->ResetPixel(pixelIndex);
+                ctx.sampler->ResetPixel(x, y);
                 ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
                 ctx.wavelength.Randomize(ctx.randomGenerator);
 

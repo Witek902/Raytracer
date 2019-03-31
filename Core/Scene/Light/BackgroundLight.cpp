@@ -2,8 +2,7 @@
 #include "BackgroundLight.h"
 #include "../../Rendering/Context.h"
 #include "../../Rendering/ShadingData.h"
-#include "../../Utils/Bitmap.h"
-#include "../../Utils/TextureEvaluator.h"
+#include "../../Textures/Texture.h"
 #include "../../Math/Transcendental.h"
 #include "../../Math/Geometry.h"
 #include "../../Math/SamplingHelpers.h"
@@ -51,7 +50,7 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, const Wav
         const Vector4 coords = CartesianToSphericalCoordinates(dir);
         RT_ASSERT(coords.IsValid());
 
-        const Vector4 textureColor = mTexture->Evaluate(coords, TextureEvaluator());
+        const Vector4 textureColor = mTexture->Evaluate(coords);
         RT_ASSERT((textureColor >= Vector4::Zero()).All());
 
         color.rgbValues *= textureColor;

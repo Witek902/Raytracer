@@ -17,6 +17,7 @@
         "aperture": 0.1,
         "enableDOF": true,
         "focalDistance": 2.0,
-        "fieldOfView": 55.0
+        "fieldOfView": 55.0,
+        "bokehTexture" : "TEXTURES/bokeh/bokeh_20.bmp"
     }
 }

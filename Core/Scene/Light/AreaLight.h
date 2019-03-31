@@ -33,8 +33,6 @@ private:
     float invArea; // inverted surface area
     float edgeLengthInv0;
     float edgeLengthInv1;
-
-    bool isTriangle = false;
 };
 
 } // namespace rt

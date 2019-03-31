@@ -3,7 +3,6 @@
 #include "Logger.h"
 #include "BlockCompression.h"
 #include "Timer.h"
-#include "TextureEvaluator.h"
 
 namespace rt {
 
@@ -94,11 +93,6 @@ Bitmap::Bitmap(Bitmap&&) = default;
 
 Bitmap& Bitmap::operator = (Bitmap&&) = default;
 
-const char* Bitmap::GetName() const
-{
-    return mDebugName.c_str();
-}
-
 void Bitmap::Clear()
 {
     if (mData)
@@ -130,7 +124,7 @@ bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
     }
     if (dataSize == std::numeric_limits<size_t>::max())
     {
-        RT_LOG_ERROR("Texture is too big");
+        RT_LOG_ERROR("Bitmap is too big");
         return false;
     }
 
@@ -141,7 +135,7 @@ bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
     mData = (Uint8*)AlignedMalloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
     if (!mData)
     {
-        RT_LOG_ERROR("Memory allocation failed");
+        RT_LOG_ERROR("Bitmap: Memory allocation failed");
         return false;
     }
 
@@ -152,8 +146,8 @@ bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
 
     mWidth = (Uint16)width;
     mHeight = (Uint16)height;
-    mFloatSize = Vector4((float)width, (float)height, (float)width, (float)height);
     mSize = VectorInt4(width, height, width, height);
+    mFloatSize = mSize.ConvertToFloat();
     mFormat = format;
     mLinearSpace = linearSpace;
 
@@ -223,128 +217,128 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
     Vector4 color;
     switch (mFormat)
     {
-        case Format::R8_UNorm:
-        {
-            const Uint32 value = mData[offset];
-            color = Vector4::FromInteger(value) * (1.0f / 255.0f);
-            break;
-        }
+    case Format::R8_UNorm:
+    {
+        const Uint32 value = mData[offset];
+        color = Vector4::FromInteger(value) * (1.0f / 255.0f);
+        break;
+    }
 
-        case Format::R8G8_UNorm:
-        {
-            color = Vector4::Load_2xUint8_Norm(mData + (2u * offset));
-            break;
-        }
+    case Format::R8G8_UNorm:
+    {
+        color = Vector4::Load_2xUint8_Norm(mData + (2u * offset));
+        break;
+    }
 
-        case Format::B8G8R8_UNorm:
-        {
-            const Uint8* source = mData + (3u * offset);
-            color = Vector4::LoadBGR_UNorm(source);
-            break;
-        }
+    case Format::B8G8R8_UNorm:
+    {
+        const Uint8* source = mData + (3u * offset);
+        color = Vector4::LoadBGR_UNorm(source);
+        break;
+    }
 
-        case Format::B8G8R8A8_UNorm:
-        {
-            const Uint8* source = mData + (4u * offset);
-            color = Vector4::Load_4xUint8(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
-            break;
-        }
+    case Format::B8G8R8A8_UNorm:
+    {
+        const Uint8* source = mData + (4u * offset);
+        color = Vector4::Load_4xUint8(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
+        break;
+    }
 
-        case Format::R16_UNorm:
-        {
-            const Uint16* source = reinterpret_cast<const Uint16*>(mData) + offset;
-            color = Vector4::FromInteger(*source) * (1.0f / 65535.0f);
-            break;
-        }
+    case Format::R16_UNorm:
+    {
+        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + offset;
+        color = Vector4::FromInteger(*source) * (1.0f / 65535.0f);
+        break;
+    }
 
-        case Format::R16G16_UNorm:
-        {
-            const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 2u * offset;
-            color = Vector4::Load_2xUint16_Norm(source);
-            break;
-        }
+    case Format::R16G16_UNorm:
+    {
+        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 2u * offset;
+        color = Vector4::Load_2xUint16_Norm(source);
+        break;
+    }
 
-        case Format::R16G16B16A16_UNorm:
-        {
-            const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 4u * offset;
-            color = Vector4::Load_4xUint16(source) * (1.0f / 65535.0f);
-            break;
-        }
+    case Format::R16G16B16A16_UNorm:
+    {
+        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 4u * offset;
+        color = Vector4::Load_4xUint16(source) * (1.0f / 65535.0f);
+        break;
+    }
 
-        case Format::R32_Float:
-        {
-            const float* source = reinterpret_cast<const float*>(mData) + offset;
-            color = Vector4(*source);
-            break;
-        }
+    case Format::R32_Float:
+    {
+        const float* source = reinterpret_cast<const float*>(mData) + offset;
+        color = Vector4(*source);
+        break;
+    }
 
-        case Format::R32G32B32_Float:
-        {
-            const float* source = reinterpret_cast<const float*>(mData) + 3u * offset;
-            color = Vector4(source) & Vector4::MakeMask<1,1,1,0>();
-            break;
-        }
+    case Format::R32G32B32_Float:
+    {
+        const float* source = reinterpret_cast<const float*>(mData) + 3u * offset;
+        color = Vector4(source) & Vector4::MakeMask<1, 1, 1, 0>();
+        break;
+    }
 
-        case Format::R32G32B32A32_Float:
-        {
-            const Vector4* source = reinterpret_cast<const Vector4*>(mData) + offset;
-            RT_PREFETCH_L2(source - mWidth);
-            RT_PREFETCH_L2(source + mWidth);
-            color = *source;
-            break;
-        }
+    case Format::R32G32B32A32_Float:
+    {
+        const Vector4* source = reinterpret_cast<const Vector4*>(mData) + offset;
+        RT_PREFETCH_L2(source - mWidth);
+        RT_PREFETCH_L2(source + mWidth);
+        color = *source;
+        break;
+    }
 
-        case Format::R16_Half:
-        {
-            const Half* source = reinterpret_cast<const Half*>(mData) + offset;
-            color = Vector4(ConvertHalfToFloat(*source));
-            break;
-        }
+    case Format::R16_Half:
+    {
+        const Half* source = reinterpret_cast<const Half*>(mData) + offset;
+        color = Vector4(ConvertHalfToFloat(*source));
+        break;
+    }
 
-        case Format::R16G16_Half:
-        {
-            const Half* source = reinterpret_cast<const Half*>(mData) + 2u * offset;
-            color = Vector4::FromHalves(source) & Vector4::MakeMask<1,1,0,0>();
-            break;
-        }
+    case Format::R16G16_Half:
+    {
+        const Half* source = reinterpret_cast<const Half*>(mData) + 2u * offset;
+        color = Vector4::FromHalves(source) & Vector4::MakeMask<1, 1, 0, 0>();
+        break;
+    }
 
-        case Format::R16G16B16_Half:
-        {
-            const Half* source = reinterpret_cast<const Half*>(mData) + 3u * offset;
-            color = Vector4::FromHalves(source) & Vector4::MakeMask<1,1,1,0>();
-            break;
-        }
+    case Format::R16G16B16_Half:
+    {
+        const Half* source = reinterpret_cast<const Half*>(mData) + 3u * offset;
+        color = Vector4::FromHalves(source) & Vector4::MakeMask<1, 1, 1, 0>();
+        break;
+    }
 
-        case Format::R16G16B16A16_Half:
-        {
-            const Half* source = reinterpret_cast<const Half*>(mData) + 4u * offset;
-            color = Vector4::FromHalves(source);
-            break;
-        }
+    case Format::R16G16B16A16_Half:
+    {
+        const Half* source = reinterpret_cast<const Half*>(mData) + 4u * offset;
+        color = Vector4::FromHalves(source);
+        break;
+    }
 
-        case Format::BC1:
-        {
-            color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
-            break;
-        }
+    case Format::BC1:
+    {
+        color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        break;
+    }
 
-        case Format::BC4:
-        {
-            color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
-            break;
-        }
+    case Format::BC4:
+    {
+        color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        break;
+    }
 
-        case Format::BC5:
-        {
-            color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
-            break;
-        }
+    case Format::BC5:
+    {
+        color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        break;
+    }
 
-        default:
-        {
-            RT_FATAL("Unsupported bitmap format");
-            color = Vector4::Zero();
-        }
+    default:
+    {
+        RT_FATAL("Unsupported bitmap format");
+        color = Vector4::Zero();
+    }
     }
 
     if (!mLinearSpace && !forceLinearSpace)
@@ -355,7 +349,7 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
     return color;
 }
 
-void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const
+void Bitmap::GetPixelBlock(const VectorInt4 coords, const bool forceLinearSpace, Vector4* outColors) const
 {
     RT_ASSERT(coords.x >= 0 && coords.x < (Int32)mWidth);
     RT_ASSERT(coords.y >= 0 && coords.y < (Int32)mHeight);
@@ -363,216 +357,216 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     RT_ASSERT(coords.w >= 0 && coords.w < (Int32)mHeight);
 
     // calculate offsets in pixels array for each corner
-    const VectorInt4 offsets = coords.Swizzle<1,1,3,3>() * (Int32)mWidth + coords.Swizzle<0,2,0,2>();
+    const VectorInt4 offsets = coords.Swizzle<1, 1, 3, 3>() * (Int32)mWidth + coords.Swizzle<0, 2, 0, 2>();
 
     Vector4 color0, color1, color2, color3;
 
     switch (mFormat)
     {
-        case Format::R8_UNorm:
-        {
-            constexpr float scale = 1.0f / 255.0f;
-            const Uint32 value0 = mData[(Uint32)offsets.x];
-            const Uint32 value1 = mData[(Uint32)offsets.y];
-            const Uint32 value2 = mData[(Uint32)offsets.z];
-            const Uint32 value3 = mData[(Uint32)offsets.w];
-            const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
-            color0 = values.SplatX();
-            color1 = values.SplatY();
-            color2 = values.SplatZ();
-            color3 = values.SplatW();
-            break;
-        }
+    case Format::R8_UNorm:
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        const Uint32 value0 = mData[(Uint32)offsets.x];
+        const Uint32 value1 = mData[(Uint32)offsets.y];
+        const Uint32 value2 = mData[(Uint32)offsets.z];
+        const Uint32 value3 = mData[(Uint32)offsets.w];
+        const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
+        color0 = values.SplatX();
+        color1 = values.SplatY();
+        color2 = values.SplatZ();
+        color3 = values.SplatW();
+        break;
+    }
 
-        case Format::R8G8_UNorm:
-        {
-            color0 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.x);
-            color1 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.y);
-            color2 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.z);
-            color3 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.w);
-            break;
-        }
+    case Format::R8G8_UNorm:
+    {
+        color0 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.x);
+        color1 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.y);
+        color2 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.z);
+        color3 = Vector4::Load_2xUint8_Norm(mData + 2u * (Uint32)offsets.w);
+        break;
+    }
 
-        case Format::B8G8R8_UNorm:
-        {
-            color0 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.x);
-            color1 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.y);
-            color2 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.z);
-            color3 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.w);
-            break;
-        }
+    case Format::B8G8R8_UNorm:
+    {
+        color0 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.x);
+        color1 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.y);
+        color2 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.z);
+        color3 = Vector4::LoadBGR_UNorm(mData + 3u * (Uint32)offsets.w);
+        break;
+    }
 
-        case Format::B8G8R8A8_UNorm:
-        {
-            constexpr float scale = 1.0f / 255.0f;
-            color0 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
-            color1 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.y).Swizzle<2, 1, 0, 3>() * scale;
-            color2 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
-            color3 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.w).Swizzle<2, 1, 0, 3>() * scale;
-            break;
-        }
+    case Format::B8G8R8A8_UNorm:
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        color0 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
+        color1 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.y).Swizzle<2, 1, 0, 3>() * scale;
+        color2 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
+        color3 = Vector4::Load_4xUint8(mData + 4u * (Uint32)offsets.w).Swizzle<2, 1, 0, 3>() * scale;
+        break;
+    }
 
-        case Format::R16_UNorm:
-        {
-            constexpr float scale = 1.0f / 65535.0f;
-            const Uint32 value0 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.x];
-            const Uint32 value1 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.y];
-            const Uint32 value2 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.z];
-            const Uint32 value3 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.w];
-            const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
-            color0 = values.SplatX();
-            color1 = values.SplatY();
-            color2 = values.SplatZ();
-            color3 = values.SplatW();
-            break;
-        }
+    case Format::R16_UNorm:
+    {
+        constexpr float scale = 1.0f / 65535.0f;
+        const Uint32 value0 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.x];
+        const Uint32 value1 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.y];
+        const Uint32 value2 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.z];
+        const Uint32 value3 = reinterpret_cast<const Uint16*>(mData)[(Uint32)offsets.w];
+        const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
+        color0 = values.SplatX();
+        color1 = values.SplatY();
+        color2 = values.SplatZ();
+        color3 = values.SplatW();
+        break;
+    }
 
-        case Format::R16G16_UNorm:
-        {
-            const Uint16* source0 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.x;
-            const Uint16* source1 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.y;
-            const Uint16* source2 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.z;
-            const Uint16* source3 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.w;
-            color0 = Vector4::Load_2xUint16_Norm(source0);
-            color1 = Vector4::Load_2xUint16_Norm(source1);
-            color2 = Vector4::Load_2xUint16_Norm(source2);
-            color3 = Vector4::Load_2xUint16_Norm(source3);
-            break;
-        }
+    case Format::R16G16_UNorm:
+    {
+        const Uint16* source0 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.x;
+        const Uint16* source1 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.y;
+        const Uint16* source2 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.z;
+        const Uint16* source3 = reinterpret_cast<const Uint16*>(mData) + 2u * (Uint32)offsets.w;
+        color0 = Vector4::Load_2xUint16_Norm(source0);
+        color1 = Vector4::Load_2xUint16_Norm(source1);
+        color2 = Vector4::Load_2xUint16_Norm(source2);
+        color3 = Vector4::Load_2xUint16_Norm(source3);
+        break;
+    }
 
-        case Format::R16G16B16A16_UNorm:
-        {
-            constexpr float scale = 1.0f / 65535.0f;
-            const Uint16* source0 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.x;
-            const Uint16* source1 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.y;
-            const Uint16* source2 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.z;
-            const Uint16* source3 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.w;
-            color0 = Vector4::Load_4xUint16(source0) * scale;
-            color1 = Vector4::Load_4xUint16(source1) * scale;
-            color2 = Vector4::Load_4xUint16(source2) * scale;
-            color3 = Vector4::Load_4xUint16(source3) * scale;
-            break;
-        }
+    case Format::R16G16B16A16_UNorm:
+    {
+        constexpr float scale = 1.0f / 65535.0f;
+        const Uint16* source0 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.x;
+        const Uint16* source1 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.y;
+        const Uint16* source2 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.z;
+        const Uint16* source3 = reinterpret_cast<const Uint16*>(mData) + 4u * (Uint32)offsets.w;
+        color0 = Vector4::Load_4xUint16(source0) * scale;
+        color1 = Vector4::Load_4xUint16(source1) * scale;
+        color2 = Vector4::Load_4xUint16(source2) * scale;
+        color3 = Vector4::Load_4xUint16(source3) * scale;
+        break;
+    }
 
-        case Format::R32_Float:
-        {
-            const float* source0 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.x;
-            const float* source1 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.y;
-            const float* source2 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.z;
-            const float* source3 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.w;
-            color0 = Vector4(*source0);
-            color1 = Vector4(*source1);
-            color2 = Vector4(*source2);
-            color3 = Vector4(*source3);
-            break;
-        }
+    case Format::R32_Float:
+    {
+        const float* source0 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.x;
+        const float* source1 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.y;
+        const float* source2 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.z;
+        const float* source3 = reinterpret_cast<const float*>(mData) + (Uint32)offsets.w;
+        color0 = Vector4(*source0);
+        color1 = Vector4(*source1);
+        color2 = Vector4(*source2);
+        color3 = Vector4(*source3);
+        break;
+    }
 
-        case Format::R32G32B32_Float:
-        {
-            const float* source0 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.x;
-            const float* source1 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.y;
-            const float* source2 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.z;
-            const float* source3 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.w;
-            color0 = Vector4(source0) & Vector4::MakeMask<1,1,1,0>();
-            color1 = Vector4(source1) & Vector4::MakeMask<1,1,1,0>();
-            color2 = Vector4(source2) & Vector4::MakeMask<1,1,1,0>();
-            color3 = Vector4(source3) & Vector4::MakeMask<1,1,1,0>();
-            break;
-        }
+    case Format::R32G32B32_Float:
+    {
+        const float* source0 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.x;
+        const float* source1 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.y;
+        const float* source2 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.z;
+        const float* source3 = reinterpret_cast<const float*>(mData) + 3u * (Uint32)offsets.w;
+        color0 = Vector4(source0) & Vector4::MakeMask<1, 1, 1, 0>();
+        color1 = Vector4(source1) & Vector4::MakeMask<1, 1, 1, 0>();
+        color2 = Vector4(source2) & Vector4::MakeMask<1, 1, 1, 0>();
+        color3 = Vector4(source3) & Vector4::MakeMask<1, 1, 1, 0>();
+        break;
+    }
 
-        case Format::R32G32B32A32_Float:
-        {
-            color0 = reinterpret_cast<const Vector4*>(mData)[offsets.x];
-            color1 = reinterpret_cast<const Vector4*>(mData)[offsets.y];
-            color2 = reinterpret_cast<const Vector4*>(mData)[offsets.z];
-            color3 = reinterpret_cast<const Vector4*>(mData)[offsets.w];
-            break;
-        }
+    case Format::R32G32B32A32_Float:
+    {
+        color0 = reinterpret_cast<const Vector4*>(mData)[offsets.x];
+        color1 = reinterpret_cast<const Vector4*>(mData)[offsets.y];
+        color2 = reinterpret_cast<const Vector4*>(mData)[offsets.z];
+        color3 = reinterpret_cast<const Vector4*>(mData)[offsets.w];
+        break;
+    }
 
-        case Format::R16_Half:
-        {
-            const Half* source0 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.x;
-            const Half* source1 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.y;
-            const Half* source2 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.z;
-            const Half* source3 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.w;
-            color0 = Vector4(ConvertHalfToFloat(*source0));
-            color1 = Vector4(ConvertHalfToFloat(*source1));
-            color2 = Vector4(ConvertHalfToFloat(*source2));
-            color3 = Vector4(ConvertHalfToFloat(*source3));
-            break;
-        }
+    case Format::R16_Half:
+    {
+        const Half* source0 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.x;
+        const Half* source1 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.y;
+        const Half* source2 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.z;
+        const Half* source3 = reinterpret_cast<const Half*>(mData) + (Uint32)offsets.w;
+        color0 = Vector4(ConvertHalfToFloat(*source0));
+        color1 = Vector4(ConvertHalfToFloat(*source1));
+        color2 = Vector4(ConvertHalfToFloat(*source2));
+        color3 = Vector4(ConvertHalfToFloat(*source3));
+        break;
+    }
 
-        case Format::R16G16_Half:
-        {
-            const Half* source0 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.x;
-            const Half* source1 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.y;
-            const Half* source2 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.z;
-            const Half* source3 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.w;
-            color0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1,1,0,0>();
-            color1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1,1,0,0>();
-            color2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1,1,0,0>();
-            color3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1,1,0,0>();
-            break;
-        }
+    case Format::R16G16_Half:
+    {
+        const Half* source0 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.x;
+        const Half* source1 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.y;
+        const Half* source2 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.z;
+        const Half* source3 = reinterpret_cast<const Half*>(mData) + 2u * (Uint32)offsets.w;
+        color0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1, 1, 0, 0>();
+        color1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1, 1, 0, 0>();
+        color2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1, 1, 0, 0>();
+        color3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1, 1, 0, 0>();
+        break;
+    }
 
-        case Format::R16G16B16_Half:
-        {
-            const Half* source0 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.x;
-            const Half* source1 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.y;
-            const Half* source2 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.z;
-            const Half* source3 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.w;
-            color0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1,1,1,0>();
-            color1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1,1,1,0>();
-            color2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1,1,1,0>();
-            color3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1,1,1,0>();
-            break;
-        }
+    case Format::R16G16B16_Half:
+    {
+        const Half* source0 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.x;
+        const Half* source1 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.y;
+        const Half* source2 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.z;
+        const Half* source3 = reinterpret_cast<const Half*>(mData) + 3u * (Uint32)offsets.w;
+        color0 = Vector4::FromHalves(source0) & Vector4::MakeMask<1, 1, 1, 0>();
+        color1 = Vector4::FromHalves(source1) & Vector4::MakeMask<1, 1, 1, 0>();
+        color2 = Vector4::FromHalves(source2) & Vector4::MakeMask<1, 1, 1, 0>();
+        color3 = Vector4::FromHalves(source3) & Vector4::MakeMask<1, 1, 1, 0>();
+        break;
+    }
 
-        case Format::R16G16B16A16_Half:
-        {
-            const Half* source0 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.x;
-            const Half* source1 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.y;
-            const Half* source2 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.z;
-            const Half* source3 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.w;
-            color0 = Vector4::FromHalves(source0);
-            color1 = Vector4::FromHalves(source1);
-            color2 = Vector4::FromHalves(source2);
-            color3 = Vector4::FromHalves(source3);
-            break;
-        }
+    case Format::R16G16B16A16_Half:
+    {
+        const Half* source0 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.x;
+        const Half* source1 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.y;
+        const Half* source2 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.z;
+        const Half* source3 = reinterpret_cast<const Half*>(mData) + 4u * (Uint32)offsets.w;
+        color0 = Vector4::FromHalves(source0);
+        color1 = Vector4::FromHalves(source1);
+        color2 = Vector4::FromHalves(source2);
+        color3 = Vector4::FromHalves(source3);
+        break;
+    }
 
-        case Format::BC1:
-        {
-            color0 = DecodeBC1(mData, coords.x, coords.y, mWidth);
-            color1 = DecodeBC1(mData, coords.z, coords.y, mWidth);
-            color2 = DecodeBC1(mData, coords.x, coords.w, mWidth);
-            color3 = DecodeBC1(mData, coords.z, coords.w, mWidth);
-            break;
-        }
+    case Format::BC1:
+    {
+        color0 = DecodeBC1(mData, coords.x, coords.y, mWidth);
+        color1 = DecodeBC1(mData, coords.z, coords.y, mWidth);
+        color2 = DecodeBC1(mData, coords.x, coords.w, mWidth);
+        color3 = DecodeBC1(mData, coords.z, coords.w, mWidth);
+        break;
+    }
 
-        case Format::BC4:
-        {
-            color0 = DecodeBC4(mData, coords.x, coords.y, mWidth);
-            color1 = DecodeBC4(mData, coords.z, coords.y, mWidth);
-            color2 = DecodeBC4(mData, coords.x, coords.w, mWidth);
-            color3 = DecodeBC4(mData, coords.z, coords.w, mWidth);
-            break;
-        }
+    case Format::BC4:
+    {
+        color0 = DecodeBC4(mData, coords.x, coords.y, mWidth);
+        color1 = DecodeBC4(mData, coords.z, coords.y, mWidth);
+        color2 = DecodeBC4(mData, coords.x, coords.w, mWidth);
+        color3 = DecodeBC4(mData, coords.z, coords.w, mWidth);
+        break;
+    }
 
-        case Format::BC5:
-        {
-            color0 = DecodeBC5(mData, coords.x, coords.y, mWidth);
-            color1 = DecodeBC5(mData, coords.z, coords.y, mWidth);
-            color2 = DecodeBC5(mData, coords.x, coords.w, mWidth);
-            color3 = DecodeBC5(mData, coords.z, coords.w, mWidth);
-            break;
-        }
+    case Format::BC5:
+    {
+        color0 = DecodeBC5(mData, coords.x, coords.y, mWidth);
+        color1 = DecodeBC5(mData, coords.z, coords.y, mWidth);
+        color2 = DecodeBC5(mData, coords.x, coords.w, mWidth);
+        color3 = DecodeBC5(mData, coords.z, coords.w, mWidth);
+        break;
+    }
 
-        default:
-        {
-            color0 = color1 = color2 = color3 = Vector4::Zero();
-            RT_FATAL("Unsupported bitmap format");
-        }
+    default:
+    {
+        color0 = color1 = color2 = color3 = Vector4::Zero();
+        RT_FATAL("Unsupported bitmap format");
+    }
     }
 
     if (!mLinearSpace && !forceLinearSpace)
@@ -587,51 +581,6 @@ void Bitmap::GetPixelBlock(const math::VectorInt4 coords, const bool forceLinear
     outColors[1] = color1;
     outColors[2] = color2;
     outColors[3] = color3;
-}
-
-const Vector4 Bitmap::Evaluate(const Vector4& coords, const TextureEvaluator& evaluator) const
-{
-    // wrap to 0..1 range
-    const Vector4 warpedCoords = Vector4::Mod1(coords);
-
-    // compute texel coordinates
-    const Vector4 scaledCoords = warpedCoords * mFloatSize;
-    const VectorInt4 intCoords = VectorInt4::Convert(Vector4::Floor(scaledCoords));
-    VectorInt4 texelCoords = intCoords.SetIfLessThan(VectorInt4::Zero(), intCoords + mSize);
-    texelCoords = texelCoords.SetIfGreaterOrEqual(mSize, texelCoords - mSize);
-
-    Vector4 result;
-
-    if (evaluator.filter == TextureFilterMode::NearestNeighbor)
-    {
-        result = GetPixel(texelCoords.x, texelCoords.y, evaluator.forceLinearSpace);
-    }
-    else if (evaluator.filter == TextureFilterMode::Bilinear)
-    {
-        texelCoords = texelCoords.Swizzle<0, 1, 0, 1>();
-        texelCoords += VectorInt4(0, 0, 1, 1);
-
-        // wrap secondary coordinates
-        texelCoords = texelCoords.SetIfGreaterOrEqual(mSize, texelCoords - mSize);
-
-        Vector4 colors[4];
-        GetPixelBlock(texelCoords, evaluator.forceLinearSpace, colors);
-
-        // bilinear interpolation
-        const Vector4 weights = scaledCoords - intCoords.ConvertToFloat();
-        const Vector4 value0 = Vector4::Lerp(colors[0], colors[2], weights.SplatY());
-        const Vector4 value1 = Vector4::Lerp(colors[1], colors[3], weights.SplatY());
-        result = Vector4::Lerp(value0, value1, weights.SplatX());
-    }
-    else
-    {
-        RT_FATAL("Invalid filter mode");
-        result = Vector4::Zero();
-    }
-
-    RT_ASSERT(result.IsValid());
-
-    return result;
 }
 
 } // namespace rt

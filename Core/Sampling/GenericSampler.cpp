@@ -25,9 +25,9 @@ void GenericSampler::ResetFrame(const DynArray<float>& seed)
     mSeed = seed;
 }
 
-void GenericSampler::ResetPixel(const Uint32 salt)
+void GenericSampler::ResetPixel(const Uint32 x, const Uint32 y)
 {
-    mSalt = Hash(salt);
+    mSalt = (Uint32)Hash((Uint64)(x | (y << 16)));
     mSamplesGenerated = 0;
 }
 

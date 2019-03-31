@@ -13,7 +13,6 @@
 
 #include "Color/Spectrum.h"
 #include "Utils/Logger.h"
-#include "Utils/TextureEvaluator.h"
 
 namespace rt {
 
@@ -124,10 +123,7 @@ const Vector4 Material::GetNormalVector(const Vector4& uv) const
 
     if (normalMap)
     {
-        TextureEvaluator evaluator;
-        evaluator.forceLinearSpace = true;
-
-        normal = normalMap->Evaluate(uv, evaluator);
+        normal = normalMap->Evaluate(uv);
 
         // scale from [0...1] to [-1...1]
         normal += normal;
@@ -147,7 +143,7 @@ bool Material::GetMaskValue(const Vector4& uv) const
     if (maskMap)
     {
         const float maskTreshold = 0.5f;
-        return maskMap->Evaluate(uv, TextureEvaluator()).x > maskTreshold;
+        return maskMap->Evaluate(uv).x > maskTreshold;
     }
 
     return true;

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "BSDF/BSDF.h"
-#include "../Utils/Texture.h"
-#include "../Utils/TextureEvaluator.h"
+#include "../Textures/Texture.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Color/RayColor.h"
 #include "../Math/Ray.h"
@@ -43,7 +42,7 @@ struct MaterialParameter
 
         if (texture)
         {
-            value = static_cast<T>(value * texture->Evaluate(uv, TextureEvaluator()));
+            value = static_cast<T>(value * texture->Evaluate(uv));
         }
 
         return value;

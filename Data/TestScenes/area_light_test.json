@@ -8,34 +8,74 @@
             "baseColorTexture": "TEXTURES/default.bmp",
             "metalness": 0.0,
             "roughness": 0.5
+        },
+        {
+            "name": "plastic",
+            "bsdf": "plastic",
+            "baseColor": [0.9, 0.9, 0.9],
+            "metalness": 0.0,
+            "roughness": 0.0
+        },
+        {
+            "name": "silver",
+            "bsdf": "metal",
+            "baseColor": [0.98, 0.98, 0.98],
+            "metalness": 0.0,
+            "roughness": 0.0
+        },
+        {
+            "name": "roughSilver",
+            "bsdf": "roughMetal",
+            "baseColor": [0.98, 0.98, 0.98],
+            "metalness": 0.0,
+            "roughness": 0.3
         }
     ],
     "objects":
     [
         {
             "type": "plane",
-            "transform": { "translation": [0.0, -1.0, 0.0] },
+            "size": [100.0, 100.0],
+            "transform": { "translation": [0.0, 0.0, 0.0] },
             "textureScale" : [0.4, 0.4],
-            "size": [20.0, 20.0],
             "material": "ground"
+        },
+        {
+            "type": "sphere",
+            "radius": 0.5,
+            "transform": { "translation": [-3.0, 0.5, 2.0] },
+            "material": "plastic"
+        },
+        {
+            "type": "sphere",
+            "radius": 0.5,
+            "transform": { "translation": [0.0, 0.5, 2.0] },
+            "material": "roughSilver"
+        },
+        {
+            "type": "sphere",
+            "radius": 0.5,
+            "transform": { "translation": [3.0, 0.5, 2.0] },
+            "material": "silver"
         }
     ],
     "lights":
     [
         {
             "type": "area",
-            "color": [3.0, 3.0, 3.0],
-            "position": [2.0, 1.0, -2.0],
-            "edge0": [-4.0, 0.0, 0.0],
-            "edge1": [0.0, 0.0, 2.0]
+            "color": [20.0, 20.0, 20.0],
+            "position": [-4.0, 0.0, 4.0],
+            "edge0": [8.0, 0.0, 0.0],
+            "edge1": [0.0, 4.0, 0.0],
+            "texture": "TEXTURES/wallpaper.bmp"
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [-2.4, 4.03, 3.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "translation": [4.6, 5.3, -3.4],
+            "orientation": [0.66, -0.75, 0.0]
         },
         "fieldOfView": 45.0
     }

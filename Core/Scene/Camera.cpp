@@ -3,6 +3,7 @@
 #include "Rendering/Context.h"
 #include "Math/SamplingHelpers.h"
 #include "Sampling/GenericSampler.h"
+#include "Textures/Texture.h"
 
 namespace rt {
 
@@ -202,17 +203,23 @@ const Ray_Simd8 Camera::GenerateRay_Simd8(const Vector2x8& coords, RenderingCont
 
 const Vector4 Camera::GenerateBokeh(const math::Float3 sample) const
 {
-    switch (mDOF.bokehType)
+    switch (mDOF.bokehShape)
     {
-    case BokehShape::Circle:
-        return SamplingHelpers::GetCircle(sample);
-    case BokehShape::Hexagon:
-        return SamplingHelpers::GetHexagon(sample);
-    case BokehShape::Square:
-        return Vector4::MulAndSub(Vector4(sample), 2.0f, VECTOR_ONE);
-    // TODO
-    //case BokehShape::NGon:
-    //    return SamplingHelpers::GetRegularPolygon(mDOF.apertureBlades, u);
+        case BokehShape::Circle:
+            return SamplingHelpers::GetCircle(sample);
+        case BokehShape::Hexagon:
+            return SamplingHelpers::GetHexagon(sample);
+        case BokehShape::Square:
+            return Vector4::MulAndSub(Vector4(sample), 2.0f, VECTOR_ONE);
+        // TODO
+        //case BokehShape::NGon:
+        //    return SamplingHelpers::GetRegularPolygon(mDOF.apertureBlades, u);
+        case BokehShape::Texture:
+        {
+            Vector4 coords;
+            mDOF.bokehTexture->Sample(sample, coords);
+            return 2.0f * coords - Vector4(1.0f);
+        }
     }
 
     RT_FATAL("Invalid bokeh type");
@@ -223,17 +230,17 @@ const Vector2x8 Camera::GenerateBokeh_Simd8(RenderingContext& context) const
 {
     const Vector2x8 u(context.randomGenerator.GetVector8(), context.randomGenerator.GetVector8());
 
-    switch (mDOF.bokehType)
+    switch (mDOF.bokehShape)
     {
-    case BokehShape::Circle:
-        return SamplingHelpers::GetCircle_Simd8(u);
-    case BokehShape::Hexagon:
-        return SamplingHelpers::GetHexagon_Simd8(u, context.randomGenerator.GetVector8());
-    case BokehShape::Square:
-        return 2.0f * u - Vector2x8(1.0f);
-    //TODO
-    //case BokehShape::NGon:
-    //    return context.randomGenerator.GetRegularPolygon_Simd8(mDOF.apertureBlades);
+        case BokehShape::Circle:
+            return SamplingHelpers::GetCircle_Simd8(u);
+        case BokehShape::Hexagon:
+            return SamplingHelpers::GetHexagon_Simd8(u, context.randomGenerator.GetVector8());
+        case BokehShape::Square:
+            return 2.0f * u - Vector2x8(1.0f);
+        //TODO
+        //case BokehShape::NGon:
+        //    return context.randomGenerator.GetRegularPolygon_Simd8(mDOF.apertureBlades);
     }
 
     RT_FATAL("Invalid bokeh type");

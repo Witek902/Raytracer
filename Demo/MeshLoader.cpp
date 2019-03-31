@@ -5,6 +5,7 @@
 #include "../Core/Utils/Bitmap.h"
 #include "../Core/Utils/Timer.h"
 #include "../Core/Math/Geometry.h"
+#include "../Core/Textures/BitmapTexture.h"
 
 namespace helpers {
 
@@ -27,7 +28,7 @@ struct TriangleIndicesHash
     }
 };
 
-TexturePtr LoadTexture(const std::string& baseDir, const std::string& path)
+BitmapPtr LoadBitmapObject(const std::string& baseDir, const std::string& path)
 {
     if (path.empty())
     {
@@ -47,12 +48,28 @@ TexturePtr LoadTexture(const std::string& baseDir, const std::string& path)
     if (!bitmapPtr)
     {
         bitmapPtr = BitmapPtr(new Bitmap(path.c_str()));
-        bitmapPtr->Load(fullPath.c_str());
+        if (!bitmapPtr->Load(fullPath.c_str()))
+        {
+            return nullptr;
+        }
     }
 
-    if (bitmapPtr->GetWidth() > 0 && bitmapPtr->GetHeight() > 0)
+    return bitmapPtr;
+}
+
+TexturePtr LoadTexture(const std::string& baseDir, const std::string& path)
+{
+    BitmapPtr bitmap = LoadBitmapObject(baseDir, path);
+
+    if (!bitmap)
     {
-        return bitmapPtr;
+        return nullptr;
+    }
+
+    if (bitmap->GetWidth() > 0 && bitmap->GetHeight() > 0)
+    {
+        auto texture = std::make_shared<BitmapTexture>(bitmap);
+        return texture;
     }
 
     return nullptr;

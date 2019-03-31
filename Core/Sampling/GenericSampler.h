@@ -18,7 +18,7 @@ public:
 
     void ResetFrame(const DynArray<float>& seed);
 
-    void ResetPixel(const Uint32 salt);
+    void ResetPixel(const Uint32 x, const Uint32 y);
 
     // get next sample
     float GetFloat();

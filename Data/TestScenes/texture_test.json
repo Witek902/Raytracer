@@ -1,40 +1,148 @@
 {
+    "textures":
+    [
+        {
+            "name": "bitmap",
+            "type": "bitmap",
+            "path": "TEXTURES/default.bmp"
+        },
+        {
+            "name": "checkerboard",
+            "type": "checkerboard",
+            "colorA": [0.1, 0.02, 0.02],
+            "colorB": [0.9, 0.9, 0.9]
+        },
+        {
+            "name": "noise",
+            "type": "noise",
+            "colorA": [1.0, 1.0, 1.0],
+            "colorB": [0.1, 0.1, 1.0],
+            "octaves": 5
+        },
+        {
+            "name": "mix",
+            "type": "mix",
+            "textureA": "checkerboard",
+            "textureB": "bitmap",
+            "weight": "noise"
+        }
+    ],
+
     "materials":
     [
         {
             "name": "ground",
             "bsdf": "diffuse",
             "baseColor": [0.9, 0.9, 0.9],
-            "baseColorTexture": "TEXTURES/default.bmp",
             "metalness": 0.0,
-            "roughness": 0.0
+            "roughness": 0.5
+        },
+        {
+            "name": "bitmap",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "bitmap",
+            "roughness": 0.5
+        },
+        {
+            "name": "checkerboard",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "checkerboard",
+            "roughness": 0.5
+        },
+        {
+            "name": "noise",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "noise",
+            "roughness": 0.5
+        },
+        {
+            "name": "mix",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "mix",
+            "roughness": 0.5
         }
     ],
     "objects":
     [
         {
             "type": "plane",
-            "transform": { "translation": [0.0, -1.0, 0.0] },
-			"size": [20.0, 20.0],
-            "textureScale" : [0.04, 0.04],
+            "size": [100.0, 100.0],
+            "transform": { "translation": [0.0, 0.0, 0.0] },
+            "textureScale" : [0.4, 0.4],
             "material": "ground"
+        },
+
+        {
+            "type": "box",
+            "size": [0.5, 0.5, 0.5],
+            "transform": { "translation": [0.0, 0.5, 0.0] },
+            "material": "bitmap"
+        },
+        {
+            "type": "box",
+            "size": [0.5, 0.5, 0.5],
+            "transform": { "translation": [5.0, 0.5, 0.0] },
+            "material": "checkerboard"
+        },
+        {
+            "type": "box",
+            "size": [0.5, 0.5, 0.5],
+            "transform": { "translation": [10.0, 0.5, 0.0] },
+            "material": "noise"
+        },
+        {
+            "type": "box",
+            "size": [0.5, 0.5, 0.5],
+            "transform": { "translation": [15.0, 0.5, 0.0] },
+            "material": "mix"
         }
     ],
-	"lights":
+    "lights":
     [
         {
-            "type": "point",
-            "color": [10.0, 10.0, 10.0],
-            "position": [0.0, 0.0, 0.0]
+            "type": "area",
+            "color": [5.0, 5.0, 5.0],
+            "position": [-1.5, 0.0, 2.0],
+            "edge0": [3.0, 0.0, 0.0],
+            "edge1": [0.0, 3.0, 0.0],
+            "texture": "bitmap"
+        },
+        {
+            "type": "area",
+            "color": [5.0, 5.0, 5.0],
+            "position": [3.5, 0.0, 2.0],
+            "edge0": [3.0, 0.0, 0.0],
+            "edge1": [0.0, 3.0, 0.0],
+            "texture": "checkerboard"
+        },
+        {
+            "type": "area",
+            "color": [5.0, 5.0, 5.0],
+            "position": [8.5, 0.0, 2.0],
+            "edge0": [3.0, 0.0, 0.0],
+            "edge1": [0.0, 3.0, 0.0],
+            "texture": "noise"
+        },
+        {
+            "type": "area",
+            "color": [5.0, 5.0, 5.0],
+            "position": [13.5, 0.0, 2.0],
+            "edge0": [3.0, 0.0, 0.0],
+            "edge1": [0.0, 3.0, 0.0],
+            "texture": "mix"
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [-2.4, 4.03, 3.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "translation": [-3.8, 1.84, -4.3],
+            "orientation": [0.1, 0.88, 0.0]
         },
-        "fieldOfView": 50.0
+        "fieldOfView": 45.0
     }
 }

@@ -288,7 +288,6 @@
       <Filter>Color</Filter>
     </ClInclude>
     <ClInclude Include="Color\Spectrum.h" />
-    <ClInclude Include="Utils\Texture.h" />
     <ClInclude Include="Rendering\PathTracerMIS.h" />
     <ClInclude Include="Rendering\LightTracer.h" />
     <ClInclude Include="Rendering\Film.h" />
@@ -307,6 +306,14 @@
     <ClInclude Include="Containers\ArrayViewImpl.h" />
     <ClInclude Include="Containers\DynArrayImpl.h" />
     <ClInclude Include="Utils\MemoryHelpers.h" />
+    <ClInclude Include="Math\Distribution.h" />
+    <ClInclude Include="Textures\BitmapTexture.h" />
+    <ClInclude Include="Textures\Texture.h" />
+    <ClInclude Include="Utils\Texture.h" />
+    <ClInclude Include="Textures\CheckerboardTexture.h" />
+    <ClInclude Include="Textures\NoiseTexture.h" />
+    <ClInclude Include="Textures\MixTexture.h" />
+    <ClInclude Include="Textures\ConstTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -489,8 +496,14 @@
     <ClCompile Include="Sampling\HaltonSampler.cpp" />
     <ClCompile Include="Sampling\GenericSampler.cpp" />
     <ClCompile Include="Rendering\Context.cpp" />
-    <ClCompile Include="Utils\Texture.cpp" />
     <ClCompile Include="Math\Geometry.cpp" />
+    <ClCompile Include="Math\Distribution.cpp" />
+    <ClCompile Include="Textures\BitmapTexture.cpp" />
+    <ClCompile Include="Textures\Texture.cpp" />
+    <ClCompile Include="Textures\CheckerboardTexture.cpp" />
+    <ClCompile Include="Textures\NoiseTexture.cpp" />
+    <ClCompile Include="Textures\MixTexture.cpp" />
+    <ClCompile Include="Textures\ConstTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

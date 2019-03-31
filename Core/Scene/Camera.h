@@ -15,6 +15,8 @@ class Vector2x8;
 }
 
 struct RenderingContext;
+class ITexture;
+using TexturePtr = std::shared_ptr<ITexture>;
 
 enum class BokehShape : Uint8
 {
@@ -22,6 +24,7 @@ enum class BokehShape : Uint8
     Hexagon,
     Square,
     NGon,
+    Texture,
 };
 
 /**
@@ -37,10 +40,13 @@ struct DOFSettings
 
     bool enable = false;
 
-    BokehShape bokehType = BokehShape::Circle;
+    BokehShape bokehShape = BokehShape::Circle;
 
     // used when bokeh type is "NGon"
     Uint32 apertureBlades = 5;
+
+    // used when bokeh type is "Texture"
+    TexturePtr bokehTexture;
 };
 
 

@@ -6,6 +6,8 @@
 
 namespace rt {
 
+RT_GLOBAL_CONST math::Vector4 c_rgbIntensityWeights = { 0.21f, 0.72f, 0.07f, 0.0f };
+
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_r = {  3.240479f, -1.537150f, -0.498535f, 0.0f };
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_g = { -0.969256f,  1.875991f,  0.041556f, 0.0f };
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_b = {  0.055648f, -0.204043f,  1.057311f, 0.0f };

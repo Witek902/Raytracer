@@ -1,16 +1,14 @@
 #pragma once
 
-#include "Texture.h"
-
 #include "../Math/VectorInt4.h"
 #include "../Utils/AlignmentAllocator.h"
 
 namespace rt {
 
 /**
- * Class representing 2D bitmap texture.
+ * Class representing 2D bitmap.
  */
-class RT_ALIGN(16) Bitmap : public ITexture, public Aligned<16>
+class RT_ALIGN(16) Bitmap : public Aligned<16>
 {
 public:
     enum class Format : Uint8
@@ -40,7 +38,7 @@ public:
     RAYLIB_API Bitmap(Bitmap&&);
     RAYLIB_API Bitmap& operator = (Bitmap&&);
 
-    const char* GetName() const override;
+    const char* GetName() const;
 
     template<typename T>
     RT_FORCE_INLINE T* GetDataAs()
@@ -56,6 +54,7 @@ public:
         return reinterpret_cast<const T*>(GetData());
     }
 
+    RT_FORCE_INLINE const char* GetName() { return mDebugName.c_str(); }
     RT_FORCE_INLINE void* GetData() { return mData; }
     RT_FORCE_INLINE const void* GetData() const { return mData; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return (Uint32)mWidth; }
@@ -96,13 +95,12 @@ public:
     // get 2x2 pixel block
     void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;
 
-    // evaluate the bitmap color (including filtering and coordinates wrapping)
-    virtual const math::Vector4 Evaluate(const math::Vector4& coords, const TextureEvaluator& evaluator) const override;
-
     // fill with zeros
     RAYLIB_API void Clear();
 
 private:
+
+    friend class BitmapTexture;
 
     Bitmap(const Bitmap&) = delete;
     Bitmap& operator = (const Bitmap&) = delete;

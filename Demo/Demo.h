@@ -7,7 +7,7 @@
 #include "../Core/Mesh/Mesh.h"
 #include "../Core/Rendering/Viewport.h"
 #include "../Core/Material/Material.h"
-#include "../Core/Utils/Texture.h"
+#include "../Core/Utils/Bitmap.h"
 #include "../Core/Rendering/Context.h"
 #include "../Core/Rendering/PathDebugging.h"
 

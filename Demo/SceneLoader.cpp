@@ -13,6 +13,11 @@
 #include "../Core/Scene/Object/SceneObject_Box.h"
 #include "../Core/Scene/Object/SceneObject_Plane.h"
 
+#include "../Core/Textures/CheckerboardTexture.h"
+#include "../Core/Textures/BitmapTexture.h"
+#include "../Core/Textures/NoiseTexture.h"
+#include "../Core/Textures/MixTexture.h"
+
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
@@ -20,6 +25,8 @@ namespace helpers {
 
 using namespace rt;
 using namespace math;
+
+using TexturesMap = std::map<std::string, TexturePtr>;
 
 static bool ParseVector2(const rapidjson::Value& value, Vector4& outVector)
 {
@@ -88,6 +95,31 @@ static bool TryParseBool(const rapidjson::Value& value, const char* name, bool o
     }
 
     outValue = value[name].GetBool();
+    return true;
+}
+
+static bool TryParseInt(const rapidjson::Value& value, const char* name, bool optional, Int32& outValue)
+{
+    if (!value.HasMember(name))
+    {
+        if (optional)
+        {
+            return true;
+        }
+        else
+        {
+            RT_LOG_ERROR("Missing '%hs' property", name);
+            return false;
+        }
+    }
+
+    if (!value[name].IsInt())
+    {
+        RT_LOG_ERROR("Property '%s' must be an integer", name);
+        return false;
+    }
+
+    outValue = value[name].GetInt();
     return true;
 }
 
@@ -179,7 +211,7 @@ static bool TryParseTransform(const rapidjson::Value& parentValue, const char* n
     return true;
 }
 
-static bool TryParseTexture(const rapidjson::Value& value, const char* name, TexturePtr& outValue)
+static bool TryParseTextureName(const rapidjson::Value& value, const char* name, const TexturesMap& textures, TexturePtr& outValue)
 {
     if (!value.HasMember(name))
     {
@@ -192,8 +224,16 @@ static bool TryParseTexture(const rapidjson::Value& value, const char* name, Tex
         return false;
     }
 
-    const char* path = value[name].GetString();
-    outValue = helpers::LoadTexture(gOptions.dataPath, path);
+    const char* textureName = value[name].GetString();
+
+    const auto iter = textures.find(textureName);
+    if (iter != textures.end())
+    {
+        outValue = iter->second;
+        return true;
+    }
+
+    outValue = helpers::LoadTexture(gOptions.dataPath, textureName);
     return true;
 }
 
@@ -222,7 +262,102 @@ static bool TryParseMaterialName(const MaterialsMap& materials, const rapidjson:
     return true;
 }
 
-static MaterialPtr ParseMaterial(const rapidjson::Value& value)
+static TexturePtr ParseTexture(const rapidjson::Value& value, const TexturesMap& textures, std::string& outName)
+{
+    if (!value.IsObject())
+    {
+        RT_LOG_ERROR("Texture description must be a structure");
+        return nullptr;
+    }
+
+    if (!value.HasMember("name"))
+    {
+        RT_LOG_ERROR("Texture is missing 'name' field");
+        return nullptr;
+    }
+
+    const std::string name = value["name"].GetString();
+    if (name.empty())
+    {
+        RT_LOG_ERROR("Texture name cannot be empty");
+        return nullptr;
+    }
+    outName = name;
+
+    if (!value.HasMember("type"))
+    {
+        RT_LOG_ERROR("Texture is missing 'type' field");
+        return nullptr;
+    }
+
+    const std::string type = value["type"].GetString();
+    if (type.empty())
+    {
+        RT_LOG_ERROR("Texture type cannot be empty");
+        return nullptr;
+    }
+
+    if (type == "bitmap")
+    {
+        if (!value.HasMember("path"))
+        {
+            RT_LOG_ERROR("Texture is missing 'path' field");
+            return nullptr;
+        }
+
+        const std::string path = value["path"].GetString();
+        if (type.empty())
+        {
+            RT_LOG_ERROR("Texture path cannot be empty");
+            return nullptr;
+        }
+
+        BitmapPtr bitmap = LoadBitmapObject(gOptions.dataPath, path);
+        if (!bitmap || bitmap->GetWidth() == 0 || bitmap->GetHeight() == 0)
+        {
+            return nullptr;
+        }
+
+        return std::make_shared<BitmapTexture>(bitmap);
+    }
+    else if (type == "checkerboard")
+    {
+        Vector4 colorA = Vector4::Zero();
+        Vector4 colorB = Vector4::Zero();
+        if (!TryParseVector3(value, "colorA", false, colorA)) return false;
+        if (!TryParseVector3(value, "colorB", false, colorB)) return false;
+
+        return std::shared_ptr<ITexture>(new CheckerboardTexture(colorA, colorB));
+    }
+    else if (type == "noise")
+    {
+        Vector4 colorA = Vector4::Zero();
+        Vector4 colorB = Vector4::Zero();
+        if (!TryParseVector3(value, "colorA", false, colorA)) return false;
+        if (!TryParseVector3(value, "colorB", false, colorB)) return false;
+
+        Int32 numOctaves = 1;
+        if (!TryParseInt(value, "octaves", true, numOctaves)) return false;
+        numOctaves = Clamp(numOctaves, 1, 20);
+
+        return std::shared_ptr<ITexture>(new NoiseTexture(colorA, colorB, static_cast<Uint32>(numOctaves)));
+    }
+    else if (type == "mix")
+    {
+        TexturePtr texA, texB, texWeight;
+
+        if (!TryParseTextureName(value, "textureA", textures, texA)) return false;
+        if (!TryParseTextureName(value, "textureB", textures, texB)) return false;
+        if (!TryParseTextureName(value, "weight", textures, texWeight)) return false;
+
+        return std::shared_ptr<ITexture>(new MixTexture(texA, texB, texWeight));
+    }
+
+    RT_LOG_ERROR("Invalid texture type name: '%s'", type.c_str());
+    return nullptr;
+}
+
+static MaterialPtr ParseMaterial(const rapidjson::Value& value, const TexturesMap& textures)
 {
     if (!value.IsObject())
     {
@@ -260,12 +395,12 @@ static MaterialPtr ParseMaterial(const rapidjson::Value& value)
     if (!TryParseFloat(value, "roughness", true, material->roughness.baseValue)) return nullptr;
     if (!TryParseFloat(value, "metalness", true, material->metalness.baseValue)) return nullptr;
 
-    if (!TryParseTexture(value, "baseColorTexture", material->baseColor.texture)) return nullptr;
-    if (!TryParseTexture(value, "emissionTexture", material->emission.texture)) return nullptr;
-    if (!TryParseTexture(value, "roughnessTexture", material->roughness.texture)) return nullptr;
-    if (!TryParseTexture(value, "metalnessTexture", material->metalness.texture)) return nullptr;
-    if (!TryParseTexture(value, "normalMap", material->normalMap)) return nullptr;
-    if (!TryParseTexture(value, "maskMap", material->maskMap)) return nullptr;
+    if (!TryParseTextureName(value, "baseColorTexture", textures, material->baseColor.texture)) return nullptr;
+    if (!TryParseTextureName(value, "emissionTexture", textures, material->emission.texture)) return nullptr;
+    if (!TryParseTextureName(value, "roughnessTexture", textures, material->roughness.texture)) return nullptr;
+    if (!TryParseTextureName(value, "metalnessTexture", textures, material->metalness.texture)) return nullptr;
+    if (!TryParseTextureName(value, "normalMap", textures, material->normalMap)) return nullptr;
+    if (!TryParseTextureName(value, "maskMap", textures, material->maskMap)) return nullptr;
 
     if (!TryParseFloat(value, "normalMapStrength", true, material->normalMapStrength)) return nullptr;
     if (!TryParseFloat(value, "IoR", true, material->IoR)) return nullptr;
@@ -276,7 +411,7 @@ static MaterialPtr ParseMaterial(const rapidjson::Value& value)
     return material;
 }
 
-static bool ParseLight(const rapidjson::Value& value, Scene& scene)
+static bool ParseLight(const rapidjson::Value& value, Scene& scene, const TexturesMap& textures)
 {
     if (!value.IsObject())
     {
@@ -310,8 +445,13 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
 
         auto areaLight = std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor);
 
-        if (!TryParseTexture(value, "texture", areaLight->mTexture))
+        if (!TryParseTextureName(value, "texture", textures, areaLight->mTexture))
             return false;
+
+        if(areaLight->mTexture && !areaLight->mTexture->IsSamplable())
+        {
+            areaLight->mTexture->MakeSamplable();
+        }
 
         scene.AddLight(std::move(areaLight));
     }
@@ -346,7 +486,7 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene)
     {
         auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
 
-        if (!TryParseTexture(value, "texture", backgroundLight->mTexture))
+        if (!TryParseTextureName(value, "texture", textures, backgroundLight->mTexture))
             return false;
 
         scene.AddLight(std::move(backgroundLight));
@@ -441,8 +581,14 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
             return false;
         }
 
+        float scale = 1.0f;
+        if (!TryParseFloat(value, "scale", true, scale))
+        {
+            return false;
+        }
+
         const std::string path = gOptions.dataPath + value["path"].GetString();
-        MeshPtr mesh = helpers::LoadMesh(path, materials);
+        MeshPtr mesh = helpers::LoadMesh(path, materials, scale);
 
         sceneObject = std::make_unique<MeshSceneObject>(mesh);
     }
@@ -468,7 +614,7 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
     return true;
 }
 
-static bool ParseCamera(const rapidjson::Value& value, rt::Camera& camera)
+static bool ParseCamera(const rapidjson::Value& value, const TexturesMap& textures, rt::Camera& camera)
 {
     if (!value.IsObject())
     {
@@ -496,6 +642,15 @@ static bool ParseCamera(const rapidjson::Value& value, rt::Camera& camera)
     if (!TryParseFloat(value, "focalPlaneDistance", true, camera.mDOF.focalPlaneDistance))
         return false;
 
+    if (!TryParseTextureName(value, "bokehTexture", textures, camera.mDOF.bokehTexture))
+        return false;
+
+    if (camera.mDOF.bokehTexture)
+    {
+        camera.mDOF.bokehTexture->MakeSamplable();
+        camera.mDOF.bokehShape = BokehShape::Texture;
+    }
+
     return true;
 }
 
@@ -522,6 +677,36 @@ bool LoadScene(const std::string& path, Scene& scene, rt::Camera& camera)
     }
 
     MaterialsMap materialsMap;
+    TexturesMap texturesMap;
+
+    if (d.HasMember("textures"))
+    {
+        const rapidjson::Value& texturesArray = d["textures"];
+        if (texturesArray.IsArray())
+        {
+            for (rapidjson::SizeType i = 0; i < texturesArray.Size(); i++)
+            {
+                std::string name;
+                const TexturePtr texture = ParseTexture(texturesArray[i], texturesMap, name);
+                if (!texture)
+                    return false;
+
+                if (materialsMap.count(name) > 0)
+                {
+                    RT_LOG_ERROR("Duplicated texture: '%s'", name.c_str());
+                    return false;
+                }
+
+                texturesMap[name] = texture;
+                RT_LOG_INFO("Created texture: '%s'", name.c_str());
+            }
+        }
+        else
+        {
+            RT_LOG_ERROR("'textures' is expected to be an array");
+            return false;
+        }
+    }
 
     if (d.HasMember("materials"))
     {
@@ -530,7 +715,7 @@ bool LoadScene(const std::string& path, Scene& scene, rt::Camera& camera)
         {
             for (rapidjson::SizeType i = 0; i < materialsArray.Size(); i++)
             {
-                const MaterialPtr material = ParseMaterial(materialsArray[i]);
+                const MaterialPtr material = ParseMaterial(materialsArray[i], texturesMap);
                 if (!material)
                     return false;
 
@@ -576,7 +761,7 @@ bool LoadScene(const std::string& path, Scene& scene, rt::Camera& camera)
         {
             for (rapidjson::SizeType i = 0; i < lightsArray.Size(); i++)
             {
-                if (!ParseLight(lightsArray[i], scene))
+                if (!ParseLight(lightsArray[i], scene, texturesMap))
                     return false;
             }
         }
@@ -590,7 +775,7 @@ bool LoadScene(const std::string& path, Scene& scene, rt::Camera& camera)
     if (d.HasMember("camera"))
     {
         const rapidjson::Value& cameraObject = d["camera"];
-        if (!ParseCamera(cameraObject, camera))
+        if (!ParseCamera(cameraObject, texturesMap, camera))
         {
             return false;
         }

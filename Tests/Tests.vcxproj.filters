@@ -71,6 +71,7 @@
     <ClCompile Include="DynArrayTest.cpp">
       <Filter>TestCases\Containters</Filter>
     </ClCompile>
+    <ClCompile Include="MathDistributionTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

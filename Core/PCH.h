@@ -29,13 +29,4 @@
 #include <sstream>
 #include <algorithm>
 
-#ifdef WIN32
-    #define WIN32_LEAN_AND_MEAN
-    #define NOMINMAX
-    #include <Windows.h>
-#elif defined(__linux__) | defined(__LINUX__)
-#else
-    #error "Target platform not supported."
-#endif // WIN32
-
 #include "Utils/iacaMarks.h"

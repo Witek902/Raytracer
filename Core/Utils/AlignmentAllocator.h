@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 
+namespace rt {
+
 RT_INLINE void* AlignedMalloc(size_t size, size_t alignment)
 {
 #if defined(WIN32)
@@ -25,9 +27,7 @@ RT_INLINE void AlignedFree(void* ptr)
 #endif // defined(WIN32)
 }
 
-/**
-* Override this class to align children objects.
-*/
+// Override this class to align children objects.
 template <size_t Alignment = 16>
 class Aligned
 {
@@ -47,12 +47,12 @@ public:
         return AlignedMalloc(size, Alignment);
     }
 
-    RT_FORCE_INLINE void operator delete[](void* ptr)
+        RT_FORCE_INLINE void operator delete[](void* ptr)
     {
         AlignedFree(ptr);
     }
 
-    RT_FORCE_INLINE void* operator new(size_t size, void* ptr)
+        RT_FORCE_INLINE void* operator new(size_t size, void* ptr)
     {
         RT_UNUSED(size);
         return ptr;
@@ -143,3 +143,5 @@ public:
         return true;
     }
 };
+
+} // namespace rt
