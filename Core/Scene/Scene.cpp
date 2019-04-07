@@ -76,7 +76,7 @@ bool Scene::BuildBVH()
     return true;
 }
 
-const ILight& Scene::Internal_GetLightByObjectId(Uint32 id) const
+const ILight& Scene::GetLightByObjectId(Uint32 id) const
 {
     const LightSceneObject* lightSceneObj = static_cast<const LightSceneObject*>(mObjects[id].get());
     return lightSceneObj->GetLight();

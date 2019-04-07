@@ -192,7 +192,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // we hit a light directly
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
-            const ILight& light = mScene.Internal_GetLightByObjectId(hitPoint.objectId);
+            const ILight& light = mScene.GetLightByObjectId(hitPoint.objectId);
 
             // TODO this duplicates the code from below - requires some refactoring
             {

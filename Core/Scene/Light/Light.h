@@ -21,6 +21,15 @@ class RT_ALIGN(16) ILight : public Aligned<16>
 public:
     static constexpr float BackgroundLightDistance = 1.0e+36f;
 
+    enum class Type : Uint8
+    {
+        Area,
+        Background,
+        Directional,
+        Point,
+        Sphere,
+    };
+
     struct IlluminateParam
     {
         const ShadingData& shadingData;
@@ -53,8 +62,14 @@ public:
         float cosAtLight;
     };
 
-    ILight(const math::Vector4& color);
+    explicit ILight(const math::Vector4& color = math::Vector4(1.0f));
     RAYLIB_API virtual ~ILight() = default;
+
+    RT_FORCE_INLINE const Spectrum& GetColor() const { return mColor; }
+    RAYLIB_API void SetColor(const Spectrum& color);
+
+    // get light's type
+    virtual Type GetType() const = 0;
 
     // get light's surface bounding box
     virtual const math::Box GetBoundingBox() const = 0;
@@ -88,14 +103,12 @@ public:
     // E.g. directional light or point light.
     virtual bool IsDelta() const = 0;
 
-protected:
-
-    Spectrum mColor;
-
 private:
     // light object cannot be copied
     ILight(const ILight&) = delete;
     ILight& operator = (const ILight&) = delete;
+
+    Spectrum mColor;
 };
 
 

@@ -10,14 +10,12 @@ using TexturePtr = std::shared_ptr<ITexture>;
 class BackgroundLight : public ILight
 {
 public:
-    RAYLIB_API BackgroundLight() = default;
-
-    RAYLIB_API BackgroundLight(const math::Vector4& color)
-        : ILight(color)
-    {}
+    RAYLIB_API BackgroundLight();
+    RAYLIB_API BackgroundLight(const math::Vector4& color);
 
     TexturePtr mTexture = nullptr;
 
+    virtual Type GetType() const override;
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, float& outDistance) const override;
     virtual const RayColor Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const override;

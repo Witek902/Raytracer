@@ -75,7 +75,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         // we hit a light directly
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
-            const ILight& light = mScene.Internal_GetLightByObjectId(hitPoint.objectId);
+            const ILight& light = mScene.GetLightByObjectId(hitPoint.objectId);
             resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, context));
             break;
         }

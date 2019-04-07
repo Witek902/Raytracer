@@ -11,6 +11,7 @@ public:
 
     RAYLIB_API DirectionalLight(const math::Vector4& direction, const math::Vector4& color, const float angle = 0.2f);
 
+    virtual Type GetType() const override;
     virtual const math::Box GetBoundingBox() const override;
     virtual bool TestRayHit(const math::Ray& ray, float& outDistance) const override;
     virtual const RayColor Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const override;

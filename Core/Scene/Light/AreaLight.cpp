@@ -39,6 +39,11 @@ AreaLight::AreaLight(const Vector4& p0, const Vector4& edge0, const Vector4& edg
     invArea = 1.0f / surfaceArea;
 }
 
+ILight::Type AreaLight::GetType() const
+{
+    return Type::Area;
+}
+
 const Box AreaLight::GetBoundingBox() const
 {
     Box box(p0, p0 + edge0, p0 + edge1);
@@ -76,7 +81,7 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
 {
     const Vector4 uv = isTriangle ? SamplingHelpers::GetTriangle(param.sample) : Vector4(param.sample);
 
-    Spectrum color = mColor;
+    Spectrum color = GetColor();
 
     // sample texture map
     if (mTexture)
@@ -124,7 +129,7 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray,
         *outEmissionPdfW = cosNormalDir * invArea * RT_INV_PI;
     }
 
-    Spectrum color = mColor;
+    Spectrum color = GetColor();
 
     if (mTexture)
     {
@@ -155,7 +160,7 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
     outResult.directPdfA = invArea;
     outResult.emissionPdfW = invArea * dirLocalSpace.z * RT_INV_PI;
 
-    Spectrum color = mColor;
+    Spectrum color = GetColor();
 
     // sample texture map
     if (mTexture)

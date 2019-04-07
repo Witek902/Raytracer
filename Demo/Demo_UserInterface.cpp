@@ -2,6 +2,7 @@
 #include "Demo.h"
 
 #include "../Core/Scene/Object/SceneObject_Mesh.h"
+#include "../Core/Scene/Light/BackgroundLight.h"
 #include "../Core/Rendering/PathTracerMIS.h"
 #include "../Core/Rendering/VertexConnectionAndMerging.h"
 #include "../Core/Rendering/DebugRenderer.h"
@@ -254,6 +255,15 @@ bool DemoWindow::RenderUI_Settings()
         }
     }
 
+    if (mSelectedLight)
+    {
+        if (ImGui::TreeNode("Light"))
+        {
+            resetFrame |= RenderUI_Settings_Light();
+            ImGui::TreePop();
+        }
+    }
+
     if (mSelectedMaterial)
     {
         if (ImGui::TreeNode("Material", "Material (%s)", mSelectedMaterial->debugName.c_str()))
@@ -478,16 +488,35 @@ bool DemoWindow::RenderUI_Settings_PostProcess()
     return false;
 }
 
+bool DemoWindow::RenderUI_Settings_Light()
+{
+    bool changed = false;
+
+    {
+        Spectrum color = mSelectedLight->GetColor();
+        if (ImGui::ColorEdit3("Color", &color.rgbValues.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR))
+        {
+            if ((color.rgbValues >= Vector4::Zero()).All())
+            {
+                mSelectedLight->SetColor(color);
+                changed = true;
+            }
+        }
+    }
+
+    return changed;
+}
+
 bool DemoWindow::RenderUI_Settings_Object()
 {
-    bool positionChanged = false;
+    bool changed = false;
 
     {
         Float3 position = mSelectedObject->GetTransform().GetTranslation().ToFloat3();
         if (ImGui::InputFloat3("Position", &position.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             mSelectedObject->SetTransform(Matrix4::MakeTranslation(Vector4(position)));
-            positionChanged = true;
+            changed = true;
         }
     }
 
@@ -500,7 +529,7 @@ bool DemoWindow::RenderUI_Settings_Object()
         {
             orientation *= RT_PI / 180.0f;
             mSelectedObject->mTransform.SetRotation(Quaternion::FromEulerAngles(orientation));
-            positionChanged = true;
+            changed = true;
         }
     }
 
@@ -509,7 +538,7 @@ bool DemoWindow::RenderUI_Settings_Object()
         if (ImGui::InputFloat3("Linear Velocity", &velocity.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             mSelectedObject->mLinearVelocity = Vector4(velocity);
-            positionChanged = true;
+            changed = true;
         }
     }
 
@@ -520,17 +549,17 @@ bool DemoWindow::RenderUI_Settings_Object()
         {
             angularVelocity *= RT_PI / 180.0f;
             mSelectedObject->mAngularVelocity = Quaternion::FromEulerAngles(angularVelocity);
-            positionChanged = true;
+            changed = true;
         }
     }
     */
 
-    if (positionChanged)
+    if (changed)
     {
         mScene->BuildBVH();
     }
 
-    return positionChanged;
+    return changed;
 }
 
 bool DemoWindow::RenderUI_Settings_Material()

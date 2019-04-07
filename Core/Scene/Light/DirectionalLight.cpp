@@ -25,6 +25,11 @@ DirectionalLight::DirectionalLight(const math::Vector4& direction, const math::V
     mIsDelta = mCosAngle > CosEpsilon;
 }
 
+ILight::Type DirectionalLight::GetType() const
+{
+    return Type::Directional;
+}
+
 const Box DirectionalLight::GetBoundingBox() const
 {
     return Box::Full();
@@ -83,7 +88,7 @@ const RayColor DirectionalLight::Illuminate(const IlluminateParam& param, Illumi
     outResult.cosAtLight = 1.0f;
     outResult.distance = BackgroundLightDistance;
 
-    return RayColor::Resolve(param.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const math::Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -113,7 +118,7 @@ const RayColor DirectionalLight::GetRadiance(RenderingContext& context, const ma
         *outEmissionPdfW = directPdf * UniformCirclePdf(SceneRadius);
     }
 
-    return RayColor::Resolve(context.wavelength, mColor);
+    return RayColor::Resolve(context.wavelength, GetColor());
 }
 
 const RayColor DirectionalLight::Emit(const EmitParam& param, EmitResult& outResult) const
@@ -131,7 +136,7 @@ const RayColor DirectionalLight::Emit(const EmitParam& param, EmitResult& outRes
     outResult.cosAtLight = 1.0f;
     outResult.emissionPdfW = outResult.directPdfA * UniformCirclePdf(SceneRadius);
 
-    return RayColor::Resolve(param.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 bool DirectionalLight::IsFinite() const

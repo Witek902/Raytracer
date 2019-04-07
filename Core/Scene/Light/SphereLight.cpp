@@ -19,6 +19,11 @@ SphereLight::SphereLight(const math::Vector4& pos, float radius, const math::Vec
     RT_ASSERT(IsValid(radius));
 }
 
+ILight::Type SphereLight::GetType() const
+{
+    return Type::Sphere;
+}
+
 const Box SphereLight::GetBoundingBox() const
 {
     return Box(mPosition, mRadius);
@@ -96,7 +101,7 @@ const RayColor SphereLight::Illuminate(const IlluminateParam& param, IlluminateR
     outResult.cosAtLight = cosTheta;
     //outResult.emissionPdfW = UniformSpherePdf(mRadius) * (cosTheta * RT_INV_PI);
 
-    return RayColor::Resolve(param.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const
@@ -125,7 +130,7 @@ const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::R
         //*outEmissionPdfW = UniformSpherePdf(mRadius) * (cosAtLight * RT_INV_PI);
     }
 
-    return RayColor::Resolve(context.wavelength, mColor);
+    return RayColor::Resolve(context.wavelength, GetColor());
 }
 
 const RayColor SphereLight::Emit(const EmitParam& param, EmitResult& outResult) const

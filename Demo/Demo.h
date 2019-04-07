@@ -95,6 +95,7 @@ private:
     rt::PathDebugData mPathDebugData;
     rt::Material* mSelectedMaterial;
     rt::ISceneObject* mSelectedObject;
+    rt::ILight* mSelectedLight;
     bool mFocalDistancePicking = false;
     bool mPixelDebuggingPicking = false;
 
@@ -116,6 +117,7 @@ private:
     bool RenderUI_Settings_Camera();
     bool RenderUI_Settings_PostProcess();
     bool RenderUI_Settings_Object();
+    bool RenderUI_Settings_Light();
     bool RenderUI_Settings_Material();
 
 

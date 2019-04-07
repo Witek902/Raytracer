@@ -13,6 +13,13 @@ ILight::ILight(const Vector4& color)
     mColor.rgbValues = color;
 }
 
+void ILight::SetColor(const Spectrum& color)
+{
+    RT_ASSERT((color.rgbValues >= Vector4::Zero()).All(), "Invalid color");
+    RT_ASSERT(color.rgbValues.IsValid(), "Invalid color");
+    mColor = color;
+}
+
 const RayColor ILight::GetRadiance(RenderingContext&, const math::Ray&, const math::Vector4&, float*, float*) const
 {
     RT_FATAL("Cannot hit this type of light");

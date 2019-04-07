@@ -15,6 +15,11 @@ PointLight::PointLight(const math::Vector4& position, const math::Vector4& color
     RT_ASSERT(mPosition.IsValid());
 }
 
+ILight::Type PointLight::GetType() const
+{
+    return Type::Point;
+}
+
 const Box PointLight::GetBoundingBox() const
 {
     return Box(mPosition, mPosition);
@@ -40,7 +45,7 @@ const RayColor PointLight::Illuminate(const IlluminateParam& param, IlluminateRe
     outResult.directionToLight /= outResult.distance;
     outResult.cosAtLight = 1.0f;
 
-    return RayColor::Resolve(param.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 const RayColor PointLight::Emit(const EmitParam& param, EmitResult& outResult) const
@@ -52,7 +57,7 @@ const RayColor PointLight::Emit(const EmitParam& param, EmitResult& outResult) c
     outResult.cosAtLight = 1.0f;
 
     // TODO texture
-    return RayColor::Resolve(param.wavelength, mColor);
+    return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 bool PointLight::IsFinite() const

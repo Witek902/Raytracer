@@ -30,6 +30,7 @@ DemoWindow::DemoWindow()
     , mCameraSpeed(1.0f)
     , mSelectedMaterial(nullptr)
     , mSelectedObject(nullptr)
+    , mSelectedLight(nullptr)
 {
     ResetFrame();
     ResetCounters();
@@ -184,6 +185,7 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
 
     mSelectedMaterial = nullptr;
     mSelectedObject = nullptr;
+    mSelectedLight = nullptr;
 
     mRenderer = CreateRenderer(mRendererName, *mScene);
     mViewport->SetRenderer(mRenderer);
@@ -280,11 +282,21 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
 
         if (hitPoint.objectId != UINT32_MAX)
         {
-            ShadingData shadingData;
-            mScene->ExtractShadingData(ray, hitPoint, renderingContext->time, shadingData);
+            if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
+            {
+                mSelectedMaterial = nullptr;
+                mSelectedObject = nullptr;
+                mSelectedLight = const_cast<ILight*>(&(mScene->GetLightByObjectId(hitPoint.objectId)));
+            }
+            else // regular scene object
+            {
+                ShadingData shadingData;
+                mScene->ExtractShadingData(ray, hitPoint, renderingContext->time, shadingData);
 
-            mSelectedMaterial = const_cast<Material*>(shadingData.material);
-            mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[hitPoint.objectId].get());
+                mSelectedMaterial = const_cast<Material*>(shadingData.material);
+                mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[hitPoint.objectId].get());
+                mSelectedLight = nullptr;
+            }
         }
     }
 }

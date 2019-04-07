@@ -16,6 +16,17 @@ using namespace math;
 // TODO this should be calculated
 static const float SceneRadius = 30.0f; // TODO
 
+BackgroundLight::BackgroundLight() = default;
+
+BackgroundLight::BackgroundLight(const math::Vector4& color)
+    : ILight(color)
+{}
+
+ILight::Type BackgroundLight::GetType() const
+{
+    return Type::Background;
+}
+
 const Box BackgroundLight::GetBoundingBox() const
 {
     return Box::Full();
@@ -32,7 +43,7 @@ bool BackgroundLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 
 const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, const Wavelength& wavelength) const
 {
-    Spectrum color = mColor;
+    Spectrum color = GetColor();
 
     // sample environment map
     if (mTexture)

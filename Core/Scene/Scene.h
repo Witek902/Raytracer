@@ -68,7 +68,7 @@ public:
 
     bool Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const;
 
-    const ILight& Internal_GetLightByObjectId(Uint32 id) const;
+    RAYLIB_API const ILight& GetLightByObjectId(Uint32 id) const;
 
 private:
     Scene(const Scene&) = delete;
