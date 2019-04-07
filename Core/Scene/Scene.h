@@ -5,9 +5,7 @@
 #include "../Color/RayColor.h"
 #include "../Traversal/HitPoint.h"
 #include "../BVH/BVH.h"
-
-#include <vector>
-
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -48,9 +46,9 @@ public:
     RAYLIB_API bool BuildBVH();
 
     RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
-    RT_FORCE_INLINE const std::vector<SceneObjectPtr>& GetObjects() const { return mObjects; }
-    RT_FORCE_INLINE const std::vector<LightPtr>& GetLights() const { return mLights; }
-    RT_FORCE_INLINE const std::vector<const ILight*>& GetGlobalLights() const { return mGlobalLights; }
+    RT_FORCE_INLINE const DynArray<SceneObjectPtr>& GetObjects() const { return mObjects; }
+    RT_FORCE_INLINE const DynArray<LightPtr>& GetLights() const { return mLights; }
+    RT_FORCE_INLINE const DynArray<const ILight*>& GetGlobalLights() const { return mGlobalLights; }
 
     // traverse the scene, returns hit points
     RAYLIB_API void Traverse_Single(const SingleTraversalContext& context) const;
@@ -77,10 +75,10 @@ private:
     RT_FORCE_NOINLINE void Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
     RT_FORCE_NOINLINE bool Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const;
 
-    std::vector<LightPtr> mLights;
-    std::vector<const ILight*> mGlobalLights;
+    DynArray<LightPtr> mLights;
+    DynArray<const ILight*> mGlobalLights;
 
-    std::vector<SceneObjectPtr> mObjects;
+    DynArray<SceneObjectPtr> mObjects;
 
     // bounding volume hierarchy for scene object
     BVH mBVH;

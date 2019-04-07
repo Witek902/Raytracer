@@ -304,7 +304,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
             data.shadingData = shadingData;
             data.throughput = throughput;
             data.bsdfEvent = pathState.lastSampledBsdfEvent;
-            context.pathDebugData->data.push_back(data);
+            context.pathDebugData->data.PushBack(data);
         }
 
         // generate secondary ray
@@ -323,7 +323,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         data.shadingData = shadingData;
         data.throughput = throughput;
         data.bsdfEvent = pathState.lastSampledBsdfEvent;
-        context.pathDebugData->data.push_back(data);
+        context.pathDebugData->data.PushBack(data);
         context.pathDebugData->terminationReason = pathTerminationReason;
     }
 

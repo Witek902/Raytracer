@@ -107,14 +107,14 @@ private:
     math::Random mRandomGenerator;
     HaltonSequence mHaltonSequence;
 
-    std::vector<GenericSampler, AlignmentAllocator<GenericSampler, 64>> mSamplers;
-    std::vector<RenderingContext, AlignmentAllocator<RenderingContext, 64>> mThreadData;
+    DynArray<GenericSampler> mSamplers;
+    DynArray<RenderingContext> mThreadData;
 
     Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
     Bitmap mSecondarySum;   // contains image with every second sample - required for adaptive rendering
     Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
-    std::vector<Uint32> mPassesPerPixel;
-    std::vector<math::Float2> mPixelSalt; // salt value for each pixel
+    DynArray<Uint32> mPassesPerPixel;
+    DynArray<math::Float2> mPixelSalt; // salt value for each pixel
 
     RenderingParams mParams;
     PostprocessParamsInternal mPostprocessParams;
@@ -123,8 +123,8 @@ private:
 
     RenderingProgress mProgress;
 
-    std::vector<Block> mBlocks;
-    std::vector<Block> mRenderingTiles;
+    DynArray<Block> mBlocks;
+    DynArray<Block> mRenderingTiles;
 
     PixelBreakpoint mPendingPixelBreakpoint;
 };

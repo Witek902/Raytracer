@@ -322,6 +322,12 @@
     <ClInclude Include="Color\Wavelength.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Containers\ArrayIterator.h" />
+    <ClInclude Include="Containers\ArrayIteratorImpl.h" />
+    <ClInclude Include="Containers\ArrayView.h" />
+    <ClInclude Include="Containers\ArrayViewImpl.h" />
+    <ClInclude Include="Containers\DynArray.h" />
+    <ClInclude Include="Containers\DynArrayImpl.h" />
     <ClInclude Include="Material\BSDF\BSDF.h" />
     <ClInclude Include="Material\BSDF\DielectricBSDF.h" />
     <ClInclude Include="Material\BSDF\DiffuseBSDF.h" />
@@ -419,6 +425,7 @@
     <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\MemoryHelpers.h" />
     <ClInclude Include="Utils\Texture.h" />
     <ClInclude Include="Utils\TextureEvaluator.h" />
     <ClInclude Include="Utils\Timer.h" />

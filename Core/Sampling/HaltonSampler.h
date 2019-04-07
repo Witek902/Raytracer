@@ -2,8 +2,7 @@
 
 #include "../RayLib.h"
 #include "../Math/Random.h"
-
-#include <vector>
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -12,20 +11,20 @@ namespace rt {
 class HaltonSequence
 {
 public:
-    static constexpr size_t MaxDimensions = 4096;
-    static constexpr size_t Width = 64;
+    static constexpr Uint32 MaxDimensions = 4096;
+    static constexpr Uint32 Width = 64;
 
     RAYLIB_API HaltonSequence();
     RAYLIB_API ~HaltonSequence();
-    RAYLIB_API void Initialize(size_t mDimensions);
+    RAYLIB_API void Initialize(Uint32 mDimensions);
 
-    RT_FORCE_INLINE size_t GetNumDimensions() const { return mDimensions; }
+    RT_FORCE_INLINE Uint32 GetNumDimensions() const { return mDimensions; }
 
     RAYLIB_API void NextSample();
-    RT_FORCE_INLINE double GetValue(size_t dimension) { return rnd[dimension][0]; }
+    RT_FORCE_INLINE double GetValue(Uint32 dimension) { return rnd[dimension][0]; }
 
 private:
-    Uint64 Permute(size_t i, Uint8 j);
+    Uint64 Permute(Uint32 i, Uint8 j);
 
     void ClearPermutation();
     void InitPrimes();
@@ -34,12 +33,12 @@ private:
     void InitExpansion();
     void InitPermutation();
 
-    size_t mDimensions;
-    std::vector<Uint64> mStarts;
-    std::vector<Uint32> mBase;
-    std::vector<std::vector<double>> rnd;
-    std::vector<std::vector<Uint64>> digit;
-    std::vector<std::vector<Uint64>> mPowerBuffer;
+    Uint32 mDimensions;
+    DynArray<Uint64> mStarts;
+    DynArray<Uint32> mBase;
+    DynArray<DynArray<double>> rnd;
+    DynArray<DynArray<Uint64>> digit;
+    DynArray<DynArray<Uint64>> mPowerBuffer;
     Uint64 **ppm;
     math::Random mRandom;
 };

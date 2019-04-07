@@ -9,11 +9,9 @@
 #include "Traversal/Traversal_Single.h"
 #include "Traversal/Traversal_Packet.h"
 
-
 namespace rt {
 
 using namespace math;
-
 
 Scene::Scene() = default;
 
@@ -25,12 +23,12 @@ Scene& Scene::operator = (Scene&&) = default;
 
 void Scene::AddLight(LightPtr object)
 {
-    mLights.push_back(std::move(object));
+    mLights.PushBack(std::move(object));
 }
 
 void Scene::AddObject(SceneObjectPtr object)
 {
-    mObjects.push_back(std::move(object));
+    mObjects.PushBack(std::move(object));
 }
 
 bool Scene::BuildBVH()
@@ -39,18 +37,18 @@ bool Scene::BuildBVH()
     {
         if (!light->IsDelta() && light->IsFinite())
         {
-            mObjects.emplace_back(std::make_unique<LightSceneObject>(*light));
+            mObjects.EmplaceBack(std::make_unique<LightSceneObject>(*light));
         }
         else if (!light->IsFinite())
         {
-            mGlobalLights.push_back(light.get());
+            mGlobalLights.PushBack(light.get());
         }
     }
 
-    std::vector<Box, AlignmentAllocator<Box>> boxes;
+    DynArray<Box> boxes;
     for (const auto& obj : mObjects)
     {
-        boxes.push_back(obj->GetBoundingBox());
+        boxes.PushBack(obj->GetBoundingBox());
     }
 
     BVHBuilder::BuildingParams params;
@@ -58,17 +56,17 @@ bool Scene::BuildBVH()
 
     BVHBuilder::Indices newOrder;
     BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.data(), (Uint32)mObjects.size(), params, newOrder))
+    if (!bvhBuilder.Build(boxes.Data(), (Uint32)mObjects.Size(), params, newOrder))
     {
         return false;
     }
 
-    std::vector<SceneObjectPtr> newObjectsArray;
-    newObjectsArray.reserve(mObjects.size());
-    for (size_t i = 0; i < mObjects.size(); ++i)
+    DynArray<SceneObjectPtr> newObjectsArray;
+    newObjectsArray.Reserve(mObjects.Size());
+    for (Uint32 i = 0; i < mObjects.Size(); ++i)
     {
         Uint32 sourceIndex = newOrder[i];
-        newObjectsArray.push_back(std::move(mObjects[sourceIndex]));
+        newObjectsArray.PushBack(std::move(mObjects[sourceIndex]));
     }
 
     mObjects = std::move(newObjectsArray);
@@ -171,7 +169,7 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
 
 void Scene::Traverse_Single(const SingleTraversalContext& context) const
 {
-    size_t numObjects = mObjects.size();
+    const Uint32 numObjects = mObjects.Size();
 
     if (numObjects == 0) // scene is empty
     {
@@ -189,7 +187,7 @@ void Scene::Traverse_Single(const SingleTraversalContext& context) const
 
 bool Scene::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 {
-    size_t numObjects = mObjects.size();
+    const Uint32 numObjects = mObjects.Size();
 
     if (numObjects == 0) // scene is empty
     {
@@ -207,7 +205,7 @@ bool Scene::Traverse_Shadow_Single(const SingleTraversalContext& context) const
 
 void Scene::Traverse_Packet(const PacketTraversalContext& context) const
 {
-    size_t numObjects = mObjects.size();
+    const Uint32 numObjects = mObjects.Size();
 
     const Uint32 numRayGroups = context.ray.GetNumGroups();
     for (Uint32 i = 0; i < numRayGroups; ++i)
@@ -228,7 +226,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        const ISceneObject* object = mObjects.front().get();
+        const ISceneObject* object = mObjects.Front().get();
         const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
 
         for (Uint32 j = 0; j < numRayGroups; ++j)
@@ -239,7 +237,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
             rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
         }
 
-        mObjects.front()->Traverse_Packet(context, 0, numRayGroups);
+        mObjects.Front()->Traverse_Packet(context, 0, numRayGroups);
     }
     else // full BVH traversal
     {

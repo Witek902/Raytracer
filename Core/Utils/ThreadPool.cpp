@@ -30,9 +30,9 @@ void ThreadPool::StartWorkerThreads(Uint32 num)
     RT_ASSERT(mFinishThreads == true);
     mFinishThreads = false;
 
-    for (size_t i = 0; i < num; ++i)
+    for (Uint32 i = 0; i < num; ++i)
     {
-        mThreads.emplace_back(std::thread(&ThreadPool::ThreadCallback, this, static_cast<Uint32>(i)));
+        mThreads.EmplaceBack(&ThreadPool::ThreadCallback, this, i);
     }
 }
 
@@ -51,7 +51,7 @@ void ThreadPool::StopWorkerThreads()
         thread.join();
     }
 
-    mThreads.clear();
+    mThreads.Clear();
 }
 
 void ThreadPool::ThreadCallback(Uint32 threadID)

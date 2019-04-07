@@ -3,8 +3,6 @@
 #include "ShadingData.h"
 #include "../Material/BSDF/BSDF.h"
 
-#include <vector>
-
 namespace rt {
 
 
@@ -51,7 +49,7 @@ struct PathDebugData
     };
 
     PathTerminationReason terminationReason = PathTerminationReason::None;
-    std::vector<HitPointData, AlignmentAllocator<HitPointData>> data;
+    DynArray<HitPointData> data;
 };
 
 

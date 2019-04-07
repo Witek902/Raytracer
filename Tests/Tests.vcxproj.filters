@@ -4,6 +4,15 @@
     <Filter Include="External">
       <UniqueIdentifier>{f9c7611a-9597-4d10-8830-d89ce90c16a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TestCases">
+      <UniqueIdentifier>{206ef3ba-e1d2-4e43-8865-84909943ce26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestCases\Math">
+      <UniqueIdentifier>{0374d38d-2bd3-4266-a385-ed03393032c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestCases\Containters">
+      <UniqueIdentifier>{6e410ad5-edd1-428b-bccf-29702979dd91}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PCH.cpp" />
@@ -30,16 +39,38 @@
     </ClCompile>
     <ClCompile Include="ColorTest.cpp" />
     <ClCompile Include="RaytracingTests.cpp" />
-    <ClCompile Include="MathVector4Test.cpp" />
-    <ClCompile Include="MathTranscendentalTest.cpp" />
-    <ClCompile Include="MathTest.cpp" />
-    <ClCompile Include="MathVector8Test.cpp" />
-    <ClCompile Include="MathVectorInt4Test.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MathVectorInt8Test.cpp" />
-    <ClCompile Include="MathMatrix4Test.cpp" />
-    <ClCompile Include="MathGeometryTest.cpp" />
     <ClCompile Include="HashGridTest.cpp" />
+    <ClCompile Include="MathVectorInt8Test.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeometryTest.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathMatrix4Test.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathTest.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathTranscendentalTest.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathVector4Test.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathVector8Test.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="MathVectorInt4Test.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayViewTest.cpp">
+      <Filter>TestCases\Containters</Filter>
+    </ClCompile>
+    <ClCompile Include="DynArrayTest.cpp">
+      <Filter>TestCases\Containters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />
@@ -117,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="..\External\googletest\src\gtest-internal-inl.h">
       <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="TestClasses.h">
+      <Filter>TestCases\Containters</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

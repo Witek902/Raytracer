@@ -24,14 +24,14 @@ Viewport::~Viewport() = default;
 
 void Viewport::InitThreadData()
 {
-    const size_t numThreads = mThreadPool.GetNumThreads();
+    const Uint32 numThreads = mThreadPool.GetNumThreads();
 
-    mThreadData.resize(numThreads);
+    mThreadData.Resize(numThreads);
 
-    mSamplers.clear();
-    mSamplers.reserve(numThreads);
+    mSamplers.Clear();
+    mSamplers.Reserve(numThreads);
 
-    for (size_t i = 0; i < numThreads; ++i)
+    for (Uint32 i = 0; i < numThreads; ++i)
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.randomGenerator.Reset();
@@ -41,7 +41,7 @@ void Viewport::InitThreadData()
             ctx.rendererContext = mRenderer->CreateContext();
         }
 
-        mSamplers.emplace_back(ctx.randomGenerator);
+        mSamplers.EmplaceBack(ctx.randomGenerator);
     }
 }
 
@@ -65,9 +65,9 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm))
         return false;
 
-    mPassesPerPixel.resize(width * height);
+    mPassesPerPixel.Resize(width * height);
 
-    mPixelSalt.resize(width * height);
+    mPixelSalt.Resize(width * height);
     for (Uint32 i = 0; i < width * height; ++i)
     {
         mPixelSalt[i] = mRandomGenerator.GetVector4().ToFloat2();
@@ -95,7 +95,7 @@ void Viewport::Reset()
     mSum.Clear();
     mSecondarySum.Clear();
 
-    memset(mPassesPerPixel.data(), 0, sizeof(Uint32) * GetWidth() * GetHeight());
+    memset(mPassesPerPixel.Data(), 0, sizeof(Uint32) * GetWidth() * GetHeight());
 
     BuildInitialBlocksList();
 }
@@ -163,13 +163,13 @@ bool Viewport::Render(const Camera& camera)
     }
 
     mHaltonSequence.NextSample();
-    std::vector<float> seed(mHaltonSequence.GetNumDimensions());
-    for (size_t i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
+    DynArray<float> seed(mHaltonSequence.GetNumDimensions());
+    for (Uint32 i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
     {
         seed[i] = (float)(mHaltonSequence.GetValue(i));
     }
 
-    for (size_t i = 0; i < mThreadData.size(); ++i)
+    for (Uint32 i = 0; i < mThreadData.Size(); ++i)
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.counters.Reset();
@@ -185,7 +185,7 @@ bool Viewport::Render(const Camera& camera)
     mPendingPixelBreakpoint.x = UINT32_MAX;
     mPendingPixelBreakpoint.y = UINT32_MAX;
 
-    if (mRenderingTiles.empty() || mProgress.passesFinished == 0)
+    if (mRenderingTiles.Empty() || mProgress.passesFinished == 0)
     {
         GenerateRenderingTiles();
     }
@@ -217,7 +217,7 @@ bool Viewport::Render(const Camera& camera)
             RenderTile(tileContext, mThreadData[threadID], mRenderingTiles[id]);
         };
 
-        mThreadPool.RunParallelTask(preRenderCallback, (Uint32)(mRenderingTiles.size()));
+        mThreadPool.RunParallelTask(preRenderCallback, mRenderingTiles.Size());
 
         for (RenderingContext& ctx : mThreadData)
         {
@@ -226,7 +226,7 @@ bool Viewport::Render(const Camera& camera)
 
         mRenderer->PreRenderGlobal();
 
-        mThreadPool.RunParallelTask(renderCallback, (Uint32)(mRenderingTiles.size()));
+        mThreadPool.RunParallelTask(renderCallback, mRenderingTiles.Size());
     }
 
     PerformPostProcess();
@@ -436,14 +436,14 @@ void Viewport::PerformPostProcess()
     {
         // apply post proces on active blocks only
 
-        if (!mRenderingTiles.empty())
+        if (!mRenderingTiles.Empty())
         {
             const auto taskCallback = [this](Uint32 id, Uint32 threadID)
             {
                 PostProcessTile(mRenderingTiles[id], threadID);
             };
 
-            mThreadPool.RunParallelTask(taskCallback, (Uint32)(mRenderingTiles.size()));
+            mThreadPool.RunParallelTask(taskCallback, mRenderingTiles.Size());
         }
     }
 
@@ -521,8 +521,8 @@ float Viewport::ComputeBlockError(const Block& block) const
 
 void Viewport::GenerateRenderingTiles()
 {
-    mRenderingTiles.clear();
-    mRenderingTiles.reserve(mBlocks.size());
+    mRenderingTiles.Clear();
+    mRenderingTiles.Reserve(mBlocks.Size());
 
     const Uint32 tileSize = mParams.tileSize;
 
@@ -545,7 +545,7 @@ void Viewport::GenerateRenderingTiles()
                 tile.maxX = Min(block.maxX, block.minX + i * tileSize + tileSize);
                 RT_ASSERT(tile.maxX > tile.minX);
 
-                mRenderingTiles.push_back(tile);
+                mRenderingTiles.PushBack(tile);
             }
         }
     }
@@ -553,7 +553,7 @@ void Viewport::GenerateRenderingTiles()
 
 void Viewport::BuildInitialBlocksList()
 {
-    mBlocks.clear();
+    mBlocks.Clear();
 
     const Uint32 blockSize = mParams.adaptiveSettings.maxBlockSize;
     const Uint32 rows = 1 + (GetHeight() - 1) / blockSize;
@@ -573,16 +573,16 @@ void Viewport::BuildInitialBlocksList()
             block.maxX = Min(GetWidth(), (i + 1) * blockSize);
             RT_ASSERT(block.maxX > block.minX);
 
-            mBlocks.push_back(block);
+            mBlocks.PushBack(block);
         }
     }
 
-    mProgress.activeBlocks = (Uint32)mBlocks.size();
+    mProgress.activeBlocks = mBlocks.Size();
 }
 
 void Viewport::UpdateBlocksList()
 {
-    std::vector<Block> newBlocks;
+    DynArray<Block> newBlocks;
 
     const AdaptiveRenderingSettings& settings = mParams.adaptiveSettings;
 
@@ -591,7 +591,7 @@ void Viewport::UpdateBlocksList()
         return;
     }
 
-    for (size_t i = 0; i < mBlocks.size(); ++i)
+    for (Uint32 i = 0; i < mBlocks.Size(); ++i)
     {
         const Block block = mBlocks[i];
         const float blockError = ComputeBlockError(block);
@@ -599,8 +599,8 @@ void Viewport::UpdateBlocksList()
         if (blockError < settings.convergenceTreshold)
         {
             // block is fully converged - remove it
-            mBlocks[i] = mBlocks.back();
-            mBlocks.pop_back();
+            mBlocks[i] = mBlocks.Back();
+            mBlocks.PopBack();
             continue;
         }
 
@@ -609,8 +609,8 @@ void Viewport::UpdateBlocksList()
         {
             // block is somewhat converged - split it into two parts
 
-            mBlocks[i] = mBlocks.back();
-            mBlocks.pop_back();
+            mBlocks[i] = mBlocks.Back();
+            mBlocks.PopBack();
 
             Block childA, childB;
 
@@ -645,16 +645,16 @@ void Viewport::UpdateBlocksList()
                 childB.maxY = block.maxY;
             }
 
-            newBlocks.push_back(childA);
-            newBlocks.push_back(childB);
+            newBlocks.PushBack(childA);
+            newBlocks.PushBack(childB);
         }
     }
 
     // add splitted blocks to the list
-    mBlocks.reserve(mBlocks.size() + newBlocks.size());
+    mBlocks.Reserve(mBlocks.Size() + newBlocks.Size());
     for (const Block& block : newBlocks)
     {
-        mBlocks.push_back(block);
+        mBlocks.PushBack(block);
     }
 
     // calculate number of active pixels
@@ -667,7 +667,7 @@ void Viewport::UpdateBlocksList()
     }
 
     mProgress.converged = 1.0f - (float)mProgress.activePixels / (float)(GetWidth() * GetHeight());
-    mProgress.activeBlocks = (Uint32)mBlocks.size();
+    mProgress.activeBlocks = mBlocks.Size();
 }
 
 void Viewport::VisualizeActiveBlocks(Bitmap& bitmap) const

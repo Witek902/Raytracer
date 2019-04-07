@@ -33,7 +33,8 @@ bool Mesh::Initialize(const MeshDesc& desc)
     const Float3* positions = desc.vertexBufferDesc.positions;
     const Uint32* indexBuffer = desc.vertexBufferDesc.vertexIndexBuffer;
 
-    std::vector<Box, AlignmentAllocator<Box>> boxes;
+    DynArray<Box> boxes;
+    boxes.Reserve(desc.vertexBufferDesc.numTriangles);
     for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
     {
         const Vector4 v0(positions[indexBuffer[3 * i + 0]]);
@@ -42,7 +43,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
 
         Box triBox(v0, v1, v2);
 
-        boxes.push_back(triBox);
+        boxes.PushBack(triBox);
 
         mBoundingBox = Box(mBoundingBox, triBox);
     }
@@ -52,7 +53,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
 
     BVHBuilder::Indices newTrianglesOrder;
     BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.data(), desc.vertexBufferDesc.numTriangles, params, newTrianglesOrder))
+    if (!bvhBuilder.Build(boxes.Data(), desc.vertexBufferDesc.numTriangles, params, newTrianglesOrder))
     {
         return false;
     }
@@ -67,7 +68,7 @@ bool Mesh::Initialize(const MeshDesc& desc)
         RT_LOG_INFO("    - total volume: %f", stats.totalNodesVolume);
 
         std::stringstream str;
-        for (size_t i = 0; i < stats.leavesCountHistogram.size(); ++i)
+        for (Uint32 i = 0; i < stats.leavesCountHistogram.Size(); ++i)
         {
             if (i > 0)
                 str << ", ";
@@ -78,8 +79,8 @@ bool Mesh::Initialize(const MeshDesc& desc)
 
     // reorder triangles
     {
-        std::vector<Uint32> newIndexBuffer(desc.vertexBufferDesc.numTriangles * 3);
-        std::vector<Uint32> newMaterialIndexBuffer(desc.vertexBufferDesc.numTriangles);
+        DynArray<Uint32> newIndexBuffer(desc.vertexBufferDesc.numTriangles * 3);
+        DynArray<Uint32> newMaterialIndexBuffer(desc.vertexBufferDesc.numTriangles);
         for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
         {
             const Uint32 newTriangleIndex = newTrianglesOrder[i];
@@ -92,8 +93,8 @@ bool Mesh::Initialize(const MeshDesc& desc)
         }
 
         VertexBufferDesc vertexBufferDesc = desc.vertexBufferDesc;
-        vertexBufferDesc.vertexIndexBuffer = newIndexBuffer.data();
-        vertexBufferDesc.materialIndexBuffer = newMaterialIndexBuffer.data();
+        vertexBufferDesc.vertexIndexBuffer = newIndexBuffer.Data();
+        vertexBufferDesc.materialIndexBuffer = newMaterialIndexBuffer.Data();
 
         if (!mVertexBuffer.Initialize(vertexBufferDesc))
         {

@@ -133,11 +133,11 @@ private:
     HashGrid mHashGrid;
 
     // list of all recorded light vertices
-    std::vector<LightVertex> mLightVertices;
+    DynArray<LightVertex> mLightVertices;
 
     // marks each path end index in the 'mLightVertices' array
     // Note: path length is obtained by comparing two consequent values
-    std::vector<Uint32> mLightPathEnds;
+    DynArray<Uint32> mLightPathEnds;
 };
 
 } // namespace rt

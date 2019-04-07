@@ -20,7 +20,6 @@
 #include <math.h>
 #include <float.h>
 #include <stdarg.h>
-#include <vector>
 #include <memory>
 #include <initializer_list>
 #include <functional>

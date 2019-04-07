@@ -5,7 +5,7 @@
 #include "../Math/Vector4.h"
 #include "../Math/Triangle.h"
 #include "../Math/Float3.h"
-
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -56,8 +56,8 @@ public:
 
     void GetShadingData(const VertexIndices& indices, VertexShadingData& a, VertexShadingData& b, VertexShadingData& c) const;
 
-    Uint32 GetNumVertices() const { return mNumVertices; }
-    Uint32 GetNumTriangles() const { return mNumTriangles; }
+    RT_FORCE_INLINE Uint32 GetNumVertices() const { return mNumVertices; }
+    RT_FORCE_INLINE Uint32 GetNumTriangles() const { return mNumTriangles; }
 
 private:
 
@@ -70,9 +70,8 @@ private:
 
     Uint32 mNumVertices;
     Uint32 mNumTriangles;
-    Uint32 mNumMaterials;
 
-    std::vector<MaterialPtr> mMaterials;
+    DynArray<MaterialPtr> mMaterials;
 };
 
 

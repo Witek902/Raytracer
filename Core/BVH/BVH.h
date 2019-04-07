@@ -7,9 +7,9 @@
 #include "../Math/Box.h"
 #include "../Math/Simd8Box.h"
 #include "../Utils/AlignmentAllocator.h"
+#include "../Containers/DynArray.h"
 
 #include <string>
-
 
 namespace rt {
 
@@ -66,7 +66,7 @@ public:
         Uint32 maxDepth;    // max leaf depth
         double totalNodesArea;
         double totalNodesVolume;
-        std::vector<Uint32> leavesCountHistogram;
+        DynArray<Uint32> leavesCountHistogram;
 
         // TODO overlap factor, etc.
 
@@ -87,14 +87,15 @@ public:
     bool SaveToFile(const std::string& filePath) const;
     bool LoadFromFile(const std::string& filePath);
 
-    RT_FORCE_INLINE const Node* GetNodes() const { return mNodes.data(); }
+    RT_FORCE_INLINE const Node* GetNodes() const { return mNodes.Data(); }
     RT_FORCE_INLINE Uint32 GetNumNodes() const { return mNumNodes; }
 
 private:
     void CalculateStatsForNode(Uint32 node, Stats& outStats, Uint32 depth) const;
     bool AllocateNodes(Uint32 numNodes);
 
-    std::vector<Node, AlignmentAllocator<Node, RT_CACHE_LINE_SIZE>> mNodes;
+    // TODO align to cache line size
+    DynArray<Node> mNodes;
     Uint32 mNumNodes;
 
     friend class BVHBuilder;

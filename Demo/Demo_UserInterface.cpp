@@ -92,7 +92,7 @@ void DemoWindow::RenderUI_Debugging()
 
 void DemoWindow::RenderUI_Debugging_Path()
 {
-    for (size_t i = 0; i < mPathDebugData.data.size(); ++i)
+    for (Uint32 i = 0; i < mPathDebugData.data.Size(); ++i)
     {
         ImGui::Separator();
         ImGui::Text("Ray #%zu", i);

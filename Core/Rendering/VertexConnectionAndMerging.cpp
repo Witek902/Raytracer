@@ -37,11 +37,11 @@ public:
     using LightVertex = VertexConnectionAndMerging::LightVertex;
 
     // list of all recorded light vertices
-    std::vector<LightVertex> lightVertices;
+    DynArray<LightVertex> lightVertices;
 
     // marks each path end index in the 'mLightVertices' array
     // Note: path length is obtained by comparing two consequent values
-    std::vector<Uint32> pathEnds;
+    DynArray<Uint32> pathEnds;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,12 +108,12 @@ void VertexConnectionAndMerging::PreRender(RenderingContext& ctx)
     BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
 
     // Stage 1 - prepare data structures
-    rendererContext.lightVertices.clear();
-    rendererContext.pathEnds.clear();
+    rendererContext.lightVertices.Clear();
+    rendererContext.pathEnds.Clear();
 
     // TODO this is duplicated
-    mLightVertices.clear();
-    mLightPathEnds.clear();
+    mLightVertices.Clear();
+    mLightPathEnds.Clear();
 }
 
 void VertexConnectionAndMerging::PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const
@@ -130,18 +130,18 @@ void VertexConnectionAndMerging::PreRenderGlobal(RenderingContext& ctx)
     // Stage 3a - merge vertices list
     // TODO is there any way to get rid of this? (or at least make it multithreaded)
     {
-        const Uint32 pathEndsOffset = Uint32(mLightVertices.size());
+        const Uint32 pathEndsOffset = mLightVertices.Size();
 
-        mLightVertices.reserve(mLightVertices.size() + rendererContext.lightVertices.size());
+        mLightVertices.Reserve(mLightVertices.Size() + rendererContext.lightVertices.Size());
         for (const LightVertex& vertex : rendererContext.lightVertices)
         {
-            mLightVertices.push_back(vertex);
+            mLightVertices.PushBack(vertex);
         }
 
-        mLightPathEnds.reserve(mLightPathEnds.size() + rendererContext.pathEnds.size());
+        mLightPathEnds.Reserve(mLightPathEnds.Size() + rendererContext.pathEnds.Size());
         for (const Uint32 pathEndIndex : rendererContext.pathEnds)
         {
-            mLightPathEnds.push_back(pathEndsOffset + pathEndIndex);
+            mLightPathEnds.PushBack(pathEndsOffset + pathEndIndex);
         }
     }
 }
@@ -252,7 +252,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         }
 
         // Vertex Connection - connect camera vertex to light vertices (bidirectional path tracing)
-        if (!isDeltaBsdf && mUseVertexConnection && !mLightPathEnds.empty())
+        if (!isDeltaBsdf && mUseVertexConnection && !mLightPathEnds.Empty())
         {
             RayColor vertexConnectionColor = RayColor::Zero();
 
@@ -282,7 +282,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         }
 
         // Vertex Merging - merge camera vertex to light vertices nearby
-        if (!isDeltaBsdf && mUseVertexMerging && !mLightPathEnds.empty())
+        if (!isDeltaBsdf && mUseVertexMerging && !mLightPathEnds.Empty())
         {
             RayColor vertexMergingColor = MergeVertices(pathState, shadingData, ctx);
             vertexMergingColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexMergingWeight));
@@ -365,8 +365,8 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
         const bool isDeltaBsdf = shadingData.material->GetBSDF()->IsDelta();
         if (!isDeltaBsdf && (mUseVertexConnection || mUseVertexMerging))
         {
-            rendererContext.lightVertices.emplace_back();
-            LightVertex& vertex = rendererContext.lightVertices.back();
+            rendererContext.lightVertices.EmplaceBack();
+            LightVertex& vertex = rendererContext.lightVertices.Back();
 
             vertex.pathLength = Uint8(pathState.length);
             vertex.throughput = pathState.throughput;
@@ -393,21 +393,21 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
         }
     }
 
-    const Uint32 numVertces = Uint32(rendererContext.lightVertices.size());
-    rendererContext.pathEnds.push_back(numVertces);
+    const Uint32 numVertces = rendererContext.lightVertices.Size();
+    rendererContext.pathEnds.PushBack(numVertces);
 }
 
 bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, RenderingContext& ctx) const
 {
     const auto& allLocalLights = mScene.GetLights();
-    if (allLocalLights.empty())
+    if (allLocalLights.Empty())
     {
         // no lights on the scene
         return false;
     }
 
-    const float lightPickProbability = 1.0f / (float)allLocalLights.size();
-    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % (Uint32)allLocalLights.size(); // TODO get rid of division
+    const float lightPickProbability = 1.0f / (float)allLocalLights.Size();
+    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size(); // TODO get rid of division
     const LightPtr& light = allLocalLights[lightIndex];
 
     const ILight::EmitParam emitParam =

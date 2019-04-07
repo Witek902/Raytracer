@@ -24,7 +24,7 @@ BVH::BVH()
 
 bool BVH::AllocateNodes(Uint32 numNodes)
 {
-    mNodes.resize(numNodes);
+    mNodes.Resize(numNodes);
     mNumNodes = numNodes;
     return true;
 }
@@ -50,7 +50,7 @@ bool BVH::SaveToFile(const std::string& filePath) const
         return false;
     }
 
-    if (fwrite(mNodes.data(), sizeof(Node), mNumNodes, file) != mNumNodes)
+    if (fwrite(mNodes.Data(), sizeof(Node), mNumNodes, file) != mNumNodes)
     {
         fclose(file);
         RT_LOG_ERROR("Failed to write BVH nodes");
@@ -98,7 +98,7 @@ bool BVH::LoadFromFile(const std::string& filePath)
         return false;
     }
 
-    if (fread(mNodes.data(), sizeof(Node), header.numNodes, file) != header.numNodes)
+    if (fread(mNodes.Data(), sizeof(Node), header.numNodes, file) != header.numNodes)
     {
         fclose(file);
         RT_LOG_ERROR("Failed to read BVH nodes");
@@ -129,9 +129,9 @@ void BVH::CalculateStatsForNode(Uint32 nodeIndex, Stats& outStats, Uint32 depth)
     outStats.totalNodesVolume += box.Volume();
     outStats.maxDepth = std::max(outStats.maxDepth, depth);
 
-    if (node.numLeaves + 1u > (Uint32)outStats.leavesCountHistogram.size())
+    if (node.numLeaves + 1u > outStats.leavesCountHistogram.Size())
     {
-        outStats.leavesCountHistogram.resize(node.numLeaves + 1, 0);
+        outStats.leavesCountHistogram.Resize(node.numLeaves + 1);
     }
     outStats.leavesCountHistogram[node.numLeaves]++;
 

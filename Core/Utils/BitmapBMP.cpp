@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Bitmap.h"
 #include "Logger.h"
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -128,7 +129,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
 {
     Uint32 dataSize = 3 * mWidth * mHeight;
 
-    std::vector<Uint8> tmpData(dataSize);
+    DynArray<Uint8> tmpData(dataSize);
     const Uint8* dataPtr = nullptr;
 
     if (mFormat == Format::B8G8R8A8_UNorm)
@@ -148,7 +149,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
             }
         }
 
-        dataPtr = tmpData.data();
+        dataPtr = tmpData.Data();
     }
     else if (mFormat == Format::B8G8R8_UNorm)
     {

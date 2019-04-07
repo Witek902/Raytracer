@@ -46,7 +46,7 @@ void VertexBuffer::Clear()
     mShadingDataBufferOffset = 0;
     mMaterialBufferOffset = 0;
 
-    mMaterials.clear();
+    mMaterials.Clear();
 }
 
 bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
@@ -172,17 +172,16 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     {
         Material** buffer = reinterpret_cast<Material**>(mBuffer + mMaterialBufferOffset);
 
-        mMaterials.reserve(desc.numMaterials);
+        mMaterials.Resize(desc.numMaterials);
         for (Uint32 i = 0; i < desc.numMaterials; ++i)
         {
             buffer[i] = desc.materials[i].get();
-            mMaterials.push_back(desc.materials[i]);
+            mMaterials[i] = desc.materials[i];
         }
     }
 
     mNumVertices = desc.numVertices;
     mNumTriangles = desc.numTriangles;
-    mNumMaterials = desc.numMaterials;
 
     return true;
 }
@@ -197,7 +196,7 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
 
 const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
 {
-    RT_ASSERT(materialIndex < mNumMaterials);
+    RT_ASSERT(materialIndex < mMaterials.Size());
 
     const Material** materialBufferData = reinterpret_cast<const Material**>(mBuffer + mMaterialBufferOffset);
     return materialBufferData[materialIndex];

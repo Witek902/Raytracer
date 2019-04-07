@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Bitmap.h"
 #include "Logger.h"
-
+#include "../Containers/DynArray.h"
 #include "../External/tinyexr/tinyexr.h"
 
 namespace rt {
@@ -141,10 +141,10 @@ bool Bitmap::SaveEXR(const char* path, const float exposure) const
 
     image.num_channels = 3;
 
-    std::vector<float> images[3];
-    images[0].resize(mWidth * mHeight);
-    images[1].resize(mWidth * mHeight);
-    images[2].resize(mWidth * mHeight);
+    DynArray<float> images[3];
+    images[0].Resize(mWidth * mHeight);
+    images[1].Resize(mWidth * mHeight);
+    images[2].Resize(mWidth * mHeight);
 
     // Split RGBRGBRGB... into R, G and B layer
     const Uint32 numPixels = GetWidth() * GetHeight();
@@ -156,9 +156,9 @@ bool Bitmap::SaveEXR(const char* path, const float exposure) const
     }
 
     float* image_ptr[3];
-    image_ptr[0] = images[2].data(); // B
-    image_ptr[1] = images[1].data(); // G
-    image_ptr[2] = images[0].data(); // R
+    image_ptr[0] = images[2].Data(); // B
+    image_ptr[1] = images[1].Data(); // G
+    image_ptr[2] = images[0].Data(); // R
 
     image.images = (unsigned char**)image_ptr;
     image.width = mWidth;

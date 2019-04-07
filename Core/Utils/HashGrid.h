@@ -4,8 +4,7 @@
 #include "Logger.h"
 #include "../Math/Box.h"
 #include "../Math/Random.h"
-
-#include <vector>
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -15,7 +14,7 @@ public:
     RT_FORCE_INLINE const math::Box& GetBox() const { return mBox; }
 
     template<typename ParticleType>
-    RT_FORCE_NOINLINE void Build(const std::vector<ParticleType>& particles, float radius)
+    RT_FORCE_NOINLINE void Build(const DynArray<ParticleType>& particles, float radius)
     {
         //Timer timer;
 
@@ -26,7 +25,7 @@ public:
 
         // compute overall bounding box
         mBox = math::Box::Empty();
-        for (size_t i = 0; i < particles.size(); i++)
+        for (Uint32 i = 0; i < particles.Size(); i++)
         {
             const math::Vector4& pos = particles[i].GetPosition();
             mBox.AddPoint(pos);
@@ -37,14 +36,14 @@ public:
         // determine number of particles in each hash table entry
         {
             // TODO tweak this
-            Uint32 hashTableSize = math::NextPowerOfTwo(Uint32(particles.size()));
+            Uint32 hashTableSize = math::NextPowerOfTwo(Uint32(particles.Size()));
             mHashTableMask = hashTableSize - 1;
-            mCellEnds.resize(hashTableSize);
+            mCellEnds.Resize(hashTableSize);
 
-            memset(mCellEnds.data(), 0, mCellEnds.size() * sizeof(Uint32));
+            memset(mCellEnds.Data(), 0, mCellEnds.Size() * sizeof(Uint32));
 
             // set mCellEnds[x] to number of particles within x
-            for (size_t i = 0; i < particles.size(); i++)
+            for (Uint32 i = 0; i < particles.Size(); i++)
             {
                 const math::Vector4& pos = particles[i].GetPosition();
                 mCellEnds[GetCellIndex(pos)]++;
@@ -53,7 +52,7 @@ public:
             // run exclusive prefix sum to really get the cell starts
             // mCellEnds[x] is now where the cell starts
             int sum = 0;
-            for (size_t i = 0; i < mCellEnds.size(); i++)
+            for (Uint32 i = 0; i < mCellEnds.Size(); i++)
             {
                 Uint32 temp = mCellEnds[i];
                 maxPerticlesPerCell = math::Max(maxPerticlesPerCell, temp);
@@ -63,8 +62,8 @@ public:
         }
 
         // fill up particle indices
-        mIndices.resize(particles.size());
-        for (size_t i = 0; i < particles.size(); i++)
+        mIndices.Resize(particles.Size());
+        for (Uint32 i = 0; i < particles.Size(); i++)
         {
             const math::Vector4& pos = particles[i].GetPosition();
             const int targetIdx = mCellEnds[GetCellIndex(pos)]++;
@@ -72,14 +71,14 @@ public:
         }
 
         //RT_LOG_INFO("Building hash grid took %.2f ms, %zu particels, max perticles per cell = %u, min=[%f,%f,%f], max=[%f,%f,%f]",
-        //    timer.Stop() * 1000.0, particles.size(), maxPerticlesPerCell,
+        //    timer.Stop() * 1000.0, particles.Size(), maxPerticlesPerCell,
         //    mBox.min.x, mBox.min.y, mBox.min.z, mBox.max.x, mBox.max.y, mBox.max.z);
     }
 
     template<typename ParticleType, typename Query>
-    RT_FORCE_NOINLINE void Process(const math::Vector4& queryPos, const std::vector<ParticleType>& particles, Query& query) const
+    RT_FORCE_NOINLINE void Process(const math::Vector4& queryPos, const DynArray<ParticleType>& particles, Query& query) const
     {
-        if (mIndices.empty())
+        if (mIndices.Empty())
         {
             return;
         }
@@ -177,8 +176,8 @@ private:
     }
 
     math::Box mBox;
-    std::vector<Uint32> mIndices;
-    std::vector<Uint32> mCellEnds;
+    DynArray<Uint32> mIndices;
+    DynArray<Uint32> mCellEnds;
 
     float mRadius;
     float mRadiusSqr;

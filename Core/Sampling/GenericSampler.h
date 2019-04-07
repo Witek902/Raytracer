@@ -2,6 +2,7 @@
 
 #include "../RayLib.h"
 #include "../Math/Vector4.h"
+#include "../Containers/DynArray.h"
 
 namespace rt {
 
@@ -12,12 +13,10 @@ class Random;
 class GenericSampler
 {
 public:
-    static constexpr Uint32 MaxDimension = 1024;
-
     GenericSampler(math::Random& fallbackGenerator);
     ~GenericSampler();
 
-    void ResetFrame(const std::vector<float>& seed);
+    void ResetFrame(const DynArray<float>& seed);
 
     void ResetPixel(const Uint32 salt);
 
@@ -28,13 +27,12 @@ public:
 
 private:
 
-    Uint32 mDimension;
     Uint32 mSalt;
     Uint32 mSamplesGenerated;
 
-    math::Random& mFallbackGenerator;
+    DynArray<float> mSeed;
 
-    float mSeed[MaxDimension];
+    math::Random& mFallbackGenerator;
 };
 
 

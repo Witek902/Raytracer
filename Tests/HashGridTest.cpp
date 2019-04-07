@@ -22,10 +22,10 @@ TEST(MathTest, HashGrid_RandomPoints)
         RT_FORCE_INLINE const Vector4& GetPosition() const { return pos; }
     };
 
-    std::vector<Particle> particles;
+    DynArray<Particle> particles;
     for (Uint32 i = 0; i < numPoints; ++i)
     {
-        particles.push_back({ random.GetVector4() * boxSize });
+        particles.PushBack({ random.GetVector4() * boxSize });
     }
 
     HashGrid grid;

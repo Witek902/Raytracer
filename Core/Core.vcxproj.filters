@@ -300,6 +300,13 @@
     <ClInclude Include="Sampling\HaltonSampler.h" />
     <ClInclude Include="Sampling\GenericSampler.h" />
     <ClInclude Include="Utils\TextureEvaluator.h" />
+    <ClInclude Include="Containers\ArrayIterator.h" />
+    <ClInclude Include="Containers\ArrayIteratorImpl.h" />
+    <ClInclude Include="Containers\ArrayView.h" />
+    <ClInclude Include="Containers\DynArray.h" />
+    <ClInclude Include="Containers\ArrayViewImpl.h" />
+    <ClInclude Include="Containers\DynArrayImpl.h" />
+    <ClInclude Include="Utils\MemoryHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

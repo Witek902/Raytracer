@@ -2,8 +2,6 @@
 
 #include "RayLib.h"
 #include "BVH.h"
-#include "../Utils/AlignmentAllocator.h"
-
 
 namespace rt {
 
@@ -22,7 +20,7 @@ public:
         { }
     };
 
-    using Indices = std::vector<Uint32>;
+    using Indices = DynArray<Uint32>;
 
     BVHBuilder(BVH& targetBVH);
     ~BVHBuilder();
@@ -30,8 +28,7 @@ public:
     void SetLeafData();
 
     // construct the BVH and return new leaves order
-    bool Build(const math::Box* data, const Uint32 numLeaves, const BuildingParams& params,
-               Indices& outLeavesOrder);
+    bool Build(const math::Box* data, const Uint32 numLeaves, const BuildingParams& params, Indices& outLeavesOrder);
 
 private:
 
@@ -39,8 +36,8 @@ private:
 
     struct Context
     {
-        std::vector<math::Box, AlignmentAllocator<math::Box>> mLeftBoxesCache;
-        std::vector<math::Box, AlignmentAllocator<math::Box>> mRightBoxesCache;
+        DynArray<math::Box> mLeftBoxesCache;
+        DynArray<math::Box> mRightBoxesCache;
         Indices mSortedLeavesIndicesCache[3];
 
         Context(Uint32 numLeaves);

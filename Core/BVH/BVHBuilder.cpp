@@ -10,12 +10,12 @@ using namespace math;
 
 BVHBuilder::Context::Context(Uint32 numLeaves)
 {
-    mLeftBoxesCache.resize(numLeaves);
-    mRightBoxesCache.resize(numLeaves);
+    mLeftBoxesCache.Resize(numLeaves);
+    mRightBoxesCache.Resize(numLeaves);
 
     for (Uint32 i = 0; i < NumAxes; ++i)
     {
-        mSortedLeavesIndicesCache[i].resize(numLeaves);
+        mSortedLeavesIndicesCache[i].Resize(numLeaves);
     }
 }
 
@@ -36,7 +36,7 @@ BVHBuilder::~BVHBuilder()
 
 bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
                        const BuildingParams& params,
-                       std::vector<Uint32>& outLeavesOrder)
+                       DynArray<Uint32>& outLeavesOrder)
 {
     mLeafBoxes = data;
     mNumLeaves = numLeaves;
@@ -45,8 +45,8 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
 
     mNumGeneratedNodes = 0;
     mNumGeneratedLeaves = 0;
-    mLeavesOrder.clear();
-    mLeavesOrder.reserve(mNumLeaves);
+    mLeavesOrder.Clear();
+    mLeavesOrder.Reserve(mNumLeaves);
 
     if (mNumLeaves == 0)
     {
@@ -69,10 +69,10 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     WorkSet rootWorkSet;
     rootWorkSet.box = overallBox;
     rootWorkSet.numLeaves = mNumLeaves;
-    rootWorkSet.leafIndices.reserve(mNumLeaves);
+    rootWorkSet.leafIndices.Reserve(mNumLeaves);
     for (Uint32 i = 0; i < mNumLeaves; ++i)
     {
-        rootWorkSet.leafIndices.push_back(i);
+        rootWorkSet.leafIndices.PushBack(i);
     }
 
     Timer timer;
@@ -81,7 +81,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     {
         Context context(mNumLeaves);
 
-        BVH::Node& rootNode = mTarget.mNodes.front();
+        BVH::Node& rootNode = mTarget.mNodes.Front();
         mNumGeneratedNodes += 2;
         BuildNode(rootWorkSet, context, rootNode);
     }
@@ -91,8 +91,8 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
 
     // shrink BVH nodes array
     mTarget.mNumNodes = mNumGeneratedNodes;
-    mTarget.mNodes.resize(mNumGeneratedNodes);
-    mTarget.mNodes.shrink_to_fit();
+    mTarget.mNodes.Resize(mNumGeneratedNodes);
+    // mTarget.mNodes.shrink_to_fit(); // TODO
 
     const float millisecondsElapsed = (float)(1000.0 * timer.Stop());
     RT_LOG_INFO("Finished BVH generation in %.9g ms (num nodes = %u)", millisecondsElapsed, mNumGeneratedNodes);
@@ -108,7 +108,7 @@ void BVHBuilder::GenerateLeaf(const WorkSet& workSet, BVH::Node& targetNode)
 
     for (Uint32 i = 0; i < workSet.numLeaves; ++i)
     {
-        mLeavesOrder.push_back(workSet.leafIndices[i]);
+        mLeavesOrder.PushBack(workSet.leafIndices[i]);
     }
 
     mNumGeneratedLeaves += workSet.numLeaves;
@@ -203,8 +203,12 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
     childWorkSet.depth = workSet.depth + 1;
 
     const Indices& sortedIndices = context.mSortedLeavesIndicesCache[bestAxis];
-    Indices leftIndices = Indices(sortedIndices.begin(), sortedIndices.begin() + leftCount);
-    Indices rightIndices = Indices(sortedIndices.begin() + leftCount, sortedIndices.end());
+
+    Indices leftIndices, rightIndices;
+    leftIndices.Resize(leftCount);
+    rightIndices.Resize(rightCount);
+    memcpy(leftIndices.Data(), sortedIndices.Data(), sizeof(Uint32) * leftCount);
+    memcpy(rightIndices.Data(), sortedIndices.Data() + leftCount, sizeof(Uint32) * rightCount);
 
     // generate left node
     {

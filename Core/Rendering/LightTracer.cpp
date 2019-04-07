@@ -28,14 +28,14 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     Uint32 depth = 0;
 
     const auto& allLocalLights = mScene.GetLights();
-    if (allLocalLights.empty())
+    if (allLocalLights.Empty())
     {
         // no lights on the scene
         return RayColor::Zero();
     }
 
-    const float lightPickingProbability = 1.0f / (float)allLocalLights.size();
-    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % (Uint32)allLocalLights.size();
+    const float lightPickingProbability = 1.0f / (float)allLocalLights.Size();
+    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size();
     const LightPtr& light = allLocalLights[lightIndex];
 
     const ILight::EmitParam emitParam =
