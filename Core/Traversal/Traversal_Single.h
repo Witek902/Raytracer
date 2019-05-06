@@ -13,7 +13,7 @@ namespace rt {
 
 // simple single-ray traversal
 template <typename ObjectType>
-void GenericTraverse_Single(const SingleTraversalContext& context, const Uint32 objectID, const ObjectType* object)
+void GenericTraverse(const SingleTraversalContext& context, const Uint32 objectID, const ObjectType* object)
 {
     float distanceA, distanceB;
 
@@ -35,7 +35,7 @@ void GenericTraverse_Single(const SingleTraversalContext& context, const Uint32 
     {
         if (currentNode->IsLeaf())
         {
-            object->Traverse_Leaf_Single(context, objectID, *currentNode);
+            object->Traverse_Leaf(context, objectID, *currentNode);
         }
         else
         {
@@ -96,7 +96,7 @@ void GenericTraverse_Single(const SingleTraversalContext& context, const Uint32 
 }
 
 template <typename ObjectType>
-bool GenericTraverse_Shadow_Single(const SingleTraversalContext& context, const ObjectType* object)
+bool GenericTraverse_Shadow(const SingleTraversalContext& context, const ObjectType* object)
 {
     float distanceA, distanceB;
 
@@ -118,7 +118,7 @@ bool GenericTraverse_Shadow_Single(const SingleTraversalContext& context, const 
     {
         if (currentNode->IsLeaf())
         {
-            if (object->Traverse_Leaf_Shadow_Single(context, *currentNode))
+            if (object->Traverse_Leaf_Shadow(context, *currentNode))
             {
                 return true;
             }

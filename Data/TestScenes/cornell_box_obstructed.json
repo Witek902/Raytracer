@@ -78,7 +78,7 @@
 
         {
             "type": "box",
-            "size": [2.0, 0.2, 2.0],
+            "size": [3.0, 0.1, 3.0],
             "transform": { "translation": [0.0, 3.0, 0.0] },
             "material": "white"
         },
@@ -116,9 +116,12 @@
         {
             "type": "area",
             "color": [10.0, 10.0, 10.0],
-            "position": [-1.5, 3.21, -1.5],
-            "edge0": [3.0, 0.0, 0.0],
-            "edge1": [0.0, 0.0, 3.0]
+            "transform": { "translation": [0.0, 4.45, 0.0], "orientation": [90.0, 0.0, 0.0]  },
+            "shape":
+            {
+                "type": "plane",
+                "size": [2.0, 2.0]
+            }
         }
     ],
     "camera":
@@ -126,7 +129,7 @@
         "transform":
         {
             "translation": [-0.1, 0.2, 12.0],
-            "orientation": [0.01, 3.14, 0.0]
+            "orientation": [0.01, 180.0, 0.0]
         },
         "fieldOfView": 55.0
     }

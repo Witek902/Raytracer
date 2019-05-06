@@ -164,6 +164,7 @@ TEST(MathTest, Vector4_CrossProduct)
 {
     EXPECT_TRUE((Vector4::Cross3(vecB, vecC) == Vector4(-1.0f, 2.0f, -1.0f, 0.0f)).All());
     EXPECT_TRUE((Vector4::Cross3(vecC, vecB) == Vector4(1.0f, -2.0f, 1.0f, 0.0f)).All());
+    EXPECT_TRUE((Vector4::Cross3(Vector4(1.0f, 0.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f)) == Vector4(0.0f, 0.0f, 1.0f)).All());
 }
 
 TEST(MathTest, Vector4_Normalized)

@@ -151,9 +151,9 @@ bool Material::GetMaskValue(const Vector4& uv) const
 
 void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
 {
-    shadingData.materialParams.baseColor = RayColor::Resolve(wavelength, Spectrum(baseColor.Evaluate(shadingData.texCoord)));
-    shadingData.materialParams.roughness = roughness.Evaluate(shadingData.texCoord);
-    shadingData.materialParams.metalness = metalness.Evaluate(shadingData.texCoord);
+    shadingData.materialParams.baseColor = RayColor::Resolve(wavelength, Spectrum(baseColor.Evaluate(shadingData.intersection.texCoord)));
+    shadingData.materialParams.roughness = roughness.Evaluate(shadingData.intersection.texCoord);
+    shadingData.materialParams.metalness = metalness.Evaluate(shadingData.intersection.texCoord);
     shadingData.materialParams.IoR = IoR;
 }
 
@@ -165,14 +165,14 @@ const RayColor Material::Evaluate(
 {
     RT_ASSERT(mBSDF, "Material must have a BSDF assigned");
 
-    const Vector4 incomingDirLocalSpace = shadingData.WorldToLocal(incomingDirWorldSpace);
+    const Vector4 incomingDirLocalSpace = shadingData.intersection.WorldToLocal(incomingDirWorldSpace);
 
     const BSDF::EvaluationContext evalContext =
     {
         *this,
         shadingData.materialParams,
         wavelength,
-        shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
+        shadingData.intersection.WorldToLocal(shadingData.outgoingDirWorldSpace),
         incomingDirLocalSpace
     };
 
@@ -194,7 +194,7 @@ const RayColor Material::Sample(
         *this,
         shadingData.materialParams,
         sample,
-        shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
+        shadingData.intersection.WorldToLocal(shadingData.outgoingDirWorldSpace),
         wavelength,
     };
 
@@ -216,7 +216,7 @@ const RayColor Material::Sample(
     RT_ASSERT(samplingContext.outColor.IsValid());
 
     // convert incoming light direction back to world space
-    outIncomingDirWorldSpace = shadingData.LocalToWorld(samplingContext.outIncomingDir);
+    outIncomingDirWorldSpace = shadingData.intersection.LocalToWorld(samplingContext.outIncomingDir);
 
     if (outPdfW)
     {

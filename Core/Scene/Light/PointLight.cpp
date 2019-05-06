@@ -8,11 +8,9 @@ namespace rt {
 
 using namespace math;
 
-PointLight::PointLight(const math::Vector4& position, const math::Vector4& color)
+PointLight::PointLight(const math::Vector4& color)
     : ILight(color)
-    , mPosition(position)
 {
-    RT_ASSERT(mPosition.IsValid());
 }
 
 ILight::Type PointLight::GetType() const
@@ -22,7 +20,7 @@ ILight::Type PointLight::GetType() const
 
 const Box PointLight::GetBoundingBox() const
 {
-    return Box(mPosition, mPosition);
+    return Box(Vector4::Zero(), 0.0f);
 }
 
 bool PointLight::TestRayHit(const math::Ray& ray, float& outDistance) const
@@ -36,7 +34,7 @@ bool PointLight::TestRayHit(const math::Ray& ray, float& outDistance) const
 
 const RayColor PointLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    outResult.directionToLight = mPosition - param.shadingData.frame.GetTranslation();
+    outResult.directionToLight = param.lightToWorld.GetTranslation() - param.intersection.frame.GetTranslation();
     const float sqrDistance = outResult.directionToLight.SqrLength3();
 
     outResult.directPdfW = sqrDistance;
@@ -45,24 +43,27 @@ const RayColor PointLight::Illuminate(const IlluminateParam& param, IlluminateRe
     outResult.directionToLight /= outResult.distance;
     outResult.cosAtLight = 1.0f;
 
+    // TODO texture
+
     return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 const RayColor PointLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
-    outResult.position = mPosition;
-    outResult.direction = SamplingHelpers::GetSphere(param.sample);
+    outResult.position = param.lightToWorld.GetTranslation();
+    outResult.direction = SamplingHelpers::GetSphere(param.directionSample);
     outResult.emissionPdfW = RT_INV_PI / 4.0f;
     outResult.directPdfA = 1.0f;
     outResult.cosAtLight = 1.0f;
 
     // TODO texture
+
     return RayColor::Resolve(param.wavelength, GetColor());
 }
 
 ILight::Flags PointLight::GetFlags() const
 {
-    return Flags(Flag_IsFinite & Flag_IsDelta);
+    return Flags(Flag_IsFinite | Flag_IsDelta);
 }
 
 } // namespace rt

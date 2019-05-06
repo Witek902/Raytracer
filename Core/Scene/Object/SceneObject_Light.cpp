@@ -1,25 +1,33 @@
 #include "PCH.h"
 #include "SceneObject_Light.h"
 #include "../Light/Light.h"
+#include "../Light/AreaLight.h"
+#include "../../Shapes/Shape.h"
 #include "Traversal/TraversalContext.h"
 
 namespace rt {
 
 using namespace math;
 
-LightSceneObject::LightSceneObject(const ILight& light)
-    : mLight(light)
+LightSceneObject::LightSceneObject(LightPtr light)
+    : mLight(std::move(light))
 { }
+
+ISceneObject::Type LightSceneObject::GetType() const
+{
+    return Type::Light;
+}
 
 Box LightSceneObject::GetBoundingBox() const
 {
-    return mLight.GetBoundingBox();
+    const Box localSpaceBox = mLight->GetBoundingBox();
+    return { GetBaseTransform().TransformBox(localSpaceBox), GetTransform(1.0f).TransformBox(localSpaceBox) };
 }
 
-void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const
+void LightSceneObject::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
 {
     float lightDistance;
-    if (mLight.TestRayHit(context.ray, lightDistance))
+    if (mLight->TestRayHit(context.ray, lightDistance))
     {
         if (lightDistance < context.hitPoint.distance)
         {
@@ -29,10 +37,10 @@ void LightSceneObject::Traverse_Single(const SingleTraversalContext& context, co
     }
 }
 
-bool LightSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& context) const
+bool LightSceneObject::Traverse_Shadow(const SingleTraversalContext& context) const
 {
     float lightDistance;
-    if (mLight.TestRayHit(context.ray, lightDistance))
+    if (mLight->TestRayHit(context.ray, lightDistance))
     {
         if (lightDistance < context.hitPoint.distance)
         {
@@ -44,7 +52,7 @@ bool LightSceneObject::Traverse_Shadow_Single(const SingleTraversalContext& cont
     return false;
 }
 
-void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
+void LightSceneObject::Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
 {
     RT_UNUSED(context);
     RT_UNUSED(objectID);
@@ -52,9 +60,17 @@ void LightSceneObject::Traverse_Packet(const PacketTraversalContext& context, co
     // TODO
 }
 
-void LightSceneObject::EvaluateShadingData_Single(const HitPoint&, ShadingData&) const
+void LightSceneObject::EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const
 {
-    RT_FATAL("Light surface cannot be shaded");
+    if (mLight->GetType() == ILight::Type::Area)
+    {
+        const AreaLight& areaLight = static_cast<const AreaLight&>(*mLight);
+        areaLight.GetShape()->EvaluateIntersection(hitPoint, outIntersectionData);
+    }
+    else
+    {
+        RT_FATAL("Cannot evaluate intersection for non-area lights");
+    }
 }
 
 

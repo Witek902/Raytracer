@@ -7,6 +7,7 @@ namespace rt {
 
 struct ShadingData;
 class ILight;
+class LightSceneObject;
 
 // Unidirectional path tracer
 // Samples both BSDF and direct lighting
@@ -38,10 +39,10 @@ private:
     const RayColor SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // importance sample single light source
-    const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
+    const RayColor SampleLight(const LightSceneObject* lightObject, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
+    const RayColor EvaluateLight(const LightSceneObject* lightObject, const math::Ray& ray, float dist, const IntersectionData& intersection, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;

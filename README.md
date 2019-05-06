@@ -17,15 +17,16 @@ General
 
 * Written in C++14
 * Developed for Windows and Linux
-* Optimized using SSE and AVX intrinsics (especially in performance-critical and low level math code)
+* Highly optimized using SSE and AVX intrinsics
 * Parsing scene description from a JSON file
 
 Rendering
 ---------
 
 * Low discrepancy sampling (scrambled Halton sequence)
-* Adaptive sampling (using more samples in noisy image areas)
-* Spectral rendering using _hero wavelength_ method (_Note: disabled with a macro by default_)
+* Blue noise dithered sampling
+* Adaptive rendering (using more samples in noisy image areas)
+* Spectral rendering using _hero wavelength_ method (_Note: disabled by default_)
 * Debug rendering mode (for visualizing depth, normal vectors, material parameters, etc.)
 * Camera simulation:
   * Depth of Field (circle or polygonal bokeh)
@@ -36,7 +37,7 @@ Geometry
 --------
 
 * Bounding Volume Hierarchy (BVH) used for scene and mesh traversal (two levels of BVH)
-* Scene object types: Triangle meshes, Sphere, Box, Plane
+* Supported shape types: triangle meshes, sphere, box, rectangle
 * Full per-object motion blur (translational and rotational)
 * Both single-ray and AVX-optimized stream packet traversal
 
@@ -46,9 +47,9 @@ Lighting
   * Naive Path Tracing (sampling only BSDF)
   * Path Tracing with multiple importance sampling (sampling both lights and material BSDF)
   * Bidirectional Path Tracing (with MIS)
-  * Vertex Connection and Merging (_Note: work in progress, not all lights and BSDFs are working properly_)
   * Light Tracing (for debugging) 
-* Supported light types: point, area (triangle or quad), spherical, directional, background
+* Supported light types: point, directional, background, area (any shape)
+* 
 
 Materials
 ---------
@@ -62,7 +63,7 @@ Textures
 --------
 
 * 2D bitmap textures
-* Supported pixel formats: 8-bit unsigned int, 32-bit float, 16-bit float, block-compressed BC1, BC4 and BC5
+* Supports most of DXGI formats, including bit-packed formats, BC1, BC4 and BC5 block compression
 * Supported file formats: BMP, DDS, EXR (thanks to https://github.com/syoyo/tinyexr library)
 
 
@@ -73,3 +74,4 @@ TODO list
 * Procedural textures
 * Volumetric rendering
 * Optimize traversal and shading with SSE/AVX
+* Port to ARM NEON

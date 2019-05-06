@@ -5,26 +5,28 @@
 namespace rt {
 
 class ILight;
+using LightPtr = std::unique_ptr<ILight>;
 
-// scene object representing a finite scene object (e.g. area light)
 class LightSceneObject : public ISceneObject
 {
 public:
-    RAYLIB_API explicit LightSceneObject(const ILight& light);
+    RAYLIB_API explicit LightSceneObject(LightPtr light);
 
-    RT_FORCE_INLINE const ILight& GetLight() const { return mLight; }
+    virtual Type GetType() const override;
+
+    RT_FORCE_INLINE const ILight& GetLight() const { return *mLight; }
 
 private:
     virtual math::Box GetBoundingBox() const override;
 
-    virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const override;
-    virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const override;
+    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const override;
+    virtual void Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const override;
 
-    virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const override;
+    virtual bool Traverse_Shadow(const SingleTraversalContext& context) const override;
 
-    virtual void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const override;
+    virtual void EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const override;
 
-    const ILight& mLight;
+    LightPtr mLight;
 };
 
 } // namespace rt

@@ -14,7 +14,7 @@ namespace rt {
 // traverse 8 rays at a time
 // no ray reordering/masking is performed
 template <typename ObjectType>
-static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const ObjectType* object)
+static void GenericTraverse(const SimdTraversalContext& context, const Uint32 objectID, const ObjectType* object)
 {
     const math::Vector3x8 rayInvDir = context.ray.invDir;
     const math::Vector3x8 rayOriginDivDir = context.ray.origin * context.ray.invDir;
@@ -31,7 +31,7 @@ static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uin
     {
         if (currentNode->IsLeaf())
         {
-            object->Traverse_Leaf_Simd8(context, objectID, *currentNode);
+            object->Traverse_Leaf(context, objectID, *currentNode);
         }
         else
         {
@@ -41,14 +41,14 @@ static void GenericTraverse_Simd8(const SimdTraversalContext& context, const Uin
             RT_PREFETCH_L1(nodes + childA->childIndex);
 
             math::Vector8 distanceA;
-            const math::Vector8 maskA = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childA->GetBox_Simd8(), context.hitPoint.distance, distanceA);
+            const math::Vector8 maskA = Intersect_BoxRay(rayInvDir, rayOriginDivDir, childA->GetBox(), context.hitPoint.distance, distanceA);
             const Int32 intMaskA = maskA.GetSignMask();
 
             // Note: according to Intel manuals, prefetch instructions should not be grouped together
             RT_PREFETCH_L1(nodes + childB->childIndex);
 
             math::Vector8 distanceB;
-            const math::Vector8 maskB = Intersect_BoxRay_Simd8(rayInvDir, rayOriginDivDir, childB->GetBox_Simd8(), context.hitPoint.distance, distanceB);
+            const math::Vector8 maskB = Intersect_BoxRay(rayInvDir, rayOriginDivDir, childB->GetBox(), context.hitPoint.distance, distanceB);
             const Int32 intMaskB = maskB.GetSignMask();
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS

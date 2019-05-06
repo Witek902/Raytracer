@@ -44,7 +44,7 @@
         "transform":
         {
             "translation": [0.0, 0.0, 3.0],
-            "orientation": [0.0, 3.14, 0.0]
+            "orientation": [0.0, 180.0, 0.0]
         },
         "fieldOfView": 60.0
     }

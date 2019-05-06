@@ -6,6 +6,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Scene/Light/Light.h"
+#include "Scene/Object/SceneObject_Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 #include "Sampling/GenericSampler.h"
@@ -57,11 +58,11 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mVertexMergingWeight = Vector4(1.0f);
 
     mUseVertexConnection = true;
-    mUseVertexMerging = true;
-    mMaxPathLength = 12;
-    mInitialMergingRadius = 0.01f;
+    mUseVertexMerging = false;
+    mMaxPathLength = 10;
+    mInitialMergingRadius = 0.04f;
     mMergingRadiusVC = mMergingRadiusVM = mInitialMergingRadius;
-    mMinMergingRadius = 0.001f;
+    mMinMergingRadius = 0.04f;
     mMergingRadiusMultiplier = 1.0f; // 0.98f; // VCM_TODO
 }
 
@@ -189,57 +190,29 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
     }
 
     HitPoint hitPoint;
+    ShadingData shadingData;
 
     for (;;)
     {
         RT_ASSERT(pathState.ray.IsValid());
 
-        hitPoint.distance = FLT_MAX;
-        mScene.Traverse_Single({ pathState.ray, hitPoint, ctx });
+        hitPoint.objectId = RT_INVALID_OBJECT;
+        hitPoint.distance = HitPoint::DefaultDistance;
+        mScene.Traverse({ pathState.ray, hitPoint, ctx });
 
         // ray missed - return background light color
-        if (hitPoint.distance == FLT_MAX)
+        if (hitPoint.distance == HitPoint::DefaultDistance)
         {
             resultColor.MulAndAccumulate(pathState.throughput, EvaluateGlobalLights(param.iteration, pathState, ctx));
             break;
         }
 
-        // we hit a light directly
-        if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
-        {
-            const ILight& light = mScene.GetLightByObjectId(hitPoint.objectId);
-
-            // TODO this duplicates the code from below - requires some refactoring
-            {
-                const Vector4 hitPos = pathState.ray.GetAtDistance(hitPoint.distance);
-                const Vector4 normal = light.GetNormal(hitPos);
-                const float cosTheta = Vector4::Dot3(pathState.ray.dir, normal);
-                const float invMis = 1.0f / Mis(Abs(cosTheta));
-                pathState.dVCM *= Mis(Sqr(hitPoint.distance));
-                pathState.dVCM *= invMis;
-                pathState.dVC *= invMis;
-                pathState.dVM *= invMis;
-            }
-
-            const RayColor lightColor = EvaluateLight(param.iteration, light, hitPoint.distance, pathState, ctx);
-            RT_ASSERT(lightColor.IsValid());
-            resultColor.MulAndAccumulate(pathState.throughput, lightColor);
-            break;
-        }
-
         // fill up structure with shading data
-        ShadingData shadingData;
-        {
-            mScene.ExtractShadingData(pathState.ray, hitPoint, ctx.time, shadingData);
+        mScene.EvaluateIntersection(pathState.ray, hitPoint, ctx.time, shadingData.intersection);
 
-            RT_ASSERT(shadingData.material != nullptr);
-            shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
-        }
-
-        // TODO move it above "EvaluateLight" section - requires getting "shading data" for light surface...
         // update MIS quantities
         {
-            const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.frame[2]);
+            const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.intersection.frame[2]);
             const float invMis = 1.0f / Mis(Abs(cosTheta));
             pathState.dVCM *= Mis(Sqr(hitPoint.distance));
             pathState.dVCM *= invMis;
@@ -247,10 +220,29 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
             pathState.dVM *= invMis;
         }
 
+        // we hit a light directly
+        if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
+        {
+            const ISceneObject* sceneObject = mScene.GetHitObject(hitPoint.objectId);
+            RT_ASSERT(sceneObject->GetType() == ISceneObject::Type::Light);
+            const LightSceneObject* lightObject = static_cast<const LightSceneObject*>(sceneObject);
+
+            const float cosAtLight = -shadingData.intersection.CosTheta(pathState.ray.dir);
+            const RayColor lightColor = EvaluateLight(param.iteration, lightObject, &shadingData.intersection, pathState, ctx);
+            RT_ASSERT(lightColor.IsValid());
+            resultColor.MulAndAccumulate(pathState.throughput, lightColor);
+            break;
+        }
+
+        // fill up structure with shading data
+        RT_ASSERT(shadingData.intersection.material != nullptr);
+        shadingData.outgoingDirWorldSpace = -pathState.ray.dir;
+        shadingData.intersection.material->EvaluateShadingData(ctx.wavelength, shadingData);
+
         // accumulate material emission color
         // Note: no importance sampling for this
         {
-            const Spectrum emissionSpectrum(shadingData.material->emission.Evaluate(shadingData.texCoord));
+            const Spectrum emissionSpectrum(shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord));
             const RayColor emissionColor = RayColor::Resolve(ctx.wavelength, emissionSpectrum);
             RT_ASSERT(emissionColor.IsValid());
             resultColor.MulAndAccumulate(pathState.throughput, emissionColor);
@@ -262,7 +254,7 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
             break;
         }
 
-        const bool isDeltaBsdf = shadingData.material->GetBSDF()->IsDelta();
+        const bool isDeltaBsdf = shadingData.intersection.material->GetBSDF()->IsDelta();
 
         // Vertex Connection -sample lights directly (a.k.a. next event estimation)
         if (!isDeltaBsdf && mUseVertexConnection)
@@ -344,17 +336,18 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
     {
         RT_ASSERT(pathState.ray.IsValid());
 
-        hitPoint.distance = FLT_MAX;
-        mScene.Traverse_Single({ pathState.ray, hitPoint, ctx });
+        hitPoint.objectId = RT_INVALID_OBJECT;
+        hitPoint.distance = HitPoint::DefaultDistance;
+        mScene.Traverse({ pathState.ray, hitPoint, ctx });
 
-        if (hitPoint.distance == FLT_MAX)
+        if (hitPoint.distance == HitPoint::DefaultDistance)
         {
-            break; // ray missed - terminate the path
+            break; // ray missed
         }
 
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
-            break; // for now, light sources do not reflect light
+            break; // we hit a light directly
         }
 
         RT_ASSERT(rendererContext.numLightVertices < g_MaxLightVertices);
@@ -363,11 +356,11 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
         // fill up structure with shading data
         ShadingData& shadingData = vertex.shadingData;
         {
-            // TODO this is copy-paste from TraceRay_Single
-            mScene.ExtractShadingData(pathState.ray, hitPoint, ctx.time, shadingData);
+            mScene.EvaluateIntersection(pathState.ray, hitPoint, ctx.time, shadingData.intersection);
 
-            RT_ASSERT(shadingData.material != nullptr);
-            shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
+            shadingData.outgoingDirWorldSpace = -pathState.ray.dir;
+            RT_ASSERT(shadingData.intersection.material != nullptr);
+            shadingData.intersection.material->EvaluateShadingData(ctx.wavelength, shadingData);
         }
 
         // update MIS quantities
@@ -377,7 +370,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
                 pathState.dVCM *= Mis(Sqr(hitPoint.distance));
             }
 
-            const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.frame[2]);
+            const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.intersection.frame[2]);
             const float invMis = 1.0f / Mis(Abs(cosTheta));
             pathState.dVCM *= invMis;
             pathState.dVC  *= invMis;
@@ -385,7 +378,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
         }
 
         // record the vertex for non-specular materials
-        if (!shadingData.material->GetBSDF()->IsDelta())
+        if (!shadingData.intersection.material->GetBSDF()->IsDelta())
         {
             // store light vertex for connection
             if (mUseVertexConnection)
@@ -408,7 +401,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
                 rendererContext.photons.EmplaceBack();
                 Photon& photon = rendererContext.photons.Back();
 
-                photon.position = shadingData.frame[3].ToFloat3();
+                photon.position = shadingData.intersection.frame[3].ToFloat3();
                 photon.direction.FromVector(shadingData.outgoingDirWorldSpace);
                 photon.throughput.FromVector(pathState.throughput.ConvertToTristimulus(ctx.wavelength));
                 photon.dVM = pathState.dVM;
@@ -440,17 +433,20 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
 
     const float lightPickProbability = 1.0f / (float)allLocalLights.Size();
     const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size(); // TODO get rid of division
-    const LightPtr& light = allLocalLights[lightIndex];
+
+    const LightSceneObject* lightObject = allLocalLights[lightIndex];
+    const ILight& light = lightObject->GetLight();
 
     const ILight::EmitParam emitParam =
     {
+        lightObject->GetTransform(ctx.time),
         ctx.wavelength,
-        ctx.sampler.GetFloat2(),
+        ctx.sampler.GetFloat3(),
         ctx.sampler.GetFloat2(),
     };
 
     ILight::EmitResult emitResult;
-    const RayColor throughput = light->Emit(emitParam, emitResult);
+    const RayColor throughput = light.Emit(emitParam, emitResult);
 
     if (throughput.AlmostZero())
     {
@@ -458,21 +454,18 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
         return false;
     }
 
+    RT_ASSERT(emitResult.emissionPdfW > 0.0f);
+
     emitResult.directPdfA *= lightPickProbability;
     emitResult.emissionPdfW *= lightPickProbability;
     
-    if (emitResult.emissionPdfW < FLT_EPSILON)
-    {
-        return false;
-    }
-
     const float emissionInvPdfW = 1.0f / emitResult.emissionPdfW;
 
+    emitResult.position += emitResult.direction * 0.0005f;
     outPath.ray = Ray(emitResult.position, emitResult.direction);
-    outPath.ray.origin += outPath.ray.dir * 0.0001f;
     outPath.throughput = throughput * emissionInvPdfW;
 
-    const ILight::Flags lightFlags = light->GetFlags();
+    const ILight::Flags lightFlags = light.GetFlags();
     outPath.isFiniteLight = lightFlags & ILight::Flag_IsFinite;
 
     // setup MIS weights
@@ -515,9 +508,9 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     Vector4 incomingDirWorldSpace;
     float bsdfDirPdf;
     BSDF::EventType sampledEvent = BSDF::NullEvent;
-    const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, sample, &bsdfDirPdf, &sampledEvent);
+    const RayColor bsdfValue = shadingData.intersection.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, sample, &bsdfDirPdf, &sampledEvent);
 
-    const float cosThetaOut = Abs(Vector4::Dot3(incomingDirWorldSpace, shadingData.frame[2]));
+    const float cosThetaOut = Abs(Vector4::Dot3(incomingDirWorldSpace, shadingData.intersection.frame[2]));
 
     if (sampledEvent == BSDF::NullEvent)
     {
@@ -536,7 +529,7 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     RT_ASSERT(IsValid(bsdfDirPdf));
 
     // generate secondary ray
-    path.ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
+    path.ray = Ray(shadingData.intersection.frame.GetTranslation(), incomingDirWorldSpace);
     path.ray.origin += path.ray.dir * 0.001f;
     RT_ASSERT(path.ray.IsValid());
 
@@ -558,14 +551,14 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
         // evaluate reverse PDF
         const BSDF::EvaluationContext evalContext =
         {
-            *shadingData.material,
+            *shadingData.intersection.material,
             shadingData.materialParams,
             ctx.wavelength,
-            shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
-            -shadingData.WorldToLocal(incomingDirWorldSpace),
+            shadingData.intersection.WorldToLocal(shadingData.outgoingDirWorldSpace),
+            -shadingData.intersection.WorldToLocal(incomingDirWorldSpace),
         };
 
-        const float bsdfRevPdf = shadingData.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
+        const float bsdfRevPdf = shadingData.intersection.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
         const float invBsdfDirPdf = 1.0f / bsdfDirPdf;
 
         path.dVC = Mis(cosThetaOut * invBsdfDirPdf) * (path.dVC * Mis(bsdfRevPdf) + path.dVCM + mMisVertexMergingWeightFactorVC);
@@ -581,12 +574,26 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     return true;
 }
 
-const RayColor VertexConnectionAndMerging::EvaluateLight(Uint32 iteration, const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateLight(Uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const
 {
-    const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
+    const Matrix4 worldToLight = lightObject->GetInverseTransform(ctx.time);
+    const Ray lightSpaceRay = worldToLight.TransformRay_Unsafe(pathState.ray);
+    const float cosAtLight = intersection ? -intersection->CosTheta(pathState.ray.dir) : 1.0f;
+    const Vector4 lightSpaceHitPoint = intersection ? worldToLight.TransformPoint(intersection->frame.GetTranslation()) : Vector4::Zero();
+
+    const ILight& light = lightObject->GetLight();
+
+    const ILight::RadianceParam param =
+    {
+        ctx,
+        lightSpaceRay,
+        lightSpaceHitPoint,
+        cosAtLight,
+        false, // rendererSupportsSolidAngleSampling
+    };
 
     float directPdfA, emissionPdfW;
-    RayColor lightContribution = light.GetRadiance(ctx, pathState.ray, hitPos, &directPdfA, &emissionPdfW);
+    RayColor lightContribution = light.GetRadiance(param, &directPdfA, &emissionPdfW);
     RT_ASSERT(lightContribution.IsValid());
 
     if (lightContribution.AlmostZero())
@@ -626,13 +633,18 @@ const RayColor VertexConnectionAndMerging::EvaluateLight(Uint32 iteration, const
     return lightContribution;
 }
 
-const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::SampleLight(const LightSceneObject* lightObject, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const
 {
+    const ILight& light = lightObject->GetLight();
+
     const ILight::IlluminateParam illuminateParam =
     {
-        shadingData,
+        lightObject->GetInverseTransform(ctx.time),
+        lightObject->GetTransform(ctx.time),
+        shadingData.intersection,
         ctx.wavelength,
-        ctx.sampler.GetFloat2(),
+        ctx.sampler.GetFloat3(),
+        false, // rendererSupportsSolidAngleSampling
     };
 
     // calculate light contribution
@@ -651,7 +663,7 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
 
     // calculate BSDF contribution
     float bsdfPdfW, bsdfRevPdfW;
-    const RayColor bsdfFactor = shadingData.material->Evaluate(ctx.wavelength, shadingData, -illuminateResult.directionToLight, &bsdfPdfW, &bsdfRevPdfW);
+    const RayColor bsdfFactor = shadingData.intersection.material->Evaluate(ctx.wavelength, shadingData, -illuminateResult.directionToLight, &bsdfPdfW, &bsdfRevPdfW);
     RT_ASSERT(bsdfFactor.IsValid());
 
     if (bsdfFactor.AlmostZero())
@@ -666,10 +678,10 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
         HitPoint hitPoint;
         hitPoint.distance = illuminateResult.distance * 0.999f;
 
-        Ray shadowRay(shadingData.frame.GetTranslation(), illuminateResult.directionToLight);
-        shadowRay.origin += shadowRay.dir * 0.001f;
+        Ray shadowRay(shadingData.intersection.frame.GetTranslation(), illuminateResult.directionToLight);
+        shadowRay.origin += shadowRay.dir * 0.0001f;
 
-        if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, ctx }))
+        if (mScene.Traverse_Shadow({ shadowRay, hitPoint, ctx }))
         {
             // shadow ray missed the light - light is occluded
             return RayColor::Zero();
@@ -687,7 +699,7 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     bsdfPdfW *= isDeltaLight ? 0.0f : continuationProbability;
     bsdfRevPdfW *= continuationProbability;
 
-    const float cosToLight = Vector4::Dot3(shadingData.frame[2], illuminateResult.directionToLight);
+    const float cosToLight = Vector4::Dot3(shadingData.intersection.frame[2], illuminateResult.directionToLight);
     if (cosToLight <= FLT_EPSILON)
     {
         return RayColor::Zero();
@@ -707,9 +719,9 @@ const RayColor VertexConnectionAndMerging::SampleLights(const ShadingData& shadi
 
     // TODO check only one (or few) lights per sample instead all of them
     // TODO check only nearest lights
-    for (const LightPtr& light : mScene.GetLights())
+    for (const LightSceneObject* lightObject : mScene.GetLights())
     {
-        accumulatedColor += SampleLight(*light, shadingData, pathState, ctx);
+        accumulatedColor += SampleLight(lightObject, shadingData, pathState, ctx);
     }
 
     accumulatedColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mLightSamplingWeight));
@@ -721,9 +733,9 @@ const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(Uint32 iteration
 {
     RayColor result = RayColor::Zero();
 
-    for (const ILight* globalLight : mScene.GetGlobalLights())
+    for (const LightSceneObject* globalLightObject : mScene.GetGlobalLights())
     {
-        result += EvaluateLight(iteration, *globalLight, FLT_MAX, pathState, ctx);
+        result += EvaluateLight(iteration, globalLightObject, nullptr, pathState, ctx);
     }
 
     return result;
@@ -732,13 +744,13 @@ const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(Uint32 iteration
 const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const
 {
     // compute connection direction (from camera vertex to light vertex)
-    Vector4 lightDir = lightVertex.shadingData.frame.GetTranslation() - shadingData.frame.GetTranslation();
+    Vector4 lightDir = lightVertex.shadingData.intersection.frame.GetTranslation() - shadingData.intersection.frame.GetTranslation();
     const float distanceSqr = lightDir.SqrLength3();
     const float distance = sqrtf(distanceSqr);
     lightDir /= distance;
 
-    const float cosCameraVertex = shadingData.CosTheta(lightDir);
-    const float cosLightVertex = lightVertex.shadingData.CosTheta(-lightDir);
+    const float cosCameraVertex = shadingData.intersection.CosTheta(lightDir);
+    const float cosLightVertex = lightVertex.shadingData.intersection.CosTheta(-lightDir);
 
     if (cosCameraVertex <= 0.0f || cosLightVertex <= 0.0f)
     {
@@ -751,7 +763,7 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
 
     // evaluate BSDF at camera vertex
     float cameraBsdfPdfW, cameraBsdfRevPdfW;
-    const RayColor cameraFactor = shadingData.material->Evaluate(ctx.wavelength, shadingData, -lightDir, &cameraBsdfPdfW, &cameraBsdfRevPdfW);
+    const RayColor cameraFactor = shadingData.intersection.material->Evaluate(ctx.wavelength, shadingData, -lightDir, &cameraBsdfPdfW, &cameraBsdfRevPdfW);
     RT_ASSERT(cameraFactor.IsValid());
     if (cameraFactor.AlmostZero())
     {
@@ -760,7 +772,7 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
 
     // evaluate BSDF at light vertex
     float lightBsdfPdfW, lightBsdfRevPdfW;
-    const RayColor lightFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
+    const RayColor lightFactor = lightVertex.shadingData.intersection.material->Evaluate(ctx.wavelength, lightVertex.shadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
     RT_ASSERT(lightFactor.IsValid());
     if (lightFactor.AlmostZero())
     {
@@ -772,10 +784,10 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
         HitPoint hitPoint;
         hitPoint.distance = distance * 0.999f;
 
-        Ray shadowRay(shadingData.frame.GetTranslation(), lightDir);
+        Ray shadowRay(shadingData.intersection.frame.GetTranslation(), lightDir);
         shadowRay.origin += shadowRay.dir * 0.0001f;
 
-        if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, ctx }))
+        if (mScene.Traverse_Shadow({ shadowRay, hitPoint, ctx }))
         {
             // line between vertices is occluded by other geometry
             return RayColor::Zero();
@@ -835,14 +847,14 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
             const Vector4 lightDirection{ photon.direction.ToVector() };
             RT_ASSERT(lightDirection.IsValid());
 
-            const float cosToLight = mShadingData.CosTheta(lightDirection);
+            const float cosToLight = mShadingData.intersection.CosTheta(lightDirection);
             if (cosToLight < FLT_EPSILON)
             {
                 return;
             }
 
             float cameraBsdfDirPdfW, cameraBsdfRevPdfW;
-            const RayColor cameraBsdfFactor = mShadingData.material->Evaluate(mContext.wavelength, mShadingData, -lightDirection, &cameraBsdfDirPdfW, &cameraBsdfRevPdfW);
+            const RayColor cameraBsdfFactor = mShadingData.intersection.material->Evaluate(mContext.wavelength, mShadingData, -lightDirection, &cameraBsdfDirPdfW, &cameraBsdfRevPdfW);
             RT_ASSERT(cameraBsdfFactor.IsValid());
             
             if (cameraBsdfFactor.AlmostZero())
@@ -877,7 +889,7 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
         RayColor mContribution;
     };
 
-    const Vector4& cameraVertexPos = shadingData.frame.GetTranslation();
+    const Vector4& cameraVertexPos = shadingData.intersection.frame.GetTranslation();
 
     RangeQuery query(*this, cameraPathState, shadingData, ctx);
 #ifdef RT_VCM_USE_KD_TREE
@@ -892,7 +904,7 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
 void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const
 {
     const Vector4 cameraPos = camera.GetTransform().GetTranslation();
-    const Vector4 samplePos = lightVertex.shadingData.frame.GetTranslation();
+    const Vector4 samplePos = lightVertex.shadingData.intersection.frame.GetTranslation();
 
     Vector4 dirToCamera = cameraPos - samplePos;
 
@@ -903,7 +915,7 @@ void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& fil
 
     // calculate BSDF contribution
     float bsdfPdfW, bsdfRevPdfW;
-    const RayColor cameraFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
+    const RayColor cameraFactor = lightVertex.shadingData.intersection.material->Evaluate(ctx.wavelength, lightVertex.shadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
     RT_ASSERT(cameraFactor.IsValid());
 
     if (cameraFactor.AlmostZero())
@@ -924,13 +936,13 @@ void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& fil
     Ray shadowRay(samplePos, dirToCamera);
     shadowRay.origin += shadowRay.dir * 0.0001f;
 
-    if (mScene.Traverse_Shadow_Single({ shadowRay, shadowHitPoint, ctx }))
+    if (mScene.Traverse_Shadow({ shadowRay, shadowHitPoint, ctx }))
     {
         // vertex is occluded
         return;
     }
 
-    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertex.shadingData.frame[2]);
+    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertex.shadingData.intersection.frame[2]);
     if (cosToCamera <= FLT_EPSILON)
     {
         return;

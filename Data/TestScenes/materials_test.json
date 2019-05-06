@@ -89,7 +89,7 @@
     [
         {
             "type": "plane",
-            "transform": { "translation": [0.0, -1.0, 0.0] },
+            "transform": { "translation": [0.0, -1.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
             "textureScale" : [0.4, 0.4],
             "size": [20.0, 20.0],
             "material": "ground"
@@ -218,11 +218,14 @@
     "lights":
     [
         {
-            "type": "spot",
+            "type": "area",
             "color": [30.0, 30.0, 30.0],
-            "position": [5.0, 5.0, 5.0],
-            "direction": [-1.0, -1.0, -1.0],
-            "angle": 20.0
+            "transform": { "translation": [5.0, 5.0, 5.0], "orientation": [45.0, -135.0, 0.0] },
+            "shape":
+            {
+                "type": "plane",
+                "size": [1.0, 1.0]
+            }
         }
     ],
     "camera":
@@ -230,7 +233,7 @@
         "transform":
         {
             "translation": [-2.4, 4.03, 3.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "orientation": [40.0, 158.0, 0.0]
         },
         "fieldOfView": 45.0
     }

@@ -26,9 +26,9 @@ const char* DebugRenderer::GetName() const
 const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderParam&, RenderingContext& ctx) const
 {
     HitPoint hitPoint;
-    mScene.Traverse_Single({ ray, hitPoint, ctx });
+    mScene.Traverse({ ray, hitPoint, ctx });
 
-    if (hitPoint.distance == FLT_MAX)
+    if (hitPoint.distance == HitPoint::DefaultDistance)
     {
         // ray hit background
         return RayColor::Zero();
@@ -44,7 +44,10 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
     ShadingData shadingData;
     if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
     {
-        mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
+        if (hitPoint.distance < FLT_MAX)
+        {
+            mScene.EvaluateIntersection(ray, hitPoint, ctx.time, shadingData.intersection);
+        }
     }
 
     Vector4 resultColor;
@@ -53,8 +56,8 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
     {
         case DebugRenderingMode::CameraLight:
         {
-            const float NdotL = Vector4::Dot3(ray.dir, shadingData.frame[2]);
-            resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord) * Abs(NdotL);
+            const float NdotL = Vector4::Dot3(ray.dir, shadingData.intersection.frame[2]);
+            resultColor = shadingData.intersection.material->baseColor.Evaluate(shadingData.intersection.texCoord) * Abs(NdotL);
             break;
         }
 
@@ -75,49 +78,49 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         }
         case DebugRenderingMode::Tangents:
         {
-            resultColor = BipolarToUnipolar(shadingData.frame[0]);
+            resultColor = BipolarToUnipolar(shadingData.intersection.frame[0]);
             break;
         }
         case DebugRenderingMode::Bitangents:
         {
-            resultColor = BipolarToUnipolar(shadingData.frame[1]);
+            resultColor = BipolarToUnipolar(shadingData.intersection.frame[1]);
             break;
         }
         case DebugRenderingMode::Normals:
         {
-            resultColor = BipolarToUnipolar(shadingData.frame[2]);
+            resultColor = BipolarToUnipolar(shadingData.intersection.frame[2]);
             break;
         }
         case DebugRenderingMode::Position:
         {
-            resultColor = Vector4::Max(Vector4::Zero(), shadingData.frame[3]);
+            resultColor = Vector4::Max(Vector4::Zero(), shadingData.intersection.frame[3]);
             break;
         }
         case DebugRenderingMode::TexCoords:
         {
-            resultColor = Vector4::Mod1(shadingData.texCoord & Vector4::MakeMask<1,1,0,0>());
+            resultColor = Vector4::Mod1(shadingData.intersection.texCoord & Vector4::MakeMask<1,1,0,0>());
             break;
         }
 
         // Material
         case DebugRenderingMode::BaseColor:
         {
-            resultColor = shadingData.material->baseColor.Evaluate(shadingData.texCoord);
+            resultColor = shadingData.intersection.material->baseColor.Evaluate(shadingData.intersection.texCoord);
             break;
         }
         case DebugRenderingMode::Emission:
         {
-            resultColor = shadingData.material->emission.Evaluate(shadingData.texCoord);
+            resultColor = shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord);
             break;
         }
         case DebugRenderingMode::Roughness:
         {
-            resultColor = Vector4(shadingData.material->roughness.Evaluate(shadingData.texCoord));
+            resultColor = Vector4(shadingData.intersection.material->roughness.Evaluate(shadingData.intersection.texCoord));
             break;
         }
         case DebugRenderingMode::Metalness:
         {
-            resultColor = Vector4(shadingData.material->metalness.Evaluate(shadingData.texCoord));
+            resultColor = Vector4(shadingData.intersection.material->metalness.Evaluate(shadingData.intersection.texCoord));
             break;
         }
 
@@ -164,7 +167,7 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
 
 void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film, RenderingContext& context) const
 {
-    mScene.Traverse_Packet({ packet, context });
+    mScene.Traverse({ packet, context });
 
     ShadingData shadingData;
 
@@ -189,15 +192,15 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
             {
                 if (mRenderingMode != DebugRenderingMode::TriangleID && mRenderingMode != DebugRenderingMode::Depth)
                 {
-                    mScene.ExtractShadingData(Ray(rayOrigins[j], rayDirs[j]), hitPoint, context.time, shadingData);
+                    mScene.EvaluateIntersection(Ray(rayOrigins[j], rayDirs[j]), hitPoint, context.time, shadingData.intersection);
                 }
 
                 switch (mRenderingMode)
                 {
                     case DebugRenderingMode::CameraLight:
                     {
-                        const float NdotL = Vector4::Dot3(rayDirs[j], shadingData.frame[2]);
-                        color = shadingData.material->baseColor.Evaluate(shadingData.texCoord) * Abs(NdotL);
+                        const float NdotL = Vector4::Dot3(rayDirs[j], shadingData.intersection.frame[2]);
+                        color = shadingData.intersection.material->baseColor.Evaluate(shadingData.intersection.texCoord) * Abs(NdotL);
                         break;
                     }
 
@@ -209,27 +212,27 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
                     }
                     case DebugRenderingMode::Tangents:
                     {
-                        color = BipolarToUnipolar(shadingData.frame[0]);
+                        color = BipolarToUnipolar(shadingData.intersection.frame[0]);
                         break;
                     }
                     case DebugRenderingMode::Bitangents:
                     {
-                        color = BipolarToUnipolar(shadingData.frame[1]);
+                        color = BipolarToUnipolar(shadingData.intersection.frame[1]);
                         break;
                     }
                     case DebugRenderingMode::Normals:
                     {
-                        color = BipolarToUnipolar(shadingData.frame[2]);
+                        color = BipolarToUnipolar(shadingData.intersection.frame[2]);
                         break;
                     }
                     case DebugRenderingMode::Position:
                     {
-                        color = BipolarToUnipolar(shadingData.frame.GetTranslation());
+                        color = BipolarToUnipolar(shadingData.intersection.frame.GetTranslation());
                         break;
                     }
                     case DebugRenderingMode::TexCoords:
                     {
-                        color = BipolarToUnipolar(shadingData.texCoord);
+                        color = BipolarToUnipolar(shadingData.intersection.texCoord);
                         break;
                     }
                     case DebugRenderingMode::TriangleID:

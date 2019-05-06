@@ -28,9 +28,11 @@ struct HitPoint
     float u;
     float v;
 
+    static constexpr float DefaultDistance = std::numeric_limits<float>::infinity();
+
     RT_FORCE_INLINE HitPoint()
         : objectId(RT_INVALID_OBJECT)
-        , distance(FLT_MAX)
+        , distance(DefaultDistance)
     {}
 
     RT_FORCE_INLINE void Set(float newDistance, Uint32 newObjectId, Uint32 newSubObjectId)

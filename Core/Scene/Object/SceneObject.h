@@ -11,7 +11,7 @@
 namespace rt {
 
 struct HitPoint;
-struct ShadingData;
+struct IntersectionData;
 struct SingleTraversalContext;
 struct PacketTraversalContext;
 
@@ -22,53 +22,47 @@ using MaterialPtr = std::shared_ptr<rt::Material>;
 class ISceneObject : public Aligned<16>
 {
 public:
+    enum class Type : Uint8
+    {
+        Shape,
+        Light,
+    };
+
     RAYLIB_API ISceneObject();
     RAYLIB_API virtual ~ISceneObject();
 
-    RAYLIB_API void SetDefaultMaterial(const MaterialPtr& material);
+    virtual Type GetType() const = 0;
+
     RAYLIB_API void SetTransform(const math::Matrix4& matrix);
 
     // traverse the object and return hit points
-    virtual void Traverse_Single(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
-    virtual void Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
+    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
+    virtual void Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
 
     // check shadow ray occlusion
-    virtual bool Traverse_Shadow_Single(const SingleTraversalContext& context) const = 0;
+    virtual bool Traverse_Shadow(const SingleTraversalContext& context) const = 0;
 
     // Calculate input data for shading routine
     // NOTE: all calculations are performed in local space
-    virtual void EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outShadingData) const = 0;
+    // NOTE: frame[3] (translation) will be already filled, because it can be always calculated from ray distance
+    virtual void EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const = 0;
 
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
 
-    RT_FORCE_INLINE const math::Matrix4& GetTransform() const { return mTransform; }
+    // get transform at time=0
+    RT_FORCE_INLINE const math::Matrix4& GetBaseTransform() const { return mTransform; }
+    RT_FORCE_INLINE const math::Matrix4& GetBaseInverseTransform() const { return mInverseTranform; }
 
-    RT_FORCE_INLINE const Material* GetDefaultMaterial() const { return mDefaultMaterial.get(); }
-
-    RT_FORCE_INLINE const math::Matrix4 ComputeTransform(const float t) const
-    {
-        // TODO motion blur
-        RT_UNUSED(t);
-
-        return mTransform;
-    }
-
-    RT_FORCE_INLINE const math::Matrix4 ComputeInverseTransform(const float t) const
-    {
-        // TODO motion blur
-        RT_UNUSED(t);
-
-        return mInverseTranform;
-    }
+    // get transform at given point in time
+    const math::Matrix4 GetTransform(const float t) const;
+    const math::Matrix4 GetInverseTransform(const float t) const;
 
 private:
     math::Matrix4 mTransform; // local->world transform at time=0.0
     math::Matrix4 mInverseTranform;
 
     // TODO velocity
-
-    MaterialPtr mDefaultMaterial;
 };
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;

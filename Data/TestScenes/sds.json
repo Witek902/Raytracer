@@ -50,7 +50,7 @@
         {
             "type": "plane",
             "size": [50.0, 50.0],
-            "transform": { "translation": [0.0, 0.0, 0.0] },
+            "transform": { "translation": [0.0, 0.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
             "textureScale" : [0.4, 0.4],
             "material": "ground"
         },
@@ -77,11 +77,13 @@
     [
         {
             "type": "area",
-            "color": [150.0, 150.0, 150.0],
-            "position": [3.0, 5.0, 3.0],
-            "edge1": [-0.5, 0.0, 0.5],
-            "edge0": [-0.5, 0.5, -0.5],
-            "radius": 1.0
+            "color": [80.0, 80.0, 80.0],
+            "transform": { "translation": [4.0, 5.0, 4.0], "orientation": [45.0, -135.0, 0.0] },
+            "shape":
+            {
+                "type": "plane",
+                "size": [0.5, 0.5]
+            }
         }
     ],
     "camera":
@@ -89,7 +91,7 @@
         "transform":
         {
             "translation": [-13.87, 8.19, 9.19],
-            "orientation": [0.35, 2.44, 0.0]
+            "orientation": [20.0, 140.0, 0.0]
         },
         "fieldOfView": 40.0
     }

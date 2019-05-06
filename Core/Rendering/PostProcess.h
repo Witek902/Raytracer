@@ -10,14 +10,10 @@ struct RT_ALIGN(16) PostprocessParams
 {
     math::Vector4 colorFilter;
 
-    // exposure in log scale
-    float exposure;
-
-    // applied after tonemapping
-    float ditheringStrength;
-
-    // bloom multiplier
-    float bloomFactor;
+    float saturation;
+    float exposure;             // exposure in log scale
+    float ditheringStrength;    // applied after tonemapping
+    float bloomFactor;          // bloom multiplier
 
     RAYLIB_API PostprocessParams();
 

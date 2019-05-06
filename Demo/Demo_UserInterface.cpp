@@ -1,7 +1,8 @@
 #include "PCH.h"
 #include "Demo.h"
 
-#include "../Core/Scene/Object/SceneObject_Mesh.h"
+#include "../Core/Material/Material.h"
+#include "../Core/Scene/Object/SceneObject.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
 #include "../Core/Rendering/PathTracerMIS.h"
 #include "../Core/Rendering/VertexConnectionAndMerging.h"
@@ -10,6 +11,30 @@
 
 using namespace rt;
 using namespace math;
+
+static bool EditEulerAngles(const char* name, Float3& angles)
+{
+    Float3 orientation = angles * (180.0f / RT_PI);
+    if (ImGui::InputFloat3(name, &orientation.x, 3, ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        angles = orientation * (RT_PI / 180.0f);
+        return true;
+    }
+    return false;
+}
+
+static bool EditRotation(const char* name, Quaternion& quat)
+{
+    Float3 orientation = quat.ToEulerAngles();
+    orientation *= 180.0f / RT_PI;
+    if (ImGui::InputFloat3(name, &orientation.x, 3, ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        orientation *= RT_PI / 180.0f;
+        quat = Quaternion::FromEulerAngles(orientation);
+        return true;
+    }
+    return false;
+}
 
 void DemoWindow::RenderUI_Stats()
 {
@@ -135,11 +160,11 @@ void DemoWindow::RenderUI_Debugging_Path()
             ImGui::Text("Tri UV"); ImGui::NextColumn();
             ImGui::Text("[%f, %f]", data.hitPoint.u, data.hitPoint.v); ImGui::NextColumn();
 
-            const Vector4 pos = data.shadingData.frame.GetTranslation();
+            const Vector4 pos = data.shadingData.intersection.frame.GetTranslation();
             ImGui::Text("Position"); ImGui::NextColumn();
             ImGui::Text("[%f, %f, %f]", pos.x, pos.y, pos.z); ImGui::NextColumn();
 
-            const Vector4 normal = data.shadingData.frame.GetTranslation();
+            const Vector4 normal = data.shadingData.intersection.frame.GetTranslation();
             ImGui::Text("Normal"); ImGui::NextColumn();
             ImGui::Text("[%f, %f, %f]", normal.x, normal.y, normal.z); ImGui::NextColumn();
 
@@ -150,7 +175,7 @@ void DemoWindow::RenderUI_Debugging_Path()
             //ImGui::Text("[%f, %f]", data.shadingData.texCoord.x, data.shadingData.texCoord.y); ImGui::NextColumn();
 
             ImGui::Text("Material"); ImGui::NextColumn();
-            ImGui::Text("%s", data.shadingData.material->debugName.c_str()); ImGui::NextColumn();
+            ImGui::Text("%s", data.shadingData.intersection.material->debugName.c_str()); ImGui::NextColumn();
 
             ImGui::Text("Throughput"); ImGui::NextColumn();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
@@ -460,7 +485,7 @@ bool DemoWindow::RenderUI_Settings_Camera()
     if (ImGui::TreeNode("Transform"))
     {
         resetFrame |= ImGui::InputFloat3("Position", &mCameraSetup.position.x, 3);
-        resetFrame |= ImGui::InputFloat3("Orientation", &mCameraSetup.orientation.x, 3);
+        resetFrame |= EditEulerAngles("Orientation", mCameraSetup.orientation);
 
         resetFrame |= ImGui::InputFloat3("Velocity", &mCameraSetup.linearVelocity.x, 3);
         resetFrame |= ImGui::InputFloat3("Angular velocity", &mCameraSetup.angularVelocity.x, 3);
@@ -511,6 +536,7 @@ bool DemoWindow::RenderUI_Settings_PostProcess()
     bool changed = false;
 
     changed |= ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
+    changed |= ImGui::SliderFloat("Saturation", &mPostprocessParams.saturation, 0.0f, 2.0f);
     changed |= ImGui::SliderFloat("Bloom factor", &mPostprocessParams.bloomFactor, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
     changed |= ImGui::ColorEdit3("Color filter", &mPostprocessParams.colorFilter.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
@@ -547,7 +573,7 @@ bool DemoWindow::RenderUI_Settings_Object()
     bool changed = false;
 
     {
-        Float3 position = mSelectedObject->GetTransform().GetTranslation().ToFloat3();
+        Float3 position = mSelectedObject->GetBaseTransform().GetTranslation().ToFloat3();
         if (ImGui::InputFloat3("Position", &position.x, 2, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             mSelectedObject->SetTransform(Matrix4::MakeTranslation(Vector4(position)));
@@ -567,6 +593,7 @@ bool DemoWindow::RenderUI_Settings_Object()
             changed = true;
         }
     }
+
 
     {
         Float3 velocity = mSelectedObject->mLinearVelocity.ToFloat3();

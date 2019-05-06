@@ -7,12 +7,13 @@
 #include "../Core/Scene/Light/AreaLight.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
 #include "../Core/Scene/Light/DirectionalLight.h"
-#include "../Core/Scene/Light/SphereLight.h"
 #include "../Core/Scene/Light/SpotLight.h"
-#include "../Core/Scene/Object/SceneObject_Mesh.h"
-#include "../Core/Scene/Object/SceneObject_Sphere.h"
-#include "../Core/Scene/Object/SceneObject_Box.h"
-#include "../Core/Scene/Object/SceneObject_Plane.h"
+#include "../Core/Scene/Object/SceneObject_Shape.h"
+#include "../Core/Scene/Object/SceneObject_Light.h"
+#include "../Core/Shapes/BoxShape.h"
+#include "../Core/Shapes/SphereShape.h"
+#include "../Core/Shapes/RectShape.h"
+#include "../Core/Shapes/CsgShape.h"
 
 #include "../Core/Textures/CheckerboardTexture.h"
 #include "../Core/Textures/BitmapTexture.h"
@@ -206,6 +207,8 @@ static bool TryParseTransform(const rapidjson::Value& parentValue, const char* n
     Vector4 orientation = Vector4::Zero();
     if (!TryParseVector3(value, "orientation", true, orientation))
         return false;
+
+    orientation *= (RT_PI / 180.0f);
 
     outValue = Transform(translation, Quaternion::FromEulerAngles(orientation.ToFloat3()));
 
@@ -412,148 +415,15 @@ static MaterialPtr ParseMaterial(const rapidjson::Value& value, const TexturesMa
     return material;
 }
 
-static bool ParseLight(const rapidjson::Value& value, Scene& scene, const TexturesMap& textures)
+static ShapePtr ParseShape(const rapidjson::Value& value, Scene& scene, MaterialsMap& materials = MaterialsMap())
 {
-    if (!value.IsObject())
-    {
-        RT_LOG_ERROR("Light description must be a structure");
-        return false;
-    }
-
-    if (!value.HasMember("type"))
-    {
-        RT_LOG_ERROR("Light is missing 'type' field");
-        return false;
-    }
-
-    Vector4 lightColor;
-    if (!TryParseVector3(value, "color", false, lightColor))
-    {
-        return false;
-    }
-
-    // parse type
-    const std::string typeStr = value["type"].GetString();
-    if (typeStr == "area")
-    {
-        Vector4 lightPosition, lightEdge0, lightEdge1;
-        if (!TryParseVector3(value, "position", false, lightPosition) ||
-            !TryParseVector3(value, "edge0", false, lightEdge0) ||
-            !TryParseVector3(value, "edge1", false, lightEdge1))
-        {
-            return false;
-        }
-
-        auto areaLight = std::make_unique<AreaLight>(lightPosition, lightEdge0, lightEdge1, lightColor);
-
-        if (!TryParseTextureName(value, "texture", textures, areaLight->mTexture))
-            return false;
-
-        if(areaLight->mTexture && !areaLight->mTexture->IsSamplable())
-        {
-            areaLight->mTexture->MakeSamplable();
-        }
-
-        scene.AddLight(std::move(areaLight));
-    }
-    else if (typeStr == "point")
-    {
-        Vector4 lightPosition;
-        if (!TryParseVector3(value, "position", false, lightPosition))
-        {
-            return false;
-        }
-
-        scene.AddLight(std::make_unique<PointLight>(lightPosition, lightColor));
-    }
-    else if (typeStr == "spot")
-    {
-        Vector4 lightPosition;
-        if (!TryParseVector3(value, "position", false, lightPosition))
-        {
-            return false;
-        }
-
-        Vector4 lightDirection;
-        if (!TryParseVector3(value, "direction", false, lightDirection))
-        {
-            return false;
-        }
-
-        float angle = 0.0f;
-        if (!TryParseFloat(value, "angle", true, angle))
-        {
-            return false;
-        }
-        const float angleRad = angle / 180.0f * RT_PI;
-
-        scene.AddLight(std::make_unique<SpotLight>(lightPosition, lightDirection, lightColor, angleRad));
-    }
-    else if (typeStr == "directional")
-    {
-        Vector4 lightDirection;
-        if (!TryParseVector3(value, "direction", false, lightDirection))
-        {
-            return false;
-        }
-
-        float angle = 0.0f;
-        if (!TryParseFloat(value, "angle", true, angle))
-        {
-            return false;
-        }
-
-        scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor, DegToRad(angle)));
-    }
-    else if (typeStr == "background")
-    {
-        auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-
-        if (!TryParseTextureName(value, "texture", textures, backgroundLight->mTexture))
-            return false;
-
-        scene.AddLight(std::move(backgroundLight));
-    }
-    else if (typeStr == "sphere")
-    {
-        Vector4 lightPosition;
-        if (!TryParseVector3(value, "position", false, lightPosition))
-        {
-            return false;
-        }
-
-        float radius = 0.0f;
-        if (!TryParseFloat(value, "radius", false, radius))
-        {
-            return false;
-        }
-
-        scene.AddLight(std::make_unique<SphereLight>(lightPosition, radius, lightColor));
-    }
-    else
-    {
-        RT_LOG_ERROR("Unknown light type: '%s'", typeStr.c_str());
-        return false;
-    }
-
-    return true;
-}
-
-static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMap& materials)
-{
-    if (!value.IsObject())
-    {
-        RT_LOG_ERROR("Object description must be a structure");
-        return false;
-    }
+    ShapePtr shape;
 
     if (!value.HasMember("type"))
     {
         RT_LOG_ERROR("Object is missing 'type' field");
         return false;
     }
-
-    SceneObjectPtr sceneObject;
 
     // parse type
     const std::string typeStr = value["type"].GetString();
@@ -565,7 +435,7 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
             return false;
         }
 
-        sceneObject = std::make_unique<SphereSceneObject>(radius);
+        shape = std::make_unique<SphereShape>(radius);
     }
     else if (typeStr == "box")
     {
@@ -574,12 +444,13 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
         {
             return false;
         }
-        sceneObject = std::make_unique<BoxSceneObject>(size);
+
+        shape = std::make_unique<BoxShape>(size);
     }
-    else if (typeStr == "plane")
+    else if (typeStr == "rect" || typeStr == "plane")
     {
         Vector4 size(FLT_MAX);
-        if (!TryParseVector2(value, "size", true, size))
+        if (!TryParseVector2(value, "size", false, size))
         {
             return false;
         }
@@ -588,7 +459,13 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
         {
             return false;
         }
-        sceneObject = std::make_unique<PlaneSceneObject>(size.ToFloat2(), textureScale.ToFloat2());
+
+        shape = std::make_unique<RectShape>(size.ToFloat2(), textureScale.ToFloat2());
+    }
+    else if (typeStr == "csg")
+    {
+        // TODO parse CSG structure
+        shape = std::make_unique<CsgShape>();
     }
     else if (typeStr == "mesh")
     {
@@ -611,15 +488,150 @@ static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMa
         }
 
         const std::string path = gOptions.dataPath + value["path"].GetString();
-        MeshPtr mesh = helpers::LoadMesh(path, materials, scale);
-
-        sceneObject = std::make_unique<MeshSceneObject>(mesh);
+        shape = helpers::LoadMesh(path, materials, scale);
     }
     else
     {
         RT_LOG_ERROR("Unknown scene object type: '%s'", typeStr.c_str());
+    }
+
+    return shape;
+}
+
+static bool ParseLight(const rapidjson::Value& value, Scene& scene, const TexturesMap& textures)
+{
+    if (!value.IsObject())
+    {
+        RT_LOG_ERROR("Light description must be a structure");
         return false;
     }
+
+    if (!value.HasMember("type"))
+    {
+        RT_LOG_ERROR("Light is missing 'type' field");
+        return false;
+    }
+
+    Vector4 lightColor;
+    if (!TryParseVector3(value, "color", false, lightColor))
+    {
+        return false;
+    }
+
+    LightPtr light;
+
+    // parse type
+    const std::string typeStr = value["type"].GetString();
+    if (typeStr == "area")
+    {
+        if (!value.HasMember("shape"))
+        {
+            RT_LOG_ERROR("Area light is missing 'shape' field");
+            return false;
+        }
+
+        ShapePtr shape = ParseShape(value["shape"], scene);
+        auto areaLight = std::make_unique<AreaLight>(std::move(shape), lightColor);
+
+        if (!TryParseTextureName(value, "texture", textures, areaLight->mTexture))
+            return false;
+
+        if (areaLight->mTexture && !areaLight->mTexture->IsSamplable())
+        {
+            areaLight->mTexture->MakeSamplable();
+        }
+
+
+        light = std::move(areaLight);
+    }
+    else if (typeStr == "point")
+    {
+        auto pointLight = std::make_unique<PointLight>(lightColor);
+        // TODO texture
+        light = std::move(pointLight);
+    }
+    else if (typeStr == "spot")
+    {
+        float angle = 0.0f;
+        if (!TryParseFloat(value, "angle", true, angle))
+        {
+            return false;
+        }
+        const float angleRad = angle / 180.0f * RT_PI;
+
+        auto spotLight = std::make_unique<SpotLight>(lightColor, angleRad);
+        // TODO texture
+        light = std::move(spotLight);
+    }
+    else if (typeStr == "directional")
+    {
+        float angle = 0.0f;
+        if (!TryParseFloat(value, "angle", true, angle))
+        {
+            return false;
+        }
+
+        auto dirLight = std::make_unique<DirectionalLight>(lightColor, DegToRad(angle));
+        // TODO texture
+        light = std::move(dirLight);
+    }
+    else if (typeStr == "background")
+    {
+        auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+
+        if (!TryParseTextureName(value, "texture", textures, backgroundLight->mTexture))
+            return false;
+
+        light = std::move(backgroundLight);
+    }
+    else if (typeStr == "sphere") // TODO merge with "area"
+    {
+        float radius = 0.0f;
+        if (!TryParseFloat(value, "radius", false, radius))
+        {
+            return false;
+        }
+
+        auto shape = std::make_unique<SphereShape>(radius);
+        auto areaLight = std::make_unique<AreaLight>(std::move(shape), lightColor);
+    }
+    else
+    {
+        RT_LOG_ERROR("Unknown light type: '%s'", typeStr.c_str());
+        return false;
+    }
+
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(light));
+
+    {
+        Transform transform;
+        if (!TryParseTransform(value, "transform", transform))
+        {
+            return false;
+        }
+        lightObject->SetTransform(transform.ToMatrix4());
+    }
+
+    scene.AddObject(std::move(lightObject));
+
+    return true;
+}
+
+static bool ParseObject(const rapidjson::Value& value, Scene& scene, MaterialsMap& materials)
+{
+    if (!value.IsObject())
+    {
+        RT_LOG_ERROR("Object description must be a structure");
+        return false;
+    }
+
+    ShapePtr shape = ParseShape(value, scene, materials);
+    if (!shape)
+    {
+        return false;
+    }
+
+    ShapeSceneObjectPtr sceneObject = std::make_unique<ShapeSceneObject>(std::move(shape));
 
     // TODO velocity
 

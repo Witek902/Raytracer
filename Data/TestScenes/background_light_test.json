@@ -28,8 +28,9 @@
     "objects":
     [
         {
-            "type": "plane",
-            "transform": { "translation": [0.0, -1.0, 0.0] },
+            "type": "rect",
+            "transform": { "translation": [0.0, -1.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
+            "size" : [100.0, 100.0],
             "textureScale" : [0.1, 0.1],
             "material": "ground"
         },
@@ -53,7 +54,7 @@
         "transform":
         {
             "translation": [-6.4, 0.726, -5.65],
-            "orientation": [0.046, 0.914, 0.0]
+            "orientation": [2.6, 52.4, 0.0]
         },
         "fieldOfView": 11.8,
 		"enableDOF": true,

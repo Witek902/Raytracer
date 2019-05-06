@@ -24,7 +24,7 @@ struct Float3
     };
 
     RT_INLINE constexpr Float3();
-    RT_INLINE constexpr Float3(const Float2& rhs, const float z = 0.0f);
+    RT_INLINE explicit constexpr Float3(const Float2& rhs, const float z = 0.0f);
     RT_INLINE constexpr explicit Float3(float s);
     RT_INLINE constexpr Float3(float x, float y, float z);
     RT_INLINE constexpr explicit Float3(const float* src);

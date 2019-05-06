@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../RayLib.h"
-#include "../Math/Float3.h"
+#include "../../Math/Float3.h"
 
 namespace rt {
 

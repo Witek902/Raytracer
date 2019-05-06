@@ -2,6 +2,7 @@
 
 #include "../../RayLib.h"
 #include "../../Math/Box.h"
+#include "../../Math/Matrix4.h"
 #include "../../Color/RayColor.h"
 #include "../../Color/Spectrum.h"
 #include "../../Utils/AlignmentAllocator.h"
@@ -13,13 +14,14 @@ class Ray;
 } // math
 
 struct RenderingContext;
-struct ShadingData;
+struct IntersectionData;
+struct HitPoint;
 
 // abstract light
 class RT_ALIGN(16) ILight : public Aligned<16>
 {
 public:
-    static constexpr const float BackgroundLightDistance = 1.0e+36f;
+    static constexpr const float BackgroundLightDistance = std::numeric_limits<float>::max();
     static constexpr const float CosEpsilon = 0.9999f;
 
     enum class Type : Uint8
@@ -28,7 +30,6 @@ public:
         Background,
         Directional,
         Point,
-        Sphere,
         Spot,
     };
 
@@ -39,27 +40,40 @@ public:
         Flag_IsDelta    = 1 << 1,   // light cannot be hit by camera ray directly (e.g. directional light or point light)
     };
 
+    struct RadianceParam
+    {
+        RenderingContext& context;
+        const math::Ray& ray;
+        const math::Vector4 hitPoint = math::Vector4::Zero();
+        const float cosAtLight = 1.0f;
+        bool rendererSupportsSolidAngleSampling = true;
+    };
+
     struct IlluminateParam
     {
-        const ShadingData& shadingData;
+        const math::Matrix4 worldToLight;       // transform from world space to light local space
+        const math::Matrix4 lightToWorld;       // transform from light local space to world space
+        const IntersectionData& intersection;   // intersection data of the shaded object
         Wavelength& wavelength;
-        math::Float2 sample;
+        math::Float3 sample;
+        bool rendererSupportsSolidAngleSampling = true;
     };
 
     struct IlluminateResult
     {
         math::Vector4 directionToLight = math::Vector4::Zero();
-        float distance = 0.0f;
-        float directPdfW = 0.0f;
-        float emissionPdfW = 0.0f;
+        float distance = -1.0f;
+        float directPdfW = -1.0f;
+        float emissionPdfW = -1.0f;
         float cosAtLight = -1.0f;
     };
 
     struct EmitParam
     {
+        const math::Matrix4 lightToWorld; // transform from light local space to world space
         Wavelength& wavelength;
-        math::Float2 sample;
-        math::Float2 sample2;
+        math::Float3 positionSample;
+        math::Float2 directionSample;
     };
 
     struct EmitResult
@@ -90,19 +104,12 @@ public:
     // Returns probability of sampling the returned direction.
     virtual const RayColor Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const = 0;
 
-    // get normal vector at intersection point
-    virtual const math::Vector4 GetNormal(const math::Vector4& hitPoint) const;
-
     // Emit random light photon from the light
     virtual const RayColor Emit(const EmitParam& param, EmitResult& outResult) const = 0;
 
     // Returns radiance for ray hitting the light directly
     // Optionally returns probability of hitting this point and emitting a photon in that direction
-    virtual const RayColor GetRadiance(
-        RenderingContext& context,
-        const math::Ray& ray,
-        const math::Vector4& hitPoint,
-        float* outDirectPdfA = nullptr, float* outEmissionPdfW = nullptr) const;
+    virtual const RayColor GetRadiance(const RadianceParam& param, float* outDirectPdfA = nullptr, float* outEmissionPdfW = nullptr) const;
 
     // Get light flags.
     virtual Flags GetFlags() const = 0;
@@ -115,5 +122,6 @@ private:
     Spectrum mColor;
 };
 
+using LightPtr = std::unique_ptr<ILight>;
 
 } // namespace rt

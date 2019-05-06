@@ -65,8 +65,6 @@
     <ClInclude Include="Math\VectorInt4.h" />
     <ClInclude Include="Math\VectorInt8.h" />
     <ClInclude Include="Mesh\Mesh.h" />
-    <ClInclude Include="Mesh\VertexBuffer.h" />
-    <ClInclude Include="Mesh\VertexBufferDesc.h" />
     <ClInclude Include="PCH.h" />
     <ClInclude Include="RayLib.h" />
     <ClInclude Include="Rendering\Context.h" />
@@ -91,15 +89,15 @@
     <ClInclude Include="Scene\Light\DirectionalLight.h" />
     <ClInclude Include="Scene\Light\Light.h" />
     <ClInclude Include="Scene\Light\PointLight.h" />
-    <ClInclude Include="Scene\Light\SphereLight.h" />
     <ClInclude Include="Scene\Light\SpotLight.h" />
     <ClInclude Include="Scene\Object\SceneObject.h" />
-    <ClInclude Include="Scene\Object\SceneObject_Box.h" />
     <ClInclude Include="Scene\Object\SceneObject_Light.h" />
-    <ClInclude Include="Scene\Object\SceneObject_Mesh.h" />
-    <ClInclude Include="Scene\Object\SceneObject_Plane.h" />
-    <ClInclude Include="Scene\Object\SceneObject_Sphere.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Shape.h" />
     <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Shapes\BoxShape.h" />
+    <ClInclude Include="Shapes\CsgShape.h" />
+    <ClInclude Include="Shapes\Shape.h" />
+    <ClInclude Include="Shapes\SphereShape.h" />
     <ClInclude Include="Textures\BitmapTexture.h" />
     <ClInclude Include="Textures\CheckerboardTexture.h" />
     <ClInclude Include="Textures\ConstTexture.h" />
@@ -142,6 +140,11 @@
     <ClInclude Include="Math\Vector8ImplCommon.h" />
     <ClInclude Include="Math\VectorInt8ImplAVX2.h" />
     <ClInclude Include="Math\VectorInt8ImplNaive.h" />
+    <ClInclude Include="Shapes\RectShape.h" />
+    <ClInclude Include="Traversal\Intersection.h" />
+    <ClInclude Include="Shapes\MeshShape.h" />
+    <ClInclude Include="Shapes\Mesh\VertexBuffer.h" />
+    <ClInclude Include="Shapes\Mesh\VertexBufferDesc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />
@@ -171,8 +174,6 @@
     <ClCompile Include="Math\Transform.cpp" />
     <ClCompile Include="Math\Utils.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
-    <ClCompile Include="Mesh\Mesh.cpp" />
-    <ClCompile Include="Mesh\VertexBuffer.cpp" />
     <ClCompile Include="PCH.cpp" />
     <ClCompile Include="Rendering\Context.cpp" />
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
@@ -183,7 +184,6 @@
     <ClCompile Include="Rendering\PostProcess.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RendererContext.cpp" />
-    <ClCompile Include="Rendering\ShadingData.cpp" />
     <ClCompile Include="Rendering\VertexConnectionAndMerging.cpp" />
     <ClCompile Include="Rendering\Viewport.cpp" />
     <ClCompile Include="Sampling\GenericSampler.cpp" />
@@ -194,15 +194,15 @@
     <ClCompile Include="Scene\Light\DirectionalLight.cpp" />
     <ClCompile Include="Scene\Light\Light.cpp" />
     <ClCompile Include="Scene\Light\PointLight.cpp" />
-    <ClCompile Include="Scene\Light\SphereLight.cpp" />
     <ClCompile Include="Scene\Light\SpotLight.cpp" />
     <ClCompile Include="Scene\Object\SceneObject.cpp" />
-    <ClCompile Include="Scene\Object\SceneObject_Box.cpp" />
     <ClCompile Include="Scene\Object\SceneObject_Light.cpp" />
-    <ClCompile Include="Scene\Object\SceneObject_Mesh.cpp" />
-    <ClCompile Include="Scene\Object\SceneObject_Plane.cpp" />
-    <ClCompile Include="Scene\Object\SceneObject_Sphere.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Shape.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Shapes\BoxShape.cpp" />
+    <ClCompile Include="Shapes\CsgShape.cpp" />
+    <ClCompile Include="Shapes\Shape.cpp" />
+    <ClCompile Include="Shapes\SphereShape.cpp" />
     <ClCompile Include="Textures\BitmapTexture.cpp" />
     <ClCompile Include="Textures\CheckerboardTexture.cpp" />
     <ClCompile Include="Textures\ConstTexture.cpp" />
@@ -223,6 +223,9 @@
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\Entropy.cpp" />
     <ClCompile Include="Utils\KdTree.cpp" />
+    <ClCompile Include="Shapes\RectShape.cpp" />
+    <ClCompile Include="Shapes\MeshShape.cpp" />
+    <ClCompile Include="Shapes\Mesh\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

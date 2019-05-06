@@ -21,33 +21,50 @@ Scene::Scene(Scene&&) = default;
 
 Scene& Scene::operator = (Scene&&) = default;
 
-void Scene::AddLight(LightPtr object)
-{
-    mLights.PushBack(std::move(object));
-}
-
 void Scene::AddObject(SceneObjectPtr object)
 {
-    mObjects.PushBack(std::move(object));
+    if (object->GetType() == ISceneObject::Type::Light)
+    {
+        mLights.PushBack(static_cast<const LightSceneObject*>(object.get()));
+    }
+
+    mAllObjects.PushBack(std::move(object));
 }
 
 bool Scene::BuildBVH()
 {
-    for (const LightPtr& light : mLights)
+    // determine objects to be added to the BVH
+    mObjectsInBvh.Clear();
+    mLights.Clear();
+    mGlobalLights.Clear();
+    for (const auto& object : mAllObjects)
     {
-        const ILight::Flags lightFlags = light->GetFlags();
-        if (lightFlags == ILight::Flag_IsFinite)
+        if (object->GetType() == ISceneObject::Type::Light)
         {
-            mObjects.EmplaceBack(std::make_unique<LightSceneObject>(*light));
+            const LightSceneObject* lightObject = static_cast<const LightSceneObject*>(object.get());
+            mLights.PushBack(lightObject);
+
+            const ILight& light = lightObject->GetLight();
+
+            auto a = light.GetFlags() & ILight::Flag_IsFinite;
+            if (a)
+            {
+                mObjectsInBvh.PushBack(object.get());
+            }
+            else if (!(light.GetFlags() & ILight::Flag_IsFinite))
+            {
+                mGlobalLights.PushBack(lightObject);
+            }
         }
-        else if (!(lightFlags & ILight::Flag_IsFinite))
+        else
         {
-            mGlobalLights.PushBack(light.get());
+            mObjectsInBvh.PushBack(object.get());
         }
     }
 
+    // collect boxes for BVH construction
     DynArray<Box> boxes;
-    for (const auto& obj : mObjects)
+    for (const ISceneObject* obj : mObjectsInBvh)
     {
         boxes.PushBack(obj->GetBoundingBox());
     }
@@ -57,35 +74,28 @@ bool Scene::BuildBVH()
 
     BVHBuilder::Indices newOrder;
     BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.Data(), (Uint32)mObjects.Size(), params, newOrder))
+    if (!bvhBuilder.Build(boxes.Data(), mObjectsInBvh.Size(), params, newOrder))
     {
         return false;
     }
 
-    DynArray<SceneObjectPtr> newObjectsArray;
-    newObjectsArray.Reserve(mObjects.Size());
-    for (Uint32 i = 0; i < mObjects.Size(); ++i)
+    DynArray<const ISceneObject*> newObjectsArray;
+    newObjectsArray.Reserve(mObjectsInBvh.Size());
+    for (Uint32 i = 0; i < mObjectsInBvh.Size(); ++i)
     {
         Uint32 sourceIndex = newOrder[i];
-        newObjectsArray.PushBack(std::move(mObjects[sourceIndex]));
+        newObjectsArray.PushBack(mObjectsInBvh[sourceIndex]);
     }
-
-    mObjects = std::move(newObjectsArray);
+    mObjectsInBvh = std::move(newObjectsArray);
 
     return true;
 }
 
-const ILight& Scene::GetLightByObjectId(Uint32 id) const
+void Scene::Traverse_Object(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    const LightSceneObject* lightSceneObj = static_cast<const LightSceneObject*>(mObjects[id].get());
-    return lightSceneObj->GetLight();
-}
+    const ISceneObject* object = mObjectsInBvh[objectID];
 
-void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const Uint32 objectID) const
-{
-    const ISceneObject* object = mObjects[objectID].get();
-
-    const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
+    const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
     // transform ray to local-space
     const Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
@@ -97,14 +107,14 @@ void Scene::Traverse_Object_Single(const SingleTraversalContext& context, const 
         context.context
     };
 
-    object->Traverse_Single(objectContext, objectID);
+    object->Traverse(objectContext, objectID);
 }
 
-bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context, const Uint32 objectID) const
+bool Scene::Traverse_Object_Shadow(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    const ISceneObject* object = mObjects[objectID].get();
+    const ISceneObject* object = mObjectsInBvh[objectID];
 
-    const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
+    const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
     // transform ray to local-space
     Ray transformedRay = invTransform.TransformRay_Unsafe(context.ray);
@@ -117,26 +127,26 @@ bool Scene::Traverse_Object_Shadow_Single(const SingleTraversalContext& context,
         context.context
     };
 
-    return object->Traverse_Shadow_Single(objectContext);
+    return object->Traverse_Shadow(objectContext);
 }
 
-void Scene::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void Scene::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     RT_UNUSED(objectID);
 
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 objectIndex = node.childIndex + i;
-        Traverse_Object_Single(context, objectIndex);
+        Traverse_Object(context, objectIndex);
     }
 }
 
-bool Scene::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const
+bool Scene::Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const
 {
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 objectIndex = node.childIndex + i;
-        if (Traverse_Object_Shadow_Single(context, objectIndex))
+        if (Traverse_Object_Shadow(context, objectIndex))
         {
             return true;
         }
@@ -145,15 +155,15 @@ bool Scene::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, c
     return false;
 }
 
-void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const
+void Scene::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const
 {
     RT_UNUSED(objectID);
 
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 objectIndex = node.childIndex + i;
-        const ISceneObject* object = mObjects[objectIndex].get();
-        const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
+        const ISceneObject* object = mObjectsInBvh[objectIndex];
+        const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
         // transform ray to local-space
         for (Uint32 j = 0; j < numActiveGroups; ++j)
@@ -164,15 +174,15 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
             rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
         }
 
-        object->Traverse_Packet(context, objectIndex, numActiveGroups);
+        object->Traverse(context, objectIndex, numActiveGroups);
     }
 }
 
-void Scene::Traverse_Single(const SingleTraversalContext& context) const
+void Scene::Traverse(const SingleTraversalContext& context) const
 {
     context.context.localCounters.Reset();
 
-    const Uint32 numObjects = mObjects.Size();
+    const Uint32 numObjects = mObjectsInBvh.Size();
 
     if (numObjects == 0)
     {
@@ -181,20 +191,20 @@ void Scene::Traverse_Single(const SingleTraversalContext& context) const
     else if (numObjects == 1)
     {
         // bypass BVH
-        Traverse_Object_Single(context, 0);
+        Traverse_Object(context, 0);
     }
     else
     {
         // full BVH traversal
-        GenericTraverse_Single(context, 0, this);
+        GenericTraverse(context, 0, this);
     }
 
     context.context.counters.Append(context.context.localCounters);
 }
 
-bool Scene::Traverse_Shadow_Single(const SingleTraversalContext& context) const
+bool Scene::Traverse_Shadow(const SingleTraversalContext& context) const
 {
-    const Uint32 numObjects = mObjects.Size();
+    const Uint32 numObjects = mObjectsInBvh.Size();
 
     if (numObjects == 0) // scene is empty
     {
@@ -202,17 +212,17 @@ bool Scene::Traverse_Shadow_Single(const SingleTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        return Traverse_Object_Shadow_Single(context, 0);
+        return Traverse_Object_Shadow(context, 0);
     }
     else // full BVH traversal
     {
-        return GenericTraverse_Shadow_Single(context, this);
+        return GenericTraverse_Shadow(context, this);
     }
 }
 
-void Scene::Traverse_Packet(const PacketTraversalContext& context) const
+void Scene::Traverse(const PacketTraversalContext& context) const
 {
-    const Uint32 numObjects = mObjects.Size();
+    const Uint32 numObjects = mObjectsInBvh.Size();
 
     const Uint32 numRayGroups = context.ray.GetNumGroups();
     for (Uint32 i = 0; i < numRayGroups; ++i)
@@ -233,8 +243,8 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        const ISceneObject* object = mObjects.Front().get();
-        const Matrix4 invTransform = object->ComputeInverseTransform(context.context.time);
+        const ISceneObject* object = mObjectsInBvh.Front();
+        const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
         for (Uint32 j = 0; j < numRayGroups; ++j)
         {
@@ -244,39 +254,39 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
             rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
         }
 
-        mObjects.Front()->Traverse_Packet(context, 0, numRayGroups);
+        mObjectsInBvh.Front()->Traverse(context, 0, numRayGroups);
     }
     else // full BVH traversal
     {
-        GenericTraverse_Packet<Scene, 0>(context, 0, this, numRayGroups);
+        GenericTraverse<Scene, 0>(context, 0, this, numRayGroups);
     }
 }
 
 RT_FORCE_NOINLINE
-void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const
+void Scene::EvaluateIntersection(const Ray& ray, const HitPoint& hitPoint, const float time, IntersectionData& outData) const
 {
     RT_ASSERT(hitPoint.distance < FLT_MAX);
 
-    const ISceneObject* object = mObjects[hitPoint.objectId].get();
+    const ISceneObject* object = mObjectsInBvh[hitPoint.objectId];
 
-    const Matrix4 transform = object->ComputeTransform(time);
+    const Matrix4 transform = object->GetTransform(time);
     const Matrix4 invTransform = transform.FastInverseNoScale();
 
     const Vector4 worldPosition = ray.GetAtDistance(hitPoint.distance);
-    outShadingData.frame[3] = invTransform.TransformPoint(worldPosition);
+    outData.frame[3] = invTransform.TransformPoint(worldPosition);
 
     // calculate normal, tangent, tex coord, etc. from intersection data
-    object->EvaluateShadingData_Single(hitPoint, outShadingData);
-    RT_ASSERT(outShadingData.texCoord.IsValid());
+    object->EvaluateIntersection(hitPoint, outData);
+    RT_ASSERT(outData.texCoord.IsValid());
 
-    Vector4 localSpaceTangent = outShadingData.frame[0];
-    Vector4 localSpaceBitangent = outShadingData.frame[1];
-    Vector4 localSpaceNormal = outShadingData.frame[2];
+    Vector4 localSpaceTangent = outData.frame[0];
+    Vector4 localSpaceBitangent = outData.frame[1];
+    Vector4 localSpaceNormal = outData.frame[2];
 
     // apply normal mapping
-    if (outShadingData.material->normalMap)
+    if (outData.material && outData.material->normalMap)
     {
-        const Vector4 localNormal = outShadingData.material->GetNormalVector(outShadingData.texCoord);
+        const Vector4 localNormal = outData.material->GetNormalVector(outData.texCoord);
 
         // transform normal vector
         Vector4 newNormal = localSpaceTangent * localNormal.x;
@@ -290,21 +300,27 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
     // and normal mapping is disabled
     localSpaceTangent = Vector4::Orthogonalize(localSpaceTangent, localSpaceNormal).Normalized3();
 
-    // TODO uncomment this after ExtractShadingData() is not called for light objects
-    //RT_ASSERT(Abs(1.0f - outShadingData.frame[0].SqrLength3()) < 0.001f);
-    //RT_ASSERT(Abs(1.0f - outShadingData.frame[1].SqrLength3()) < 0.001f);
-    //RT_ASSERT(Abs(1.0f - outShadingData.frame[2].SqrLength3()) < 0.001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[1], outShadingData.frame[0]) < 0.001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[1], outShadingData.frame[2]) < 0.001f);
-    //RT_ASSERT(Vector4::Dot3(outShadingData.frame[2], outShadingData.frame[0]) < 0.001f);
-
     // transform shading data from local space to world space
-    outShadingData.frame[2] = transform.TransformVector(localSpaceNormal);
-    outShadingData.frame[0] = transform.TransformVector(localSpaceTangent);
-    outShadingData.frame[1] = Vector4::Cross3(outShadingData.frame[0], outShadingData.frame[2]);
-    outShadingData.frame[3] = worldPosition;
+    outData.frame[2] = transform.TransformVector(localSpaceNormal);
+    outData.frame[0] = transform.TransformVector(localSpaceTangent);
+    outData.frame[1] = Vector4::Cross3(outData.frame[0], outData.frame[2]);
+    outData.frame[3] = worldPosition;
 
-    outShadingData.outgoingDirWorldSpace = -ray.dir;
+    // make sure the frame is orthonormal
+    {
+        // validate length
+        RT_ASSERT(Abs(1.0f - outData.frame[0].SqrLength3()) < 0.001f);
+        RT_ASSERT(Abs(1.0f - outData.frame[2].SqrLength3()) < 0.001f);
+
+        // validate perpendicularity
+        RT_ASSERT(Vector4::Dot3(outData.frame[1], outData.frame[0]) < 0.001f);
+        //RT_ASSERT(Vector4::Dot3(outData.frame[1], outData.frame[2]) < 0.001f);
+        //RT_ASSERT(Vector4::Dot3(outData.frame[2], outData.frame[0]) < 0.001f);
+
+        // validate headness
+        //const Vector4 computedNormal = Vector4::Cross3(outData.frame[0], outData.frame[1]);
+        //RT_ASSERT((computedNormal - outData.frame[2]).SqrLength3() < 0.001f);
+    }
 }
 
 } // namespace rt

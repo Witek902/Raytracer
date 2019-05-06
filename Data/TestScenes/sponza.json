@@ -26,7 +26,7 @@
             "type": "directional",
             "color": [20000.0, 19000.0, 18000.0],
             "angle": 1.0,
-            "direction": [0.1, -1.0, 0.2]
+            "transform": { "orientation": [80.0, 0.0, 0.0] }
         }
     ],
     "camera":
@@ -34,7 +34,7 @@
         "transform":
         {
             "translation": [979.0, 613.0, 99.0],
-            "orientation": [0.117, -1.75, 0.0]
+            "orientation": [6.7, -100.0, 0.0]
         },
         "fieldOfView": 48.0
     }

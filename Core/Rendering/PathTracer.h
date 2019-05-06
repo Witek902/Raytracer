@@ -6,7 +6,7 @@
 namespace rt {
 
 struct ShadingData;
-class ILight;
+class LightSceneObject;
 
 // Naive unidirectional path tracer
 // Note: this renderer is unable to sample "delta" lights (point and directional lights) 
@@ -21,7 +21,7 @@ public:
 private:
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, RenderingContext& context) const;
+    const RayColor EvaluateLight(const LightSceneObject* lightObject, const math::Ray& ray, const IntersectionData& intersection, RenderingContext& context) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(const math::Ray& ray, RenderingContext& context) const;

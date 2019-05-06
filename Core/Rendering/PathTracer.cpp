@@ -3,6 +3,8 @@
 #include "Context.h"
 #include "Scene/Scene.h"
 #include "Scene/Light/Light.h"
+#include "Scene/Object/SceneObject.h"
+#include "Scene/Object/SceneObject_Light.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 #include "Sampling/GenericSampler.h"
@@ -21,24 +23,46 @@ const char* PathTracer::GetName() const
     return "Path Tracer";
 }
 
-RT_FORCE_NOINLINE
-const RayColor PathTracer::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, RenderingContext& context) const
+const RayColor PathTracer::EvaluateLight(const LightSceneObject* lightObject, const math::Ray& ray, const IntersectionData& intersection, RenderingContext& context) const
 {
-    const Vector4 hitPos = ray.GetAtDistance(dist);
+    const float cosAtLight = -intersection.CosTheta(ray.dir);
 
-    RayColor lightContribution = light.GetRadiance(context, ray, hitPos);
-    RT_ASSERT(lightContribution.IsValid());
+    const Matrix4 worldToLight = lightObject->GetInverseTransform(context.time);
+    const Ray lightSpaceRay = worldToLight.TransformRay_Unsafe(ray);
+    const Vector4 lightSpaceHitPoint = worldToLight.TransformPoint(intersection.frame.GetTranslation());
 
-    return lightContribution;
+    const ILight& light = lightObject->GetLight();
+
+    const ILight::RadianceParam param =
+    {
+        context,
+        lightSpaceRay,
+        lightSpaceHitPoint,
+        cosAtLight,
+    };
+
+    return light.GetRadiance(param);
 }
 
 const RayColor PathTracer::EvaluateGlobalLights(const Ray& ray, RenderingContext& context) const
 {
     RayColor result = RayColor::Zero();
 
-    for (const ILight* globalLight : mScene.GetGlobalLights())
+    for (const LightSceneObject* globalLightObject : mScene.GetGlobalLights())
     {
-        RayColor lightContribution = globalLight->GetRadiance(context, ray, Vector4::Zero());
+        const Matrix4 worldToLight = globalLightObject->GetInverseTransform(context.time);
+        const Ray lightSpaceRay = worldToLight.TransformRay_Unsafe(ray);
+
+        const ILight& globalLight = globalLightObject->GetLight();
+
+        const ILight::RadianceParam param =
+        {
+            context,
+            lightSpaceRay,
+        };
+
+        const float cosAtLight = 1.0f;
+        RayColor lightContribution = globalLight.GetRadiance(param);
         RT_ASSERT(lightContribution.IsValid());
 
         result += lightContribution;
@@ -61,34 +85,40 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
 
     for (;;)
     {
-        hitPoint.distance = FLT_MAX;
-        mScene.Traverse_Single({ ray, hitPoint, context });
+        hitPoint.distance = HitPoint::DefaultDistance;
+        mScene.Traverse({ ray, hitPoint, context });
 
         // ray missed - return background light color
-        if (hitPoint.distance == FLT_MAX)
+        if (hitPoint.distance == HitPoint::DefaultDistance)
         {
             resultColor.MulAndAccumulate(throughput, EvaluateGlobalLights(ray, context));
             break;
         }
 
+        // fill up structure with shading data
+        mScene.EvaluateIntersection(ray, hitPoint, context.time, shadingData.intersection);
+        shadingData.outgoingDirWorldSpace = -ray.dir;
+
         // we hit a light directly
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
-            const ILight& light = mScene.GetLightByObjectId(hitPoint.objectId);
-            resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, context));
+            const ISceneObject* sceneObject = mScene.GetHitObject(hitPoint.objectId);
+            RT_ASSERT(sceneObject->GetType() == ISceneObject::Type::Light);
+            const LightSceneObject* lightObject = static_cast<const LightSceneObject*>(sceneObject);
+
+            const RayColor lightColor = EvaluateLight(lightObject, ray, shadingData.intersection, context);
+            RT_ASSERT(lightColor.IsValid());
+            resultColor.MulAndAccumulate(throughput, lightColor);
+
             break;
         }
 
-        // fill up structure with shading data
-        {
-            mScene.ExtractShadingData(ray, hitPoint, context.time, shadingData);
-
-            RT_ASSERT(shadingData.material != nullptr);
-            shadingData.material->EvaluateShadingData(context.wavelength, shadingData);
-        }
+        RT_ASSERT(shadingData.intersection.material != nullptr);
+        shadingData.intersection.material->EvaluateShadingData(context.wavelength, shadingData);
 
         // accumulate emission color
-        const RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(shadingData.material->emission.Evaluate(shadingData.texCoord)));
+        const Vector4 emissionColorRgb = shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord);
+        const RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(emissionColorRgb));
         RT_ASSERT(emissionColor.IsValid());
         resultColor.MulAndAccumulate(throughput, emissionColor);
         RT_ASSERT(resultColor.IsValid());
@@ -121,7 +151,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler.GetFloat3());
+        const RayColor bsdfValue = shadingData.intersection.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler.GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;
@@ -133,7 +163,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         }
 
         // generate secondary ray
-        ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
+        ray = Ray(shadingData.intersection.frame.GetTranslation(), incomingDirWorldSpace);
         ray.origin += ray.dir * 0.001f;
 
         depth++;

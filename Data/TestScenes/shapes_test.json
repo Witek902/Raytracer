@@ -1,0 +1,99 @@
+{
+    "materials":
+    [
+        {
+            "name": "ground",
+            "bsdf": "diffuse",
+            "baseColor": [0.9, 0.9, 0.9],
+            "baseColorTexture": "TEXTURES/default.bmp",
+            "metalness": 0.0,
+            "roughness": 0.5
+        },
+
+        {
+            "name": "plastic_0",
+            "bsdf": "roughPlastic",
+            "baseColor": [0.8, 0.15, 0.1],
+            "metalness": 0.0,
+            "roughness": 0.15
+        },
+
+        {
+            "name": "metal",
+            "bsdf": "roughMetal",
+            "baseColor": [1.0, 1.0, 1.0],
+            "roughness": 0.4
+        }
+    ],
+    "objects":
+    [
+        {
+            "type": "plane",
+            "transform": { "translation": [0.0, 0.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
+            "textureScale" : [0.4, 0.4],
+            "size": [20.0, 20.0],
+            "material": "ground"
+        },
+
+        {
+            "type": "sphere",
+            "radius": 0.5,
+            "transform": { "translation": [2.0, 0.5, 0.0] },
+            "material": "plastic_0"
+        },
+        {
+            "type": "sphere",
+            "radius": 0.5,
+            "transform": { "translation": [2.0, 0.5, -1.5] },
+            "material": "metal"
+        },
+
+        {
+            "type": "box",
+            "size": [0.5, 0.495, 0.5],
+            "transform": { "translation": [0.0, 0.5, 0.0] },
+            "material": "plastic_0"
+        },
+        {
+            "type": "box",
+            "size": [0.5, 0.495, 0.5],
+            "transform": { "translation": [0.0, 0.5, -1.5] },
+            "material": "metal"
+        },
+
+        {
+            "type": "csg",
+            "size": [0.5, 0.495, 0.5],
+            "transform": { "translation": [-2.0, 0.5, 0.0] },
+            "material": "plastic_0"
+        },
+        {
+            "type": "csg",
+            "size": [0.5, 0.495, 0.5],
+            "transform": { "translation": [-2.0, 0.5, -1.5] },
+            "material": "metal"
+        }
+    ],
+    "lights":
+    [
+        {
+            "type": "directional",
+            "color": [75.0, 70.0, 65.0],
+            "direction": [-1.0, -1.0, -1.0],
+            "angle": 6.0
+        },
+        {
+            "type": "background",
+            "color": [0.1, 0.2, 0.3]
+        }
+    ],
+    "camera":
+    {
+        "transform":
+        {
+            "translation": [-2.4, 4.03, 4.49],
+            "orientation": [0.69, 2.76, 0.0]
+        },
+        "fieldOfView": 45.0
+    }
+}

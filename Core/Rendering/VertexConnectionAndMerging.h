@@ -16,7 +16,7 @@
 namespace rt {
 
 struct ShadingData;
-class ILight;
+class LightSceneObject;
 
 // Vertex Connection and Merging
 //
@@ -115,10 +115,10 @@ private:
     const RayColor SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
 
     // importance sample single light source
-    const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor SampleLight(const LightSceneObject* lightObject, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(Uint32 iteration, const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateLight(Uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from global lights
     const RayColor EvaluateGlobalLights(Uint32 iteration, const PathState& pathState, RenderingContext& ctx) const;

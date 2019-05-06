@@ -7,7 +7,7 @@ namespace rt {
 class PointLight : public ILight
 {
 public:
-    RAYLIB_API PointLight(const math::Vector4& position, const math::Vector4& color);
+    RAYLIB_API PointLight(const math::Vector4& color);
 
     virtual Type GetType() const override;
     virtual const math::Box GetBoundingBox() const override;
@@ -17,7 +17,8 @@ public:
     virtual Flags GetFlags() const override final;
 
 private:
-    math::Vector4 mPosition;
+
+    // TODO texture
 };
 
 } // namespace rt

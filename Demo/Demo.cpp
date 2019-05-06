@@ -154,8 +154,6 @@ void DemoWindow::CheckSceneFileModificationTime()
 void DemoWindow::SwitchScene(const std::string& sceneName)
 {
     mScene = std::make_unique<Scene>();
-    mMaterials.clear();
-    mMeshes.clear();
 
     if (!sceneName.empty())
     {
@@ -260,7 +258,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
         HitPoint hitPoint;
-        mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
+        mScene->Traverse({ ray, hitPoint, *renderingContext });
 
         if (hitPoint.distance == FLT_MAX)
         {
@@ -292,7 +290,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 
         HitPoint hitPoint;
-        mScene->Traverse_Single({ ray, hitPoint, *renderingContext });
+        mScene->Traverse({ ray, hitPoint, *renderingContext });
 
         if (hitPoint.objectId != UINT32_MAX)
         {
@@ -300,15 +298,15 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
             {
                 mSelectedMaterial = nullptr;
                 mSelectedObject = nullptr;
-                mSelectedLight = const_cast<ILight*>(&(mScene->GetLightByObjectId(hitPoint.objectId)));
+                //mSelectedLight = const_cast<ILight*>(&(mScene->GetLightByObjectId(hitPoint.objectId)));
             }
             else // regular scene object
             {
-                ShadingData shadingData;
-                mScene->ExtractShadingData(ray, hitPoint, renderingContext->time, shadingData);
+                IntersectionData intersectionData;
+                mScene->EvaluateIntersection(ray, hitPoint, renderingContext->time, intersectionData);
 
-                mSelectedMaterial = const_cast<Material*>(shadingData.material);
-                mSelectedObject = const_cast<ISceneObject*>(mScene->GetObjects()[hitPoint.objectId].get());
+                mSelectedMaterial = const_cast<Material*>(intersectionData.material);
+                mSelectedObject = const_cast<ISceneObject*>(mScene->GetHitObject(hitPoint.objectId));
                 mSelectedLight = nullptr;
             }
         }

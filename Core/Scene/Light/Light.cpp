@@ -20,15 +20,10 @@ void ILight::SetColor(const Spectrum& color)
     mColor = color;
 }
 
-const RayColor ILight::GetRadiance(RenderingContext&, const math::Ray&, const math::Vector4&, float*, float*) const
+const RayColor ILight::GetRadiance(const RadianceParam&, float*, float*) const
 {
     RT_FATAL("Cannot hit this type of light");
     return RayColor();
-}
-
-const math::Vector4 ILight::GetNormal(const math::Vector4&) const
-{
-    return math::Vector4::Zero();
 }
 
 } // namespace rt

@@ -2,10 +2,10 @@
 
 #include "VertexBufferDesc.h"
 
-#include "../Math/Vector4.h"
-#include "../Math/Triangle.h"
-#include "../Math/Float3.h"
-#include "../Containers/DynArray.h"
+#include "../../Math/Vector4.h"
+#include "../../Math/Triangle.h"
+#include "../../Math/Float3.h"
+#include "../../Containers/DynArray.h"
 
 namespace rt {
 

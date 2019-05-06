@@ -7,7 +7,7 @@ namespace rt {
 class SpotLight : public ILight
 {
 public:
-    RAYLIB_API SpotLight(const math::Vector4& position, const math::Vector4& direction, const math::Vector4& color, const float angle);
+    RAYLIB_API SpotLight(const math::Vector4& color, const float angle);
 
     virtual Type GetType() const override;
     virtual const math::Box GetBoundingBox() const override;
@@ -17,8 +17,6 @@ public:
     virtual Flags GetFlags() const override final;
 
 private:
-    math::Vector4 mPosition;
-    math::Vector4 mDirection;
     float mAngle;
     float mCosAngle;
     bool mIsDelta; // true for 'laser' light

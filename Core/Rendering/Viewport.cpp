@@ -512,6 +512,9 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
             // TODO
             //const float pixelScaling = 1.0f / static_cast<float>(mPassesPerPixel[pixelIndex]);
 
+            const float grayscale = Vector4::Dot3(rgbColor, Vector4(0.2126f, 0.7152f, 0.0722f));
+            rgbColor = Vector4::Max(Vector4::Zero(), Vector4::Lerp(Vector4(grayscale), rgbColor, mPostprocessParams.params.saturation));
+
             const Vector4 toneMapped = ToneMap(rgbColor * pixelScaling);
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
 

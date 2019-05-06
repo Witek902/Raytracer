@@ -376,7 +376,7 @@ public:
         }
     }
 
-    MeshPtr BuildMesh()
+    MeshShapePtr BuildMesh()
     {
         MeshDesc meshDesc;
         meshDesc.path = mFilePath;
@@ -391,7 +391,7 @@ public:
         meshDesc.vertexBufferDesc.tangents = mVertexTangents.data();
         meshDesc.vertexBufferDesc.texCoords = mVertexTexCoords.data();
 
-        MeshPtr mesh = MeshPtr(new Mesh);
+        MeshShapePtr mesh = MeshShapePtr(new MeshShape);
         bool result = mesh->Initialize(meshDesc);
         if (!result)
         {
@@ -414,7 +414,7 @@ private:
     std::unordered_map<tinyobj::index_t, Uint32, TriangleIndicesHash, TriangleIndicesComparator> mUniqueIndices;
 };
 
-rt::MeshPtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const float scale)
+rt::MeshShapePtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const float scale)
 {
     MeshLoader loader;
     if (!loader.LoadMesh(filePath, outMaterials, scale))

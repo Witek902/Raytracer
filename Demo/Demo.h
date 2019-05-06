@@ -4,9 +4,7 @@
 
 #include "../Core/Scene/Scene.h"
 #include "../Core/Scene/Camera.h"
-#include "../Core/Mesh/Mesh.h"
 #include "../Core/Rendering/Viewport.h"
-#include "../Core/Material/Material.h"
 #include "../Core/Utils/Bitmap.h"
 #include "../Core/Rendering/Context.h"
 #include "../Core/Rendering/PathDebugging.h"
@@ -38,9 +36,6 @@ struct RT_ALIGN(16) CameraSetup
 class RT_ALIGN(64) DemoWindow : public Window
 {
 public:
-    using Materials = std::vector<rt::MaterialPtr>;
-    using Meshes = std::vector<rt::MeshPtr>;
-
     DemoWindow();
     ~DemoWindow();
 
@@ -66,8 +61,6 @@ private:
     CameraSetup mCameraSetup;
     float mCameraSpeed;
 
-    Materials mMaterials;
-    Meshes mMeshes;
     std::unique_ptr<rt::Scene> mScene;
 
     Uint32 mFrameNumber;

@@ -1,11 +1,12 @@
 #include "PCH.h"
 
-#include "Mesh.h"
+#include "MeshShape.h"
 #include "BVH/BVHBuilder.h"
 
 #include "Rendering/Context.h"
 #include "Rendering/ShadingData.h"
 #include "Traversal/TraversalContext.h"
+#include "Traversal/Traversal_Single.h"
 
 #include "Math/Geometry.h"
 #include "Math/Simd8Geometry.h"
@@ -13,20 +14,24 @@
 #include "Utils/Logger.h"
 
 
-
 namespace rt {
 
 using namespace math;
 
-Mesh::Mesh()
+MeshShape::MeshShape()
 {
 }
 
-Mesh::~Mesh()
+MeshShape::~MeshShape()
 {
 }
 
-bool Mesh::Initialize(const MeshDesc& desc)
+const Box MeshShape::GetBoundingBox() const
+{
+    return mBoundingBox;
+}
+
+bool MeshShape::Initialize(const MeshDesc& desc)
 {
     mBoundingBox = Box::Empty();
 
@@ -105,11 +110,31 @@ bool Mesh::Initialize(const MeshDesc& desc)
 
     // TODO reorder indices
 
-    RT_LOG_INFO("Mesh '%s' created successfully", !desc.path.empty() ? desc.path.c_str() : "unnamed");
+    RT_LOG_INFO("MeshShape '%s' created successfully", !desc.path.empty() ? desc.path.c_str() : "unnamed");
     return true;
 }
 
-void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+float MeshShape::GetSurfaceArea() const
+{
+    RT_FATAL("Not implemented yet");
+    return 0.0f;
+}
+
+const Vector4 MeshShape::Sample(const Float3& u, math::Vector4* outNormal, float* outPdf) const
+{
+    RT_FATAL("Not implemented yet");
+    RT_UNUSED(u);
+    RT_UNUSED(outPdf);
+    RT_UNUSED(outNormal);
+    return Vector4::Zero();
+}
+
+void MeshShape::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
+{
+    GenericTraverse<MeshShape>(context, objectID, this);
+}
+
+void MeshShape::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     float distance, u, v;
 
@@ -117,9 +142,12 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
     context.context.localCounters.numRayTriangleTests += node.numLeaves;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    const Uint32 numLeaves = node.numLeaves;
+    const Uint32 childIndex = node.childIndex;
+
+    for (Uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 triangleIndex = node.childIndex + i;
+        const Uint32 triangleIndex = childIndex + i;
         const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
 
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
@@ -142,7 +170,12 @@ void Mesh::Traverse_Leaf_Single(const SingleTraversalContext& context, const Uin
     }
 }
 
-bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, const BVH::Node& node) const
+bool MeshShape::Traverse_Shadow(const SingleTraversalContext& context) const
+{
+    return GenericTraverse_Shadow<MeshShape>(context, this);
+}
+
+bool MeshShape::Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const
 {
     float distance, u, v;
 
@@ -150,9 +183,12 @@ bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, co
     context.context.localCounters.numRayTriangleTests += node.numLeaves;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    const Uint32 numLeaves = node.numLeaves;
+    const Uint32 childIndex = node.childIndex;
+
+    for (Uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 triangleIndex = node.childIndex + i;
+        const Uint32 triangleIndex = childIndex + i;
         const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
@@ -174,7 +210,7 @@ bool Mesh::Traverse_Leaf_Shadow_Single(const SingleTraversalContext& context, co
 }
 
 /*
-void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void MeshShape::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
 {
     const VectorInt8 objectIndexVec(objectID);
 
@@ -214,7 +250,7 @@ void Mesh::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32
 }
 */
 
-void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
+void MeshShape::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
 {
     Vector8 distance, u, v;
     Triangle_Simd8 tri;
@@ -247,16 +283,12 @@ void Mesh::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Uin
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mesh::EvaluateShadingData_Single(const HitPoint& hitPoint, ShadingData& outData, const Material* defaultMaterial) const
+void MeshShape::EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outData) const
  {
     VertexIndices indices;
-    mVertexBuffer.GetVertexIndices(hitPoint.subObjectId, indices); // TODO cache this in MeshIntersectionData?
+    mVertexBuffer.GetVertexIndices(hitPoint.subObjectId, indices);
 
-    if (indices.materialIndex == UINT32_MAX)
-    {
-        outData.material = defaultMaterial;
-    }
-    else
+    if (indices.materialIndex != UINT32_MAX)
     {
         outData.material = mVertexBuffer.GetMaterial(indices.materialIndex);
     }

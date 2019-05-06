@@ -9,15 +9,10 @@ namespace rt {
 
 using namespace math;
 
-SpotLight::SpotLight(const Vector4& position, const Vector4& direction, const Vector4& color, const float angle)
+SpotLight::SpotLight(const Vector4& color, const float angle)
     : ILight(color)
-    , mPosition(position)
-    , mDirection(direction.Normalized3())
     , mAngle(angle)
 {
-    RT_ASSERT(mPosition.IsValid());
-    RT_ASSERT(mDirection.IsValid());
-    RT_ASSERT(Abs(mDirection.SqrLength3() - 1.0f) < 0.001f);
     RT_ASSERT(angle >= 0.0f && angle < RT_2PI);
 
     mCosAngle = cosf(angle);
@@ -31,7 +26,7 @@ ILight::Type SpotLight::GetType() const
 
 const Box SpotLight::GetBoundingBox() const
 {
-    return { mPosition, mPosition };
+    return Box(Vector4::Zero(), 0.0f);
 }
 
 bool SpotLight::TestRayHit(const Ray& ray, float& outDistance) const
@@ -45,7 +40,7 @@ bool SpotLight::TestRayHit(const Ray& ray, float& outDistance) const
 
 const RayColor SpotLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    outResult.directionToLight = mPosition - param.shadingData.frame.GetTranslation();
+    outResult.directionToLight = param.lightToWorld.GetTranslation() - param.intersection.frame.GetTranslation();
     const float sqrDistance = outResult.directionToLight.SqrLength3();
 
     outResult.directPdfW = sqrDistance;
@@ -54,7 +49,7 @@ const RayColor SpotLight::Illuminate(const IlluminateParam& param, IlluminateRes
     outResult.cosAtLight = 1.0f;
     outResult.emissionPdfW = mIsDelta ? 1.0f : SphereCapPdf(mCosAngle);
 
-    const float angle = Vector4::Dot3(outResult.directionToLight, -mDirection);
+    const float angle = Vector4::Dot3(outResult.directionToLight, -VECTOR_Z);
     
     if (angle < mCosAngle)
     {
@@ -70,26 +65,26 @@ const RayColor SpotLight::Emit(const EmitParam& param, EmitResult& outResult) co
     if (mIsDelta)
     {
         outResult.emissionPdfW = 1.0f;
-        outResult.direction = mDirection;
+        outResult.direction = VECTOR_Z;
     }
     else
     {
-        const float phi = RT_2PI * param.sample.y;
+        const float phi = RT_2PI * param.directionSample.y;
         const Vector4 sinCosPhi = SinCos(phi);
 
-        float cosTheta = Lerp(mCosAngle, 1.0f, param.sample.x);
+        float cosTheta = Lerp(mCosAngle, 1.0f, param.directionSample.x);
         float sinThetaSqr = 1.0f - Sqr(cosTheta);
         float sinTheta = sqrtf(sinThetaSqr);
 
         // generate ray direction in the cone uniformly
-        Vector4 u, v;
-        BuildOrthonormalBasis(mDirection, u, v);
-        outResult.direction = (u * sinCosPhi.y + v * sinCosPhi.x) * sinTheta + mDirection * cosTheta;
+        outResult.direction.x = sinTheta * sinCosPhi.x;
+        outResult.direction.y = sinTheta * sinCosPhi.y;
+        outResult.direction.z = cosTheta;
         outResult.direction.Normalize3();
         outResult.emissionPdfW = SphereCapPdf(mCosAngle);
     }
 
-    outResult.position = mPosition;
+    outResult.position = param.lightToWorld.GetTranslation();
     outResult.directPdfA = 1.0f;
     outResult.cosAtLight = 1.0f;
 
@@ -99,7 +94,7 @@ const RayColor SpotLight::Emit(const EmitParam& param, EmitResult& outResult) co
 
 ILight::Flags SpotLight::GetFlags() const
 {
-    return mIsDelta ? Flags(Flag_IsFinite & Flag_IsDelta) : Flag_IsFinite;
+    return mIsDelta ? Flags(Flag_IsFinite | Flag_IsDelta) : Flag_IsFinite;
 }
 
 } // namespace rt

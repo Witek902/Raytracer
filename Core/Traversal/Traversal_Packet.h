@@ -27,7 +27,7 @@ RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, Uint32 numRays, Ui
 RT_FORCE_NOINLINE Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context, Uint32 traversalDepth);
 
 template <typename ObjectType, Uint32 traversalDepth>
-void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object, Uint32 numActiveGroups)
+void GenericTraverse(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object, Uint32 numActiveGroups)
 {
     // all nodes
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
@@ -92,7 +92,7 @@ void GenericTraverse_Packet(const PacketTraversalContext& context, const Uint32 
 
         if (frame.node->IsLeaf())
         {
-            object->Traverse_Leaf_Packet(context, objectID, *frame.node, numGroups);
+            object->Traverse_Leaf(context, objectID, *frame.node, numGroups);
         }
         else
         {

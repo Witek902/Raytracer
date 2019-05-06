@@ -28,7 +28,7 @@ public:
 
     RT_FORCE_INLINE float GetFloat()
     {
-        return static_cast<float>(GetInt()) / static_cast<float>(UINT32_MAX);
+        return math::Min(0.999999940395f, static_cast<float>(GetInt()) / 4294967296.0f);
     }
 
     RT_FORCE_INLINE const math::Float2 GetFloat2()

@@ -2,12 +2,14 @@
 #include "../Core/Scene/Scene.h"
 #include "../Core/Scene/Camera.h"
 #include "../Core/Rendering/Context.h"
-#include "../Core/Mesh/Mesh.h"
 #include "../Core/Material/Material.h"
 #include "../Core/Rendering/Viewport.h"
 #include "../Core/Rendering/PathTracer.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
-#include "../Core/Scene/Object/SceneObject_Sphere.h"
+#include "../Core/Scene/Object/SceneObject_Shape.h"
+#include "../Core/Scene/Object/SceneObject_Light.h"
+#include "../Core/Shapes/SphereShape.h"
+#include "../Core/Shapes/MeshShape.h"
 
 using namespace rt;
 using namespace math;
@@ -64,7 +66,7 @@ MaterialPtr CreatePlasticMaterial(const Vector4& baseColor)
 //////////////////////////////////////////////////////////////////////////
 
 /*
-rt::MeshPtr CreateBoxMesh(const float size, const MaterialPtr& material, bool reverseNormal)
+rt::MeshShapePtr CreateBoxMesh(const float size, const MaterialPtr& material, bool reverseNormal)
 {
     const Uint32 materialIndices[6 * 2] = { 0 };
 
@@ -225,7 +227,7 @@ rt::MeshPtr CreateBoxMesh(const float size, const MaterialPtr& material, bool re
     meshDesc.vertexBufferDesc.tangents = tangents;
     meshDesc.vertexBufferDesc.texCoords = texCoords;
 
-    rt::MeshPtr mesh = std::make_shared<Mesh>();
+    rt::MeshShapePtr mesh = std::make_shared<Mesh>();
     bool result = mesh->Initialize(meshDesc);
     if (!result)
     {
@@ -281,7 +283,8 @@ TEST_F(RenderingTest, BackgroundLightOnly)
 {
     const Vector4 lightColor(1.0f, 2.0f, 3.0f);
     auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-    mScene->AddLight(std::move(backgroundLight));
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(backgroundLight));
+    mScene->AddObject(std::move(lightObject));
     mScene->BuildBVH();
 
     mViewport->Resize(ViewportSize, ViewportSize);
@@ -313,11 +316,13 @@ TEST_F(RenderingTest, FurnaceTest_Diffuse)
 
     const Vector4 lightColor(1.0f, 2.0f, 3.0f);
     auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-    mScene->AddLight(std::move(backgroundLight));
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(backgroundLight));
+    mScene->AddObject(std::move(lightObject));
 
-    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
-    sphere->SetDefaultMaterial(material);
-    mScene->AddObject(std::move(sphere));
+    ShapePtr shape = std::make_unique<SphereShape>(1.0f);
+    ShapeSceneObjectPtr sceneObject = std::make_unique<ShapeSceneObject>(std::move(shape));
+    sceneObject->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sceneObject));
 
     mScene->BuildBVH();
 
@@ -358,11 +363,13 @@ TEST_F(RenderingTest, FurnaceTest_Emissive)
 
     const Vector4 lightColor(1.0f, 2.0f, 3.0f);
     auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-    mScene->AddLight(std::move(backgroundLight));
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(backgroundLight));
+    mScene->AddObject(std::move(lightObject));
 
-    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
-    sphere->SetDefaultMaterial(material);
-    mScene->AddObject(std::move(sphere));
+    ShapePtr shape = std::make_unique<SphereShape>(1.0f);
+    ShapeSceneObjectPtr sceneObject = std::make_unique<ShapeSceneObject>(std::move(shape));
+    sceneObject->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sceneObject));
 
     mScene->BuildBVH();
 
@@ -404,11 +411,13 @@ TEST_F(RenderingTest, FurnaceTest_Metal)
 
     const Vector4 lightColor(1.0f, 2.0f, 3.0f);
     auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-    mScene->AddLight(std::move(backgroundLight));
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(backgroundLight));
+    mScene->AddObject(std::move(lightObject));
 
-    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
-    sphere->SetDefaultMaterial(material);
-    mScene->AddObject(std::move(sphere));
+    ShapePtr shape = std::make_unique<SphereShape>(1.0f);
+    ShapeSceneObjectPtr sceneObject = std::make_unique<ShapeSceneObject>(std::move(shape));
+    sceneObject->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sceneObject));
 
     mScene->BuildBVH();
 
@@ -446,11 +455,13 @@ TEST_F(RenderingTest, FurnaceTest_Dielectric)
 
     const Vector4 lightColor(1.0f, 2.0f, 3.0f);
     auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
-    mScene->AddLight(std::move(backgroundLight));
+    auto lightObject = std::make_unique<LightSceneObject>(std::move(backgroundLight));
+    mScene->AddObject(std::move(lightObject));
 
-    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
-    sphere->SetDefaultMaterial(material);
-    mScene->AddObject(std::move(sphere));
+    ShapePtr shape = std::make_unique<SphereShape>(1.0f);
+    ShapeSceneObjectPtr sceneObject = std::make_unique<ShapeSceneObject>(std::move(shape));
+    sceneObject->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sceneObject));
 
     mScene->BuildBVH();
 

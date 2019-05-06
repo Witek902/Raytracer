@@ -108,10 +108,13 @@
     [
         {
             "type": "area",
-            "color": [20.0, 20.0, 20.0],
-            "position": [1.0, 4.45, -1.0],
-            "edge0": [-2.0, 0.0, 0.0],
-            "edge1": [0.0, 0.0, 2.0]
+            "color": [5.0, 5.0, 5.0],
+            "transform": { "translation": [0.0, 4.45, 0.0], "orientation": [90.0, 0.0, 0.0]  },
+            "shape":
+            {
+                "type": "plane",
+                "size": [2.0, 2.0]
+            }
         }
     ],
     "camera":
@@ -119,7 +122,7 @@
         "transform":
         {
             "translation": [-0.1, 0.2, 12.0],
-            "orientation": [0.01, 3.14, 0.0]
+            "orientation": [0.01, 180.0, 0.0]
         },
         "fieldOfView": 55.0
     }

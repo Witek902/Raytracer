@@ -5,6 +5,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Scene/Light/Light.h"
+#include "Scene/Object/SceneObject_Light.h"
 #include "Sampling/GenericSampler.h"
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
@@ -36,17 +37,20 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
     const float lightPickingProbability = 1.0f / (float)allLocalLights.Size();
     const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size();
-    const LightPtr& light = allLocalLights[lightIndex];
+
+    const LightSceneObject* lightObject = allLocalLights[lightIndex];
+    const ILight& light = lightObject->GetLight();
 
     const ILight::EmitParam emitParam =
     {
+        lightObject->GetTransform(ctx.time),
         ctx.wavelength,
-        ctx.sampler.GetFloat2(),
+        ctx.sampler.GetFloat3(),
         ctx.sampler.GetFloat2(),
     };
 
     ILight::EmitResult emitResult;
-    RayColor throughput = light->Emit(emitParam, emitResult);
+    RayColor throughput = light.Emit(emitParam, emitResult);
 
     if (throughput.AlmostZero())
     {
@@ -57,19 +61,22 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     emitResult.emissionPdfW *= lightPickingProbability;
     RT_ASSERT(emitResult.emissionPdfW > 0.0f);
 
+    emitResult.position += emitResult.direction * 0.0005f;
     Ray ray = Ray(emitResult.position, emitResult.direction);
 
     // TODO don't divide by pdf in ILight::Emit()
     throughput *= 1.0f / emitResult.emissionPdfW;
 
     HitPoint hitPoint;
+    ShadingData shadingData;
 
     for (;;)
     {
-        hitPoint.distance = FLT_MAX;
-        mScene.Traverse_Single({ ray, hitPoint, ctx });
+        hitPoint.objectId = RT_INVALID_OBJECT;
+        hitPoint.distance = HitPoint::DefaultDistance;
+        mScene.Traverse({ ray, hitPoint, ctx });
 
-        if (hitPoint.distance == FLT_MAX)
+        if (hitPoint.distance == HitPoint::DefaultDistance)
         {
             break; // ray missed
         }
@@ -80,12 +87,13 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
         }
 
         // fill up structure with shading data
-        ShadingData shadingData;
+        if (hitPoint.distance < FLT_MAX)
         {
-            mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
+            mScene.EvaluateIntersection(ray, hitPoint, ctx.time, shadingData.intersection);
+            shadingData.outgoingDirWorldSpace = -ray.dir;
 
-            RT_ASSERT(shadingData.material != nullptr);
-            shadingData.material->EvaluateShadingData(ctx.wavelength, shadingData);
+            RT_ASSERT(shadingData.intersection.material != nullptr);
+            shadingData.intersection.material->EvaluateShadingData(ctx.wavelength, shadingData);
         }
 
         // check if the ray depth won't be exeeded in the next iteration
@@ -114,7 +122,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
         // connect to camera
         {
             const Vector4 cameraPos = param.camera.GetTransform().GetTranslation();
-            const Vector4 samplePos = shadingData.frame.GetTranslation();
+            const Vector4 samplePos = shadingData.intersection.frame.GetTranslation();
 
             Vector4 dirToCamera = cameraPos - samplePos;
 
@@ -125,7 +133,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
             // calculate BSDF contribution
             float bsdfPdfW;
-            const RayColor cameraFactor = shadingData.material->Evaluate(ctx.wavelength, shadingData, -dirToCamera, &bsdfPdfW);
+            const RayColor cameraFactor = shadingData.intersection.material->Evaluate(ctx.wavelength, shadingData, -dirToCamera, &bsdfPdfW);
             RT_ASSERT(cameraFactor.IsValid());
 
             if (!cameraFactor.AlmostZero())
@@ -137,9 +145,9 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
                     HitPoint shadowHitPoint;
                     shadowHitPoint.distance = cameraDistance * 0.999f;
 
-                    const Ray shadowRay(samplePos + shadingData.frame[2] * 0.0001f, dirToCamera);
+                    const Ray shadowRay(samplePos + shadingData.intersection.frame[2] * 0.0001f, dirToCamera);
 
-                    if (!mScene.Traverse_Shadow_Single({ shadowRay, shadowHitPoint, ctx }))
+                    if (!mScene.Traverse_Shadow({ shadowRay, shadowHitPoint, ctx }))
                     {
                         const float cameraPdfA = param.camera.PdfW(-dirToCamera) / cameraDistanceSqr;
                         const RayColor contribution = (cameraFactor * throughput) * cameraPdfA;
@@ -152,7 +160,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.sampler.GetFloat3());
+        const RayColor bsdfValue = shadingData.intersection.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.sampler.GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;
@@ -164,7 +172,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
         }
 
         // generate secondary ray
-        ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
+        ray = Ray(shadingData.intersection.frame.GetTranslation(), incomingDirWorldSpace);
         ray.origin += ray.dir * 0.001f;
 
         depth++;
