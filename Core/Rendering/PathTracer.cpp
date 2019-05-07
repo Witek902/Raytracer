@@ -104,7 +104,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         if (depth >= context.params->minRussianRouletteDepth)
         {
             const float minColorValue = 0.125f;
-            const float threshold = minColorValue + (1.0f - minColorValue) * shadingData.materialParams.baseColor.Max();
+            float threshold = minColorValue + (1.0f - minColorValue) * shadingData.materialParams.baseColor.Max();
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             if (context.wavelength.isSingle)
             {

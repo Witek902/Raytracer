@@ -132,25 +132,25 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
         case DebugRenderingMode::RayBoxIntersection:
         {
-            const float num = static_cast<float>(context.localCounters.numRayBoxTests);
+            const float num = static_cast<float>(ctx.localCounters.numRayBoxTests);
             resultColor = Vector4(num * 0.01f, num * 0.004f, num * 0.001f, 0.0f);
             break;
         }
         case DebugRenderingMode::RayBoxIntersectionPassed:
         {
-            const float num = static_cast<float>(context.localCounters.numPassedRayBoxTests);
+            const float num = static_cast<float>(ctx.localCounters.numPassedRayBoxTests);
             resultColor = Vector4(num * 0.01f, num * 0.005f, num * 0.001f, 0.0f);
             break;
         }
         case DebugRenderingMode::RayTriIntersection:
         {
-            const float num = static_cast<float>(context.localCounters.numRayTriangleTests);
+            const float num = static_cast<float>(ctx.localCounters.numRayTriangleTests);
             resultColor = Vector4(num * 0.01f, num * 0.004f, num * 0.001f, 0.0f);
             break;
         }
         case DebugRenderingMode::RayTriIntersectionPassed:
         {
-            const float num = static_cast<float>(context.localCounters.numPassedRayTriangleTests);
+            const float num = static_cast<float>(ctx.localCounters.numPassedRayTriangleTests);
             resultColor = Vector4(num * 0.01f, num * 0.004f, num * 0.001f, 0.0f);
             break;
         }
