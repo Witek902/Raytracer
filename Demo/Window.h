@@ -9,6 +9,11 @@
 #include <xcb/xcb_image.h>
 #endif // defined(__LINUX__) | defined(__linux__)
 
+namespace rt
+{
+    class Bitmap;
+};
+
 class Window
 {
 public:
@@ -79,7 +84,7 @@ public:
     virtual void OnMouseUp(MouseButton button);
     virtual void OnFileDrop(const std::string& filePath);
 
-    bool DrawPixels(const void* sourceData);
+    bool DrawPixels(const rt::Bitmap& bitmap);
 
 private:
 

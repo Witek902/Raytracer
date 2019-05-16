@@ -96,6 +96,26 @@ const Vector4 Vector4::FromHalves(const Half* src)
 
 // Load & store ===================================================================================
 
+const Vector4 Vector4::Load_Float2_Unsafe(const Float2* src)
+{
+    return Vector4(reinterpret_cast<const float*>(src));
+}
+
+const Vector4 Vector4::Load_Float3_Unsafe(const Float3* src)
+{
+    return Vector4(reinterpret_cast<const float*>(src));
+}
+
+const Vector4 Vector4::Load_Float2_Unsafe(const Float2& src)
+{
+    return Vector4(reinterpret_cast<const float*>(&src));
+}
+
+const Vector4 Vector4::Load_Float3_Unsafe(const Float3& src)
+{
+    return Vector4(reinterpret_cast<const float*>(&src));
+}
+
 const Vector4 Vector4::Load_2xUint8_Norm(const Uint8* src)
 {
     const Vector4 mask{ 0xFFu, 0xFF00u, 0u, 0u };
@@ -178,7 +198,7 @@ const Vector4 Vector4::LoadBGR_UNorm(const Uint8* src)
     return _mm_mul_ps(vTemp, scale);
 }
 
-void Vector4::StoreBGR_NonTemporal(Uint8* dest) const
+Uint32 Vector4::ToBGR() const
 {
     const Vector4 scaled = (*this) * VECTOR_255;
 
@@ -190,26 +210,15 @@ void Vector4::StoreBGR_NonTemporal(Uint8* dest) const
     // extract RGB components:
     // in: 000000BB  000000GG  000000RR
     // out:                    00RRGGBB
-    const __m128i b = _mm_srli_si128(vInt, 8);
-    const __m128i g = _mm_srli_si128(vInt, 3);
-    const __m128i r = _mm_slli_si128(vInt, 2);
+    //const __m128i b = _mm_srli_si128(vInt, 8);
+    //const __m128i g = _mm_srli_si128(vInt, 3);
+    //const __m128i r = _mm_slli_epi32(vInt, 2 * 8);
+    //const __m128i result = _mm_or_si128(r, _mm_or_si128(g, b));
 
-    __m128i result = _mm_or_si128(r, _mm_or_si128(g, b));
+    const __m128i shuffleMask = _mm_set_epi8(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 4, 8);
+    const __m128i result = _mm_shuffle_epi8(vInt, shuffleMask);
 
-    _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(result, 0));
-}
-
-void Vector4::Store4_NonTemporal(Uint8* dest) const
-{
-    // Convert to int & extract components
-    __m128i vResulti = _mm_cvttps_epi32(v);
-    __m128i Yi = _mm_srli_si128(vResulti, 3);
-    __m128i Zi = _mm_srli_si128(vResulti, 6);
-    __m128i Wi = _mm_srli_si128(vResulti, 9);
-
-    vResulti = _mm_or_si128(_mm_or_si128(Wi, Zi), _mm_or_si128(Yi, vResulti));
-
-    _mm_stream_si32(reinterpret_cast<Int32*>(dest), _mm_extract_epi32(vResulti, 0));
+    return _mm_extract_epi32(result, 0);
 }
 
 Float2 Vector4::ToFloat2() const

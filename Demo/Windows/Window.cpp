@@ -2,6 +2,7 @@
 #include "../Window.h"
 
 #include "../Core/Utils/Logger.h"
+#include "../Core/Utils/Bitmap.h"
 
 namespace {
 
@@ -237,21 +238,23 @@ bool Window::Open()
     return true;
 }
 
-bool Window::DrawPixels(const void* sourceData)
+bool Window::DrawPixels(const rt::Bitmap& bitmap)
 {
+    RT_ASSERT(bitmap.GetFormat() == rt::Bitmap::Format::B8G8R8A8_UNorm);
+
     BITMAPINFO bmi;
     ZeroMemory(&bmi, sizeof(bmi));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = mWidth;
-    bmi.bmiHeader.biHeight = -static_cast<Int32>(mHeight); // flip the image
+    bmi.bmiHeader.biWidth = bitmap.GetStride() / 4;
+    bmi.bmiHeader.biHeight = -static_cast<Int32>(bitmap.GetHeight()); // flip the image
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = 4 * mWidth * mHeight;
+    bmi.bmiHeader.biSizeImage = bitmap.GetStride() * bitmap.GetHeight();
     bmi.bmiHeader.biXPelsPerMeter = 1;
     bmi.bmiHeader.biYPelsPerMeter = 1;
 
-    if (0 == SetDIBitsToDevice(mDC, 0, 0, mWidth, mHeight, 0, 0, 0, mHeight, sourceData, &bmi, DIB_RGB_COLORS))
+    if (0 == SetDIBitsToDevice(mDC, 0, 0, mWidth, mHeight, 0, 0, 0, mHeight, bitmap.GetData(), &bmi, DIB_RGB_COLORS))
     {
         RT_LOG_ERROR("Paint failed");
         return false;

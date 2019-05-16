@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "RendererContext.h"
 #include "Utils/Logger.h"
+#include "Utils/Timer.h"
 #include "Scene/Camera.h"
 #include "Color/LdrColor.h"
 #include "Color/ColorHelpers.h"
@@ -18,6 +19,8 @@ static const Uint32 MAX_IMAGE_SZIE = 1 << 16;
 Viewport::Viewport()
 {
     InitThreadData();
+
+    mBlurredImages.Resize(5);
 }
 
 Viewport::~Viewport() = default;
@@ -54,16 +57,32 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     }
 
     if (width == GetWidth() && height == GetHeight())
+    {
         return true;
+    }
 
     if (!mSum.Init(width, height, Bitmap::Format::R32G32B32_Float))
+    {
         return false;
+    }
 
     if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32_Float))
+    {
         return false;
+    }
+
+    for (Bitmap& blurredImage : mBlurredImages)
+    {
+        if (!blurredImage.Init(width, height, Bitmap::Format::R32G32B32_Float))
+        {
+            return false;
+        }
+    }
 
     if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm))
+    {
         return false;
+    }
 
     mPassesPerPixel.Resize(width * height);
 
@@ -99,6 +118,10 @@ void Viewport::Reset()
 
     mSum.Clear();
     mSecondarySum.Clear();
+    for (Bitmap& blurredImage : mBlurredImages)
+    {
+        blurredImage.Clear();
+    }
 
     memset(mPassesPerPixel.Data(), 0, sizeof(Uint32) * GetWidth() * GetHeight());
 
@@ -419,6 +442,25 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
 void Viewport::PerformPostProcess()
 {
+    if (!mBlurredImages.Empty() && mPostprocessParams.params.bloomFactor > 0.0f)
+    {
+        Timer timer;
+
+        float blurSigma = 2.0f;
+        for (Uint32 i = 0; i < mBlurredImages.Size(); ++i)
+        {
+            Bitmap::Copy(mBlurredImages[i], i == 0 ? mSum : mBlurredImages[i - 1]);
+            mBlurredImages[i].GaussianBlur(blurSigma, 8);
+            blurSigma *= 2.5f;
+        }
+
+        float curTime = (float)timer.Stop();
+        static float minTime = FLT_MAX;
+        minTime = Min(curTime, minTime);
+
+        RT_LOG_INFO("Bluring took %.3f ms (min: %.3f ms)", curTime * 1000.0, minTime * 1000.0);
+    }
+
     mPostprocessParams.colorScale = mPostprocessParams.params.colorFilter * exp2f(mPostprocessParams.params.exposure);
 
     if (mPostprocessParams.fullUpdateRequired)
@@ -456,40 +498,49 @@ void Viewport::PerformPostProcess()
             mThreadPool.RunParallelTask(taskCallback, mRenderingTiles.Size());
         }
     }
-
-    // flush non-temporal stores
-    _mm_mfence();
 }
 
 void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 {
     Random& randomGenerator = mThreadData[threadID].randomGenerator;
 
-    const Float3* __restrict sumPixels = mSum.GetDataAs<Float3>();
-    Uint8* __restrict frontBufferPixels = mFrontBuffer.GetDataAs<Uint8>();
+    const bool enableBloom = mPostprocessParams.params.bloomFactor > 0.0f && !mBlurredImages.Empty();
+    const float bloomWeights[] = { 0.35f, 0.25f, 0.15f, 0.15f, 0.1f };
 
-    const float pixelScaling = 1.0f / (1u + mProgress.passesFinished);
-
+    const Vector4 pixelScaling = mPostprocessParams.colorScale / (float)(1u + mProgress.passesFinished);
+  
     for (Uint32 y = block.minY; y < block.maxY; ++y)
     {
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const size_t pixelIndex = GetWidth() * y + x;
-
+            const Vector4 rawValue = Vector4::Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-            const Vector4 xyzColor = Vector4(sumPixels[pixelIndex]);
-            const Vector4 rgbColor = Vector4::Max(Vector4::Zero(), ConvertXYZtoRGB(xyzColor));
+            Vector4 rgbColor = Vector4::Max(Vector4::Zero(), ConvertXYZtoRGB(rawValue));
 #else
-            const Vector4 rgbColor = Vector4(sumPixels[pixelIndex]);
+            Vector4 rgbColor = rawValue;
 #endif
+
+            // add bloom
+            if (enableBloom)
+            {
+                rgbColor *= 1.0f - mPostprocessParams.params.bloomFactor;
+
+                Vector4 bloomColor = Vector4::Zero();
+                for (Uint32 i = 0; i < mBlurredImages.Size(); ++i)
+                {
+                    const Vector4 blurredColor = Vector4::Load_Float3_Unsafe(mBlurredImages[i].GetPixelRef<Float3>(x, y));
+                    bloomColor = Vector4::MulAndAdd(blurredColor, bloomWeights[i], bloomColor);
+                }
+                rgbColor = Vector4::MulAndAdd(bloomColor, mPostprocessParams.params.bloomFactor, rgbColor);
+            }
 
             // TODO
             //const float pixelScaling = 1.0f / static_cast<float>(mPassesPerPixel[pixelIndex]);
 
-            const Vector4 toneMapped = ToneMap(rgbColor * mPostprocessParams.colorScale * pixelScaling);
+            const Vector4 toneMapped = ToneMap(rgbColor * pixelScaling);
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
 
-            dithered.StoreBGR_NonTemporal(frontBufferPixels + 4 * pixelIndex);
+            mFrontBuffer.GetPixelRef<Uint32>(x, y) = dithered.ToBGR();
         }
     }
 }
@@ -503,9 +554,6 @@ float Viewport::ComputeBlockError(const Block& block) const
 
     RT_ASSERT(mProgress.passesFinished % 2 == 0, "This funcion can be only called after even number of passes");
 
-    const Float3* sumPixels = mSum.GetDataAs<Float3>();
-    const Float3* secondarySumPixels = mSecondarySum.GetDataAs<Float3>();
-
     const float imageScalingFactor = 1.0f / (float)mProgress.passesFinished;
 
     float totalError = 0.0f;
@@ -514,9 +562,8 @@ float Viewport::ComputeBlockError(const Block& block) const
         float rowError = 0.0f;
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const size_t pixelIndex = GetWidth() * y + x;
-            const Vector4 a = imageScalingFactor * Vector4(sumPixels[pixelIndex]);
-            const Vector4 b = (2.0f * imageScalingFactor) * Vector4(secondarySumPixels[pixelIndex]);
+            const Vector4 a = imageScalingFactor * Vector4::Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
+            const Vector4 b = (2.0f * imageScalingFactor) * Vector4::Load_Float3_Unsafe(mSecondarySum.GetPixelRef<Float3>(x, y));
             const Vector4 diff = Vector4::Abs(a - b);
             const float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * a.y + a.z);
             rowError += error;
@@ -682,8 +729,6 @@ void Viewport::UpdateBlocksList()
 
 void Viewport::VisualizeActiveBlocks(Bitmap& bitmap) const
 {
-    LdrColor* frontBufferPixels = bitmap.GetDataAs<LdrColor>();
-
     const LdrColor color(255, 0, 0);
     const Uint8 alpha = 64;
 
@@ -693,33 +738,29 @@ void Viewport::VisualizeActiveBlocks(Bitmap& bitmap) const
         {
             for (Uint32 x = block.minX; x < block.maxX; ++x)
             {
-                const size_t pixelIndex = GetWidth() * y + x;
-                frontBufferPixels[pixelIndex] = Lerp(frontBufferPixels[pixelIndex], color, alpha);
+                LdrColor& pixel = bitmap.GetPixelRef<LdrColor>(x, y);
+                pixel = Lerp(pixel, color, alpha);
             }
         }
 
         for (Uint32 y = block.minY; y < block.maxY; ++y)
         {
-            const size_t pixelIndex = GetWidth() * y + block.minX;
-            frontBufferPixels[pixelIndex] = color;
+            bitmap.GetPixelRef<LdrColor>(block.minX, y) = color;
         }
 
         for (Uint32 y = block.minY; y < block.maxY; ++y)
         {
-            const size_t pixelIndex = GetWidth() * y + (block.maxX - 1);
-            frontBufferPixels[pixelIndex] = color;
+            bitmap.GetPixelRef<LdrColor>(block.maxX - 1, y) = color;
         }
 
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const size_t pixelIndex = GetWidth() * block.minY + x;
-            frontBufferPixels[pixelIndex] = color;
+            bitmap.GetPixelRef<LdrColor>(x, block.minY) = color;
         }
 
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const size_t pixelIndex = GetWidth() * (block.maxY - 1) + x;
-            frontBufferPixels[pixelIndex] = color;
+            bitmap.GetPixelRef<LdrColor>(x, block.maxY - 1) = color;
         }
     }
 }

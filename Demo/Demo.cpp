@@ -428,7 +428,7 @@ bool DemoWindow::Loop()
         }
 
         // display pixels in the window
-        DrawPixels(mImage.GetData());
+        DrawPixels(mImage);
 
         mLastKeyDown = KeyCode::Invalid;
 

@@ -223,7 +223,7 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
     }
 
     // TODO support for DXT textures that has dimension non-4-multiply
-    const size_t dataSize = GetDataSize(width, height, format);
+    const size_t dataSize = ComputeDataSize(width, height, format);
     if (fread(mData, dataSize, 1, file) != 1)
     {
         RT_LOG_ERROR("Failed to read bitmap data from file '%hs', errno = %u", path, errno);

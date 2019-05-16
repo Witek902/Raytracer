@@ -110,9 +110,10 @@ private:
     DynArray<GenericSampler> mSamplers;
     DynArray<RenderingContext> mThreadData;
 
-    Bitmap mSum;            // image with accumulated samples (floating point, high dynamic range)
-    Bitmap mSecondarySum;   // contains image with every second sample - required for adaptive rendering
-    Bitmap mFrontBuffer;    // postprocesses image (low dynamic range)
+    Bitmap mSum;                        // image with accumulated samples (floating point, high dynamic range)
+    Bitmap mSecondarySum;               // contains image with every second sample - required for adaptive rendering
+    Bitmap mFrontBuffer;                // postprocesses image (low dynamic range)
+    DynArray<Bitmap> mBlurredImages;    // blurred images for bloom
     DynArray<Uint32> mPassesPerPixel;
     DynArray<math::Float2> mPixelSalt; // salt value for each pixel
 

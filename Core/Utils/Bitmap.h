@@ -41,12 +41,26 @@ public:
     RT_FORCE_INLINE const char* GetDebugName() const { return mDebugName; }
 
     template<typename T>
-    RT_FORCE_INLINE T* GetDataAs()
+    RT_FORCE_INLINE T& GetPixelRef(Uint32 x, Uint32 y)
     {
-        // TODO validate type
-        return reinterpret_cast<T*>(GetData());
+        RT_ASSERT(x < mWidth && y < mHeight);
+        RT_ASSERT(BitsPerPixel(mFormat) / 8 == sizeof(T));
+
+        const size_t rowOffset = static_cast<size_t>(mStride) * static_cast<size_t>(y);
+        return *reinterpret_cast<T*>(mData + rowOffset + sizeof(T) * x);
     }
 
+    template<typename T>
+    RT_FORCE_INLINE const T& GetPixelRef(Uint32 x, Uint32 y) const
+    {
+        RT_ASSERT(x < mWidth && y < mHeight);
+        RT_ASSERT(BitsPerPixel(mFormat) / 8 == sizeof(T));
+
+        const size_t rowOffset = static_cast<size_t>(mStride) * static_cast<size_t>(y);
+        return *reinterpret_cast<const T*>(mData + rowOffset + sizeof(T) * x);
+    }
+
+    /*
     template<typename T>
     RT_FORCE_INLINE const T* GetDataAs() const
     {
@@ -54,13 +68,23 @@ public:
         return reinterpret_cast<const T*>(GetData());
     }
 
+    template<typename T>
+    RT_FORCE_INLINE T* GetDataAs()
+    {
+        // TODO validate type
+        return reinterpret_cast<T*>(GetData());
+    }
+    */
+
     RT_FORCE_INLINE void* GetData() { return mData; }
     RT_FORCE_INLINE const void* GetData() const { return mData; }
-    RT_FORCE_INLINE Uint32 GetWidth() const { return (Uint32)mWidth; }
-    RT_FORCE_INLINE Uint32 GetHeight() const { return (Uint32)mHeight; }
+    RT_FORCE_INLINE Uint32 GetWidth() const { return mWidth; }
+    RT_FORCE_INLINE Uint32 GetStride() const { return mStride; }
+    RT_FORCE_INLINE Uint32 GetHeight() const { return mHeight; }
     RT_FORCE_INLINE Format GetFormat() const { return mFormat; }
 
-    static size_t GetDataSize(Uint32 width, Uint32 height, Format format);
+    static size_t ComputeDataSize(Uint32 width, Uint32 height, Format format);
+    static Uint32 ComputeDataStride(Uint32 width, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
     RAYLIB_API bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
@@ -96,6 +120,8 @@ public:
 
     // fill with zeros
     RAYLIB_API void Clear();
+    
+    bool GaussianBlur(const float sigma, const Uint32 n);
 
 private:
 
@@ -113,6 +139,7 @@ private:
     Uint8* mData;
     Uint32 mWidth;
     Uint32 mHeight;
+    Uint32 mStride;
     Format mFormat;
     bool mLinearSpace;
     char* mDebugName;

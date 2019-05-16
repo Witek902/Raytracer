@@ -21,18 +21,19 @@ Film::Film(Bitmap& sum, Bitmap* secondarySum)
     }
 }
 
+RT_FORCE_INLINE static void AccumulateToFloat3(Float3& target, const Vector4& value)
+{
+    const Vector4 original = Vector4::Load_Float3_Unsafe(target);
+    target = (original + value).ToFloat3();
+}
+
 void Film::AccumulateColor(const Uint32 x, const Uint32 y, const Vector4& sampleColor)
 {
-    RT_ASSERT(x < mSum.GetWidth());
-    RT_ASSERT(y < mSum.GetHeight());
-
-    const size_t pixelIndex = mWidth * y + x;
-
-    mSum.GetDataAs<Float3>()[pixelIndex] += sampleColor.ToFloat3();
+    AccumulateToFloat3(mSum.GetPixelRef<Float3>(x, y), sampleColor);
 
     if (mSecondarySum)
     {
-        mSecondarySum->GetDataAs<Float3>()[pixelIndex] += sampleColor.ToFloat3();
+        AccumulateToFloat3(mSecondarySum->GetPixelRef<Float3>(x, y), sampleColor);
     }
 }
 
@@ -63,13 +64,11 @@ void Film::AccumulateColor(const Vector4& pos, const Vector4& sampleColor, Rando
 
     if (x >= 0 && y >= 0 && x < Int32(mWidth) && y < Int32(mHeight))
     {
-        const size_t pixelIndex = mWidth * y + x;
-
-        mSum.GetDataAs<Float3>()[pixelIndex] += sampleColor.ToFloat3();
+        AccumulateToFloat3(mSum.GetPixelRef<Float3>(x, y), sampleColor);
 
         if (mSecondarySum)
         {
-            mSecondarySum->GetDataAs<Float3>()[pixelIndex] += sampleColor.ToFloat3();
+            AccumulateToFloat3(mSecondarySum->GetPixelRef<Float3>(x, y), sampleColor);
         }
     }
 }

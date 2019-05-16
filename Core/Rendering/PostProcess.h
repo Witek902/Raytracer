@@ -8,13 +8,18 @@ namespace rt {
 
 struct RT_ALIGN(16) PostprocessParams
 {
-    math::Vector4 colorFilter = math::VECTOR_ONE;
+    math::Vector4 colorFilter;
 
     // exposure in log scale
-    float exposure = 0.0f;
+    float exposure;
 
     // applied after tonemapping
-    float ditheringStrength = 0.005f;
+    float ditheringStrength;
+
+    // bloom multiplier
+    float bloomFactor;
+
+    RAYLIB_API PostprocessParams();
 
     RAYLIB_API bool operator == (const PostprocessParams& other) const;
     RAYLIB_API bool operator != (const PostprocessParams& other) const;

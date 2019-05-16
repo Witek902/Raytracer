@@ -68,8 +68,6 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             goto exrImageError;
         }
 
-        const size_t numPixels = static_cast<size_t>(exrImage.width) * static_cast<size_t>(exrImage.height);
-
         if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_FLOAT)
         {
             if (!Init(exrImage.width, exrImage.height, Format::R32G32B32_Float, nullptr, true))
@@ -77,12 +75,16 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
                 goto exrImageError;
             }
 
-            float* typedData = reinterpret_cast<float*>(mData);
-            for (size_t i = 0; i < numPixels; ++i)
+            for (size_t y = 0; y < (size_t)exrImage.height; ++y)
             {
-                typedData[3 * i    ] = reinterpret_cast<const float*>(exrImage.images[2])[i];
-                typedData[3 * i + 1] = reinterpret_cast<const float*>(exrImage.images[1])[i];
-                typedData[3 * i + 2] = reinterpret_cast<const float*>(exrImage.images[0])[i];
+                float* typedData = reinterpret_cast<float*>(mData + (size_t)mStride * y);
+                for (size_t x = 0; x < (size_t)exrImage.width; ++x)
+                {
+                    const size_t index = y * exrImage.width + x;
+                    typedData[3 * x    ] = reinterpret_cast<const float*>(exrImage.images[2])[index];
+                    typedData[3 * x + 1] = reinterpret_cast<const float*>(exrImage.images[1])[index];
+                    typedData[3 * x + 2] = reinterpret_cast<const float*>(exrImage.images[0])[index];
+                }
             }
         }
         else if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_HALF)
@@ -92,12 +94,16 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
                 goto exrImageError;
             }
 
-            Uint16* typedData = reinterpret_cast<Uint16*>(mData);
-            for (size_t i = 0; i < numPixels; ++i)
+            for (size_t y = 0; y < (size_t)exrImage.height; ++y)
             {
-                typedData[3 * i    ] = reinterpret_cast<const Uint16*>(exrImage.images[2])[i];
-                typedData[3 * i + 1] = reinterpret_cast<const Uint16*>(exrImage.images[1])[i];
-                typedData[3 * i + 2] = reinterpret_cast<const Uint16*>(exrImage.images[0])[i];
+                Uint16* typedData = reinterpret_cast<Uint16*>(mData + (size_t)mStride * y);
+                for (size_t x = 0; x < (size_t)exrImage.width; ++x)
+                {
+                    const size_t index = y * exrImage.width + x;
+                    typedData[3 * x    ] = reinterpret_cast<const Uint16*>(exrImage.images[2])[index];
+                    typedData[3 * x + 1] = reinterpret_cast<const Uint16*>(exrImage.images[1])[index];
+                    typedData[3 * x + 2] = reinterpret_cast<const Uint16*>(exrImage.images[0])[index];
+                }
             }
         }
         else

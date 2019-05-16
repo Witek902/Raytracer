@@ -108,6 +108,11 @@ struct RT_ALIGN(16) Vector4
     // Rearrange vector elements (variable)
     RT_FORCE_INLINE const Vector4 Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const;
 
+    RT_FORCE_INLINE static const Vector4 Load_Float2_Unsafe(const Float2* src);
+    RT_FORCE_INLINE static const Vector4 Load_Float3_Unsafe(const Float3* src);
+    RT_FORCE_INLINE static const Vector4 Load_Float2_Unsafe(const Float2& src);
+    RT_FORCE_INLINE static const Vector4 Load_Float3_Unsafe(const Float3& src);
+
     // Convert 2 Uint8 to a Vector4 (normalized range)
     RT_FORCE_INLINE static const Vector4 Load_2xUint8_Norm(const Uint8* src);
 
@@ -123,11 +128,9 @@ struct RT_ALIGN(16) Vector4
     // Convert 3 uint8 to a Vector4 and scale to 0...1 range
     RT_FORCE_INLINE static const Vector4 LoadBGR_UNorm(const Uint8* src);
 
-    // Convert to 3 uint8 values
-    RT_FORCE_INLINE void StoreBGR_NonTemporal(Uint8* dest) const;
-
-    // Convert a Vector4 to 4 unsigned chars
-    RT_FORCE_INLINE void Store4_NonTemporal(Uint8* dest) const;
+    // Convert to 3 uint8 values (with clamping)
+    // xyz [0.0f...1.0f] -> zyx [0...255]
+    RT_FORCE_INLINE Uint32 ToBGR() const;
 
     RT_FORCE_INLINE Float2 ToFloat2() const;
     RT_FORCE_INLINE Float3 ToFloat3() const;

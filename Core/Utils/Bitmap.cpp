@@ -63,9 +63,9 @@ const char* Bitmap::FormatToString(Format format)
     return "<unknown>";
 }
 
-size_t Bitmap::GetDataSize(Uint32 width, Uint32 height, Format format)
+size_t Bitmap::ComputeDataSize(Uint32 width, Uint32 height, Format format)
 {
-    const Uint64 dataSize = (Uint64)width * (Uint64)height * (Uint64)BitsPerPixel(format) / 8;
+    const Uint64 dataSize = (Uint64)height * (Uint64)ComputeDataStride(width, format);
 
     if (dataSize >= (Uint64)std::numeric_limits<size_t>::max())
     {
@@ -75,10 +75,16 @@ size_t Bitmap::GetDataSize(Uint32 width, Uint32 height, Format format)
     return (size_t)dataSize;
 }
 
+Uint32 Bitmap::ComputeDataStride(Uint32 width, Format format)
+{
+    return width * (Uint64)BitsPerPixel(format) / 8;
+}
+
 Bitmap::Bitmap(const char* debugName)
     : mData(nullptr)
     , mWidth(0)
     , mHeight(0)
+    , mStride(0)
     , mFormat(Format::Unknown)
     , mLinearSpace(false)
 {
@@ -102,7 +108,7 @@ void Bitmap::Clear()
 {
     if (mData)
     {
-        memset(mData, 0, GetDataSize(mWidth, mHeight, mFormat));
+        memset(mData, 0, ComputeDataSize(mWidth, mHeight, mFormat));
     }
 }
 
@@ -114,6 +120,7 @@ void Bitmap::Release()
         mData = nullptr;
     }
 
+    mStride = 0;
     mWidth = 0;
     mHeight = 0;
     mFormat = Format::Unknown;
@@ -121,7 +128,7 @@ void Bitmap::Release()
 
 bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, bool linearSpace)
 {
-    const size_t dataSize = GetDataSize(width, height, format);
+    const size_t dataSize = ComputeDataSize(width, height, format);
     if (dataSize == 0)
     {
         RT_LOG_ERROR("Invalid bitmap format");
@@ -149,8 +156,9 @@ bool Bitmap::Init(Uint32 width, Uint32 height, Format format, const void* data, 
         memcpy(mData, data, dataSize);
     }
 
-    mWidth = (Uint16)width;
-    mHeight = (Uint16)height;
+    mStride = ComputeDataStride(width, format);
+    mWidth = width;
+    mHeight = height;
     mSize = VectorInt4(width, height, width, height);
     mFloatSize = mSize.ConvertToFloat();
     mFormat = format;
@@ -173,7 +181,7 @@ bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
         return false;
     }
 
-    memcpy(target.GetData(), source.GetData(), GetDataSize(target.mWidth, target.mHeight, target.mFormat));
+    memcpy(target.GetData(), source.GetData(), ComputeDataSize(target.mWidth, target.mHeight, target.mFormat));
     return true;
 }
 
@@ -217,76 +225,77 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
     RT_ASSERT(x < mWidth);
     RT_ASSERT(y < mHeight);
 
-    const Uint32 offset = mWidth * y + x;
+    const size_t rowOffset = static_cast<size_t>(mStride) * static_cast<size_t>(y);
+    const Uint8* rowData = mData + rowOffset;
 
     Vector4 color;
     switch (mFormat)
     {
     case Format::R8_UNorm:
     {
-        const Uint32 value = mData[offset];
+        const Uint32 value = rowData[x];
         color = Vector4::FromInteger(value) * (1.0f / 255.0f);
         break;
     }
 
     case Format::R8G8_UNorm:
     {
-        color = Vector4::Load_2xUint8_Norm(mData + (2u * offset));
+        color = Vector4::Load_2xUint8_Norm(rowData + 2u * x);
         break;
     }
 
     case Format::B8G8R8_UNorm:
     {
-        const Uint8* source = mData + (3u * offset);
+        const Uint8* source = rowData + 3u * x;
         color = Vector4::LoadBGR_UNorm(source);
         break;
     }
 
     case Format::B8G8R8A8_UNorm:
     {
-        const Uint8* source = mData + (4u * offset);
+        const Uint8* source = rowData + 4u * x;
         color = Vector4::Load_4xUint8(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
         break;
     }
 
     case Format::R16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + offset;
+        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + x;
         color = Vector4::FromInteger(*source) * (1.0f / 65535.0f);
         break;
     }
 
     case Format::R16G16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 2u * offset;
+        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + 2u * x;
         color = Vector4::Load_2xUint16_Norm(source);
         break;
     }
 
     case Format::R16G16B16A16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(mData) + 4u * offset;
+        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + 4u * x;
         color = Vector4::Load_4xUint16(source) * (1.0f / 65535.0f);
         break;
     }
 
     case Format::R32_Float:
     {
-        const float* source = reinterpret_cast<const float*>(mData) + offset;
+        const float* source = reinterpret_cast<const float*>(rowData) + x;
         color = Vector4(*source);
         break;
     }
 
     case Format::R32G32B32_Float:
     {
-        const float* source = reinterpret_cast<const float*>(mData) + 3u * offset;
+        const float* source = reinterpret_cast<const float*>(rowData) + 3u * x;
         color = Vector4(source) & Vector4::MakeMask<1, 1, 1, 0>();
         break;
     }
 
     case Format::R32G32B32A32_Float:
     {
-        const Vector4* source = reinterpret_cast<const Vector4*>(mData) + offset;
+        const Vector4* source = reinterpret_cast<const Vector4*>(rowData) + x;
         RT_PREFETCH_L2(source - mWidth);
         RT_PREFETCH_L2(source + mWidth);
         color = *source;
@@ -295,47 +304,47 @@ Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 
     case Format::R16_Half:
     {
-        const Half* source = reinterpret_cast<const Half*>(mData) + offset;
+        const Half* source = reinterpret_cast<const Half*>(rowData) + x;
         color = Vector4(ConvertHalfToFloat(*source));
         break;
     }
 
     case Format::R16G16_Half:
     {
-        const Half* source = reinterpret_cast<const Half*>(mData) + 2u * offset;
+        const Half* source = reinterpret_cast<const Half*>(rowData) + 2u * x;
         color = Vector4::FromHalves(source) & Vector4::MakeMask<1, 1, 0, 0>();
         break;
     }
 
     case Format::R16G16B16_Half:
     {
-        const Half* source = reinterpret_cast<const Half*>(mData) + 3u * offset;
+        const Half* source = reinterpret_cast<const Half*>(rowData) + 3u * x;
         color = Vector4::FromHalves(source) & Vector4::MakeMask<1, 1, 1, 0>();
         break;
     }
 
     case Format::R16G16B16A16_Half:
     {
-        const Half* source = reinterpret_cast<const Half*>(mData) + 4u * offset;
+        const Half* source = reinterpret_cast<const Half*>(rowData) + 4u * x;
         color = Vector4::FromHalves(source);
         break;
     }
 
     case Format::BC1:
     {
-        color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC1(reinterpret_cast<const Uint8*>(rowData), x, y, mWidth);
         break;
     }
 
     case Format::BC4:
     {
-        color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC4(reinterpret_cast<const Uint8*>(rowData), x, y, mWidth);
         break;
     }
 
     case Format::BC5:
     {
-        color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC5(reinterpret_cast<const Uint8*>(rowData), x, y, mWidth);
         break;
     }
 
@@ -595,6 +604,143 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, const bool forceLinearSpace,
     outColors[1] = color[1];
     outColors[2] = color[2];
     outColors[3] = color[3];
+}
+
+// performs 1D box blur in linear time
+RT_FORCE_NOINLINE
+static void BoxBlur_Internal(Vector4* __restrict targetLine, const Vector4* __restrict srcLine, const Uint32 radius, const Uint32 width)
+{
+    const float factor = 1.0f / (float)(2 * radius + 1);
+
+    const Vector4* __restrict srcLineBegin = srcLine;
+    const Vector4* __restrict srcLineEnd = srcLine;
+
+    const Vector4 firstValue = srcLine[0];
+    const Vector4 lastValue = srcLine[width - 1];
+    Vector4 val = firstValue * static_cast<float>(radius + 1);
+
+    for (Uint32 j = 0; j < radius; j++)
+    {
+        val += *(srcLineBegin++);
+    }
+
+    for (Uint32 j = 0; j <= radius; j++)
+    {
+        val += *(srcLineBegin++) - firstValue;
+        *(targetLine++) = val * factor;
+    }
+
+    for (Uint32 j = radius + 1; j < width - radius; j++)
+    {
+        val += *(srcLineBegin++) - *(srcLineEnd++);
+        *(targetLine++) = val * factor;
+    }
+
+    for (Uint32 j = width - radius; j < width; j++)
+    {
+        val += lastValue - *(srcLineEnd++);
+        *(targetLine++) = val * factor;
+    }
+}
+
+bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
+{
+    if (mFormat != Format::R32G32B32_Float)
+    {
+        RT_LOG_ERROR("GaussianBlur: Unsupported texture format");
+        return false;
+    }
+
+    // TODO get rid of this
+    const Uint32 MaxLineSize = 4096;
+    if (mWidth > MaxLineSize || mHeight > MaxLineSize)
+    {
+        RT_LOG_ERROR("GaussianBlur: Image too big");
+        return false;
+    }
+
+    // based on http://blog.ivank.net/fastest-gaussian-blur.html
+
+    float wIdeal = sqrtf((12.0f * sigma * sigma / n) + 1.0f);
+    Uint32 wl = (Uint32)floorf(wIdeal);
+    if (wl % 2 == 0)
+    {
+        wl--;
+    }
+
+    const Uint32 wu = wl + 2;
+    const float mIdeal = (12.0f * sigma * sigma - n * wl * wl - 4.0f * n * wl - 3.0f * n) / (-4.0f * wl - 4.0f);
+    const float m = roundf(mIdeal);
+
+    const Uint32 numColumns = 6; // RT_CACHE_LINE_SIZE / sizeof(Float3);
+
+    Vector4 tempLineA[numColumns][MaxLineSize];
+    Vector4 tempLineB[numColumns][MaxLineSize];
+
+    Vector4* sourceLinePtr = nullptr;
+    Vector4* targetLinePtr = nullptr;
+
+    // horizontal blur
+    for (Uint32 y = 0; y < mHeight; ++y)
+    {
+        Float3* rowPtr = &GetPixelRef<Float3>(0, y);
+
+        for (Uint32 x = 0; x < mWidth; ++x)
+        {
+            tempLineB[0][x] = Vector4((float*)(rowPtr + x));
+        }
+
+        sourceLinePtr = tempLineB[0];
+        targetLinePtr = tempLineA[0];
+
+        for (Uint32 i = 0; i < n; ++i)
+        {
+            const Uint32 radius = i < m ? wl : wu;
+            BoxBlur_Internal(targetLinePtr, sourceLinePtr, radius, mWidth);
+            std::swap(sourceLinePtr, targetLinePtr);
+        }
+
+        for (Uint32 x = 0; x < mWidth; ++x)
+        {
+            *(rowPtr + x) = targetLinePtr[x].ToFloat3();
+        }
+    }
+
+    // vertical blur
+    for (Uint32 x = 0; x < mWidth; x += numColumns)
+    {
+        for (Uint32 y = 0; y < mHeight; ++y)
+        {
+            for (Uint32 i = 0; i < numColumns; ++i)
+            {
+                tempLineA[i][y] = Vector4(GetPixelRef<Float3>(x + i, y));
+            }
+        }
+
+        for (Uint32 i = 0; i < numColumns; ++i)
+        {
+            sourceLinePtr = tempLineA[i];
+            targetLinePtr = tempLineB[i];
+
+            for (Uint32 j = 0; j < n; ++j)
+            {
+                const Uint32 radius = j < m ? wl : wu;
+                BoxBlur_Internal(targetLinePtr, sourceLinePtr, radius, mHeight);
+                std::swap(sourceLinePtr, targetLinePtr);
+            }
+        }
+
+
+        for (Uint32 y = 0; y < mHeight; ++y)
+        {
+            for (Uint32 i = 0; i < numColumns; ++i)
+            {
+                GetPixelRef<Float3>(x + i, y) = tempLineA[i][y].ToFloat3();
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace rt
