@@ -537,9 +537,24 @@ bool DemoWindow::RenderUI_Settings_PostProcess()
 
     changed |= ImGui::SliderFloat("Exposure", &mPostprocessParams.exposure, -8.0f, 8.0f, "%+.3f EV");
     changed |= ImGui::SliderFloat("Saturation", &mPostprocessParams.saturation, 0.0f, 2.0f);
+    changed |= ImGui::SliderFloat("Contrast", &mPostprocessParams.contrast, 0.125f, 4.0f, "%.2f", 2.0f);
     changed |= ImGui::SliderFloat("Bloom factor", &mPostprocessParams.bloomFactor, 0.0f, 1.0f);
     changed |= ImGui::SliderFloat("Dithering", &mPostprocessParams.ditheringStrength, 0.0f, 0.1f);
     changed |= ImGui::ColorEdit3("Color filter", &mPostprocessParams.colorFilter.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+
+    int tonemapperIndex = static_cast<int>(mPostprocessParams.tonemapper);
+    const char* tonemapperNames[] =
+    {
+        "Clamped",
+        "Reinhard",
+        "Jim Hejland and Richard Burgess Dawson",
+        "ACES (approx)",
+    };
+    if (ImGui::Combo("Tonemapper", &tonemapperIndex, tonemapperNames, IM_ARRAYSIZE(tonemapperNames)))
+    {
+        changed = true;
+        mPostprocessParams.tonemapper = static_cast<Tonemapper>(tonemapperIndex);
+    }
 
     if (changed)
     {

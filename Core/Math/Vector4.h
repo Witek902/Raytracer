@@ -134,7 +134,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Max(const Vector4& a, const Vector4& b);
     RT_FORCE_INLINE static const Vector4 Abs(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Saturate(const Vector4& v);
-    RT_FORCE_INLINE const Vector4 Clamped(const Vector4& min, const Vector4& max) const;
+    RT_FORCE_INLINE static const Vector4 Clamp(const Vector4& x, const Vector4& min, const Vector4& max);
 
     // Build mask of sign bits
     RT_FORCE_INLINE int GetSignMask() const;

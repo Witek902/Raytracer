@@ -17,7 +17,14 @@
             "material": "diffuse"
         }
     ],
-
+    "lights":
+    [
+        {
+            "type": "background",
+            "color": [2.0, 2.0, 2.0],
+            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
+        }
+    ],
     "camera":
     {
         "transform":

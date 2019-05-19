@@ -5,9 +5,11 @@
             "name": "ground",
             "bsdf": "diffuse",
             "baseColor": [0.9, 0.9, 0.9],
-            "baseColorTexture": "TEXTURES/default.bmp",
+            "baseColorTexture": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_COL_VAR1_6K.bmp",
             "metalness": 0.0,
-            "roughness": 0.5
+            "roughness": 0.5,
+            "roughnessTexture": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_ROUGHNESS_6K.bmp",
+            "normalMap": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_NRM_6K.DDS"
         },
 
         {
@@ -51,34 +53,31 @@
             "type": "plane",
             "transform": { "translation": [0.0, 0.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
             "textureScale" : [0.4, 0.4],
-			"size" : [10.0, 10.0],
+			"size" : [2.0, 2.0],
             "material": "ground"
         },
         {
             "type": "mesh",
             "path": "MODELS/bunny.obj",
-            "transform": { "translation": [0.0, 0.0, 0.0] },
+            "transform": { "translation": [0.0, 0.0, 0.0], "orientation": [0.0, 200.0, 0.0] },
             "material": "glass"
         }
     ],
     "lights":
     [
         {
-            "type": "area",
-            "color": [20.0, 20.0, 20.0],
-            "position": [2.0, 2.5, 2.0],
-            "edge1": [-0.5, 0.0, 0.5],
-            "edge0": [-0.5, 0.5, -0.5],
-            "radius": 1.0
+            "type": "background",
+            "color": [2.0, 2.0, 2.0],
+            "texture" : "TEXTURES/ENV/NorwayForest_8K.exr"
         }
     ],
     "camera":
     {
         "transform":
         {
-            "translation": [3.76, 3.07, -4.99],
-            "orientation": [0.38, -0.9, 0.0]
+            "translation": [0.4, 1.0, -3.9],
+            "orientation": [2.7, -6.0, 0.0]
         },
-        "fieldOfView": 45.0
+        "fieldOfView": 40.0
     }
 }

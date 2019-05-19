@@ -12,6 +12,37 @@ RT_GLOBAL_CONST math::Vector4 XYZtoRGB_r = {  3.240479f, -1.537150f, -0.498535f,
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_g = { -0.969256f,  1.875991f,  0.041556f, 0.0f };
 RT_GLOBAL_CONST math::Vector4 XYZtoRGB_b = {  0.055648f, -0.204043f,  1.057311f, 0.0f };
 
+// Convert linear to sRGB
+template<typename T>
+RT_FORCE_INLINE math::Vector4 Convert_sRGB_To_Linear(const T& gammaColor)
+{
+    // based on:
+    // http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
+
+    T result;
+    result = T::MulAndAdd(gammaColor, T(0.305306011f), T(0.682171111f));
+    result = T::MulAndAdd(gammaColor, result, T(0.012522878f));
+    result *= gammaColor;
+    return result;
+}
+
+// Convert sRGB to linear
+template<typename T>
+RT_FORCE_INLINE math::Vector4 Convert_Linear_To_sRGB(const T& linearColor)
+{
+    // based on:
+    // http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
+
+    const T s1 = T::Sqrt(linearColor);
+    const T s2 = T::Sqrt(s1);
+    const T s3 = T::Sqrt(s2);
+
+    T result = 0.585122381f * s1;
+    result = T::MulAndAdd(s2, 0.783140355f, result);
+    result = T::MulAndAdd(s3, -0.368262736f, result);
+    return T::Saturate(result);
+}
+
 // Convert CIE XYZ to linear RGB (Rec. BT.709)
 RT_FORCE_INLINE math::Vector4 ConvertXYZtoRGB(const math::Vector4& xyzColor)
 {
@@ -41,6 +72,62 @@ RT_FORCE_INLINE math::Vector4 ConvertRGBtoXYZ(const math::Vector4& rgbColor)
         mapping[2][0] * rgbColor[0] + mapping[2][1] * rgbColor[1] + mapping[2][2] * rgbColor[2],
         0.0f
     );
+}
+
+enum class Tonemapper : Uint8
+{
+    Clamped,
+    Reinhard,
+    JimHejland_RichardBurgessDawson,
+    ACES
+};
+
+template<typename T>
+RT_FORCE_INLINE static const T ToneMap(const T color, const Tonemapper tonemapper)
+{
+    T result;
+
+    switch (tonemapper)
+    {
+    case Tonemapper::Clamped:
+    {
+        result = Convert_Linear_To_sRGB(color);
+        break;
+    }
+    case Tonemapper::Reinhard:
+    {
+        result = Convert_Linear_To_sRGB(color / (T(1.0f) + color));
+        break;
+    }
+    case Tonemapper::JimHejland_RichardBurgessDawson:
+    {
+        const T b = T(6.2f);
+        const T c = T(1.7f);
+        const T d = T(0.06f);
+        const T t0 = color * T::MulAndAdd(color, b, T(0.5f));
+        const T t1 = T::MulAndAdd(color, b, c);
+        const T t2 = T::MulAndAdd(color, t1, d);
+        result = t0 * T::FastReciprocal(t2);
+        break;
+    }
+    case Tonemapper::ACES:
+    {
+        const T a = T(2.51f);
+        const T b = T(0.03f);
+        const T c = T(2.43f);
+        const T d = T(0.59f);
+        const T e = T(0.14f);
+        const T t0 = color * T::MulAndAdd(color, a, b);
+        const T t1 = T::MulAndAdd(color, c, d);
+        const T t2 = T::MulAndAdd(color, t1, e);
+        result = Convert_Linear_To_sRGB(t0 * T::FastReciprocal(t2));
+        break;
+    }
+    default:
+        RT_FATAL("Invalid tonemapper");
+    };
+
+    return result;
 }
 
 // Convert HSV to linear RGB

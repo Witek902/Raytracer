@@ -10,6 +10,7 @@
 #include "Color/ColorHelpers.h"
 #include "Math/SamplingHelpers.h"
 #include "Math/Vector4Load.h"
+#include "Math/Transcendental.h"
 
 namespace rt {
 
@@ -326,8 +327,10 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 // generate primary ray
                 const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
 
+                const float vignettingFactor = Sqr(Sqr(Vector4::Dot3(ray.dir, tileContext.camera.GetLocalToWorld()[2])));
+
                 const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileContext.camera, film };
-                const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx);
+                const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx) * vignettingFactor;
                 RT_ASSERT(color.IsValid());
 
                 const Vector4 sampleColor = color.ConvertToTristimulus(ctx.wavelength);
@@ -436,7 +439,7 @@ void Viewport::PerformPostProcess()
         RT_LOG_INFO("Bluring took %.3f ms (min: %.3f ms)", curTime * 1000.0, minTime * 1000.0);
     }
 
-    mPostprocessParams.colorScale = mPostprocessParams.params.colorFilter * exp2f(mPostprocessParams.params.exposure);
+    mPostprocessParams.colorScale = mPostprocessParams.params.colorFilter * powf(2.0f, mPostprocessParams.params.exposure);
 
     if (mPostprocessParams.fullUpdateRequired)
     {
@@ -479,10 +482,10 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 {
     Random& randomGenerator = mThreadData[threadID].randomGenerator;
 
-    const bool enableBloom = mPostprocessParams.params.bloomFactor > 0.0f && !mBlurredImages.Empty();
+    const bool useBloom = mPostprocessParams.params.bloomFactor > 0.0f && !mBlurredImages.Empty();
     const float bloomWeights[] = { 0.35f, 0.25f, 0.15f, 0.15f, 0.1f };
 
-    const Vector4 pixelScaling = mPostprocessParams.colorScale / (float)(1u + mProgress.passesFinished);
+    const float pixelScaling = 1.0f / (float)(1u + mProgress.passesFinished);
   
     for (Uint32 y = block.minY; y < block.maxY; ++y)
     {
@@ -496,7 +499,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 #endif
 
             // add bloom
-            if (enableBloom)
+            if (useBloom)
             {
                 rgbColor *= 1.0f - mPostprocessParams.params.bloomFactor;
 
@@ -509,13 +512,25 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
                 rgbColor = Vector4::MulAndAdd(bloomColor, mPostprocessParams.params.bloomFactor, rgbColor);
             }
 
-            // TODO
-            //const float pixelScaling = 1.0f / static_cast<float>(mPassesPerPixel[pixelIndex]);
+            // scale down by number of rendering passes finished
+            // TODO support different number of passes per-pixel (adaptive rendering)
+            rgbColor *= pixelScaling;
 
+            // apply saturation
             const float grayscale = Vector4::Dot3(rgbColor, Vector4(0.2126f, 0.7152f, 0.0722f));
             rgbColor = Vector4::Max(Vector4::Zero(), Vector4::Lerp(Vector4(grayscale), rgbColor, mPostprocessParams.params.saturation));
 
-            const Vector4 toneMapped = ToneMap(rgbColor * pixelScaling);
+            // apply contrast
+            rgbColor = FastExp(FastLog(rgbColor) * mPostprocessParams.params.contrast);
+
+            // apply exposure
+            rgbColor *= mPostprocessParams.colorScale;
+
+            // apply tonemapping
+            const Vector4 toneMapped = ToneMap(rgbColor, mPostprocessParams.params.tonemapper);
+
+            // add dither
+            // TODO blue noise dithering
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
 
             mFrontBuffer.GetPixelRef<Uint32>(x, y) = dithered.ToBGR();

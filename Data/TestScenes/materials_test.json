@@ -5,15 +5,17 @@
             "name": "ground",
             "bsdf": "diffuse",
             "baseColor": [0.9, 0.9, 0.9],
-            "baseColorTexture": "TEXTURES/default.bmp",
+            "baseColorTexture": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_COL_VAR1_6K.bmp",
             "metalness": 0.0,
-            "roughness": 0.5
+            "roughness": 0.5,
+            "roughnessTexture": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_ROUGHNESS_6K.bmp",
+            "normalMap": "TEXTURES/Poliigon/Tiles05/6K/Tiles05_NRM_6K.DDS"
         },
 
         {
             "name": "plastic_0",
             "bsdf": "plastic",
-            "baseColor": [0.9, 0.4, 0.2],
+            "baseColor": [0.9, 0.1, 0.05],
             "metalness": 0.0,
             "roughness": 0.0
         },
@@ -38,7 +40,7 @@
         {
             "name": "plastic_1",
             "bsdf": "roughPlastic",
-            "baseColor": [0.9, 0.4, 0.2],
+            "baseColor": [0.9, 0.1, 0.05],
             "metalness": 0.0,
             "roughness": 0.2
         },
@@ -63,7 +65,7 @@
         {
             "name": "plastic_2",
             "bsdf": "roughPlastic",
-            "baseColor": [0.9, 0.4, 0.2],
+            "baseColor": [0.9, 0.1, 0.05],
             "metalness": 0.0,
             "roughness": 0.4
         },
@@ -90,8 +92,8 @@
         {
             "type": "plane",
             "transform": { "translation": [0.0, -1.0, 0.0], "orientation": [-90.0, 0.0, 0.0] },
-            "textureScale" : [0.4, 0.4],
-            "size": [20.0, 20.0],
+            "textureScale" : [0.2, 0.2],
+            "size": [5.0, 5.0],
             "material": "ground"
         },
 
@@ -218,14 +220,8 @@
     "lights":
     [
         {
-            "type": "area",
-            "color": [30.0, 30.0, 30.0],
-            "transform": { "translation": [5.0, 5.0, 5.0], "orientation": [45.0, -135.0, 0.0] },
-            "shape":
-            {
-                "type": "plane",
-                "size": [1.0, 1.0]
-            }
+            "type": "background",
+            "color": [2.0, 2.0, 2.0]
         }
     ],
     "camera":

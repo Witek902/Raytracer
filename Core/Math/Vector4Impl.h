@@ -70,9 +70,9 @@ const Vector4 Vector4::Saturate(const Vector4& v)
     return Min(Vector4(1.0f), Max(Vector4::Zero(), v));
 }
 
-const Vector4 Vector4::Clamped(const Vector4& min, const Vector4& max) const
+const Vector4 Vector4::Clamp(const Vector4& x, const Vector4& min, const Vector4& max)
 {
-    return Min(max, Max(min, *this));
+    return Min(max, Max(min, x));
 }
 
 float Vector4::SqrLength2() const

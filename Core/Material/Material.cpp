@@ -126,8 +126,7 @@ const Vector4 Material::GetNormalVector(const Vector4& uv) const
         normal = normalMap->Evaluate(uv);
 
         // scale from [0...1] to [-1...1]
-        normal += normal;
-        normal -= VECTOR_ONE;
+        normal = UnipolarToBipolar(normal);
 
         // reconstruct Z
         normal.z = Sqrt(Max(0.0f, 1.0f - normal.SqrLength2()));

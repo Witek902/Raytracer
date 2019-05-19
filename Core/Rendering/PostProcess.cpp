@@ -5,8 +5,9 @@ namespace rt {
 
 PostprocessParams::PostprocessParams()
     : colorFilter(math::VECTOR_ONE)
-    , saturation(0.98f)
     , exposure(0.0f)
+    , contrast(0.8f)
+    , saturation(0.98f)
     , ditheringStrength(0.005f)
     , bloomFactor(0.0f)
 {
@@ -14,12 +15,7 @@ PostprocessParams::PostprocessParams()
 
 bool PostprocessParams::operator == (const PostprocessParams& other) const
 {
-    return
-        (colorFilter == other.colorFilter).All() &&
-        saturation == other.saturation &&
-        exposure == other.exposure &&
-        ditheringStrength == other.ditheringStrength &&
-        bloomFactor == other.bloomFactor;
+    return 0 == memcmp(this, &other, sizeof(PostprocessParams));
 }
 
 bool PostprocessParams::operator != (const PostprocessParams& other) const

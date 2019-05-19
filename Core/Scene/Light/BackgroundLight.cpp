@@ -52,8 +52,7 @@ const RayColor BackgroundLight::GetBackgroundColor(const Vector4& dir, const Wav
         const Vector4 coords = CartesianToSphericalCoordinates(dir);
         RT_ASSERT(coords.IsValid());
 
-        const Vector4 textureColor = mTexture->Evaluate(coords);
-        RT_ASSERT((textureColor >= Vector4::Zero()).All());
+        const Vector4 textureColor = Vector4::Max(Vector4::Zero(), mTexture->Evaluate(coords));
 
         color.rgbValues *= textureColor;
     }

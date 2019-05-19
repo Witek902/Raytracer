@@ -284,8 +284,8 @@ void Scene::EvaluateIntersection(const Ray& ray, const HitPoint& hitPoint, const
     RT_ASSERT(outData.texCoord.IsValid());
 
     Vector4 localSpaceTangent = outData.frame[0];
-    Vector4 localSpaceBitangent = outData.frame[1];
     Vector4 localSpaceNormal = outData.frame[2];
+    Vector4 localSpaceBitangent = Vector4::Cross3(localSpaceTangent, localSpaceNormal);
 
     // apply normal mapping
     if (outData.material && outData.material->normalMap)

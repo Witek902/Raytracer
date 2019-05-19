@@ -5,6 +5,7 @@
 #include "Timer.h"
 #include "../Math/Packed.h"
 #include "../Math/Vector4Load.h"
+#include "../Color/ColorHelpers.h"
 
 namespace rt {
 
@@ -458,7 +459,7 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
     (void)forceLinearSpace;
     if (!mLinearSpace /*&& !forceLinearSpace*/)
     {
-        color *= color;
+        color = Convert_sRGB_To_Linear(color);
     }
 
     return color;
@@ -779,10 +780,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     (void)forceLinearSpace;
     if (!mLinearSpace /*&& !forceLinearSpace*/)
     {
-        color[0] *= color[0];
-        color[1] *= color[1];
-        color[2] *= color[2];
-        color[3] *= color[3];
+        color[0] = Convert_sRGB_To_Linear(color[0]);
+        color[1] = Convert_sRGB_To_Linear(color[1]);
+        color[2] = Convert_sRGB_To_Linear(color[2]);
+        color[3] = Convert_sRGB_To_Linear(color[3]);
     }
 
     outColors[0] = color[0];
