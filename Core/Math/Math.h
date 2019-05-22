@@ -46,6 +46,18 @@ union Bits64
     Int64 si;
 };
 
+// convert degrees to radians
+RT_FORCE_INLINE constexpr float DegToRad(const float x)
+{
+    return x / 180.0f * RT_PI;
+}
+
+// convert radians to degrees
+RT_FORCE_INLINE constexpr float RadToDeg(const float x)
+{
+    return x / RT_PI * 180.0f;
+}
+
 // Minimum
 template<typename T>
 RT_FORCE_INLINE constexpr const T Min(const T a, const T b)

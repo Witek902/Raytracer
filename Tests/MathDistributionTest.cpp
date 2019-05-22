@@ -61,32 +61,3 @@ TEST(MathTest, Distribution_MultipleValues)
         EXPECT_TRUE(Abs(expected - counters[i]) < 200u);
     }
 }
-
-TEST(MathTest, Texture_Sample)
-{
-    std::shared_ptr<Bitmap> bitmap(new Bitmap);
-    bitmap->Load("../../../../TEXTURES/wallpaper.bmp");
-
-    std::shared_ptr<BitmapTexture> texture(new BitmapTexture(bitmap));
-    texture->MakeSamplable();
-
-    Bitmap outputBitmap;
-    outputBitmap.Init(1024, 512, Bitmap::Format::B8G8R8A8_UNorm);
-    outputBitmap.Clear();
-
-    Random random;
-    for (Uint32 i = 0; i < 10000000; ++i)
-    {
-        Vector4 coords;
-        texture->Sample(random.GetFloat2(), coords, nullptr);
-        coords *= Vector4(1024.0f, 512.0f);
-
-        Int32 x = Clamp((Int32)coords.x, 0, 1024 - 1);
-        Int32 y = Clamp((Int32)coords.y, 0, 512 - 1);
-        Uint32* data = outputBitmap.GetDataAs<Uint32>() + (1024 * y + x);
-
-        *data += 0x010101;
-    }
-
-    outputBitmap.SaveBMP("a.bmp", false);
-}

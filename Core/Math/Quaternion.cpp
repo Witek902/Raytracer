@@ -7,8 +7,10 @@ namespace math {
 
 bool Quaternion::IsValid() const
 {
-    if (q.IsNaN().Any() || q.IsInfinite().Any())
+    if (!q.IsValid())
+    {
         return false;
+    }
 
     // check if normalized
     return Abs(q.SqrLength4() - 1.0f) < 0.001f;
@@ -109,7 +111,7 @@ void Quaternion::ToAxis(Vector4& outAxis, float& outAngle) const
 
     const float s = Sqrt(1.0f - scalar * scalar);
     outAxis = normalized.q;
-    if (s >= 0.001)
+    if (s >= 0.001f)
     {
         outAxis /= s;
     }
@@ -176,6 +178,23 @@ const Quaternion Quaternion::FromEulerAngles(const Float3& angles)
     const Vector4 term5 = Vector4(t4, t5, t5, t5);
 
     return Quaternion(term0 * term1 * term2 + term3 * term4 * term5);
+}
+
+const Quaternion Quaternion::FromMatrix(const Matrix4& m)
+{
+    const Vector4 x = Vector4(m.m[0][0]).ChangeSign<false, true, true, false>();
+    const Vector4 y = Vector4(m.m[1][1]).ChangeSign<true, false, true, false>();
+    const Vector4 z = Vector4(m.m[2][2]).ChangeSign<true, true, false, false>();
+
+    Quaternion q;
+    q.q = (Vector4(1.0f) + x) + (y + z);
+    q.q = Vector4::Max(q.q, Vector4::Zero());
+    q.q = Vector4::Sqrt4(q.q) * 0.5f;
+
+    q.q.x = CopySign(q.q.x, m.m[1][2] - m.m[2][1]);
+    q.q.y = CopySign(q.q.y, m.m[2][0] - m.m[0][2]);
+    q.q.z = CopySign(q.q.z, m.m[0][1] - m.m[1][0]);
+    return q;
 }
 
 const Matrix4 Quaternion::ToMatrix4() const

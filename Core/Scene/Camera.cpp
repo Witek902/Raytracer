@@ -11,7 +11,7 @@ using namespace math;
 
 Camera::Camera()
     : mAspectRatio(1.0f)
-    , mFieldOfView(RT_PI * 20.0f / 180.0f)
+    , mFieldOfView(DegToRad(20.0f))
     , barrelDistortionConstFactor(0.01f)
     , barrelDistortionVariableFactor(0.0f)
     , enableBarellDistortion(false)

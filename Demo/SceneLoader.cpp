@@ -478,9 +478,8 @@ static bool ParseLight(const rapidjson::Value& value, Scene& scene, const Textur
         {
             return false;
         }
-        const float angleRad = angle / 180.0f * RT_PI;
 
-        scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor, angleRad));
+        scene.AddLight(std::make_unique<DirectionalLight>(lightDirection, lightColor, DegToRad(angle)));
     }
     else if (typeStr == "background")
     {
@@ -631,7 +630,7 @@ static bool ParseCamera(const rapidjson::Value& value, const TexturesMap& textur
         return false;
 
     camera.SetTransform(transform);
-    camera.SetPerspective(1.0f, fov / 180.0f * RT_PI);
+    camera.SetPerspective(1.0f, DegToRad(fov));
 
     if (!TryParseBool(value, "enableDOF", true, camera.mDOF.enable))
         return false;

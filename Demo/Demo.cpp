@@ -177,7 +177,7 @@ void DemoWindow::SwitchScene(const std::string& sceneName)
 
     mCameraSetup.position = mCamera.mTransform.GetTranslation();
     mCameraSetup.orientation = mCamera.mTransform.GetRotation().ToEulerAngles();
-    mCameraSetup.fov = mCamera.mFieldOfView / RT_PI * 180.0f;
+    mCameraSetup.fov = RadToDeg(mCamera.mFieldOfView);
 
     mScene->BuildBVH();
     ResetCounters();
@@ -503,7 +503,7 @@ void DemoWindow::UpdateCamera()
     mCamera.SetTransform(Transform(mCameraSetup.position, cameraOrientation));
 
     const float aspectRatio = (float)width / (float)height;
-    const float FoV = RT_PI / 180.0f * mCameraSetup.fov;
+    const float FoV = DegToRad(mCameraSetup.fov);
     mCamera.SetPerspective(aspectRatio, FoV);
 
     // rotation motion blur

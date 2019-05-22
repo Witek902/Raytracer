@@ -365,6 +365,7 @@
     <ClCompile Include="MathDistributionTest.cpp" />
     <ClCompile Include="MathGeometryTest.cpp" />
     <ClCompile Include="MathMatrix4Test.cpp" />
+    <ClCompile Include="MathQuaternionTest.cpp" />
     <ClCompile Include="MathTest.cpp" />
     <ClCompile Include="MathTranscendentalTest.cpp" />
     <ClCompile Include="MathVector4Test.cpp" />

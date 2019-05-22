@@ -91,6 +91,9 @@ struct RT_ALIGN(16) Quaternion final
     // roll    - rotation in Z axis (in radians)
     RAYLIB_API static const Quaternion FromEulerAngles(const Float3& angles);
 
+    // Create quaternion from rotation matrix.
+    RAYLIB_API static const Quaternion FromMatrix(const Matrix4& matrix);
+
     // Convert quaternion to 4x4 matrix
     RAYLIB_API const Matrix4 ToMatrix4() const;
 

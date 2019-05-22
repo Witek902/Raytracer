@@ -79,7 +79,7 @@ bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
     // TODO Cumulative distribution function should be stored as unsigned integers, as it's only in 0-1 range
 
     mSize = numValues;
-    return false;
+    return true;
 }
 
 Uint32 Distribution::SampleDiscrete(const float u, float& outPdf) const

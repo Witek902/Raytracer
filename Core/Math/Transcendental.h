@@ -44,6 +44,7 @@ float FastATan2(const float y, const float x);
  * @note    Maximum relative error: about 0.2%
  */
 RAYLIB_API float FastExp(float x);
+RAYLIB_API const Vector4 FastExp(const Vector4& x);
 
 /**
  * Accurate natural logarithm.
@@ -57,7 +58,7 @@ RAYLIB_API float Log(float x);
  * @note    Maximum relative error: about 0.07%
  */
 RAYLIB_API float FastLog(float x);
-
+RAYLIB_API const Vector4 FastLog(const Vector4& x);
 
 } // namespace math
 } // namespace rt

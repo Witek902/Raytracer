@@ -72,6 +72,9 @@
       <Filter>TestCases\Containters</Filter>
     </ClCompile>
     <ClCompile Include="MathDistributionTest.cpp" />
+    <ClCompile Include="MathQuaternionTest.cpp">
+      <Filter>TestCases\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

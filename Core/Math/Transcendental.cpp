@@ -164,6 +164,26 @@ float FastExp(float x)
     return bits.f;
 }
 
+const Vector4 FastExp(const Vector4& a)
+{
+    const Vector4 t = a * 1.442695041f;
+    const Vector4 fi = Vector4::Floor(t);
+    const VectorInt4 i = VectorInt4::Convert(fi);
+    const Vector4 f = t - fi;
+
+    Vector4 y = Vector4::MulAndAdd(f, Vector4(0.3371894346f), Vector4(0.657636276f));
+    y = Vector4::MulAndAdd(f, y, Vector4(1.00172476f));
+
+    VectorInt4 yi = VectorInt4::Cast(y);
+    yi += (i << 23);
+    y = yi.CastToFloat();
+
+    const Vector4 range(87.0f);
+    y = Vector4::Select(y, Vector4::Zero(), -a >= range);
+    y = Vector4::Select(y, VECTOR_INF, a >= range);
+    return y;
+}
+
 float Log(float x)
 {
     // based on:
@@ -181,14 +201,13 @@ float Log(float x)
     float r = -0.130187988f * f + 0.140889585f;
     float t = -0.121489584f * f + 0.139809534f;
     r = r * s + t;
-    r = r * f  -0.166845024f;
+    r = r * f - 0.166845024f;
     r = r * f + 0.200121149f;
     r = r * f - 0.249996364f;
     r = r * f + 0.333331943f;
     r = r * f - 0.500000000f;
     r = r * s + f;
     r = i * 0.693147182f + r; // log(2)
-
     return r;
 }
 
@@ -211,7 +230,25 @@ float FastLog(float x)
     r = r * s + t;
     r = r * s + f;
     r = i * 0.693147182f + r; // log(2)
+    return r;
+}
 
+const Vector4 FastLog(const Vector4& a)
+{
+    // range reduction
+    const VectorInt4 e = (VectorInt4::Cast(a) - VectorInt4(0x3f2aaaab)) & VectorInt4(0xff800000);
+    const Vector4 m = (VectorInt4::Cast(a) - e).CastToFloat();
+    const Vector4 i = e.ConvertToFloat() * 1.19209290e-7f;
+
+    const Vector4 f = m - Vector4(1.0f);
+    const Vector4 s = f * f;
+
+    // Compute log1p(f) for f in [-1/3, 1/3]
+    Vector4 r = Vector4::MulAndAdd(f, Vector4(0.230836749f), Vector4(-0.279208571f));
+    Vector4 t = Vector4::MulAndAdd(f, Vector4(0.331826031f), Vector4(-0.498910338f));
+    r = Vector4::MulAndAdd(r, s, t);
+    r = Vector4::MulAndAdd(r, s, f);
+    r = Vector4::MulAndAdd(i, Vector4(0.693147182f), r); // log(2)
     return r;
 }
 

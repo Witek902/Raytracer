@@ -19,6 +19,11 @@ VectorInt4::VectorInt4(const VectorInt4& other)
     : v(other.v)
 {}
 
+const VectorInt4 VectorInt4::Cast(const Vector4& v)
+{
+    return _mm_castps_si128(v);
+}
+
 const Vector4 VectorInt4::CastToFloat() const
 {
     return _mm_castsi128_ps(v);
