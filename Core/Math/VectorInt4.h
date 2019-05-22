@@ -65,6 +65,8 @@ struct RT_ALIGN(16) VectorInt4
     // bit shifting
     RT_FORCE_INLINE const VectorInt4 operator << (Int32 b) const;
     RT_FORCE_INLINE const VectorInt4 operator >> (Int32 b) const;
+    RT_FORCE_INLINE VectorInt4& operator <<= (Int32 b);
+    RT_FORCE_INLINE VectorInt4& operator >>= (Int32 b);
 
     // for each component, if it's greater-or-euqal to 'reference', set the value to 'target'
     RT_FORCE_INLINE const VectorInt4 SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const;

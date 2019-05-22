@@ -201,6 +201,18 @@ const VectorInt4 VectorInt4::operator >> (Int32 b) const
     return _mm_srli_epi32(v, b);
 }
 
+VectorInt4& VectorInt4::operator <<= (Int32 b)
+{
+    v = _mm_slli_epi32(v, b);
+    return *this;
+}
+
+VectorInt4& VectorInt4::operator >>= (Int32 b)
+{
+    v = _mm_srli_epi32(v, b);
+    return *this;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 const VectorInt4 VectorInt4::SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const

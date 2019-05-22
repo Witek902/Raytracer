@@ -81,10 +81,15 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
         Ray shadowRay(shadingData.frame.GetTranslation(), illuminateResult.directionToLight);
         shadowRay.origin += shadingData.frame[2] * 0.0001f;
 
+        context.counters.numShadowRays++;
         if (mScene.Traverse_Shadow_Single({ shadowRay, hitPoint, context }))
         {
             // shadow ray missed the light - light is occluded
             return RayColor::Zero();
+        }
+        else
+        {
+            context.counters.numShadowRaysHit++;
         }
     }
 
@@ -366,6 +371,8 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         context.pathDebugData->terminationReason = pathTerminationReason;
     }
 #endif // RT_CONFIGURATION_FINAL
+
+    context.counters.numRays += (Uint64)pathState.depth + 1;
 
     return resultColor;
 }

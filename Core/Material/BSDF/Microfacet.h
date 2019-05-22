@@ -50,8 +50,8 @@ public:
         const float cosTheta = math::Sqrt(cosThetaSqr);
         const float sinTheta = math::Sqrt(1.0f - cosThetaSqr);
         const float phi = RT_2PI * u.y;
-
-        return math::Vector4(sinTheta * math::Sin(phi), sinTheta * math::Cos(phi), cosTheta, 0.0f);
+        const math::Vector4 xy = sinTheta * math::SinCos(phi);
+        return math::Vector4::Select<0,0,1,0>(xy, math::Vector4(cosTheta));
     }
 
 private:

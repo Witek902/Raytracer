@@ -170,6 +170,8 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
         depth++;
     }
 
+    ctx.counters.numRays += (Uint64)depth + 1;
+
     return RayColor::Zero();
 }
 

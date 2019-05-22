@@ -5,12 +5,9 @@
 namespace rt {
 namespace math {
 
-Matrix4 Matrix4::MakeTranslation(const Vector4& pos)
+const Matrix4 Matrix4::MakeTranslation(const Vector4& pos)
 {
-    Matrix4 m;
-    m.r[0] = VECTOR_X;
-    m.r[1] = VECTOR_Y;
-    m.r[2] = VECTOR_Z;
+    Matrix4 m = Identity();
     m.r[3] = Vector4(pos.x, pos.y, pos.z, 1.0f);
     return m;
 }
@@ -26,29 +23,26 @@ const Matrix4 Matrix4::MakePerspective(float aspect, float fovY, float nearZ, fl
         Vector4(0.0f, 0.0f, -nearZ * farZ / (farZ - nearZ), 0.0f));
 }
 
-Matrix4 Matrix4::MakeScaling(const Vector4& scale)
+const Matrix4 Matrix4::MakeScaling(const Vector4& scale)
 {
-    Matrix4 m;
-    m.r[0] = VECTOR_X * scale.SplatX();
-    m.r[1] = VECTOR_Y * scale.SplatY();
-    m.r[2] = VECTOR_Z * scale.SplatZ();
+    Matrix4 m = Identity();
+    m.r[0] *= scale.SplatX();
+    m.r[1] *= scale.SplatY();
+    m.r[2] *= scale.SplatZ();
     return m;
 }
 
-Matrix4 Matrix4::operator * (const Matrix4& b) const
+const Matrix4 Matrix4::operator * (const Matrix4& b) const
 {
-    return Matrix4(b.LinearCombination4(r[0]),
-                   b.LinearCombination4(r[1]),
-                   b.LinearCombination4(r[2]),
-                   b.LinearCombination4(r[3]));
+    return Matrix4{ b * r[0], b * r[1], b * r[2], b * r[3] };
 }
 
 Matrix4& Matrix4::operator *= (const Matrix4& b)
 {
-    r[0] = b.LinearCombination4(r[0]);
-    r[1] = b.LinearCombination4(r[1]);
-    r[2] = b.LinearCombination4(r[2]);
-    r[3] = b.LinearCombination4(r[3]);
+    r[0] = b * r[0];
+    r[1] = b * r[1];
+    r[2] = b * r[2];
+    r[3] = b * r[3];
     return *this;
 }
 

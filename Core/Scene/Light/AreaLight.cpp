@@ -68,7 +68,21 @@ bool AreaLight::TestRayHit(const Ray& ray, float& outDistance) const
 
 const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const
 {
-    Vector4 uv = Vector4(param.sample);
+    Vector4 uv;
+
+    Spectrum color = GetColor();
+
+    // sample texture map
+    if (mTexture)
+    {
+        float pdf;
+        const Vector4 textureColor = mTexture->Sample(param.sample, uv, &pdf);
+        color.rgbValues *= textureColor / pdf;
+    }
+    else
+    {
+        uv = Vector4(param.sample);
+    }
 
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
@@ -88,16 +102,6 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     outResult.cosAtLight = cosNormalDir;
     outResult.directPdfW = invArea * sqrDistance / cosNormalDir;
     outResult.emissionPdfW = cosNormalDir * invArea * RT_INV_PI;
-
-    Spectrum color = GetColor();
-
-    // sample texture map
-    if (mTexture)
-    {
-        float pdf;
-        const Vector4 textureColor = mTexture->Sample(param.sample, uv, &pdf);
-        color.rgbValues *= textureColor / pdf;
-    }
 
     return RayColor::Resolve(param.wavelength, color);
 }

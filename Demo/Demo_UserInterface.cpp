@@ -48,17 +48,31 @@ void DemoWindow::RenderUI_Stats()
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     const RayTracingCounters& counters = mViewport->GetCounters();
     ImGui::Separator();
-    ImGui::Text("Ray-box tests (total)"); ImGui::NextColumn();
-    ImGui::Text("%.2fM", (float)counters.numRayBoxTests / 1000000.0f); ImGui::NextColumn();
+    {
+        ImGui::Text("Rays"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numRays / 1.0e+6f); ImGui::NextColumn();
 
-    ImGui::Text("Ray-box tests (passed)"); ImGui::NextColumn();
-    ImGui::Text("%.2fM", (float)counters.numPassedRayBoxTests / 1000000.0f); ImGui::NextColumn();
+        ImGui::Text("Primary rays"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numPrimaryRays / 1.0e+6f); ImGui::NextColumn();
 
-    ImGui::Text("Ray-tri tests (total)"); ImGui::NextColumn();
-    ImGui::Text("%.2fM", (float)counters.numRayTriangleTests / 1000000.0f); ImGui::NextColumn();
+        ImGui::Text("Shadow rays"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numShadowRays / 1.0e+6f); ImGui::NextColumn();
 
-    ImGui::Text("Ray-tri tests (passed)"); ImGui::NextColumn();
-    ImGui::Text("%.2fM", (float)counters.numPassedRayTriangleTests / 1000000.0f); ImGui::NextColumn();
+        ImGui::Text("Shadow rays (hit)"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numShadowRaysHit / 1.0e+6f); ImGui::NextColumn();
+
+        ImGui::Text("Ray-box tests (total)"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numRayBoxTests / 1.0e+6f); ImGui::NextColumn();
+
+        ImGui::Text("Ray-box tests (passed)"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numPassedRayBoxTests / 1.0e+6f); ImGui::NextColumn();
+
+        ImGui::Text("Ray-tri tests (total)"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numRayTriangleTests / 1.0e+6f); ImGui::NextColumn();
+
+        ImGui::Text("Ray-tri tests (passed)"); ImGui::NextColumn();
+        ImGui::Text("%.3fM", (float)counters.numPassedRayTriangleTests / 1.0e+6f); ImGui::NextColumn();
+    }
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
     ImGui::Columns(1);

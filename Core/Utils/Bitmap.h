@@ -38,7 +38,7 @@ public:
     RAYLIB_API Bitmap(Bitmap&&);
     RAYLIB_API Bitmap& operator = (Bitmap&&);
 
-    const char* GetName() const;
+    RT_FORCE_INLINE const char* GetDebugName() const { return mDebugName; }
 
     template<typename T>
     RT_FORCE_INLINE T* GetDataAs()
@@ -54,7 +54,6 @@ public:
         return reinterpret_cast<const T*>(GetData());
     }
 
-    RT_FORCE_INLINE const char* GetName() { return mDebugName.c_str(); }
     RT_FORCE_INLINE void* GetData() { return mData; }
     RT_FORCE_INLINE const void* GetData() const { return mData; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return (Uint32)mWidth; }
@@ -116,8 +115,7 @@ private:
     Uint32 mHeight;
     Format mFormat;
     bool mLinearSpace;
-
-    std::string mDebugName;
+    char* mDebugName;
 };
 
 using BitmapPtr = std::shared_ptr<Bitmap>;

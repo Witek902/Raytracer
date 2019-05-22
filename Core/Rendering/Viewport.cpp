@@ -302,7 +302,6 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     const Vector4 filmSize = Vector4::FromIntegers(GetWidth(), GetHeight(), 1, 1);
     const Vector4 invSize = VECTOR_ONE2 / filmSize;
-    const Uint32 tileSize = ctx.params->tileSize;
 
     Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
 
@@ -415,7 +414,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
         ctx.counters.Append(ctx.localCounters);
     }
 
-    ctx.counters.numPrimaryRays += tileSize * tileSize;
+    ctx.counters.numPrimaryRays += (Uint64)(tile.maxY - tile.minY) * (Uint64)(tile.maxX - tile.minX);
 }
 
 void Viewport::PerformPostProcess()

@@ -140,6 +140,8 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         depth++;
     }
 
+    context.counters.numRays += (Uint64)depth + 1;
+
     return resultColor;
 }
 

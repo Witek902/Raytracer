@@ -15,11 +15,12 @@ namespace math {
  * @note    This is faster than sinf/cosf
  * @note    Maximum absolute error: about 5.0e-07
  */
-RAYLIB_API float Sin(float x);
+RAYLIB_API RT_FORCE_NOINLINE float Sin(float x);
+RAYLIB_API RT_FORCE_NOINLINE const Vector4 Sin(const Vector4& x);
+RAYLIB_API RT_FORCE_NOINLINE const Vector8 Sin(const Vector8& x);
+
 RAYLIB_API float Cos(float x);
-RAYLIB_API const Vector4 Sin(const Vector4& x);
 RAYLIB_API const Vector4 Cos(const Vector4& x);
-RAYLIB_API const Vector8 Sin(const Vector8& x);
 RAYLIB_API const Vector8 Cos(const Vector8& x);
 
 // Compute sine and cosine in one go

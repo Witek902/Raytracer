@@ -26,7 +26,7 @@ const char* BitmapTexture::GetName() const
         return "<none>";
     }
 
-    return mBitmap->GetName();
+    return mBitmap->GetDebugName();
 }
 
 const Vector4 BitmapTexture::Evaluate(const Vector4& coords) const
@@ -127,7 +127,7 @@ bool BitmapTexture::MakeSamplable()
         return false;
     }
 
-    RT_LOG_INFO("BitmapTexture: Generating importance map for bitmap '%s'...", mBitmap->GetName());
+    RT_LOG_INFO("BitmapTexture: Generating importance map for bitmap '%s'...", mBitmap->GetDebugName());
 
     const Uint32 width = mBitmap->GetWidth();
     const Uint32 height = mBitmap->GetHeight();

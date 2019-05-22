@@ -323,6 +323,11 @@ const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBo
 template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
 const Vector4 Vector4::Select(const Vector4& a, const Vector4& b)
 {
+    static_assert(selX <= 1, "Invalid X index");
+    static_assert(selY <= 1, "Invalid Y index");
+    static_assert(selZ <= 1, "Invalid Z index");
+    static_assert(selW <= 1, "Invalid W index");
+
     return _mm_blend_ps(a, b, selX | (selY << 1) | (selZ << 2) | (selW << 3));
 }
 

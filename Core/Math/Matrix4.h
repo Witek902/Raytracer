@@ -30,6 +30,11 @@ public:
         return { VECTOR_X, VECTOR_Y, VECTOR_Z, VECTOR_W };
     }
 
+    RT_FORCE_INLINE static const Matrix4 Zero()
+    {
+        return { Vector4::Zero(), Vector4::Zero(), Vector4::Zero(), Vector4::Zero() };
+    }
+
     RT_FORCE_INLINE Matrix4(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3)
     {
         r[0] = r0;
@@ -70,7 +75,7 @@ public:
         return r[3];
     }
 
-    RAYLIB_API Matrix4 operator * (const Matrix4& b) const;
+    RAYLIB_API const Matrix4 operator * (const Matrix4& b) const;
     RAYLIB_API Matrix4& operator *= (const Matrix4& b);
 
     RT_FORCE_INLINE bool IsValid() const
@@ -92,11 +97,11 @@ public:
      * Create scaling matrix
      * @param scale Scaling factor (only XYZ components are taken into account).
      */
-    RAYLIB_API static Matrix4 MakeScaling(const Vector4& scale);
+    RAYLIB_API static const Matrix4 MakeScaling(const Vector4& scale);
 
     // Multiply a 3D vector by a 4x4 matrix (affine transform).
     // Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + m.r[3]
-    RT_FORCE_INLINE Vector4 TransformPoint(const Vector4& a) const
+    RT_FORCE_INLINE const Vector4 TransformPoint(const Vector4& a) const
     {
         Vector4 t;
         t = Vector4::MulAndAdd(a.SplatX(), r[0], r[3]);
@@ -105,7 +110,7 @@ public:
         return t;
     }
 
-    Vector3x8 TransformPoint(const Vector3x8& a) const
+    const Vector3x8 TransformPoint(const Vector3x8& a) const
     {
         const Vector3x8 row0(r[0]);
         const Vector3x8 row1(r[1]);
@@ -119,7 +124,7 @@ public:
         return t;
     }
 
-    RT_FORCE_INLINE Vector4 TransformVector(const Vector4& a) const
+    RT_FORCE_INLINE const Vector4 TransformVector(const Vector4& a) const
     {
         Vector4 t = a.SplatX() * r[0];
         t = Vector4::MulAndAdd(a.SplatY(), r[1], t);
@@ -129,7 +134,7 @@ public:
 
     // transform and negate a vector
     // Note: faster than TransformVector(-a)
-    RT_FORCE_INLINE Vector4 TransformVectorNeg(const Vector4& a) const
+    RT_FORCE_INLINE const Vector4 TransformVectorNeg(const Vector4& a) const
     {
         Vector4 t = a.SplatX() * r[0];
         t = Vector4::NegMulAndSub(a.SplatY(), r[1], t);
@@ -137,7 +142,7 @@ public:
         return t;
     }
 
-    Vector3x8 TransformVector(const Vector3x8& a) const
+    const Vector3x8 TransformVector(const Vector3x8& a) const
     {
         const Vector3x8 row0(r[0]);
         const Vector3x8 row1(r[1]);
@@ -151,7 +156,7 @@ public:
 
     // Multiply a 4D vector by a 4x4 matrix.
     // Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + a[3] * m.r[3]
-    RT_FORCE_INLINE Vector4 LinearCombination4(const Vector4& a) const
+    RT_FORCE_INLINE const Vector4 operator * (const Vector4& a) const
     {
         Vector4 t = a.SplatX() * r[0];
         t = Vector4::MulAndAdd(a.SplatY(), r[1], t);
@@ -164,7 +169,7 @@ public:
     static const Matrix4 MakePerspective(float aspect, float fovY, float nearZ, float farZ);
 
     // Create matrix representing a translation by 3D vector.
-    RAYLIB_API static Matrix4 MakeTranslation(const Vector4& pos);
+    RAYLIB_API static const Matrix4 MakeTranslation(const Vector4& pos);
 
 
     RT_FORCE_INLINE const Matrix4 FastInverseNoScale() const
@@ -188,7 +193,7 @@ public:
         return *this;
     }
 
-    RT_FORCE_INLINE Matrix4 Transposed() const
+    RT_FORCE_INLINE const Matrix4 Transposed() const
     {
         Vector4 row0 = r[0];
         Vector4 row1 = r[1];
@@ -200,7 +205,7 @@ public:
         return Matrix4(row0, row1, row2, row3);
     }
 
-    const Box TransformBox(const Box& box) const;
+    RAYLIB_API const Box TransformBox(const Box& box) const;
 
     RT_FORCE_INLINE const Ray TransformRay(const Ray& ray) const
     {
@@ -216,16 +221,6 @@ public:
         return Ray::BuildUnsafe(origin, dir);
     }
 };
-
-
-/**
- * Alias of @p Matrix4::LinearCombination4 function.
- */
-RT_FORCE_INLINE Vector4 operator* (const Vector4& vector, const Matrix4& m)
-{
-    return m.LinearCombination4(vector);
-}
-
 
 } // namespace math
 } // namespace rt

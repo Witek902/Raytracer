@@ -35,6 +35,9 @@ struct LocalCounters
 
 struct RayTracingCounters
 {
+    Uint64 numRays;
+    Uint64 numShadowRays;
+    Uint64 numShadowRaysHit;
     Uint64 numPrimaryRays;
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
@@ -47,6 +50,9 @@ struct RayTracingCounters
 
     RT_FORCE_INLINE void Reset()
     {
+        numRays = 0;
+        numShadowRays = 0;
+        numShadowRaysHit = 0;
         numPrimaryRays = 0;
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
@@ -72,6 +78,9 @@ struct RayTracingCounters
 
     void Append(const RayTracingCounters& other)
     {
+        numRays += other.numRays;
+        numShadowRays += other.numShadowRays;
+        numShadowRaysHit += other.numShadowRaysHit;
         numPrimaryRays += other.numPrimaryRays;
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
