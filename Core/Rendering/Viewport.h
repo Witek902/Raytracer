@@ -126,7 +126,9 @@ private:
     DynArray<Block> mBlocks;
     DynArray<Block> mRenderingTiles;
 
+#ifndef RT_CONFIGURATION_FINAL
     PixelBreakpoint mPendingPixelBreakpoint;
+#endif // RT_CONFIGURATION_FINAL
 };
 
 } // namespace rt

@@ -24,6 +24,13 @@ enum class TraversalMode : Uint8
     Packet,
 };
 
+enum class LightSamplingStrategy : Uint8
+{
+    Single,
+    All,
+    // TODO "Importance Sampling of Many Lights with Adaptive Tree Splitting"
+};
+
 struct AdaptiveRenderingSettings
 {
     bool enable = false;
@@ -61,6 +68,9 @@ struct RenderingParams
 
     // select mode of ray traversal
     TraversalMode traversalMode = TraversalMode::Packet;
+
+    // describes how lights should be sampled
+    LightSamplingStrategy lightSamplingStrategy = LightSamplingStrategy::Single;
 
     // adaptive rendering settings
     AdaptiveRenderingSettings adaptiveSettings;
@@ -106,10 +116,12 @@ struct RT_ALIGN(64) RenderingContext
     // for motion blur sampling
     float time = 0.0f;
 
+#ifndef RT_CONFIGURATION_FINAL
     // optional path debugging data
     PathDebugData* pathDebugData = nullptr;
-
+    // break on specific pixel (for debugging)
     PixelBreakpoint pixelBreakpoint;
+#endif // RT_CONFIGURATION_FINAL
 
     RayPacket rayPacket;
 

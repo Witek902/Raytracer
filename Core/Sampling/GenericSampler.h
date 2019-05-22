@@ -16,6 +16,8 @@ public:
     GenericSampler(math::Random& fallbackGenerator);
     ~GenericSampler();
 
+    RT_FORCE_INLINE math::Random& GetFallbackGenerator() { return mFallbackGenerator; }
+
     void ResetFrame(const DynArray<float>& seed);
 
     void ResetPixel(const Uint32 x, const Uint32 y);

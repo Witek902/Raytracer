@@ -33,17 +33,19 @@ private:
         bool lastSpecular = true;
     };
 
+    float GetLightPickingProbability(RenderingContext& context) const;
+
     // importance sample light sources
-    const RayColor SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
+    const RayColor SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // importance sample single light source
-    const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const;
+    const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context) const;
+    const RayColor EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 
     // compute radiance from global lights
-    const RayColor EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context) const;
+    const RayColor EvaluateGlobalLights(const math::Ray& ray, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const;
 };
 
 } // namespace rt

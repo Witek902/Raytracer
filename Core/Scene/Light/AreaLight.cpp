@@ -70,16 +70,6 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
 {
     Vector4 uv = Vector4(param.sample);
 
-    Spectrum color = GetColor();
-
-    // sample texture map
-    if (mTexture)
-    {
-        float pdf;
-        const Vector4 textureColor = mTexture->Sample(param.sample, uv, &pdf);
-        color.rgbValues *= textureColor / pdf;
-    }
-
     // p0 + edge0 * uv.x + edge1 * uv.y;
     const Vector4 lightPoint = Vector4::MulAndAdd(edge0, uv.x, Vector4::MulAndAdd(edge1, uv.y, p0));
 
@@ -89,7 +79,7 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     outResult.distance = sqrtf(sqrDistance);
     outResult.directionToLight /= outResult.distance;
 
-    const float cosNormalDir = Vector4::Dot3(normal, -outResult.directionToLight);
+    const float cosNormalDir = Vector4::Dot3(-normal, outResult.directionToLight);
     if (cosNormalDir < RT_EPSILON)
     {
         return RayColor::Zero();
@@ -98,6 +88,16 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     outResult.cosAtLight = cosNormalDir;
     outResult.directPdfW = invArea * sqrDistance / cosNormalDir;
     outResult.emissionPdfW = cosNormalDir * invArea * RT_INV_PI;
+
+    Spectrum color = GetColor();
+
+    // sample texture map
+    if (mTexture)
+    {
+        float pdf;
+        const Vector4 textureColor = mTexture->Sample(param.sample, uv, &pdf);
+        color.rgbValues *= textureColor / pdf;
+    }
 
     return RayColor::Resolve(param.wavelength, color);
 }

@@ -272,8 +272,9 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         params.antiAliasingSpread = 0.0f;
 
         renderingContext->params = &params;
+#ifndef RT_CONFIGURATION_FINAL
         renderingContext->pathDebugData = &mPathDebugData;
-
+#endif
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
 

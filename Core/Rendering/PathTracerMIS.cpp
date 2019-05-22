@@ -39,7 +39,7 @@ const char* PathTracerMIS::GetName() const
     return "Path Tracer MIS";
 }
 
-const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     const ILight::IlluminateParam illuminateParam =
     {
@@ -100,29 +100,63 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
         const float continuationProbability = 1.0f;
 
         bsdfPdfW *= continuationProbability;
-        weight = CombineMis(illuminateResult.directPdfW, bsdfPdfW);
+        weight = CombineMis(illuminateResult.directPdfW * lightPickProbability, bsdfPdfW);
     }
 
-    return (radiance * factor) * (weight / illuminateResult.directPdfW);
+    return (radiance * factor) * (weight / (lightPickProbability * illuminateResult.directPdfW));
 }
 
-const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     RayColor accumulatedColor = RayColor::Zero();
 
-    // TODO check only one (or few) lights per sample instead all of them
-    // TODO check only nearest lights
-    for (const LightPtr& light : mScene.GetLights())
+    const auto& lights = mScene.GetLights();
+    if (!lights.Empty())
     {
-        accumulatedColor += SampleLight(*light, shadingData, pathState, context);
-    }
+        switch (context.params->lightSamplingStrategy)
+        {
+            case LightSamplingStrategy::Single:
+            {
+                const Uint32 lightIndex = context.sampler->GetFallbackGenerator().GetInt() % lights.Size();
+                const LightPtr& light = lights[lightIndex];
+                accumulatedColor = SampleLight(*light, shadingData, pathState, context, lightPickProbability);
+                break;
+            }
 
-    accumulatedColor *= RayColor::Resolve(context.wavelength, Spectrum(mLightSamplingWeight));
+            case LightSamplingStrategy::All:
+            {
+                for (const LightPtr& light : lights)
+                {
+                    accumulatedColor += SampleLight(*light, shadingData, pathState, context, lightPickProbability);
+                }
+                break;
+            }
+        };
+
+        accumulatedColor *= RayColor::Resolve(context.wavelength, Spectrum(mLightSamplingWeight));
+    }
 
     return accumulatedColor;
 }
 
-const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context) const
+float PathTracerMIS::GetLightPickingProbability(RenderingContext& context) const
+{
+    switch (context.params->lightSamplingStrategy)
+    {
+    case LightSamplingStrategy::Single:
+        return 1.0f / (float)mScene.GetLights().Size();
+
+    case LightSamplingStrategy::All:
+        return 1.0f;
+
+    default:
+        RT_FATAL("Invalid light sampling strategy");
+    };
+
+    return 0.0f;
+}
+
+const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray& ray, float dist, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     const Vector4 hitPos = ray.GetAtDistance(dist);
     const Vector4 normal = light.GetNormal(hitPos);
@@ -143,7 +177,7 @@ const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray
     {
         const float cosTheta = Vector4::Dot3(-ray.dir, normal);
         const float directPdfW = PdfAtoW(directPdfA, dist, cosTheta);
-        misWeight = CombineMis(pathState.lastPdfW, directPdfW);
+        misWeight = CombineMis(pathState.lastPdfW, directPdfW * lightPickProbability);
     }
 
     lightContribution *= RayColor::Resolve(context.wavelength, Spectrum(mBSDFSamplingWeight));
@@ -151,7 +185,7 @@ const RayColor PathTracerMIS::EvaluateLight(const ILight& light, const math::Ray
     return lightContribution * misWeight;
 }
 
-const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathState& pathState, RenderingContext& context) const
+const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     RayColor result = RayColor::Zero();
 
@@ -168,7 +202,7 @@ const RayColor PathTracerMIS::EvaluateGlobalLights(const Ray& ray, const PathSta
             float misWeight = 1.0f;
             if (pathState.depth > 0 && !pathState.lastSpecular)
             {
-                misWeight = CombineMis(pathState.lastPdfW, directPdfW);
+                misWeight = CombineMis(pathState.lastPdfW, directPdfW * lightPickProbability);
             }
 
             result.MulAndAccumulate(lightContribution, misWeight);
@@ -194,6 +228,8 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
 
     PathState pathState;
 
+    const float lightPickProbability = GetLightPickingProbability(context);
+
     for (;;)
     {
         hitPoint.distance = FLT_MAX;
@@ -204,7 +240,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            resultColor.MulAndAccumulate(throughput, EvaluateGlobalLights(ray, pathState, context));
+            resultColor.MulAndAccumulate(throughput, EvaluateGlobalLights(ray, pathState, context, lightPickProbability));
             pathTerminationReason = PathTerminationReason::HitBackground;
             break;
         }
@@ -213,7 +249,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
         {
             const ILight& light = mScene.GetLightByObjectId(hitPoint.objectId);
-            resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, pathState, context));
+            resultColor.MulAndAccumulate(throughput, EvaluateLight(light, ray, hitPoint.distance, pathState, context, lightPickProbability));
             pathTerminationReason = PathTerminationReason::HitLight;
             break;
         }
@@ -238,7 +274,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         }
 
         // sample lights directly (a.k.a. next event estimation)
-        resultColor.MulAndAccumulate(throughput, SampleLights(shadingData, pathState, context));
+        resultColor.MulAndAccumulate(throughput, SampleLights(shadingData, pathState, context, lightPickProbability));
 
         // check if the ray depth won't be exeeded in the next iteration
         if (pathState.depth >= context.params->maxRayDepth)
@@ -295,6 +331,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
 
         // TODO check for NaNs
 
+#ifndef RT_CONFIGURATION_FINAL
         if (context.pathDebugData)
         {
             PathDebugData::HitPointData data;
@@ -306,6 +343,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
             data.bsdfEvent = pathState.lastSampledBsdfEvent;
             context.pathDebugData->data.PushBack(data);
         }
+#endif // RT_CONFIGURATION_FINAL
 
         // generate secondary ray
         ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
@@ -314,6 +352,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         pathState.depth++;
     }
 
+#ifndef RT_CONFIGURATION_FINAL
     if (context.pathDebugData)
     {
         PathDebugData::HitPointData data;
@@ -326,6 +365,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         context.pathDebugData->data.PushBack(data);
         context.pathDebugData->terminationReason = pathTerminationReason;
     }
+#endif // RT_CONFIGURATION_FINAL
 
     return resultColor;
 }

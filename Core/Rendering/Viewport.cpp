@@ -80,8 +80,13 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
 
 void Viewport::SetPixelBreakpoint(Uint32 x, Uint32 y)
 {
+#ifndef RT_CONFIGURATION_FINAL
     mPendingPixelBreakpoint.x = x;
     mPendingPixelBreakpoint.y = y;
+#else
+    RT_UNUSED(x);
+    RT_UNUSED(y);
+#endif
 }
 
 void Viewport::Reset()
@@ -175,15 +180,19 @@ bool Viewport::Render(const Camera& camera)
         ctx.counters.Reset();
         ctx.params = &mParams;
         ctx.camera = &camera;
+#ifndef RT_CONFIGURATION_FINAL
         ctx.pixelBreakpoint = mPendingPixelBreakpoint;
+#endif // RT_CONFIGURATION_FINAL
         ctx.sampler = &mSamplers[i];
         ctx.sampler->ResetFrame(seed);
 
         mRenderer->PreRender(ctx);
     }
 
+#ifndef RT_CONFIGURATION_FINAL
     mPendingPixelBreakpoint.x = UINT32_MAX;
     mPendingPixelBreakpoint.y = UINT32_MAX;
+#endif // RT_CONFIGURATION_FINAL
 
     if (mRenderingTiles.Empty() || mProgress.passesFinished == 0)
     {
@@ -305,10 +314,12 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
             for (Uint32 x = tile.minX; x < tile.maxX; ++x)
             {
+#ifndef RT_CONFIGURATION_FINAL
                 if (ctx.pixelBreakpoint.x == x && ctx.pixelBreakpoint.y == y)
                 {
                     RT_BREAK();
                 }
+#endif // RT_CONFIGURATION_FINAL
 
                 const Uint32 pixelIndex = y * GetHeight() + x;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
