@@ -315,6 +315,7 @@
     <ClInclude Include="Textures\MixTexture.h" />
     <ClInclude Include="Textures\ConstTexture.h" />
     <ClInclude Include="Utils\Entropy.h" />
+    <ClInclude Include="Math\TranscendentalImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">

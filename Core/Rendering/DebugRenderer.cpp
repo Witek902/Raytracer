@@ -12,12 +12,6 @@ namespace rt {
 
 using namespace math;
 
-// convert [-1..1] range to [0..1]
-static RT_FORCE_INLINE const Vector4 ScaleBipolarRange(const Vector4& x)
-{
-    return Vector4::Max(Vector4::Zero(), Vector4::MulAndAdd(x, VECTOR_HALVES, VECTOR_HALVES));
-}
-
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
     , mRenderingMode(DebugRenderingMode::BaseColor)
@@ -45,7 +39,8 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
     if (hitPoint.subObjectId == RT_LIGHT_OBJECT)
     {
         // ray hit a light
-        return RayColor::One();
+        const Vector4 lightColor{ 1.0, 1.0f, 0.0f };
+        return RayColor::Resolve(ctx.wavelength, Spectrum(lightColor));
     }
 
     ShadingData shadingData;
@@ -54,7 +49,7 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         mScene.ExtractShadingData(ray, hitPoint, ctx.time, shadingData);
     }
 
-    Vector4 resultColor = Vector4::Zero();
+    Vector4 resultColor;
 
     switch (mRenderingMode)
     {
@@ -68,8 +63,8 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         // Geometry
         case DebugRenderingMode::Depth:
         {
-            const float logDepth = std::max<float>(0.0f, (log2f(hitPoint.distance) + 5.0f) / 10.0f);
-            resultColor = Vector4(logDepth);
+            const float invDepth = 1.0f - 1.0f / (1.0f + hitPoint.distance / 10.0f);
+            resultColor = Vector4(invDepth);
             break;
         }
         case DebugRenderingMode::TriangleID:
@@ -82,17 +77,17 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         }
         case DebugRenderingMode::Tangents:
         {
-            resultColor = ScaleBipolarRange(shadingData.frame[0]);
+            resultColor = BipolarToUnipolar(shadingData.frame[0]);
             break;
         }
         case DebugRenderingMode::Bitangents:
         {
-            resultColor = ScaleBipolarRange(shadingData.frame[1]);
+            resultColor = BipolarToUnipolar(shadingData.frame[1]);
             break;
         }
         case DebugRenderingMode::Normals:
         {
-            resultColor = ScaleBipolarRange(shadingData.frame[2]);
+            resultColor = BipolarToUnipolar(shadingData.frame[2]);
             break;
         }
         case DebugRenderingMode::Position:
@@ -157,8 +152,14 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
         default:
+        {
             RT_FATAL("Invalid debug rendering mode");
+            resultColor = Vector4::Zero();
+        }
     }
+
+    // clamp color
+    resultColor = Vector4::Max(Vector4::Zero(), resultColor);
 
     return RayColor::Resolve(ctx.wavelength, Spectrum(resultColor));
 }
@@ -210,27 +211,27 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
                     }
                     case DebugRenderingMode::Tangents:
                     {
-                        color = ScaleBipolarRange(shadingData.frame[0]);
+                        color = BipolarToUnipolar(shadingData.frame[0]);
                         break;
                     }
                     case DebugRenderingMode::Bitangents:
                     {
-                        color = ScaleBipolarRange(shadingData.frame[1]);
+                        color = BipolarToUnipolar(shadingData.frame[1]);
                         break;
                     }
                     case DebugRenderingMode::Normals:
                     {
-                        color = ScaleBipolarRange(shadingData.frame[2]);
+                        color = BipolarToUnipolar(shadingData.frame[2]);
                         break;
                     }
                     case DebugRenderingMode::Position:
                     {
-                        color = ScaleBipolarRange(shadingData.frame.GetTranslation());
+                        color = BipolarToUnipolar(shadingData.frame.GetTranslation());
                         break;
                     }
                     case DebugRenderingMode::TexCoords:
                     {
-                        color = ScaleBipolarRange(shadingData.texCoord);
+                        color = BipolarToUnipolar(shadingData.texCoord);
                         break;
                     }
                     case DebugRenderingMode::TriangleID:
@@ -243,6 +244,9 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
                     }
                 }
             }
+
+            // clamp color
+            color = Vector4::Max(Vector4::Zero(), color);
 
             const ImageLocationInfo& imageLocation = packet.imageLocations[RayPacket::RaysPerGroup * i + j];
             film.AccumulateColor(imageLocation.x, imageLocation.y, color);

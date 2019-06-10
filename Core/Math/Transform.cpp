@@ -89,7 +89,7 @@ bool Transform::AlmostEqual(const Transform& a, const Transform& b, float epsilo
 const Matrix4 Transform::ToMatrix4() const
 {
     Matrix4 result = mRotation.ToMatrix4();
-    result.r[3] = Vector4(mTranslation.x, mTranslation.y, mTranslation.z, 1.0f);
+    result.rows[3] = Vector4(mTranslation.x, mTranslation.y, mTranslation.z, 1.0f);
     return result;
 }
 

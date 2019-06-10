@@ -361,6 +361,7 @@
     <ClInclude Include="Math\Simd8Geometry.h" />
     <ClInclude Include="Math\Simd8Ray.h" />
     <ClInclude Include="Math\Simd8Triangle.h" />
+    <ClInclude Include="Math\TranscendentalImpl.h" />
     <ClInclude Include="Math\Transform.h" />
     <ClInclude Include="Math\Utils.h" />
     <ClInclude Include="Math\Vector2x8.h" />

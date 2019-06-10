@@ -804,7 +804,7 @@ bool Vector4::IsValid() const
     // check if exponent is all ones
     const __m128i epxMask = _mm_set1_epi32(0x7F800000);
     const __m128i expCheck = _mm_cmpeq_epi32(_mm_and_si128(vi, epxMask), epxMask);
-    return _mm_movemask_ps(_mm_castsi128_ps(expCheck)) == 0;
+    return _mm_test_all_zeros(expCheck, expCheck);
 }
 
 void Vector4::Transpose3(Vector4& a, Vector4& b, Vector4& c)
@@ -820,6 +820,16 @@ const Vector4 Vector4::Orthogonalize(const Vector4& v, const Vector4& reference)
 {
     // Gram–Schmidt process
     return Vector4::NegMulAndAdd(Vector4::Dot3V(v, reference), reference, v);
+}
+
+const Vector4 BipolarToUnipolar(const Vector4& x)
+{
+    return Vector4::MulAndAdd(x, VECTOR_HALVES, VECTOR_HALVES);
+}
+
+const Vector4 UnipolarToBipolar(const Vector4& x)
+{
+    return Vector4::MulAndSub(x, 2.0f, VECTOR_ONE);
 }
 
 } // namespace math

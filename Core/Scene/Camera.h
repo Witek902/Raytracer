@@ -53,7 +53,7 @@ struct DOFSettings
 /**
  * Class describing camera for scene raytracing.
  */
-class RT_ALIGN(16) Camera
+class RT_ALIGN(32) Camera
 {
 public:
     RAYLIB_API Camera();

@@ -9,7 +9,6 @@
 namespace rt {
 namespace math {
 
-
 /**
  * Accurate sine and cosine.
  * @note    This is faster than sinf/cosf
@@ -19,16 +18,12 @@ RAYLIB_API RT_FORCE_NOINLINE float Sin(float x);
 RAYLIB_API RT_FORCE_NOINLINE const Vector4 Sin(const Vector4& x);
 RAYLIB_API RT_FORCE_NOINLINE const Vector8 Sin(const Vector8& x);
 
-RAYLIB_API float Cos(float x);
-RAYLIB_API const Vector4 Cos(const Vector4& x);
-RAYLIB_API const Vector8 Cos(const Vector8& x);
+RT_FORCE_INLINE float Cos(float x);
+RT_FORCE_INLINE const Vector4 Cos(const Vector4& x);
+RT_FORCE_INLINE const Vector8 Cos(const Vector8& x);
 
 // Compute sine and cosine in one go
-RT_FORCE_INLINE const Vector4 SinCos(const float x)
-{
-    const Vector4 offset(0.0f, RT_PI / 2.0f, 0.0f, 0.0f);
-    return Sin(Vector4(x) + offset) & Vector4::MakeMask<1,1,0,0>();
-}
+RT_FORCE_INLINE const Vector4 SinCos(const float x);
 
 // Maximum absolute error: about 7.0e-5
 RAYLIB_API float FastACos(float x);
@@ -63,3 +58,6 @@ RAYLIB_API const Vector4 FastLog(const Vector4& x);
 
 } // namespace math
 } // namespace rt
+
+
+#include "TranscendentalImpl.h"

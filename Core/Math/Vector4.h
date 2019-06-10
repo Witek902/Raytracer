@@ -270,9 +270,15 @@ struct RT_ALIGN(16) Vector4
 // like Vector4::operator * (float)
 RT_FORCE_INLINE const Vector4 operator*(float a, const Vector4& b);
 
+// [-1...1] -> [0...1] 
+RT_FORCE_INLINE const Vector4 BipolarToUnipolar(const Vector4& x);
+
+// [-1...1] -> [0...1] 
+RT_FORCE_INLINE const Vector4 UnipolarToBipolar(const Vector4& x);
+
+////
 
 // some commonly used constants
-
 RT_GLOBAL_CONST Vector4 VECTOR_EPSILON = { RT_EPSILON, RT_EPSILON, RT_EPSILON, RT_EPSILON };
 RT_GLOBAL_CONST Vector4 VECTOR_HALVES = { 0.5f, 0.5f, 0.5f, 0.5f };
 RT_GLOBAL_CONST Vector4 VECTOR_MIN = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
@@ -282,12 +288,10 @@ RT_GLOBAL_CONST Vector4 VECTOR_ONE = { 1.0f, 1.0f, 1.0f, 1.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE3 = { 1.0f, 1.0f, 1.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_ONE2 = { 1.0f, 1.0f, 0.0f, 0.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_MINUS_ONE = { -1.0f, -1.0f, -1.0f, -1.0f };
-
 RT_GLOBAL_CONST Vector4 VECTOR_EXPONENT_MASK = { 0x7F800000u, 0x7F800000u, 0x7F800000u, 0x7F800000u };
 RT_GLOBAL_CONST Vector4 VECTOR_MANTISSA_MASK = { 0x007FFFFFu, 0x007FFFFFu, 0x007FFFFFu, 0x007FFFFFu };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_ABS = { 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu, 0x7FFFFFFFu };
 RT_GLOBAL_CONST Vector4 VECTOR_MASK_SIGN_W = { 0u, 0u, 0u, 0x80000000u };
-
 RT_GLOBAL_CONST Vector4 VECTOR_INV_255 = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_255 = { 255.0f, 255.0f, 255.0f, 255.0f };
 RT_GLOBAL_CONST Vector4 VECTOR_X = { 1.0f, 0.0f, 0.0f, 0.0f };

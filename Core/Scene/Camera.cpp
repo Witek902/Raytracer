@@ -78,11 +78,6 @@ const Matrix4 Camera::SampleTransform(const float time) const
     //return Transform(position, rotation);
 }
 
-RT_FORCE_INLINE const Vector4 UnipolarToBipolar(const Vector4& x)
-{
-    return Vector4::MulAndSub(x, 2.0f, VECTOR_ONE);
-}
-
 const Ray Camera::GenerateRay(const Vector4& coords, RenderingContext& context) const
 {
     const Matrix4 transform = SampleTransform(context.time);
@@ -129,12 +124,7 @@ bool Camera::WorldToFilm(const Vector4& worldPosition, Vector4& outFilmCoords) c
     if (cameraSpacePosition.z > 0.0f)
     {
         // perspective projection
-        outFilmCoords = cameraSpacePosition / cameraSpacePosition.w;
-
-        // [-1...1] -> [0...1]
-        outFilmCoords *= 0.5f;
-        outFilmCoords += Vector4(0.5f);
-
+        outFilmCoords = BipolarToUnipolar(cameraSpacePosition / cameraSpacePosition.w);
         return true;
     }
 
@@ -218,7 +208,7 @@ const Vector4 Camera::GenerateBokeh(const math::Float3 sample) const
         {
             Vector4 coords;
             mDOF.bokehTexture->Sample(sample, coords);
-            return 2.0f * coords - Vector4(1.0f);
+            return UnipolarToBipolar(coords);
         }
     }
 

@@ -79,6 +79,9 @@
     <ClCompile Include="HashGridBenchmark.cpp">
       <Filter>Benchmarks</Filter>
     </ClCompile>
+    <ClCompile Include="MatrixBenchmark.cpp">
+      <Filter>Benchmarks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

@@ -47,3 +47,9 @@ TEST(MathMatrix4, Arithmetics)
 
     EXPECT_TRUE(matAB == matA * matB);
 }
+
+TEST(MathMatrix4, Determinant)
+{
+    EXPECT_EQ(1.0f, Matrix4::Identity().Determinant());
+    EXPECT_EQ(-12039.0f, matA.Determinant());
+}

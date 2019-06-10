@@ -23,8 +23,20 @@ RT_FORCE_INLINE float IntAsFloat(const Int32 i)
 
 } // namespace
 
+namespace sinCoeffs
+{
+    static const float c0 =  9.9999970197e-01f;
+    static const float c1 = -1.6666577756e-01f;
+    static const float c2 =  8.3325579762e-03f;
+    static const float c3 = -1.9812576647e-04f;
+    static const float c4 =  2.7040521217e-06f;
+    static const float c5 = -2.0532988642e-08f;
+}
+
 float Sin(float x)
 {
+    using namespace sinCoeffs;
+
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
@@ -34,13 +46,6 @@ float Sin(float x)
 
     const float x2 = x * x;
 
-    const float c0 =  9.9999970197e-01f;
-    const float c1 = -1.6666577756e-01f;
-    const float c2 =  8.3325579762e-03f;
-    const float c3 = -1.9812576647e-04f;
-    const float c4 =  2.7040521217e-06f;
-    const float c5 = -2.0532988642e-08f;
-
     float y = x * (c0 + x2 * (c1 + x2 * (c2 + x2 * (c3 + x2 * (c4 + x2 * c5)))));
 
     return (i & 1) ? -y : y;
@@ -48,6 +53,8 @@ float Sin(float x)
 
 const Vector4 Sin(const Vector4& a)
 {
+    using namespace sinCoeffs;
+
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
@@ -57,18 +64,11 @@ const Vector4 Sin(const Vector4& a)
 
     const Vector4 x2 = x * x;
 
-    const Vector4 c0 = Vector4( 9.9999970197e-01f);
-    const Vector4 c1 = Vector4(-1.6666577756e-01f);
-    const Vector4 c2 = Vector4( 8.3325579762e-03f);
-    const Vector4 c3 = Vector4(-1.9812576647e-04f);
-    const Vector4 c4 = Vector4( 2.7040521217e-06f);
-    const Vector4 c5 = Vector4(-2.0532988642e-08f);
-
-    Vector4 y = Vector4::MulAndAdd(c5, x2, c4);
-    y = Vector4::MulAndAdd(y, x2, c3);
-    y = Vector4::MulAndAdd(y, x2, c2);
-    y = Vector4::MulAndAdd(y, x2, c1);
-    y = Vector4::MulAndAdd(y, x2, c0);
+    Vector4 y = Vector4::MulAndAdd(Vector4(c5), x2, Vector4(c4));
+    y = Vector4::MulAndAdd(y, x2, Vector4(c3));
+    y = Vector4::MulAndAdd(y, x2, Vector4(c2));
+    y = Vector4::MulAndAdd(y, x2, Vector4(c1));
+    y = Vector4::MulAndAdd(y, x2, Vector4(c0));
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
@@ -78,6 +78,8 @@ const Vector4 Sin(const Vector4& a)
 const Vector8 Sin(const Vector8& a)
 {
 #ifdef RT_USE_AVX2
+    using namespace sinCoeffs;
+
     // based on:
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
@@ -87,18 +89,11 @@ const Vector8 Sin(const Vector8& a)
 
     const Vector8 x2 = x * x;
 
-    const Vector8 c0 = Vector8( 9.9999970197e-01f);
-    const Vector8 c1 = Vector8(-1.6666577756e-01f);
-    const Vector8 c2 = Vector8( 8.3325579762e-03f);
-    const Vector8 c3 = Vector8(-1.9812576647e-04f);
-    const Vector8 c4 = Vector8( 2.7040521217e-06f);
-    const Vector8 c5 = Vector8(-2.0532988642e-08f);
-
-    Vector8 y = Vector8::MulAndAdd(c5, x2, c4);
-    y = Vector8::MulAndAdd(y, x2, c3);
-    y = Vector8::MulAndAdd(y, x2, c2);
-    y = Vector8::MulAndAdd(y, x2, c1);
-    y = Vector8::MulAndAdd(y, x2, c0);
+    Vector8 y = Vector8::MulAndAdd(Vector8(c5), x2, Vector8(c4));
+    y = Vector8::MulAndAdd(y, x2, Vector8(c3));
+    y = Vector8::MulAndAdd(y, x2, Vector8(c2));
+    y = Vector8::MulAndAdd(y, x2, Vector8(c1));
+    y = Vector8::MulAndAdd(y, x2, Vector8(c0));
     y *= x;
 
     // equivalent of: (i & 1) ? -y : y;
@@ -106,21 +101,6 @@ const Vector8 Sin(const Vector8& a)
 #else
     return Vector8{sinf(a[0]), sinf(a[1]), sinf(a[2]), sinf(a[3]), sinf(a[4]), sinf(a[5]), sinf(a[6]), sinf(a[7])};
 #endif // RT_USE_AVX2
-}
-
-float Cos(float x)
-{
-    return Sin(x + RT_PI / 2.0f);
-}
-
-const Vector4 Cos(const Vector4& x)
-{
-    return Sin(x + Vector4(RT_PI / 2.0f));
-}
-
-const Vector8 Cos(const Vector8& x)
-{
-    return Sin(x + Vector8(RT_PI / 2.0f));
 }
 
 float FastACos(float x)

@@ -200,10 +200,10 @@ const Quaternion Quaternion::FromMatrix(const Matrix4& m)
 const Matrix4 Quaternion::ToMatrix4() const
 {
     Matrix4 m;
-    m.r[0] = GetAxisX();
-    m.r[1] = GetAxisY();
-    m.r[2] = GetAxisZ();
-    m.r[3] = VECTOR_W;
+    m.rows[0] = GetAxisX();
+    m.rows[1] = GetAxisY();
+    m.rows[2] = GetAxisZ();
+    m.rows[3] = VECTOR_W;
     return m;
 }
 

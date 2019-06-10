@@ -13,12 +13,13 @@ namespace rt {
 namespace math {
 
 // 4x4 matrix
-class RT_ALIGN(16) Matrix4 final
+class RT_ALIGN(32) Matrix4 final
 {
 public:
     union
     {
-        Vector4 r[4];   //< rows
+        Vector4 rows[4];
+        Vector8 vec[2];
         float f[16];
         float m[4][4];
     };
@@ -37,85 +38,90 @@ public:
 
     RT_FORCE_INLINE Matrix4(const Vector4& r0, const Vector4& r1, const Vector4& r2, const Vector4& r3)
     {
-        r[0] = r0;
-        r[1] = r1;
-        r[2] = r2;
-        r[3] = r3;
+        rows[0] = r0;
+        rows[1] = r1;
+        rows[2] = r2;
+        rows[3] = r3;
+    }
+
+
+    RT_FORCE_INLINE Matrix4(const Vector8& v0, const Vector8& v1)
+    {
+        vec[0] = v0;
+        vec[1] = v1;
     }
 
     RT_FORCE_INLINE Matrix4(const Matrix4& other)
     {
-        r[0].v = other.r[0].v;
-        r[1].v = other.r[1].v;
-        r[2].v = other.r[2].v;
-        r[3].v = other.r[3].v;
+        rows[0].v = other.rows[0].v;
+        rows[1].v = other.rows[1].v;
+        rows[2].v = other.rows[2].v;
+        rows[3].v = other.rows[3].v;
     }
 
     RT_FORCE_INLINE Matrix4& operator = (const Matrix4& other)
     {
-        r[0].v = other.r[0].v;
-        r[1].v = other.r[1].v;
-        r[2].v = other.r[2].v;
-        r[3].v = other.r[3].v;
+        rows[0].v = other.rows[0].v;
+        rows[1].v = other.rows[1].v;
+        rows[2].v = other.rows[2].v;
+        rows[3].v = other.rows[3].v;
         return *this;
     }
 
     RT_FORCE_INLINE Vector4& operator[] (int i)
     {
-        return r[i];
+        return rows[i];
     }
 
     RT_FORCE_INLINE const Vector4& operator[] (int i) const
     {
-        return r[i];
+        return rows[i];
     }
 
     RT_FORCE_INLINE const Vector4& GetTranslation() const
     {
-        return r[3];
+        return rows[3];
     }
 
+    // Compute matrix determinant
+    RAYLIB_API float Determinant() const;
+
+    // Matrix multiplication
     RAYLIB_API const Matrix4 operator * (const Matrix4& b) const;
     RAYLIB_API Matrix4& operator *= (const Matrix4& b);
 
     RT_FORCE_INLINE bool IsValid() const
     {
-        return r[0].IsValid() && r[1].IsValid() && r[2].IsValid() && r[3].IsValid();
+        return rows[0].IsValid() && rows[1].IsValid() && rows[2].IsValid() && rows[3].IsValid();
     }
 
     // Returns true if all the corresponding elements are equal.
     RT_FORCE_INLINE bool operator == (const Matrix4& b) const
     {
-        bool tmp0 = (r[0] == b.r[0]).All();
-        bool tmp1 = (r[1] == b.r[1]).All();
-        bool tmp2 = (r[2] == b.r[2]).All();
-        bool tmp3 = (r[3] == b.r[3]).All();
+        bool tmp0 = (rows[0] == b.rows[0]).All();
+        bool tmp1 = (rows[1] == b.rows[1]).All();
+        bool tmp2 = (rows[2] == b.rows[2]).All();
+        bool tmp3 = (rows[3] == b.rows[3]).All();
         return (tmp0 && tmp1) & (tmp2 && tmp3);
     }
 
-    /**
-     * Create scaling matrix
-     * @param scale Scaling factor (only XYZ components are taken into account).
-     */
-    RAYLIB_API static const Matrix4 MakeScaling(const Vector4& scale);
-
     // Multiply a 3D vector by a 4x4 matrix (affine transform).
-    // Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + m.r[3]
+    // Equivalent of a[0] * m.rows[0] + a[1] * m.rows[1] + a[2] * m.rows[2] + m.rows[3]
     RT_FORCE_INLINE const Vector4 TransformPoint(const Vector4& a) const
     {
         Vector4 t;
-        t = Vector4::MulAndAdd(a.SplatX(), r[0], r[3]);
-        t = Vector4::MulAndAdd(a.SplatY(), r[1], t);
-        t = Vector4::MulAndAdd(a.SplatZ(), r[2], t);
+        t = Vector4::MulAndAdd(a.SplatX(), rows[0], rows[3]);
+        t = Vector4::MulAndAdd(a.SplatY(), rows[1], t);
+        t = Vector4::MulAndAdd(a.SplatZ(), rows[2], t);
         return t;
     }
 
     const Vector3x8 TransformPoint(const Vector3x8& a) const
     {
-        const Vector3x8 row0(r[0]);
-        const Vector3x8 row1(r[1]);
-        const Vector3x8 row2(r[2]);
-        const Vector3x8 row3(r[3]);
+        const Vector3x8 row0(rows[0]);
+        const Vector3x8 row1(rows[1]);
+        const Vector3x8 row2(rows[2]);
+        const Vector3x8 row3(rows[3]);
 
         Vector3x8 t;
         t = Vector3x8::MulAndAdd(row0, a.x, row3);
@@ -126,9 +132,9 @@ public:
 
     RT_FORCE_INLINE const Vector4 TransformVector(const Vector4& a) const
     {
-        Vector4 t = a.SplatX() * r[0];
-        t = Vector4::MulAndAdd(a.SplatY(), r[1], t);
-        t = Vector4::MulAndAdd(a.SplatZ(), r[2], t);
+        Vector4 t = a.SplatX() * rows[0];
+        t = Vector4::MulAndAdd(a.SplatY(), rows[1], t);
+        t = Vector4::MulAndAdd(a.SplatZ(), rows[2], t);
         return t;
     }
 
@@ -136,17 +142,17 @@ public:
     // Note: faster than TransformVector(-a)
     RT_FORCE_INLINE const Vector4 TransformVectorNeg(const Vector4& a) const
     {
-        Vector4 t = a.SplatX() * r[0];
-        t = Vector4::NegMulAndSub(a.SplatY(), r[1], t);
-        t = Vector4::NegMulAndAdd(a.SplatZ(), r[2], t);
+        Vector4 t = a.SplatX() * rows[0];
+        t = Vector4::NegMulAndSub(a.SplatY(), rows[1], t);
+        t = Vector4::NegMulAndAdd(a.SplatZ(), rows[2], t);
         return t;
     }
 
     const Vector3x8 TransformVector(const Vector3x8& a) const
     {
-        const Vector3x8 row0(r[0]);
-        const Vector3x8 row1(r[1]);
-        const Vector3x8 row2(r[2]);
+        const Vector3x8 row0(rows[0]);
+        const Vector3x8 row1(rows[1]);
+        const Vector3x8 row2(rows[2]);
 
         Vector3x8 t = row0 * a.x;
         t = Vector3x8::MulAndAdd(row1, a.y, t);
@@ -155,38 +161,41 @@ public:
     }
 
     // Multiply a 4D vector by a 4x4 matrix.
-    // Equivalent of a[0] * m.r[0] + a[1] * m.r[1] + a[2] * m.r[2] + a[3] * m.r[3]
+    // Equivalent of a[0] * m.rows[0] + a[1] * m.rows[1] + a[2] * m.rows[2] + a[3] * m.rows[3]
     RT_FORCE_INLINE const Vector4 operator * (const Vector4& a) const
     {
-        Vector4 t = a.SplatX() * r[0];
-        t = Vector4::MulAndAdd(a.SplatY(), r[1], t);
-        t = Vector4::MulAndAdd(a.SplatZ(), r[2], t);
-        t = Vector4::MulAndAdd(a.SplatW(), r[3], t);
+        Vector4 t = a.SplatX() * rows[0];
+        t = Vector4::MulAndAdd(a.SplatY(), rows[1], t);
+        t = Vector4::MulAndAdd(a.SplatZ(), rows[2], t);
+        t = Vector4::MulAndAdd(a.SplatW(), rows[3], t);
         return t;
     }
 
     // Create perspective projection matrix
-    static const Matrix4 MakePerspective(float aspect, float fovY, float nearZ, float farZ);
+    RAYLIB_API static const Matrix4 MakePerspective(float aspect, float fovY, float nearZ, float farZ);
 
     // Create matrix representing a translation by 3D vector.
     RAYLIB_API static const Matrix4 MakeTranslation(const Vector4& pos);
+
+    // Create scaling matrix
+    RAYLIB_API static const Matrix4 MakeScaling(const Vector4& scale);
 
 
     RT_FORCE_INLINE const Matrix4 FastInverseNoScale() const
     {
         Matrix4 result = *this;
-        result.r[3] = VECTOR_W;
+        result.rows[3] = VECTOR_W;
         Vector4::Transpose3(result[0], result[1], result[2]);
-        result.r[3] = result.TransformVectorNeg(r[3]);
+        result.rows[3] = result.TransformVectorNeg(rows[3]);
         return result;
     }
 
     RT_FORCE_INLINE Matrix4& Transpose()
     {
-        Vector4& row0 = r[0];
-        Vector4& row1 = r[1];
-        Vector4& row2 = r[2];
-        Vector4& row3 = r[3];
+        Vector4& row0 = rows[0];
+        Vector4& row1 = rows[1];
+        Vector4& row2 = rows[2];
+        Vector4& row3 = rows[3];
 
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
 
@@ -195,10 +204,10 @@ public:
 
     RT_FORCE_INLINE const Matrix4 Transposed() const
     {
-        Vector4 row0 = r[0];
-        Vector4 row1 = r[1];
-        Vector4 row2 = r[2];
-        Vector4 row3 = r[3];
+        Vector4 row0 = rows[0];
+        Vector4 row1 = rows[1];
+        Vector4 row2 = rows[2];
+        Vector4 row3 = rows[3];
 
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
 
