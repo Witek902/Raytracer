@@ -19,11 +19,6 @@ RT_FORCE_INLINE static constexpr float Mis(const float samplePdf)
     return samplePdf;
 }
 
-RT_FORCE_INLINE static constexpr float PdfAtoW(const float pdfA, const float distance, const float cosThere)
-{
-    return pdfA * Sqr(distance) / Abs(cosThere);
-}
-
 RT_FORCE_INLINE static constexpr float PdfWtoA(const float pdfW, const float distance, const float cosThere)
 {
     return pdfW * Abs(cosThere) / Sqr(distance);

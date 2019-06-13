@@ -324,8 +324,8 @@ static TexturePtr ParseTexture(const rapidjson::Value& value, const TexturesMap&
     {
         Vector4 colorA = Vector4::Zero();
         Vector4 colorB = Vector4::Zero();
-        if (!TryParseVector3(value, "colorA", false, colorA)) return false;
-        if (!TryParseVector3(value, "colorB", false, colorB)) return false;
+        if (!TryParseVector3(value, "colorA", false, colorA)) return nullptr;
+        if (!TryParseVector3(value, "colorB", false, colorB)) return nullptr;
 
         return std::shared_ptr<ITexture>(new CheckerboardTexture(colorA, colorB));
     }
@@ -333,11 +333,11 @@ static TexturePtr ParseTexture(const rapidjson::Value& value, const TexturesMap&
     {
         Vector4 colorA = Vector4::Zero();
         Vector4 colorB = Vector4::Zero();
-        if (!TryParseVector3(value, "colorA", false, colorA)) return false;
-        if (!TryParseVector3(value, "colorB", false, colorB)) return false;
+        if (!TryParseVector3(value, "colorA", false, colorA)) return nullptr;
+        if (!TryParseVector3(value, "colorB", false, colorB)) return nullptr;
 
         Int32 numOctaves = 1;
-        if (!TryParseInt(value, "octaves", true, numOctaves)) return false;
+        if (!TryParseInt(value, "octaves", true, numOctaves)) return nullptr;
         numOctaves = Clamp(numOctaves, 1, 20);
 
         return std::shared_ptr<ITexture>(new NoiseTexture(colorA, colorB, static_cast<Uint32>(numOctaves)));
@@ -346,9 +346,9 @@ static TexturePtr ParseTexture(const rapidjson::Value& value, const TexturesMap&
     {
         TexturePtr texA, texB, texWeight;
 
-        if (!TryParseTextureName(value, "textureA", textures, texA)) return false;
-        if (!TryParseTextureName(value, "textureB", textures, texB)) return false;
-        if (!TryParseTextureName(value, "weight", textures, texWeight)) return false;
+        if (!TryParseTextureName(value, "textureA", textures, texA)) return nullptr;
+        if (!TryParseTextureName(value, "textureB", textures, texB)) return nullptr;
+        if (!TryParseTextureName(value, "weight", textures, texWeight)) return nullptr;
 
         return std::shared_ptr<ITexture>(new MixTexture(texA, texB, texWeight));
     }

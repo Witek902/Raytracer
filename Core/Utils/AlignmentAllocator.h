@@ -9,13 +9,19 @@ namespace rt {
 
 RT_INLINE void* AlignedMalloc(size_t size, size_t alignment)
 {
-#if defined(WIN32)
-    return _aligned_malloc(size, alignment);
-#elif defined(__LINUX__) | defined(__linux__)
     void* ptr = nullptr;
-    posix_memalign(&ptr, alignment, size);
-    return ptr;
+#if defined(WIN32)
+    ptr = _aligned_malloc(size, alignment);
+#elif defined(__LINUX__) | defined(__linux__)
+    alignment = std::max(alignment, sizeof(void*));
+    int ret = posix_memalign(&ptr, alignment, size);
+    if (ret != 0)
+    {
+        RT_ASSERT("posix_memalign() returned %i", ret);
+        ptr = nullptr;
+    }
 #endif // defined(WIN32)
+    return ptr;
 }
 
 RT_INLINE void AlignedFree(void* ptr)

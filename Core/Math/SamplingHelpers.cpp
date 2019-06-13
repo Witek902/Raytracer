@@ -48,7 +48,7 @@ const Vector4 SamplingHelpers::GetHexagon(const Float3 u)
     };
 
     const Uint32 x = static_cast<Uint32>(3.0f * u.z);
-    RT_ASSERT(x >= 0 && x < 3);
+    RT_ASSERT(x < 3);
 
     const Float2 a = hexVectors[x];
     const Float2 b = hexVectors[x + 1];

@@ -142,7 +142,7 @@ public:
             if (!ret)
             {
                 RT_LOG_ERROR("Failed to load mesh '%s'", filePath.c_str());
-                return nullptr;
+                return false;
             }
 
             RT_LOG_INFO("Mesh file '%s' parsed in %.3f seconds", filePath.c_str(), timer.Stop());
@@ -160,7 +160,7 @@ public:
                 if (numFaceVertices != 3)
                 {
                     RT_LOG_ERROR("Expected only triangles (shape index = %zu, face index = %zu)", shapeIndex, faceIndex);
-                    return nullptr;
+                    return false;
                 }
 
                 const tinyobj::index_t idx[3] =
@@ -288,13 +288,13 @@ public:
 
         std::vector<Vector4, AlignmentAllocator<Vector4>> bitangents;
         bitangents.resize(mVertexNormals.size());
-        memset(bitangents.data(), 0, bitangents.size() * sizeof(Vector4));
+        memset((void*)bitangents.data(), 0, bitangents.size() * sizeof(Vector4));
 
         Uint32 numTriangles = static_cast<Uint32>(mVertexIndices.size() / 3);
         for (Uint32 i = 0; i < numTriangles; ++i)
         {
             // algorithm based on: http://www.terathon.com/code/tangent.html
-            // (Lengyel’s Method)
+            // (Lengyelï¿½s Method)
 
             const Uint32 i0 = mVertexIndices[3 * i + 0];
             const Uint32 i1 = mVertexIndices[3 * i + 1];
@@ -370,6 +370,7 @@ public:
             // Calculate handedness
             const Vector4 computedBitangent = Vector4::Cross3(normal, tangent);
             float headedness = Vector4::Dot3(computedBitangent, bitangent) < 0.0f ? -1.0f : 1.0f;
+            (void)headedness; // TODO
 
             mVertexTangents[i] = tangent.ToFloat3();
         }

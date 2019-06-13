@@ -2,6 +2,7 @@
 
 #include "../Window.h"
 #include "../Core/Utils/Logger.h"
+#include "../Core/Utils/Bitmap.h"
 
 namespace {
 
@@ -350,16 +351,14 @@ void Window::ProcessMessages()
     }
 }
 
-bool Window::DrawPixels(const void* sourceData)
+bool Window::DrawPixels(const rt::Bitmap& bitmap)
 {
-    // TODO use rt::Bitmap instead
-
     xcb_image_t* img = xcb_image_create_native(mConnection,
                                                mWidth, mHeight,
                                                XCB_IMAGE_FORMAT_Z_PIXMAP,
                                                mScreen->root_depth, nullptr,
                                                4u * mWidth * mHeight,
-                                               (uint8_t*)sourceData);
+                                               (uint8_t*)bitmap.GetData());
     if (!img)
     {
         RT_LOG_ERROR("Failed to create temporary image");
@@ -467,5 +466,9 @@ void Window::OnMouseMove(int, int, int, int)
 }
 
 void Window::OnMouseUp(MouseButton)
+{
+}
+
+void Window::OnFileDrop(const std::string&)
 {
 }

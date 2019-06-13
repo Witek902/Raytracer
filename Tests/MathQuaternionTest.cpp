@@ -113,7 +113,7 @@ TEST(MathQuaternion, ToMatrix)
     const Quaternion q = Quaternion::FromAxisAndAngle(axis, testAngle);
 
     Matrix4 m = q.ToMatrix4();
-    m.r[3] = Vector4(); // zero 4th row
+    m.r[3] = Vector4::Zero();
     ASSERT_TRUE(Vector4::AlmostEqual(m[0], transformedX, maxError));
     ASSERT_TRUE(Vector4::AlmostEqual(m[1], transformedY, maxError));
     ASSERT_TRUE(Vector4::AlmostEqual(m[2], transformedZ, maxError));

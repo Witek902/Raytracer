@@ -14,6 +14,8 @@
     #include <shellapi.h>
     #include <strsafe.h>
 #elif defined(__linux__) | defined(__LINUX__)
+    #include <sys/types.h>
+    #include <sys/stat.h>
 #else
     #error "Target platform not supported."
 #endif // WIN32

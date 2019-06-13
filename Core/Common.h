@@ -19,6 +19,10 @@
 // "conditional expression is constant"
 #pragma warning(disable : 4127)
 
+#ifndef strdup
+#define strdup _strdup
+#endif
+
 #endif // _MSC_VER
 
 

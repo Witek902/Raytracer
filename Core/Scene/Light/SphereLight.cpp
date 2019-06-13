@@ -110,8 +110,6 @@ const RayColor SphereLight::GetRadiance(RenderingContext& context, const math::R
 
     const Vector4 centerDir = mPosition - ray.origin; // direction to light center
     const float centerDistSqr = centerDir.SqrLength3();
-    const float centerDist = sqrtf(centerDistSqr);
-
     const float cosAtLight = Max(0.0f, Vector4::Dot3(-ray.dir, GetNormal(hitPoint)));
 
     if (outDirectPdfA)

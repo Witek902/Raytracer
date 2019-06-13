@@ -10,4 +10,4 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <strsafe.h>
+#include <limits>

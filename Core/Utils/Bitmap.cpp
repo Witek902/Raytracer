@@ -89,7 +89,7 @@ Bitmap::Bitmap(const char* debugName)
     , mLinearSpace(false)
 {
     RT_ASSERT(debugName, "Invalid debug name");
-    mDebugName = _strdup(debugName);
+    mDebugName = strdup(debugName);
 }
 
 Bitmap::~Bitmap()
@@ -97,7 +97,7 @@ Bitmap::~Bitmap()
     RT_LOG_INFO("Releasing bitmap '%s'...", mDebugName);
     free(mDebugName);
 
-    Release();
+    Release();\
 }
 
 Bitmap::Bitmap(Bitmap&&) = default;

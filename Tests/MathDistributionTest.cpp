@@ -28,7 +28,7 @@ TEST(MathTest, Distribution_SingleValue)
         Uint32 sample = distr.SampleDiscrete(random.GetFloat(), pdf);
 
         EXPECT_EQ(1.0f, pdf);
-        EXPECT_EQ(0, sample);
+        EXPECT_EQ(0u, sample);
     }
 }
 
@@ -58,6 +58,6 @@ TEST(MathTest, Distribution_MultipleValues)
     {
         Int32 expected = (Int32)(numIterations * p[i]);
 
-        EXPECT_TRUE(Abs(expected - counters[i]) < 200u);
+        EXPECT_LT(Abs(expected - counters[i]), 200);
     }
 }

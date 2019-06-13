@@ -1,4 +1,5 @@
 #include "PCH.h"
+/*
 #include "../Core/Scene/Scene.h"
 #include "../Core/Rendering/Context.h"
 #include "../Core/Mesh/Mesh.h"
@@ -244,7 +245,6 @@ TEST_F(TestFixture, BackgroundOnly)
     }
 }
 
-/*
 TEST_F(TestFixture, Furnace_EmissionOnly)
 {
     SceneEnvironment env;
@@ -284,7 +284,6 @@ TEST_F(TestFixture, Furnace_EmissionOnly)
         EXPECT_NEAR(color.z, rgbColor.z, 0.05f);
     }
 }
-*/
 
 TEST_F(TestFixture, Furnace_Metal)
 {
@@ -320,7 +319,6 @@ TEST_F(TestFixture, Furnace_Metal)
     const size_t maxSamples = 50;
     for (size_t i = 0; i < maxProbes; ++i)
     {
-        /*
         const Ray ray(Vector4(), random.GetVector4());
         Vector4 rgbColor;
         for (size_t j = 0; j < maxSamples; ++j)
@@ -336,6 +334,6 @@ TEST_F(TestFixture, Furnace_Metal)
         EXPECT_NEAR(expectedColor.x, rgbColor.x, 0.05f);
         EXPECT_NEAR(expectedColor.y, rgbColor.y, 0.05f);
         EXPECT_NEAR(expectedColor.z, rgbColor.z, 0.05f);
-        */
     }
 }
+*/

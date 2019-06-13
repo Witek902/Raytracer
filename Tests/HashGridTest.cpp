@@ -46,7 +46,6 @@ TEST(MathTest, HashGrid_RandomPoints)
 
     Query query;
 
-    const float queryMarigin = 1.0f;
     for (Uint32 i = 0; i < numQueries; ++i)
     {
         const Vector4 queryPoint = random.GetVector4() * (box.max - box.min) + box.min;

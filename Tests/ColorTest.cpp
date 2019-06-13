@@ -1,4 +1,5 @@
 #include "PCH.h"
+/*
 #include "../Core/Color/Color.h"
 #include "../Core/Color/ColorHelpers.h"
 #include "../Core/Math/Random.h"
@@ -52,3 +53,4 @@ TEST_F(ColorTestFixture, SpectrumToRGB)
     TestColor(Vector4(1.0f, 1.0f, 0.0f, 0.0f));
     TestColor(Vector4(1.0f, 1.0f, 1.0f, 0.0f));
 }
+*/

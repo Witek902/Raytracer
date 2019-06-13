@@ -16,8 +16,12 @@ static const Vector4 vecE = Vector4(4.0f, 3.0f, 2.0f, 1.0f);
 
 } // namespace
 
+static volatile bool g_bla = false;
+
 TEST(MathTest, Vector4_Constructor1)
 {
+    RT_ASSERT(g_bla, "Fail: %u", 123);
+
     const Vector4 v(1.0f, 2.0f, 3.0f, 4.0f);
     EXPECT_EQ(1.0f, v.x);
     EXPECT_EQ(2.0f, v.y);

@@ -10,6 +10,4 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <strsafe.h>
-
-#include "../External/rapidjson/rapidjson.h"
+#include <limits>
