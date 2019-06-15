@@ -156,8 +156,8 @@ RayColor SampleSpectrum(const float* data, const Uint32 numValues, const Wavelen
     const VectorInt8 indices = VectorInt8::Convert(scaledWavelengths);
     const Vector8 weights = scaledWavelengths - indices.ConvertToFloat();
 
-    const Vector8 a = _mm256_i32gather_ps(data, indices, 4);
-    const Vector8 b = _mm256_i32gather_ps(data + 1, indices, 4);
+    const Vector8 a = Gather8(data, indices);
+    const Vector8 b = Gather8(data + 1, indices);
 
     RayColor result;
     result.value = Vector8::Lerp(a, b, weights);

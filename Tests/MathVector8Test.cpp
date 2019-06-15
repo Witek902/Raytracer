@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "../Core/Math/Vector8.h"
+#include "../Core/Math/VectorInt8.h"
 
 #include "gtest/gtest.h"
 
@@ -33,7 +34,7 @@ TEST(MathTest, Vector8_Constructor2)
     EXPECT_EQ(7.0f, v[7]);
 }
 
-TEST(MathTest, Vector8_Constructor3)
+TEST(MathTest, Vector8_ConstructorHiLow)
 {
     const Vector4 vA(1.0f, 2.0f, 3.0f, 4.0f);
     const Vector4 vB(5.0f, 6.0f, 7.0f, 8.0f);
@@ -85,4 +86,33 @@ TEST(MathTest, Vector8Bool_Get)
     EXPECT_EQ(true, vec.Get<5>());
     EXPECT_EQ(false, vec.Get<6>());
     EXPECT_EQ(true, vec.Get<7>());
+}
+
+TEST(MathTest, Vector8_Arithmetics)
+{
+    EXPECT_TRUE((Vector8(11.0f, 22.0f, 33.0f, 44.0f, 55.0f, 66.0f, 77.0f, 88.0f)
+        == Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f) + Vector8(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f)).All());
+
+    EXPECT_TRUE((Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f)
+        == Vector8(11.0f, 22.0f, 33.0f, 44.0f, 55.0f, 66.0f, 77.0f, 88.0f) - Vector8(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f)).All());
+
+    EXPECT_TRUE((Vector8(10.0f, 40.0f, 90.0f, 160.0f, 250.0f, 360.0f, 490.0f, 640.0f)
+        == Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f) * Vector8(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f)).All());
+
+    EXPECT_TRUE((Vector8(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f)
+        == Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f) * 2.0f).All());
+
+    EXPECT_TRUE((Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f)
+        == Vector8(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f) / 2.0f).All());
+
+    EXPECT_TRUE((Vector8(-1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f)
+        == -Vector8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f)).All());
+}
+
+TEST(MathTest, Vector8_Gather)
+{
+    const float data[] = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f };
+    const VectorInt8 indices(5, 6, 0, 1, 10, 12, 3, 0);
+
+    EXPECT_TRUE((Vector8(5.0f, 6.0f, 0.0f, 1.0f, 10.0f, 12.0f, 3.0f, 0.0f) == Gather8(data, indices)).All());
 }

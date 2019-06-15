@@ -25,15 +25,6 @@
 
 #endif // _MSC_VER
 
-
-// TODO #define RT_USE_SSE
-
-#define RT_USE_AVX
-#define RT_USE_FMA
-#define RT_USE_AVX2
-#define RT_USE_FP16C
-
-
 #define RT_UNUSED(x) (void)(x)
 #define RT_INLINE inline
 

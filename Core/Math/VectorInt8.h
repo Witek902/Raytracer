@@ -8,14 +8,14 @@ namespace math {
 
 struct Vector8;
 
-/**
- * 8-element integer SIMD vector.
- */
+// 8-element integer SIMD vector
 struct RT_ALIGN(32) VectorInt8
 {
     // constructors
-    RT_FORCE_INLINE VectorInt8() = default;
+    VectorInt8() = default;
     RT_FORCE_INLINE static const VectorInt8 Zero();
+    RT_FORCE_INLINE VectorInt8(const VectorInt8& other);
+    RT_FORCE_INLINE VectorInt8& operator = (const VectorInt8& other);
     RT_FORCE_INLINE VectorInt8(const __m256i& m);
     RT_FORCE_INLINE VectorInt8(const VectorInt4& lo, const VectorInt4& hi);
     RT_FORCE_INLINE explicit VectorInt8(const __m256& m);
@@ -36,8 +36,6 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE VectorInt8& operator |= (const VectorInt8& b);
     RT_FORCE_INLINE VectorInt8& operator ^= (const VectorInt8& b);
 
-#ifdef RT_USE_AVX2
-
     // simple arithmetics
     RT_FORCE_INLINE const VectorInt8 operator - () const;
     RT_FORCE_INLINE const VectorInt8 operator + (const VectorInt8& b) const;
@@ -45,12 +43,14 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE const VectorInt8 operator * (const VectorInt8& b) const;
     RT_FORCE_INLINE VectorInt8& operator += (const VectorInt8& b);
     RT_FORCE_INLINE VectorInt8& operator -= (const VectorInt8& b);
+    RT_FORCE_INLINE VectorInt8& operator *= (const VectorInt8& b);
     RT_FORCE_INLINE const VectorInt8 operator + (Int32 b) const;
     RT_FORCE_INLINE const VectorInt8 operator - (Int32 b) const;
     RT_FORCE_INLINE const VectorInt8 operator * (Int32 b) const;
     RT_FORCE_INLINE const VectorInt8 operator % (Int32 b) const;
     RT_FORCE_INLINE VectorInt8& operator += (Int32 b);
     RT_FORCE_INLINE VectorInt8& operator -= (Int32 b);
+    RT_FORCE_INLINE VectorInt8& operator *= (Int32 b);
 
     // bit shifting
     RT_FORCE_INLINE const VectorInt8 operator << (Int32 b) const;
@@ -70,22 +70,16 @@ struct RT_ALIGN(32) VectorInt8
     // convert to float vector
     RT_FORCE_INLINE const Vector8 ConvertToFloat() const;
 
-#endif // RT_USE_AVX2
-
     // cast from float vector (preserve bits)
     RT_FORCE_INLINE static const VectorInt8 Cast(const Vector8& v);
 
     // convert to float vector
     RT_FORCE_INLINE const Vector8 CastToFloat() const;
 
-    /**
-     * Build mask of sign bits.
-     */
+    // build mask of sign bits.
     RT_FORCE_INLINE Int32 GetSignMask() const;
 
-    /**
-     * For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
-     */
+    // for each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
     RT_FORCE_INLINE static const VectorInt8 SelectBySign(const VectorInt8& a, const VectorInt8& b, const VectorInt8& sel);
 
 private:
@@ -95,8 +89,17 @@ private:
         Uint32 u[8];
         __m256 f;
         __m256i v;
+        
+        struct
+        {
+            __m128i low;
+            __m128i high;
+        };
     };
 };
+
+// gather 8 floats using base pointer and indices
+RT_FORCE_INLINE const Vector8 Gather8(const float* basePtr, const VectorInt8& indices);
 
 } // namespace math
 } // namespace rt

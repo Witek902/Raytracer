@@ -104,7 +104,7 @@ const Vector8 Sin(const Vector8& a)
     // equivalent of: (i & 1) ? -y : y;
     return y ^ (i << 31).CastToFloat();
 #else
-    return Vector8{sinf(x[0]), sinf(x[1]), sinf(x[2]), sinf(x[3]), sinf(x[4]), sinf(x[5]), sinf(x[6]), sinf(x[7])};
+    return Vector8{sinf(a[0]), sinf(a[1]), sinf(a[2]), sinf(a[3]), sinf(a[4]), sinf(a[5]), sinf(a[6]), sinf(a[7])};
 #endif // RT_USE_AVX2
 }
 
