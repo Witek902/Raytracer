@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Random.h"
 #include "Transcendental.h"
+#include "../Utils/Entropy.h"
 
 namespace rt {
 namespace math {
@@ -17,21 +18,16 @@ Random::Random()
 
 void Random::Reset()
 {
+    Entropy entropy;
+    
     for (Uint32 i = 0; i < 2; ++i)
     {
-        mSeed[i] = ((Uint64)GetEntropy() << 32) | (Uint64)GetEntropy();
-        mSeedSimd4[i] = VectorInt4(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+        mSeed[i] = ((Uint64)entropy.GetInt() << 32) | (Uint64)entropy.GetInt();
+        mSeedSimd4[i] = VectorInt4(entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt());
 #ifdef RT_USE_AVX2
-        mSeedSimd8[i] = VectorInt8(GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy(), GetEntropy());
+        mSeedSimd8[i] = VectorInt8(entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt());
 #endif // RT_USE_AVX2
     }
-}
-
-Uint32 Random::GetEntropy()
-{
-    Uint32 val = 0;
-    while (_rdrand32_step(&val) == 0) {}
-    return val;
 }
 
 Uint64 Random::GetLong()

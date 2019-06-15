@@ -20,9 +20,6 @@ public:
     // initialize seeds with new values, very slow
     void Reset();
 
-    // get true random number, very slow
-    static Uint32 GetEntropy();
-
     Uint64 GetLong();
     Uint32 GetInt();
 

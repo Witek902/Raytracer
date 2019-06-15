@@ -314,6 +314,7 @@
     <ClInclude Include="Textures\NoiseTexture.h" />
     <ClInclude Include="Textures\MixTexture.h" />
     <ClInclude Include="Textures\ConstTexture.h" />
+    <ClInclude Include="Utils\Entropy.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\Math.cpp">
@@ -504,6 +505,7 @@
     <ClCompile Include="Textures\NoiseTexture.cpp" />
     <ClCompile Include="Textures\MixTexture.cpp" />
     <ClCompile Include="Textures\ConstTexture.cpp" />
+    <ClCompile Include="Utils\Entropy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

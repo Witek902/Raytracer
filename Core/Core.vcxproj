@@ -429,6 +429,7 @@
     <ClInclude Include="Utils\AlignmentAllocator.h" />
     <ClInclude Include="Utils\Bitmap.h" />
     <ClInclude Include="Utils\BlockCompression.h" />
+    <ClInclude Include="Utils\Entropy.h" />
     <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
@@ -526,6 +527,7 @@
     <ClCompile Include="Utils\BitmapDDS.cpp" />
     <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
+    <ClCompile Include="Utils\Entropy.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
