@@ -87,7 +87,7 @@ void DemoWindow::InitializeUI()
     fontConfig.OversampleH = 4;
     fontConfig.OversampleV = 4;
     fontConfig.PixelSnapH = true;
-    ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/Fonts/DroidSans.ttf", 13, &fontConfig);
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("../Data/Fonts/DroidSans-Regular.otf", 13, &fontConfig);
 
     // Setup back-end capabilities flags
     ImGuiIO& io = ImGui::GetIO();
