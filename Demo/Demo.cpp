@@ -69,7 +69,13 @@ bool DemoWindow::Initialize()
 
     mViewport = std::make_unique<Viewport>();
     mViewport->Resize(gOptions.windowWidth, gOptions.windowHeight);
-    mImage.Init(gOptions.windowWidth, gOptions.windowHeight, Bitmap::Format::B8G8R8A8_UNorm);
+
+    Bitmap::InitData initData;
+    initData.linearSpace = false;
+    initData.width = gOptions.windowWidth;
+    initData.height = gOptions.windowHeight;
+    initData.format = Bitmap::Format::B8G8R8A8_UNorm;
+    mImage.Init(initData);
 
     mCamera.mDOF.aperture = 0.0f;
 
@@ -216,7 +222,13 @@ void DemoWindow::OnResize(Uint32 width, Uint32 height)
     if (mViewport)
     {
         mViewport->Resize(width, height);
-        mImage.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm);
+
+        Bitmap::InitData initData;
+        initData.linearSpace = true;
+        initData.width = width;
+        initData.height = height;
+        initData.format = Bitmap::Format::B8G8R8A8_UNorm;
+        mImage.Init(initData);
     }
 
     UpdateCamera();
@@ -411,6 +423,7 @@ bool DemoWindow::Loop()
 
         //// render
         localTimer.Start();
+        // display pixels in the window
         mViewport->Render(mCamera);
         mRenderDeltaTime = localTimer.Stop();
 

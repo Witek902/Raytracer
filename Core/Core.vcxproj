@@ -349,6 +349,7 @@
     <ClInclude Include="Math\Float3Impl.h" />
     <ClInclude Include="Math\Geometry.h" />
     <ClInclude Include="Math\Half.h" />
+    <ClInclude Include="Math\HalfImpl.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Matrix4.h" />
     <ClInclude Include="Math\Packed.h" />
@@ -371,6 +372,7 @@
     <ClInclude Include="Math\Transcendental.h" />
     <ClInclude Include="Math\Triangle.h" />
     <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Math\Vector4Load.h" />
     <ClInclude Include="Math\Vector8.h" />
     <ClInclude Include="Math\Vector8Impl.h" />
     <ClInclude Include="Math\Vector4Impl.h" />

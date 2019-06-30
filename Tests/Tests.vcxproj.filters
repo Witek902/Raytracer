@@ -84,6 +84,9 @@
     <ClCompile Include="KdTreeTest.cpp">
       <Filter>TestCases</Filter>
     </ClCompile>
+    <ClCompile Include="BitmapTest.cpp">
+      <Filter>TestCases</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

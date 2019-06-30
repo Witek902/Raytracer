@@ -22,7 +22,7 @@
         {
             "type": "background",
             "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
+            "texture" : "TEXTURES/ENV/Topanga_Forest_B_3k.DDS"
         }
     ],
     "camera":

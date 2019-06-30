@@ -19,6 +19,10 @@ VectorInt4::VectorInt4(const VectorInt4& other)
     : v(other.v)
 {}
 
+VectorInt4::VectorInt4(const VectorBool4& other)
+    : v(_mm_castps_si128(other.v))
+{}
+
 const VectorInt4 VectorInt4::Cast(const Vector4& v)
 {
     return _mm_castps_si128(v);
@@ -100,6 +104,11 @@ const VectorInt4 VectorInt4::Swizzle() const
 const VectorInt4 VectorInt4::operator & (const VectorInt4& b) const
 {
     return _mm_and_si128(v, b.v);
+}
+
+const VectorInt4 VectorInt4::AndNot(const VectorInt4& a, const VectorInt4& b)
+{
+    return _mm_andnot_si128(a.v, b.v);
 }
 
 const VectorInt4 VectorInt4::operator | (const VectorInt4& b) const

@@ -30,7 +30,7 @@ struct RT_ALIGN(16) VectorBool4
     }
 
     template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
-    const VectorBool4 Swizzle() const
+    RT_FORCE_INLINE const VectorBool4 Swizzle() const
     {
         static_assert(ix < 4, "Invalid X element index");
         static_assert(iy < 4, "Invalid Y element index");
@@ -86,22 +86,22 @@ struct RT_ALIGN(16) VectorBool4
         return _mm_movemask_ps(v) != 0;
     }
 
-    const VectorBool4 operator & (const VectorBool4 rhs) const
+    RT_FORCE_INLINE const VectorBool4 operator & (const VectorBool4 rhs) const
     {
         return _mm_and_ps(v, rhs.v);
     }
 
-    const VectorBool4 operator | (const VectorBool4 rhs) const
+    RT_FORCE_INLINE const VectorBool4 operator | (const VectorBool4 rhs) const
     {
         return _mm_or_ps(v, rhs.v);
     }
 
-    const VectorBool4 operator ^ (const VectorBool4 rhs) const
+    RT_FORCE_INLINE const VectorBool4 operator ^ (const VectorBool4 rhs) const
     {
         return _mm_xor_ps(v, rhs.v);
     }
 
-    bool operator == (const VectorBool4 rhs) const
+    RT_FORCE_INLINE bool operator == (const VectorBool4 rhs) const
     {
         return GetMask() == rhs.GetMask();
     }

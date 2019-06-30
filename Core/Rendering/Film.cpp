@@ -2,6 +2,7 @@
 #include "Film.h"
 #include "../Utils/Bitmap.h"
 #include "../Math/Random.h"
+#include "../Math/Vector4Load.h"
 
 namespace rt {
 
@@ -23,7 +24,7 @@ Film::Film(Bitmap& sum, Bitmap* secondarySum)
 
 RT_FORCE_INLINE static void AccumulateToFloat3(Float3& target, const Vector4& value)
 {
-    const Vector4 original = Vector4::Load_Float3_Unsafe(target);
+    const Vector4 original = Vector4_Load_Float3_Unsafe(target);
     target = (original + value).ToFloat3();
 }
 

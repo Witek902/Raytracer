@@ -240,19 +240,29 @@ bool Window::Open()
 
 bool Window::DrawPixels(const rt::Bitmap& bitmap)
 {
-    RT_ASSERT(bitmap.GetFormat() == rt::Bitmap::Format::B8G8R8A8_UNorm);
-
     BITMAPINFO bmi;
     ZeroMemory(&bmi, sizeof(bmi));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = bitmap.GetStride() / 4;
+    bmi.bmiHeader.biWidth = bitmap.GetWidth();
     bmi.bmiHeader.biHeight = -static_cast<Int32>(bitmap.GetHeight()); // flip the image
     bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage = bitmap.GetStride() * bitmap.GetHeight();
     bmi.bmiHeader.biXPelsPerMeter = 1;
     bmi.bmiHeader.biYPelsPerMeter = 1;
+
+    if (bitmap.GetFormat() == rt::Bitmap::Format::B8G8R8A8_UNorm)
+    {
+        bmi.bmiHeader.biBitCount = 32;
+    }
+    else if (bitmap.GetFormat() == rt::Bitmap::Format::B8G8R8_UNorm)
+    {
+        bmi.bmiHeader.biBitCount = 24;
+    }
+    else
+    {
+        return false;
+    }
 
     if (0 == SetDIBitsToDevice(mDC, 0, 0, mWidth, mHeight, 0, 0, 0, mHeight, bitmap.GetData(), &bmi, DIB_RGB_COLORS))
     {

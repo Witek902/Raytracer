@@ -47,20 +47,20 @@ const Vector4 DecodeBC1(const Uint8* data, Uint32 x, Uint32 y, const Uint32 widt
     return Vector4::Load4((const Uint8*)&rgba) * (1.0f / 255.0f);
     */
 
-    const Uint32 blocksInRow = width / 4u; // TODO non-4-multiply width support
-    const Uint32 blockX = x / 4u;
-    const Uint32 blockY = y / 4u;
+    const size_t blocksInRow = width / 4u; // TODO non-4-multiply width support
+    const size_t blockX = x / 4u;
+    const size_t blockY = y / 4u;
 
     // calculate position inside block
     x %= 4u;
     y %= 4u;
 
-    const Uint8* blockData = data + 8 * (blocksInRow * blockY + blockX);
+    const Uint8* blockData = data + 8u * (blocksInRow * blockY + blockX);
 
     // extract base colors for given block
-    const VectorInt4 U565AndMask = { 0x1F << 11, 0x3F << 5, 0x1F, 0 };
-    const VectorInt4 raw0 = VectorInt4(*reinterpret_cast<const Int32*>(blockData + 0)) & U565AndMask;
-    const VectorInt4 raw1 = VectorInt4(*reinterpret_cast<const Int32*>(blockData + 2)) & U565AndMask;
+    const VectorInt4 mask = { 0x1F << 11, 0x3F << 5, 0x1F, 0 };
+    const VectorInt4 raw0 = VectorInt4(*reinterpret_cast<const Int32*>(blockData + 0)) & mask;
+    const VectorInt4 raw1 = VectorInt4(*reinterpret_cast<const Int32*>(blockData + 2)) & mask;
     const Vector4 color0 = raw0.ConvertToFloat();
     const Vector4 color1 = raw1.ConvertToFloat();
     // TODO alpha support
@@ -72,8 +72,8 @@ const Vector4 DecodeBC1(const Uint8* data, Uint32 x, Uint32 y, const Uint32 widt
 
     // calculate final color by blending base colors + scale down from 5,6,5 bit ranges to 0...1 float range
     const float weights[] = { 0.0f, 1.0f, 1.0f / 3.0f, 2.0f / 3.0f };
-    const Vector4 U565Mul = { 1.0f / 65536.0f, 1.0f / 2048.f, 1.0f / 32.0f, 0.0f };
-    return Vector4::Lerp(color0, color1, weights[index]) * U565Mul;
+    const Vector4 scale{ 1.0f / 2048.0f / 31.0f, 1.0f / 32.0f / 63.0f, 1.0f / 31.0f, 0.0f };
+    return Vector4::Lerp(color0, color1, weights[index]) * scale;
 }
 
 namespace helper
@@ -112,9 +112,9 @@ static float DecodeBC_Grayscale(const Uint8* blockData, const Uint32 x, const Ui
 
 const Vector4 DecodeBC4(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width)
 {
-    const Uint32 blocksInRow = width / 4; // TODO non-4-multiply width support
-    const Uint32 blockX = x / 4u;
-    const Uint32 blockY = y / 4u;
+    const size_t blocksInRow = width / 4; // TODO non-4-multiply width support
+    const size_t blockX = x / 4u;
+    const size_t blockY = y / 4u;
 
     // calculate position inside block
     x %= 4;
@@ -127,9 +127,9 @@ const Vector4 DecodeBC4(const Uint8* data, Uint32 x, Uint32 y, const Uint32 widt
 
 const Vector4 DecodeBC5(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width)
 {
-    const Uint32 blocksInRow = width / 4; // TODO non-4-multiply width support
-    const Uint32 blockX = x / 4u;
-    const Uint32 blockY = y / 4u;
+    const size_t blocksInRow = width / 4; // TODO non-4-multiply width support
+    const size_t blockX = x / 4u;
+    const size_t blockY = y / 4u;
 
     // calculate position inside block
     x %= 4;

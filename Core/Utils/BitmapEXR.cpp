@@ -68,9 +68,15 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             goto exrImageError;
         }
 
+        InitData initData;
+        initData.linearSpace = true;
+        initData.width = exrImage.width;
+        initData.height = exrImage.height;
+
         if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_FLOAT)
         {
-            if (!Init(exrImage.width, exrImage.height, Format::R32G32B32_Float, nullptr, true))
+            initData.format = Format::R32G32B32_Float;
+            if (!Init(initData))
             {
                 goto exrImageError;
             }
@@ -89,7 +95,8 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
         }
         else if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_HALF)
         {
-            if (!Init(exrImage.width, exrImage.height, Format::R16G16B16_Half, nullptr, true))
+            initData.format = Format::R16G16B16_Half;
+            if (!Init(initData))
             {
                 goto exrImageError;
             }

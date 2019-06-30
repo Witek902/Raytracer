@@ -131,6 +131,8 @@
     <ClInclude Include="Utils\Timer.h" />
     <ClInclude Include="Math\Packed.h" />
     <ClInclude Include="Utils\KdTree.h" />
+    <ClInclude Include="Math\Vector4Load.h" />
+    <ClInclude Include="Math\HalfImpl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />

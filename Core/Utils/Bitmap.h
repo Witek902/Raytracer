@@ -11,6 +11,7 @@ namespace rt {
 class RT_ALIGN(16) Bitmap : public Aligned<16>
 {
 public:
+
     enum class Format : Uint8
     {
         Unknown = 0,
@@ -18,19 +19,35 @@ public:
         R8G8_UNorm,
         B8G8R8_UNorm,
         B8G8R8A8_UNorm,
+        B8G8R8A8_UNorm_Palette,
+        B5G6R5_UNorm,
         R16_UNorm,
         R16G16_UNorm,
         R16G16B16A16_UNorm,
         R32_Float,
+        R32G32_Float,
         R32G32B32_Float,
         R32G32B32A32_Float,
+        R11G11B10_Float,
         R16_Half,
         R16G16_Half,
         R16G16B16_Half,
         R16G16B16A16_Half,
+        R9G9B9E5_SharedExp,
         BC1,
         BC4,
         BC5,
+    };
+
+    struct InitData
+    {
+        Uint32 width = 0;
+        Uint32 height = 0;
+        Format format = Format::Unknown;
+        const void* data = nullptr;
+        Uint32 stride = 0;
+        bool linearSpace = true;
+        Uint32 paletteSize = 0;
     };
 
     RAYLIB_API Bitmap(const char* debugName = "<unnamed>");
@@ -60,34 +77,21 @@ public:
         return *reinterpret_cast<const T*>(mData + rowOffset + sizeof(T) * x);
     }
 
-    /*
-    template<typename T>
-    RT_FORCE_INLINE const T* GetDataAs() const
-    {
-        // TODO validate type
-        return reinterpret_cast<const T*>(GetData());
-    }
-
-    template<typename T>
-    RT_FORCE_INLINE T* GetDataAs()
-    {
-        // TODO validate type
-        return reinterpret_cast<T*>(GetData());
-    }
-    */
-
-    RT_FORCE_INLINE void* GetData() { return mData; }
-    RT_FORCE_INLINE const void* GetData() const { return mData; }
+    RT_FORCE_INLINE Uint8* GetData() { return mData; }
+    RT_FORCE_INLINE const Uint8* GetData() const { return mData; }
     RT_FORCE_INLINE Uint32 GetWidth() const { return mWidth; }
     RT_FORCE_INLINE Uint32 GetStride() const { return mStride; }
     RT_FORCE_INLINE Uint32 GetHeight() const { return mHeight; }
     RT_FORCE_INLINE Format GetFormat() const { return mFormat; }
 
-    static size_t ComputeDataSize(Uint32 width, Uint32 height, Format format);
+    // get allocated size
+    RT_FORCE_INLINE size_t GetDataSize() const { return (size_t)mStride * (size_t)mHeight; }
+
+    static size_t ComputeDataSize(const InitData& initData);
     static Uint32 ComputeDataStride(Uint32 width, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
-    RAYLIB_API bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = true);
+    RAYLIB_API bool Init(const InitData& initData);
 
     // copy texture data
     // NOTE: both textures must have the same format and size
@@ -107,7 +111,7 @@ public:
     void Release();
 
     // calculate number of bits per pixel for given format
-    static Uint32 BitsPerPixel(Format format);
+    static Uint8 BitsPerPixel(Format format);
 
     // get bitmap format description
     static const char* FormatToString(Format format);
@@ -116,7 +120,7 @@ public:
     RAYLIB_API const math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
 
     // get 2x2 pixel block
-    void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;
+    RAYLIB_API void GetPixelBlock(const math::VectorInt4 coords, math::Vector4* outColors, const bool forceLinearSpace = false) const;
 
     // fill with zeros
     RAYLIB_API void Clear();
@@ -135,11 +139,12 @@ private:
     bool LoadEXR(FILE* file, const char* path);
 
     math::Vector4 mFloatSize = math::Vector4::Zero();
-    math::VectorInt4 mSize = math::VectorInt4::Zero();
     Uint8* mData;
-    Uint32 mWidth;
-    Uint32 mHeight;
-    Uint32 mStride;
+    Uint8* mPalette;
+    Uint32 mWidth;          // number of pixels in a row
+    Uint32 mHeight;         // number of rows
+    Uint32 mStride;         // number of bytes between rows
+    Uint32 mPaletteSize;    // number of colors in the palette
     Format mFormat;
     bool mLinearSpace;
     char* mDebugName;

@@ -6,46 +6,68 @@ namespace rt {
 namespace math {
 
 
-RT_INLINE float ConvertHalfToFloat(const Half value)
+// half (16-bit) floating point type
+class Half
 {
-#ifdef RT_USE_FP16C
-    const __m128i v = _mm_cvtsi32_si128(static_cast<int>(value));
-    return _mm_cvtss_f32(_mm_cvtph_ps(v));
-#else // RT_USE_FP16C
-    Uint32 mantissa = static_cast<Uint32>(value & 0x03FF);
-    Uint32 exponent = (value & 0x7C00);
+public:
+    RT_FORCE_INLINE Half() = default;
 
-    if (exponent == 0x7C00) // INF/NAN
-    {
-        exponent = 0x8f;
-    }
-    else if (exponent != 0) // The value is normalized
-    {
-        exponent = static_cast<Uint32>((static_cast<int>(value) >> 10) & 0x1F);
-    }
-    else if (mantissa != 0) // The value is denormalized
-    {
-        exponent = 1;
+    RT_FORCE_INLINE Half(const Half& other) : value(other.value) { }
+    RT_FORCE_INLINE explicit Half(const Uint16 other) : value(other) { }
 
-        do
+    RT_FORCE_INLINE Half& operator = (const Half& other)
+    {
+        value = other.value;
+        return *this;
+    }
+
+    // convert 32-bit float to half
+    RT_INLINE Half(const float other);
+
+    // convert to 32-bit float
+    RT_INLINE float ToFloat() const;
+
+private:
+    union
+    {
+        Uint16 value;
+
+        struct
         {
-            exponent--;
-            mantissa <<= 1;
-        } while ((mantissa & 0x0400) == 0);
+            Uint16 mantissa : 10;
+            Uint16 exponent : 5;
+            Uint16 sign : 1;
+        } components;
+    };
+};
 
-        mantissa &= 0x03FF;
-    }
-    else // The value is zero
-    {
-        exponent = static_cast<Uint32>(-112);
-    }
 
-    math::Bits32 result;
-    result.ui = ((static_cast<Uint32>(value) & 0x8000) << 16) | ((exponent + 112) << 23) | (mantissa << 13);
-    return result.f;
-#endif // RT_USE_FP16C
-}
+struct Half2
+{
+    Half x;
+    Half y;
+};
+
+
+struct Half3
+{
+    Half x;
+    Half y;
+    Half z;
+};
+
+
+struct Half4
+{
+    Half x;
+    Half y;
+    Half z;
+    Half w;
+};
 
 
 } // namespace math
 } // namespace rt
+
+
+#include "HalfImpl.h"

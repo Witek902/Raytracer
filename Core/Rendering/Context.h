@@ -64,7 +64,7 @@ struct RenderingParams
     Uint32 minRussianRouletteDepth = 1;
 
     // rendering tile dimensions (tiles are processed as a tasks in thread pool in parallel)
-    Uint16 tileSize = 16;
+    Uint16 tileSize = 32;
 
     // select mode of ray traversal
     TraversalMode traversalMode = TraversalMode::Single;

@@ -63,6 +63,7 @@ private:
 
 static_assert(sizeof(PackedUnitVector3) == 4, "Invalid size of PackedUnitVector3");
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // HDR color packed to 8 bytes
 // luminance has full precission, chroma has 16 bit precission per channel
@@ -109,6 +110,104 @@ private:
 };
 
 static_assert(sizeof(PackedColorRgbHdr) == 8, "Invalid size of PackedColorRgbHdr");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Shared exponent 3-element float, as in DXGI_FORMAT_R9G9B9E5_SHAREDEXP
+// 9 bits for exponent and 5 bits for shared exponent
+class SharedExpFloat3
+{
+public:
+    RT_FORCE_INLINE SharedExpFloat3() : v(0) { }
+    RT_FORCE_INLINE explicit SharedExpFloat3(Uint32 value) : v(value) { }
+    RT_FORCE_INLINE SharedExpFloat3(const SharedExpFloat3&) = default;
+    RT_FORCE_INLINE SharedExpFloat3& operator = (const SharedExpFloat3&) = default;
+
+    const Vector4 ToVector() const
+    {
+        Bits32 fi;
+        fi.ui = 0x33800000 + (e << 23);
+        return fi.f * VectorInt4(x, y, z, 0).ConvertToFloat();
+    }
+
+private:
+    union
+    {
+        struct
+        {
+            Uint32 x : 9; // 'x' mantissa
+            Uint32 y : 9; // 'y' mantissa
+            Uint32 z : 9; // 'z' mantissa
+            Uint32 e : 5; // shared exponent
+        };
+        Uint32 v;
+    };
+};
+
+static_assert(sizeof(SharedExpFloat3) == 4, "Invalid size of SharedExpFloat3");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Packed 3-channel RGB, as in DXGI_FORMAT_R11G11B10_FLOAT
+class PackedFloat3
+{
+public:
+    RT_FORCE_INLINE PackedFloat3() : v(0) { }
+    RT_FORCE_INLINE explicit PackedFloat3(Uint32 value) : v(value) { }
+    RT_FORCE_INLINE PackedFloat3(const PackedFloat3&) = default;
+    RT_FORCE_INLINE PackedFloat3& operator = (const PackedFloat3&) = default;
+
+    const Vector4 ToVector() const
+    {
+        // TODO handle INF, NAN and denormals?
+        Uint32 x = ((xe + 112) << 23) | (xm << 17);
+        Uint32 y = ((ye + 112) << 23) | (ym << 17);
+        Uint32 z = ((ze + 112) << 23) | (zm << 17);
+        return Vector4(x, y, z, 0u);
+    }
+
+private:
+    union
+    {
+        struct
+        {
+            Uint32 xm : 6; // x-mantissa
+            Uint32 xe : 5; // x-exponent
+            Uint32 ym : 6; // y-mantissa
+            Uint32 ye : 5; // y-exponent
+            Uint32 zm : 5; // z-mantissa
+            Uint32 ze : 5; // z-exponent
+        };
+        Uint32 v;
+    };
+};
+
+static_assert(sizeof(PackedFloat3) == 4, "Invalid size of PackedFloat3");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Packed565
+{
+public:
+    RT_FORCE_INLINE Packed565() : v(0) { }
+    RT_FORCE_INLINE Packed565(Uint8 x, Uint8 y, Uint8 z) : x(x), y(y), z(z) { }
+    RT_FORCE_INLINE explicit Packed565(Uint16 value) : v(value) { }
+    RT_FORCE_INLINE Packed565(const Packed565&) = default;
+    RT_FORCE_INLINE Packed565& operator = (const Packed565&) = default;
+
+    union
+    {
+        struct
+        {
+            Uint16 x : 5;
+            Uint16 y : 6;
+            Uint16 z : 5;
+        };
+        Uint16 v;
+    };
+};
+
+static_assert(sizeof(Packed565) == 2, "Invalid size of Packed565");
 
 
 } // namespace math

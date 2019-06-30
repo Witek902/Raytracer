@@ -15,7 +15,7 @@ BitmapTexture::~BitmapTexture() = default;
 
 BitmapTexture::BitmapTexture(const BitmapPtr& bitmap)
     : mBitmap(bitmap)
-    , mFilter(BitmapTextureFilter::Bilinear_SmoothStep)
+    , mFilter(BitmapTextureFilter::NearestNeighbor)
     , mForceLinearSpace(false)
 {}
 
@@ -38,14 +38,19 @@ const Vector4 BitmapTexture::Evaluate(const Vector4& coords) const
         return Vector4::Zero();
     }
 
+    // bitmap size
+    const VectorInt4 size = VectorInt4(bitmapPtr->mWidth, bitmapPtr->mHeight, 0, 0).Swizzle<0,1,0,1>();
+
     // wrap to 0..1 range
     const Vector4 warpedCoords = Vector4::Mod1(coords);
 
     // compute texel coordinates
     const Vector4 scaledCoords = warpedCoords * bitmapPtr->mFloatSize;
     const VectorInt4 intCoords = VectorInt4::Convert(Vector4::Floor(scaledCoords));
-    VectorInt4 texelCoords = intCoords.SetIfLessThan(VectorInt4::Zero(), intCoords + bitmapPtr->mSize);
-    texelCoords = texelCoords.SetIfGreaterOrEqual(bitmapPtr->mSize, texelCoords - bitmapPtr->mSize);
+
+    VectorInt4 texelCoords = intCoords;
+    texelCoords -= VectorInt4::AndNot(intCoords < size, size);
+    texelCoords += size & (intCoords < VectorInt4::Zero());
 
     Vector4 result;
 
@@ -59,10 +64,10 @@ const Vector4 BitmapTexture::Evaluate(const Vector4& coords) const
         texelCoords += VectorInt4(0, 0, 1, 1);
 
         // wrap secondary coordinates
-        texelCoords = texelCoords.SetIfGreaterOrEqual(bitmapPtr->mSize, texelCoords - bitmapPtr->mSize);
+        texelCoords -= VectorInt4::AndNot(texelCoords < size, size);
 
         Vector4 colors[4];
-        bitmapPtr->GetPixelBlock(texelCoords, mForceLinearSpace, colors);
+        bitmapPtr->GetPixelBlock(texelCoords, colors, mForceLinearSpace);
 
         // bilinear interpolation
         Vector4 weights = scaledCoords - intCoords.ConvertToFloat();

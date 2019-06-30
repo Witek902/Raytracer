@@ -1,5 +1,6 @@
 #include "PCH.h"
 #include "../Core/Math/Packed.h"
+#include "../Core/Math/Half.h"
 #include "../Core/Math/Random.h"
 #include "../Core/Math/SamplingHelpers.h"
 
@@ -96,3 +97,48 @@ TEST(MathPacked, ColorRgbHdr)
         TestColorRgbHdr(vec, 0.2f);
     }
 }
+
+TEST(MathPacked, Half)
+{
+    {
+        Half half(0.0f);
+        EXPECT_EQ(0.0f, half.ToFloat());
+    }
+    {
+        Half half(1.0f);
+        EXPECT_EQ(1.0f, half.ToFloat());
+    }
+    {
+        Half half(-1.0f);
+        EXPECT_EQ(-1.0f, half.ToFloat());
+    }
+    {
+        Half half(123.0f);
+        EXPECT_EQ(123.0f, half.ToFloat());
+    }
+    {
+        Half half(-0.01074981689453125f);
+        EXPECT_EQ(-0.01074981689453125f, half.ToFloat());
+    }
+    {
+        // max value
+        Half half(65504.0f);
+        EXPECT_EQ(65504.0f, half.ToFloat());
+    }
+    {
+        // max value (negative)
+        Half half(-65504.0f);
+        EXPECT_EQ(-65504.0f, half.ToFloat());
+    }
+    {
+        // min normal value
+        Half half(0.00006103515625f);
+        EXPECT_EQ(0.00006103515625f, half.ToFloat());
+    }
+    {
+        // min normal value (negative)
+        Half half(-0.00006103515625f);
+        EXPECT_EQ(-0.00006103515625f, half.ToFloat());
+    }
+}
+

@@ -9,6 +9,7 @@
 #include "Color/LdrColor.h"
 #include "Color/ColorHelpers.h"
 #include "Math/SamplingHelpers.h"
+#include "Math/Vector4Load.h"
 
 namespace rt {
 
@@ -61,25 +62,33 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
         return true;
     }
 
-    if (!mSum.Init(width, height, Bitmap::Format::R32G32B32_Float))
+    Bitmap::InitData initData;
+    initData.linearSpace = true;
+    initData.width = width;
+    initData.height = height;
+    initData.format = Bitmap::Format::R32G32B32_Float;
+
+    if (!mSum.Init(initData))
     {
         return false;
     }
 
-    if (!mSecondarySum.Init(width, height, Bitmap::Format::R32G32B32_Float))
+    if (!mSecondarySum.Init(initData))
     {
         return false;
     }
 
     for (Bitmap& blurredImage : mBlurredImages)
     {
-        if (!blurredImage.Init(width, height, Bitmap::Format::R32G32B32_Float))
+        if (!blurredImage.Init(initData))
         {
             return false;
         }
     }
 
-    if (!mFrontBuffer.Init(width, height, Bitmap::Format::B8G8R8A8_UNorm))
+    initData.linearSpace = false;
+    initData.format = Bitmap::Format::B8G8R8A8_UNorm;
+    if (!mFrontBuffer.Init(initData))
     {
         return false;
     }
@@ -114,7 +123,10 @@ void Viewport::Reset()
 
     mProgress = RenderingProgress();
 
-    mHaltonSequence.Initialize(mParams.sampleDimensions);
+    if (mParams.sampleDimensions > 0)
+    {
+        mHaltonSequence.Initialize(mParams.sampleDimensions);
+    }
 
     mSum.Clear();
     mSecondarySum.Clear();
@@ -513,7 +525,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
     {
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const Vector4 rawValue = Vector4::Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
+            const Vector4 rawValue = Vector4_Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
             Vector4 rgbColor = Vector4::Max(Vector4::Zero(), ConvertXYZtoRGB(rawValue));
 #else
@@ -528,7 +540,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
                 Vector4 bloomColor = Vector4::Zero();
                 for (Uint32 i = 0; i < mBlurredImages.Size(); ++i)
                 {
-                    const Vector4 blurredColor = Vector4::Load_Float3_Unsafe(mBlurredImages[i].GetPixelRef<Float3>(x, y));
+                    const Vector4 blurredColor = Vector4_Load_Float3_Unsafe(mBlurredImages[i].GetPixelRef<Float3>(x, y));
                     bloomColor = Vector4::MulAndAdd(blurredColor, bloomWeights[i], bloomColor);
                 }
                 rgbColor = Vector4::MulAndAdd(bloomColor, mPostprocessParams.params.bloomFactor, rgbColor);
@@ -562,8 +574,8 @@ float Viewport::ComputeBlockError(const Block& block) const
         float rowError = 0.0f;
         for (Uint32 x = block.minX; x < block.maxX; ++x)
         {
-            const Vector4 a = imageScalingFactor * Vector4::Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
-            const Vector4 b = (2.0f * imageScalingFactor) * Vector4::Load_Float3_Unsafe(mSecondarySum.GetPixelRef<Float3>(x, y));
+            const Vector4 a = imageScalingFactor * Vector4_Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
+            const Vector4 b = (2.0f * imageScalingFactor) * Vector4_Load_Float3_Unsafe(mSecondarySum.GetPixelRef<Float3>(x, y));
             const Vector4 diff = Vector4::Abs(a - b);
             const float error = (diff.x + 2.0f * diff.y + diff.z) / Sqrt(RT_EPSILON + a.x + 2.0f * a.y + a.z);
             rowError += error;

@@ -70,14 +70,19 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    Format format = Format::Unknown;
+    InitData initData;
+
     if (infoHeader.biBitCount == 24)
     {
-        format = Format::B8G8R8_UNorm;
+        initData.format = Format::B8G8R8_UNorm;
     }
-    else if (infoHeader.biBitCount == 8)
+    else if (infoHeader.biBitCount == 8 && infoHeader.biClrUsed > 0)
     {
-        format = Format::R8_UNorm;
+        initData.format = Format::B8G8R8A8_UNorm_Palette;
+    }
+    else if (infoHeader.biBitCount == 8 && infoHeader.biClrUsed == 0)
+    {
+        initData.format = Format::R8_UNorm;
     }
     else
     {
@@ -91,10 +96,26 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    bool linearSpace = false;
-    if (!Init(infoHeader.biWidth, infoHeader.biHeight, format, nullptr, linearSpace))
+    initData.linearSpace = false;
+    initData.width = infoHeader.biWidth;
+    initData.height = infoHeader.biHeight;
+    // Note: one line size in BMP file must be multiple of 4 bytes
+    initData.stride = math::RoundUp(infoHeader.biWidth * BitsPerPixel(initData.format) / 8, 4u);
+    initData.paletteSize = infoHeader.biClrUsed;
+
+    if (!Init(initData))
     {
         return false;
+    }
+
+    const size_t paletteBytes = (size_t)infoHeader.biClrUsed * 4u;
+    if (paletteBytes > 0)
+    {
+        if (fread(mPalette, paletteBytes, 1, file) != 1)
+        {
+            RT_LOG_ERROR("Failed to read bitmap palette from file '%hs'", path);
+            return false;
+        }
     }
 
     if (fseek(file, fileHeader.bfOffBits, SEEK_SET) != 0)
@@ -103,24 +124,10 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    const Uint32 lineSize = infoHeader.biWidth * BitsPerPixel(mFormat) / 8;
-
-    // Note: one line size in BMP file must be multiple of 4 bytes
-    const Uint32 linePadding = math::RoundUp(lineSize, 4u) - lineSize;
-
-    for (Uint32 i = 0; i < infoHeader.biHeight; ++i)
+    if (fread(mData, size_t(initData.stride) * size_t(initData.height), 1, file) != 1)
     {
-        if (fread(mData + lineSize * i, lineSize, 1, file) != 1)
-        {
-            RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
-            return false;
-        }
-
-        if (fseek(file, linePadding, SEEK_CUR) != 0)
-        {
-            RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
-            return false;
-        }
+        RT_LOG_ERROR("Failed to read bitmap data from file '%hs'", path);
+        return false;
     }
 
     return true;

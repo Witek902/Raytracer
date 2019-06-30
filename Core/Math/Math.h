@@ -27,8 +27,6 @@ namespace math {
 RAYLIB_API void SetFlushDenormalsToZero(bool enable = true);
 RAYLIB_API bool GetFlushDenormalsToZero();
 
-// half (16-bit) floating point type
-using Half = Uint16;
 
 // Union providing easy manipulations on 32-bit values
 union Bits32

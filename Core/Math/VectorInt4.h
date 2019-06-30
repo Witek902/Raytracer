@@ -32,6 +32,7 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE static const VectorInt4 Zero();
     RT_FORCE_INLINE VectorInt4(const __m128i& m);
     RT_FORCE_INLINE VectorInt4(const VectorInt4& other);
+    RT_FORCE_INLINE VectorInt4(const VectorBool4& other);
     RT_FORCE_INLINE explicit VectorInt4(const Int32 scalar);
     RT_FORCE_INLINE explicit VectorInt4(const Uint32 scalar);
     RT_FORCE_INLINE VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
@@ -46,6 +47,7 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE VectorInt4& operator &= (const VectorInt4& b);
     RT_FORCE_INLINE VectorInt4& operator |= (const VectorInt4& b);
     RT_FORCE_INLINE VectorInt4& operator ^= (const VectorInt4& b);
+    RT_FORCE_INLINE static const VectorInt4 AndNot(const VectorInt4& a, const VectorInt4& b);
 
     // simple arithmetics
     RT_FORCE_INLINE const VectorInt4 operator - () const;

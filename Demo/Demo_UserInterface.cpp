@@ -397,7 +397,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
     int traversalModeIndex = static_cast<int>(mRenderingParams.traversalMode);
     int lightSamplingStrategyIndex = static_cast<int>(mRenderingParams.lightSamplingStrategy);
-    int tileOrder = static_cast<int>(mRenderingParams.tileSize);
+    int tileSize = static_cast<int>(mRenderingParams.tileSize);
 
     const char* traversalModeItems[] = { "Single", "Packet" };
     resetFrame |= ImGui::Combo("Traversal mode", &traversalModeIndex, traversalModeItems, IM_ARRAYSIZE(traversalModeItems));
@@ -405,7 +405,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     const char* lightSamplingStrategyItems[] = { "Single", "All" };
     resetFrame |= ImGui::Combo("Light sampling strategy", &lightSamplingStrategyIndex, lightSamplingStrategyItems, IM_ARRAYSIZE(lightSamplingStrategyItems));
 
-    ImGui::SliderInt("Tile size", (int*)&tileOrder, 1, 1024);
+    ImGui::SliderInt("Tile size", (int*)&tileSize, 2, 256);
 
     resetFrame |= ImGui::SliderInt("Sample dimensions", (int*)&mRenderingParams.sampleDimensions, 0, 256);
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 200);
@@ -415,7 +415,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
     mRenderingParams.lightSamplingStrategy = static_cast<LightSamplingStrategy>(lightSamplingStrategyIndex);
-    mRenderingParams.tileSize = static_cast<Uint16>(tileOrder);
+    mRenderingParams.tileSize = static_cast<Uint16>(tileSize);
 
     return resetFrame;
 }
