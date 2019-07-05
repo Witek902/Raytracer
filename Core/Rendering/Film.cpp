@@ -37,6 +37,7 @@ void Film::AccumulateColor(const Uint32 x, const Uint32 y, const Vector4& sample
     }
 }
 
+RT_FORCE_NOINLINE
 void Film::AccumulateColor(const Vector4& pos, const Vector4& sampleColor, Random& randomGenerator)
 {
     const Vector4 filmCoords = pos * mFilmSize + Vector4(0.0f, 0.5f);
@@ -48,21 +49,22 @@ void Film::AccumulateColor(const Vector4& pos, const Vector4& sampleColor, Rando
         const Vector4 coordFraction = filmCoords - intFilmCoords.ConvertToFloat();
         const Vector4 u = randomGenerator.GetVector4();
 
-        if (u.x < coordFraction.x)
-        {
-            intFilmCoords.x++;
-        }
+        intFilmCoords = VectorInt4::Select(intFilmCoords, intFilmCoords + 1, u < coordFraction);
 
-        if (u.y < coordFraction.y)
-        {
-            intFilmCoords.y++;
-        }
+        //if (u.x < coordFraction.x)
+        //{
+        //    intFilmCoords.x++;
+        //}
+        //if (u.y < coordFraction.y)
+        //{
+        //    intFilmCoords.y++;
+        //}
     }
 
     const Int32 x = intFilmCoords.x;
     const Int32 y = Int32(mHeight - 1) - Int32(filmCoords.y);
 
-    if (x >= 0 && y >= 0 && x < Int32(mWidth) && y < Int32(mHeight))
+    if (Uint32(x) < mWidth && Uint32(y) < mHeight)
     {
         AccumulateToFloat3(mSum.GetPixelRef<Float3>(x, y), sampleColor);
 

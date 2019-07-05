@@ -22,6 +22,10 @@ constexpr Float3::Float3(const Float2& src)
     : x(src.x), y(src.y), z(0.0f)
 { }
 
+constexpr Float3::Float3(float s)
+    : x(s), y(s), z(s)
+{ }
+
 constexpr Float3::Float3(float x, float y, float z)
     : x(x), y(y), z(z)
 { }

@@ -87,7 +87,7 @@ public:
     static Uint32 ComputeDataStride(Uint32 width, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
-    RAYLIB_API bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = false);
+    RAYLIB_API bool Init(Uint32 width, Uint32 height, Format format, const void* data = nullptr, bool linearSpace = true);
 
     // copy texture data
     // NOTE: both textures must have the same format and size
@@ -113,7 +113,7 @@ public:
     static const char* FormatToString(Format format);
 
     // get single pixel
-    RAYLIB_API math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
+    RAYLIB_API const math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
 
     // get 2x2 pixel block
     void GetPixelBlock(const math::VectorInt4 coords, const bool forceLinearSpace, math::Vector4* outColors) const;

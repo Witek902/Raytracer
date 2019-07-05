@@ -3,10 +3,6 @@
 #include "../Core/Math/Math.h"
 #include "../Core/Utils/Logger.h"
 
-#include "gtest/gtest.h"
-
-#include <functional>
-
 using namespace rt;
 
 namespace {

@@ -2,8 +2,6 @@
 #include "../Core/Math/Vector8.h"
 #include "../Core/Math/VectorInt8.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt::math;
 
 TEST(MathTest, Vector8_Constructor1)

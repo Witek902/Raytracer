@@ -15,7 +15,7 @@ BitmapTexture::~BitmapTexture() = default;
 
 BitmapTexture::BitmapTexture(const BitmapPtr& bitmap)
     : mBitmap(bitmap)
-    , mFilter(BitmapTextureFilter::NearestNeighbor)
+    , mFilter(BitmapTextureFilter::Bilinear_SmoothStep)
     , mForceLinearSpace(false)
 {}
 

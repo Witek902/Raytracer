@@ -94,10 +94,9 @@ Bitmap::Bitmap(const char* debugName)
 
 Bitmap::~Bitmap()
 {
-    RT_LOG_INFO("Releasing bitmap '%s'...", mDebugName);
     free(mDebugName);
 
-    Release();\
+    Release();
 }
 
 Bitmap::Bitmap(Bitmap&&) = default;
@@ -220,7 +219,7 @@ bool Bitmap::Load(const char* path)
     return true;
 }
 
-Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
+const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
 {
     RT_ASSERT(x < mWidth);
     RT_ASSERT(y < mHeight);

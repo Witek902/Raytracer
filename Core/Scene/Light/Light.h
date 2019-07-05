@@ -32,6 +32,13 @@ public:
         Spot,
     };
 
+    enum Flags : Uint8
+    {
+        Flag_None       = 0,
+        Flag_IsFinite   = 1 << 0,   // light has finite extent (e.g. point or area light)
+        Flag_IsDelta    = 1 << 1,   // light cannot be hit by camera ray directly (e.g. directional light or point light)
+    };
+
     struct IlluminateParam
     {
         const ShadingData& shadingData;
@@ -97,13 +104,8 @@ public:
         const math::Vector4& hitPoint,
         float* outDirectPdfA = nullptr, float* outEmissionPdfW = nullptr) const;
 
-    // Returs true if the light has finite extent.
-    // E.g. point or area light.
-    virtual bool IsFinite() const = 0;
-
-    // Returns true if the light cannot be hit by camera ray directly.
-    // E.g. directional light or point light.
-    virtual bool IsDelta() const = 0;
+    // Get light flags.
+    virtual Flags GetFlags() const = 0;
 
 private:
     // light object cannot be copied

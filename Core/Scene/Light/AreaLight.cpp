@@ -173,14 +173,9 @@ const Vector4 AreaLight::GetNormal(const Vector4&) const
     return normal;
 }
 
-bool AreaLight::IsFinite() const
+ILight::Flags AreaLight::GetFlags() const
 {
-    return true;
-}
-
-bool AreaLight::IsDelta() const
-{
-    return false;
+    return Flag_IsFinite;
 }
 
 } // namespace rt

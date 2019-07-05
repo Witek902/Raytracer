@@ -3,8 +3,6 @@
 #include "../Core/Math/Random.h"
 #include "../Core/Math/SamplingHelpers.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 using namespace math;
 

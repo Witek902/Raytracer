@@ -208,6 +208,7 @@
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
+    <ClCompile Include="Utils\Entropy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

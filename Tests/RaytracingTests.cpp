@@ -1,28 +1,40 @@
 #include "PCH.h"
-/*
 #include "../Core/Scene/Scene.h"
+#include "../Core/Scene/Camera.h"
 #include "../Core/Rendering/Context.h"
 #include "../Core/Mesh/Mesh.h"
 #include "../Core/Material/Material.h"
-#include "../Core/Scene/SceneObject_Mesh.h"
-
-#include "gtest/gtest.h"
+#include "../Core/Rendering/Viewport.h"
+#include "../Core/Rendering/PathTracer.h"
+#include "../Core/Scene/Light/BackgroundLight.h"
+#include "../Core/Scene/Object/SceneObject_Sphere.h"
 
 using namespace rt;
 using namespace math;
 
-class TestFixture : public ::testing::Test
+static std::array<const char*, 3> gRendererNames =
+{
+    "Path Tracer",
+    "Path Tracer MIS",
+    "VCM",
+};
+
+class RenderingTest : public ::testing::Test
 {
 public:
-    TestFixture() = default;
+    static constexpr Uint32 ViewportSize = 32;
+
+    RenderingTest() = default;
 
     void SetUp()
     {
         mScene = std::make_unique<Scene>();
+        mViewport = std::make_unique<Viewport>();
     }
 
 protected:
     std::unique_ptr<Scene> mScene;
+    std::unique_ptr<Viewport> mViewport;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,7 +44,7 @@ MaterialPtr CreateEmissiveMaterial(const Vector4& color)
     auto material = std::make_unique<Material>();
     material->debugName = "emissive";
     material->baseColor = Vector4::Zero();
-    material->emissionColor = color;
+    material->emission = color;
     material->roughness = 0.0f;
     material->Compile();
     return material;
@@ -43,7 +55,7 @@ MaterialPtr CreatePlasticMaterial(const Vector4& baseColor)
     auto material = std::make_unique<Material>();
     material->debugName = "plastic";
     material->baseColor = baseColor;
-    material->emissionColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    material->emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
     material->roughness = 0.5f;
     material->Compile();
     return material;
@@ -51,7 +63,8 @@ MaterialPtr CreatePlasticMaterial(const Vector4& baseColor)
 
 //////////////////////////////////////////////////////////////////////////
 
-rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool reverseNormal)
+/*
+rt::MeshPtr CreateBoxMesh(const float size, const MaterialPtr& material, bool reverseNormal)
 {
     const Uint32 materialIndices[6 * 2] = { 0 };
 
@@ -67,136 +80,136 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
 
     const float n = reverseNormal ? -1.0f : 1.0f;
 
-    const float vertices[] =
+    const Float3 vertices[] =
     {
-        size, -size, -size,
-        size,  size, -size,
-        size,  size,  size,
-        size, -size,  size,
+        { size, -size, -size },
+        { size,  size, -size },
+        { size,  size,  size },
+        { size, -size,  size },
 
-        -size, -size, -size,
-        -size,  size, -size,
-        -size,  size,  size,
-        -size, -size,  size,
+        { -size, -size, -size },
+        { -size,  size, -size },
+        { -size,  size,  size },
+        { -size, -size,  size },
 
-        -size, size, -size,
-         size, size, -size,
-         size, size,  size,
-        -size, size,  size,
+        { -size, size, -size },
+        {  size, size, -size },
+        {  size, size,  size },
+        { -size, size,  size },
 
-        -size, -size, -size,
-         size, -size, -size,
-         size, -size,  size,
-        -size, -size,  size,
+        { -size, -size, -size },
+        {  size, -size, -size },
+        {  size, -size,  size },
+        { -size, -size,  size },
 
-        -size, -size, size,
-         size, -size, size,
-         size,  size, size,
-        -size,  size, size,
+        { -size, -size, size },
+        {  size, -size, size },
+        {  size,  size, size },
+        { -size,  size, size },
 
-        -size, -size, -size,
-         size, -size, -size,
-         size,  size, -size,
-        -size,  size, -size,
+        { -size, -size, -size },
+        {  size, -size, -size },
+        {  size,  size, -size },
+        { -size,  size, -size },
     };
 
-    const float normals[] =
+    const Float3 normals[] =
     {
-        n, 0.0f, 0.0f,
-        n, 0.0f, 0.0f,
-        n, 0.0f, 0.0f,
-        n, 0.0f, 0.0f,
+        { n, 0.0f, 0.0f },
+        { n, 0.0f, 0.0f },
+        { n, 0.0f, 0.0f },
+        { n, 0.0f, 0.0f },
 
-        -n, 0.0f, 0.0f,
-        -n, 0.0f, 0.0f,
-        -n, 0.0f, 0.0f,
-        -n, 0.0f, 0.0f,
+        { -n, 0.0f, 0.0f },
+        { -n, 0.0f, 0.0f },
+        { -n, 0.0f, 0.0f },
+        { -n, 0.0f, 0.0f },
 
-        0.0f, n, 0.0f,
-        0.0f, n, 0.0f,
-        0.0f, n, 0.0f,
-        0.0f, n, 0.0f,
+        { 0.0f, n, 0.0f },
+        { 0.0f, n, 0.0f },
+        { 0.0f, n, 0.0f },
+        { 0.0f, n, 0.0f },
 
-        0.0f, -n, 0.0f,
-        0.0f, -n, 0.0f,
-        0.0f, -n, 0.0f,
-        0.0f, -n, 0.0f,
+        { 0.0f, -n, 0.0f },
+        { 0.0f, -n, 0.0f },
+        { 0.0f, -n, 0.0f },
+        { 0.0f, -n, 0.0f },
 
-        0.0f, 0.0f, n,
-        0.0f, 0.0f, n,
-        0.0f, 0.0f, n,
-        0.0f, 0.0f, n,
+        { 0.0f, 0.0f, n },
+        { 0.0f, 0.0f, n },
+        { 0.0f, 0.0f, n },
+        { 0.0f, 0.0f, n },
 
-        0.0f, 0.0f, -n,
-        0.0f, 0.0f, -n,
-        0.0f, 0.0f, -n,
-        0.0f, 0.0f, -n,
+        { 0.0f, 0.0f, -n },
+        { 0.0f, 0.0f, -n },
+        { 0.0f, 0.0f, -n },
+        { 0.0f, 0.0f, -n },
     };
 
-    const float tangents[] =
+    const Float3 tangents[] =
     {
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
 
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
 
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
 
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f },
 
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
 
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
+        { 0.0f, 1.0f, 0.0f },
     };
 
-    const float texCoords[] =
+    const Float2 texCoords[] =
     {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 1.0f },
     };
 
     MeshDesc meshDesc;
@@ -221,119 +234,249 @@ rt::MeshPtr CreateBoxMesh(const float size, const Material* material, bool rever
 
     return mesh;
 }
+*/
 
-TEST_F(TestFixture, BackgroundOnly)
+void ValidateBitmap(const Bitmap& bitmap, Uint32 numPasses, const Vector4& expectedValue, float maxError)
 {
-    SceneEnvironment env;
-    env.backgroundColor = Vector4(100.0f, 0.0f, 0.0f, 0.0f);
-    mScene->SetEnvironment(env);
-
-    Random random;
-    const RenderingParams params;
-    RenderingContext context;
-    context.params = &params;
-
-    const size_t maxProbes = 100;
-    for (size_t i = 0; i < maxProbes; ++i)
+    for (Uint32 y = 0; y < bitmap.GetHeight(); ++y)
     {
-        const Ray ray(Vector4::Zero(), random.GetVector4());
-        const Color color = mScene->TraceRay_Single(ray, context);
+        SCOPED_TRACE("y=" + std::to_string(y));
 
-        //EXPECT_EQ(env.backgroundColor.x, rgbColor.x);
-        //EXPECT_EQ(env.backgroundColor.y, rgbColor.y);
-        //EXPECT_EQ(env.backgroundColor.z, rgbColor.z);
-    }
-}
-
-TEST_F(TestFixture, Furnace_EmissionOnly)
-{
-    SceneEnvironment env;
-    env.backgroundColor = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-    mScene->SetEnvironment(env);
-
-    const Vector4 color(0.0f, 1.0f, 0.0f, 0.0f);
-    auto material = CreateEmissiveMaterial(color);
-    auto mesh = CreateBoxMesh(1.0f, material.get(), true);
-
-    SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(mesh.get());
-    mScene->AddObject(std::move(meshInstance));
-    ASSERT_TRUE(mScene->BuildBVH());
-
-    Random random;
-    const RenderingParams params;
-    RenderingContext context(&params);
-
-    const size_t maxProbes = 50;
-    const size_t maxSamples = 100;
-    for (size_t i = 0; i < maxProbes; ++i)
-    {
-        const Ray ray(Vector4(), random.GetVector4());
-        Vector4 rgbColor;
-        for (size_t j = 0; j < maxSamples; ++j)
+        for (Uint32 x = 0; x < bitmap.GetWidth(); ++x)
         {
-            rgbColor += mScene->TraceRay_Single(ray, context).values;
+            SCOPED_TRACE("x=" + std::to_string(x));
+
+            const Vector4 color = bitmap.GetPixel(x, y);
+            EXPECT_NEAR(expectedValue.x, color.x / numPasses, maxError);
+            EXPECT_NEAR(expectedValue.y, color.y / numPasses, maxError);
+            EXPECT_NEAR(expectedValue.z, color.z / numPasses, maxError);
         }
-        rgbColor /= static_cast<float>(maxSamples);
+    }
 
-        SCOPED_TRACE("x=" + std::to_string(ray.dir.x));
-        SCOPED_TRACE("y=" + std::to_string(ray.dir.y));
-        SCOPED_TRACE("z=" + std::to_string(ray.dir.z));
+    // TODO compute average image color
+}
 
-        EXPECT_NEAR(color.x, rgbColor.x, 0.05f);
-        EXPECT_NEAR(color.y, rgbColor.y, 0.05f);
-        EXPECT_NEAR(color.z, rgbColor.z, 0.05f);
+TEST_F(RenderingTest, EmptyScene)
+{
+    mViewport->Resize(ViewportSize, ViewportSize);
+
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(90.0f));
+
+    for (const char* rendererName : gRendererNames)
+    {
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        mViewport->Render(camera);
+
+        ValidateBitmap(mViewport->GetSumBuffer(), 1, Vector4::Zero(), 0.0f);
     }
 }
 
-TEST_F(TestFixture, Furnace_Metal)
+TEST_F(RenderingTest, BackgroundLightOnly)
 {
-    SceneEnvironment env;
-    // crazy high background color to detect any leaking
-    env.backgroundColor = Vector4(100000.0f, 0.0f, 0.0f, 0.0f);
-    mScene->SetEnvironment(env);
+    const Vector4 lightColor(1.0f, 2.0f, 3.0f);
+    auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+    mScene->AddLight(std::move(backgroundLight));
+    mScene->BuildBVH();
 
-    auto material = std::make_unique<Material>();
-    material->metalness = 1.0f;
-    material->debugName = "metal";
-    material->baseColor = Vector4(0.5f, 0.5f, 0.5f, 0.0f);
-    material->emissionColor = Vector4(1.0f, 2.0f, 3.0f, 0.0f);
-    material->roughness = 0.1f;
-    material->IoR = 100.0f;
-    material->IoR = 0.0f;
+    mViewport->Resize(ViewportSize, ViewportSize);
+
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(90.0f));
+
+    for (const char* rendererName : gRendererNames)
+    {
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        mViewport->Render(camera);
+
+        ValidateBitmap(mViewport->GetSumBuffer(), 1, lightColor, 0.01f);
+    }
+}
+
+TEST_F(RenderingTest, FurnaceTest_Diffuse)
+{
+    const Vector4 materialColor(0.4f, 0.6f, 0.8f);
+    MaterialPtr material = std::make_unique<Material>();
+    material->SetBsdf("diffuse");
+    material->baseColor = materialColor;
     material->Compile();
 
-    const Vector4 expectedColor = material->emissionColor / (VECTOR_ONE - material->baseColor);
+    const Vector4 lightColor(1.0f, 2.0f, 3.0f);
+    auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+    mScene->AddLight(std::move(backgroundLight));
 
-    auto mesh = CreateBoxMesh(1.0f, material.get(), true);
+    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
+    sphere->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sphere));
 
-    SceneObjectPtr meshInstance = std::make_unique<MeshSceneObject>(mesh.get());
-    mScene->AddObject(std::move(meshInstance));
-    ASSERT_TRUE(mScene->BuildBVH());
+    mScene->BuildBVH();
 
-    Random random;
-    const RenderingParams params;
-    RenderingContext context;
-    context.params = &params;
+    mViewport->Resize(ViewportSize, ViewportSize);
 
-    const size_t maxProbes = 100;
-    const size_t maxSamples = 50;
-    for (size_t i = 0; i < maxProbes; ++i)
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(10.0f));
+    camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
+
+    Uint32 numPasses = 100;
+
+    for (const char* rendererName : gRendererNames)
     {
-        const Ray ray(Vector4(), random.GetVector4());
-        Vector4 rgbColor;
-        for (size_t j = 0; j < maxSamples; ++j)
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        for (Uint32 i = 0; i < numPasses; ++i)
         {
-            rgbColor += mScene->TraceRay_Single(ray, context).ToXYZ();
+            mViewport->Render(camera);
         }
-        rgbColor /= static_cast<float>(maxSamples);
 
-        SCOPED_TRACE("x=" + std::to_string(ray.dir.x));
-        SCOPED_TRACE("y=" + std::to_string(ray.dir.y));
-        SCOPED_TRACE("z=" + std::to_string(ray.dir.z));
-
-        EXPECT_NEAR(expectedColor.x, rgbColor.x, 0.05f);
-        EXPECT_NEAR(expectedColor.y, rgbColor.y, 0.05f);
-        EXPECT_NEAR(expectedColor.z, rgbColor.z, 0.05f);
+        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor * materialColor, 0.05f);
     }
 }
-*/
+
+TEST_F(RenderingTest, FurnaceTest_Emissive)
+{
+    const Vector4 emissionColor(3.0f, 2.0f, 1.0f);
+
+    MaterialPtr material = std::make_unique<Material>();
+    material->SetBsdf("null");
+    material->baseColor = Vector4::Zero();
+    material->emission = emissionColor;
+    material->Compile();
+
+    const Vector4 lightColor(1.0f, 2.0f, 3.0f);
+    auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+    mScene->AddLight(std::move(backgroundLight));
+
+    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
+    sphere->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sphere));
+
+    mScene->BuildBVH();
+
+    mViewport->Resize(ViewportSize, ViewportSize);
+
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(10.0f));
+    camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
+
+    Uint32 numPasses = 1;
+
+    for (const char* rendererName : gRendererNames)
+    {
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        for (Uint32 i = 0; i < numPasses; ++i)
+        {
+            mViewport->Render(camera);
+        }
+
+        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, emissionColor, 0.0f);
+    }
+}
+
+TEST_F(RenderingTest, FurnaceTest_Metal)
+{
+    const Vector4 materialColor(0.4f, 0.6f, 0.8f);
+
+    MaterialPtr material = std::make_unique<Material>();
+    material->SetBsdf("metal");
+    material->baseColor = materialColor;
+    material->IoR = 0.0f;
+    material->K = 100.0;
+    material->Compile();
+
+    const Vector4 lightColor(1.0f, 2.0f, 3.0f);
+    auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+    mScene->AddLight(std::move(backgroundLight));
+
+    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
+    sphere->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sphere));
+
+    mScene->BuildBVH();
+
+    mViewport->Resize(ViewportSize, ViewportSize);
+
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(10.0f));
+    camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
+
+    for (const char* rendererName : gRendererNames)
+    {
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        Uint32 numPasses = 20;
+
+        for (Uint32 i = 0; i < numPasses; ++i)
+        {
+            mViewport->Render(camera);
+        }
+
+        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor * materialColor, 0.05f);
+    }
+}
+
+TEST_F(RenderingTest, FurnaceTest_Dielectric)
+{
+    MaterialPtr material = std::make_unique<Material>();
+    material->SetBsdf("dielectric");
+    material->baseColor = Vector4(1.0f);
+    material->Compile();
+
+    const Vector4 lightColor(1.0f, 2.0f, 3.0f);
+    auto backgroundLight = std::make_unique<BackgroundLight>(lightColor);
+    mScene->AddLight(std::move(backgroundLight));
+
+    auto sphere = std::make_unique<SphereSceneObject>(1.0f);
+    sphere->SetDefaultMaterial(material);
+    mScene->AddObject(std::move(sphere));
+
+    mScene->BuildBVH();
+
+    mViewport->Resize(ViewportSize, ViewportSize);
+
+    Camera camera;
+    camera.SetPerspective(1.0f, DegToRad(10.0f));
+    camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
+
+    for (const char* rendererName : gRendererNames)
+    {
+        SCOPED_TRACE(rendererName);
+
+        RendererPtr renderer = CreateRenderer(rendererName, *mScene);
+        mViewport->SetRenderer(renderer);
+        mViewport->Reset();
+
+        Uint32 numPasses = 1000;
+
+        for (Uint32 i = 0; i < numPasses; ++i)
+        {
+            mViewport->Render(camera);
+        }
+
+        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor, 0.075f);
+    }
+}
+
+// TODO

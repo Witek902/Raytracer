@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "../Core/Math/VectorInt4.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt::math;
 
 namespace {
@@ -53,6 +51,47 @@ TEST(MathTest, VectorInt4_VectorArithmetics)
     EXPECT_TRUE((vecD == (vecB * vecB)).All());
     EXPECT_TRUE((VectorInt4(2, 4, 6, 8) == (vecB * 2)).All());
     EXPECT_TRUE((VectorInt4(-1, -2, -3, -4) == -VectorInt4(1, 2, 3, 4)).All());
+}
+
+TEST(MathTest, VectorInt4_ShiftLeftSharedCount)
+{
+    for (Uint32 i = 0; i < 32; ++i)
+    {
+        SCOPED_TRACE("i=" + std::to_string(i));
+
+        VectorInt4 v(0, 1, 123, INT32_MAX);
+        const VectorInt4 expected(0, 1 << i, 123 << i, INT32_MAX << i);
+
+        EXPECT_TRUE((expected == (v << i)).All());
+        v <<= i;
+        EXPECT_TRUE((expected == v).All());
+    }
+}
+
+TEST(MathTest, VectorInt4_ShiftRightSharedCount)
+{
+    for (Uint32 i = 0; i < 32; ++i)
+    {
+        SCOPED_TRACE("i=" + std::to_string(i));
+
+        VectorInt4 v(0, 1, 123456789, INT32_MAX);
+        const VectorInt4 expected(0, 1 >> i, 123456789 >> i, INT32_MAX >> i);
+
+        EXPECT_TRUE((expected == (v >> i)).All());
+        v >>= i;
+        EXPECT_TRUE((expected == v).All());
+    }
+}
+
+TEST(MathTest, VectorInt4_ShiftLeftGeneric)
+{
+    VectorInt4 v(1, 1, 1, 1);
+    const VectorInt4 count(0, 1, 2, 3);
+    const VectorInt4 expected(1 << 0, 1 << 1, 1 << 2, 1 << 3);
+
+    EXPECT_TRUE((expected == (v << count)).All());
+    v <<= count;
+    EXPECT_TRUE((expected == v).All());
 }
 
 TEST(MathTest, VectorInt4_VectorMinMax)
@@ -141,6 +180,7 @@ TEST(MathTest, VectorInt4_VectorNotEqual)
 
 //////////////////////////////////////////////////////////////////////////
 
+/*
 TEST(MathTest, VectorInt4_VectorSwizzle)
 {
     const VectorInt4 v(0, 1, 2, 3);
@@ -425,6 +465,7 @@ TEST(MathTest, VectorInt4_VectorSwizzle)
         EXPECT_TRUE((VectorInt4(3, 3, 3, 3) == (v.Swizzle<3, 3, 3, 3>())).All());
     }
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////
 

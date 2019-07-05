@@ -267,6 +267,44 @@ bool VectorInt8::operator != (const VectorInt8& b) const
 
 //////////////////////////////////////////////////////////////////////////
 
+const VectorInt8 VectorInt8::operator << (const VectorInt8& b) const
+{
+#ifdef RT_USE_AVX2
+    return _mm256_sllv_epi32(v, b);
+#else
+    return
+    {
+        i[0] << b.i[0],
+        i[1] << b.i[1],
+        i[2] << b.i[2],
+        i[3] << b.i[3],
+        i[4] << b.i[4],
+        i[5] << b.i[5],
+        i[6] << b.i[6],
+        i[7] << b.i[7]
+    };
+#endif
+}
+
+const VectorInt8 VectorInt8::operator >> (const VectorInt8& b) const
+{
+#ifdef RT_USE_AVX2
+    return _mm256_srlv_epi32(v, b);
+#else
+    return
+    {
+        i[0] >> b.i[0],
+        i[1] >> b.i[1],
+        i[2] >> b.i[2],
+        i[3] >> b.i[3],
+        i[4] >> b.i[4],
+        i[5] >> b.i[5],
+        i[6] >> b.i[6],
+        i[7] >> b.i[7]
+    };
+#endif
+}
+
 const VectorInt8 VectorInt8::operator << (Int32 b) const
 {
 #ifdef RT_USE_AVX2

@@ -267,7 +267,11 @@ const Vector4 Vector4::Swizzle() const
     static_assert(iz < 4, "Invalid Z element index");
     static_assert(iw < 4, "Invalid W element index");
 
-    if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
+    if (ix == 0 && iy == 1 && iz == 2 && iw == 3)
+    {
+        return *this;
+    }
+    else if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
     {
         return _mm_unpacklo_ps(v, v);
     }

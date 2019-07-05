@@ -110,14 +110,9 @@ const RayColor BackgroundLight::Emit(const EmitParam& param, EmitResult& outResu
     return GetBackgroundColor(-outResult.direction, param.wavelength);
 }
 
-bool BackgroundLight::IsFinite() const
+ILight::Flags BackgroundLight::GetFlags() const
 {
-    return false;
-}
-
-bool BackgroundLight::IsDelta() const
-{
-    return false;
+    return Flag_None;
 }
 
 } // namespace rt

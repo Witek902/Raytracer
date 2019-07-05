@@ -25,7 +25,8 @@ struct Float3
 
     RT_INLINE constexpr Float3();
     RT_INLINE constexpr Float3(const Float2& rhs);
-    RT_INLINE constexpr explicit Float3(float x, float y = 0.0f, float z = 0.0f);
+    RT_INLINE constexpr explicit Float3(float s);
+    RT_INLINE constexpr Float3(float x, float y, float z);
     RT_INLINE constexpr explicit Float3(const float* src);
 
     // cast to Float2 (Z component is discarded)

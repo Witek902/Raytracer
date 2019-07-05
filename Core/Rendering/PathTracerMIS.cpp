@@ -99,7 +99,8 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
     // TODO this does not include russian roulette
     const bool isLastPathSegment = pathState.depth >= context.params->maxRayDepth;
 
-    if (!light.IsDelta() && !isLastPathSegment)
+    const ILight::Flags lightFlags = light.GetFlags();
+    if (!(lightFlags & ILight::Flag_IsDelta) && !isLastPathSegment)
     {
         // TODO this should be based on material color
         const float continuationProbability = 1.0f;

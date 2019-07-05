@@ -63,10 +63,17 @@ struct RT_ALIGN(16) VectorInt4
     RT_FORCE_INLINE VectorInt4& operator *= (Int32 b);
 
     // bit shifting
+    RT_FORCE_INLINE const VectorInt4 operator << (const VectorInt4& b) const;
+    RT_FORCE_INLINE const VectorInt4 operator >> (const VectorInt4& b) const;
+    RT_FORCE_INLINE VectorInt4& operator <<= (const VectorInt4& b);
+    RT_FORCE_INLINE VectorInt4& operator >>= (const VectorInt4& b);
     RT_FORCE_INLINE const VectorInt4 operator << (Int32 b) const;
     RT_FORCE_INLINE const VectorInt4 operator >> (Int32 b) const;
     RT_FORCE_INLINE VectorInt4& operator <<= (Int32 b);
     RT_FORCE_INLINE VectorInt4& operator >>= (Int32 b);
+
+    // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
+    RT_FORCE_INLINE static const VectorInt4 Select(const VectorInt4& a, const VectorInt4& b, const VectorBool4& sel);
 
     // for each component, if it's greater-or-euqal to 'reference', set the value to 'target'
     RT_FORCE_INLINE const VectorInt4 SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const;
@@ -85,8 +92,11 @@ struct RT_ALIGN(16) VectorInt4
 
     RT_FORCE_INLINE const VectorInt4 Clamped(const VectorInt4& min, const VectorInt4& max) const;
 
-    // convert from float vector to integer vector
+    // convert from float vector to integer vector (with rounding)
     RT_FORCE_INLINE static const VectorInt4 Convert(const Vector4& v);
+
+    // convert from float vector to integer vector (with truncation towards zero)
+    RT_FORCE_INLINE static const VectorInt4 TruncateAndConvert(const Vector4& v);
 
     // convert to float vector
     RT_FORCE_INLINE const Vector4 ConvertToFloat() const;

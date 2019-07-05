@@ -46,12 +46,22 @@ const VectorInt4 VectorInt4::Convert(const Vector4& v)
     return _mm_cvtps_epi32(v);
 }
 
+const VectorInt4 VectorInt4::TruncateAndConvert(const Vector4& v)
+{
+    return _mm_cvttps_epi32(v);
+}
+
 const Vector4 VectorInt4::ConvertToFloat() const
 {
     return _mm_cvtepi32_ps(v);
 }
 
 //////////////////////////////////////////////////////////////////////////
+
+const VectorInt4 VectorInt4::Select(const VectorInt4& a, const VectorInt4& b, const VectorBool4& sel)
+{
+    return _mm_blendv_epi8(a, b, _mm_castps_si128(sel.v));
+}
 
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
 const VectorInt4 VectorInt4::Swizzle() const
@@ -61,7 +71,11 @@ const VectorInt4 VectorInt4::Swizzle() const
     static_assert(iz < 4, "Invalid Z element index");
     static_assert(iw < 4, "Invalid W element index");
 
-    if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
+    if (ix == 0 && iy == 1 && iz == 2 && iw == 3)
+    {
+        return *this;
+    }
+    else if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
     {
         return _mm_unpacklo_epi32(v, v);
     }
@@ -85,17 +99,17 @@ const VectorInt4 VectorInt4::Swizzle() const
 
 const VectorInt4 VectorInt4::operator & (const VectorInt4& b) const
 {
-    return VectorInt4(_mm_and_si128(v, b.v));
+    return _mm_and_si128(v, b.v);
 }
 
 const VectorInt4 VectorInt4::operator | (const VectorInt4& b) const
 {
-    return VectorInt4(_mm_or_si128(v, b.v));
+    return _mm_or_si128(v, b.v);
 }
 
 const VectorInt4 VectorInt4::operator ^ (const VectorInt4& b) const
 {
-    return VectorInt4(_mm_xor_si128(v, b.v));
+    return _mm_xor_si128(v, b.v);
 }
 
 VectorInt4& VectorInt4::operator &= (const VectorInt4& b)
@@ -191,6 +205,50 @@ VectorInt4& VectorInt4::operator *= (Int32 b)
 
 //////////////////////////////////////////////////////////////////////////
 
+const VectorInt4 VectorInt4::operator << (const VectorInt4& b) const
+{
+#ifdef RT_USE_AVX2
+    return _mm_sllv_epi32(v, b);
+#else
+    return { x << b.x, y << b.y, z << b.z, w << b.w };
+#endif
+}
+
+const VectorInt4 VectorInt4::operator >> (const VectorInt4& b) const
+{
+#ifdef RT_USE_AVX2
+    return _mm_srlv_epi32(v, b);
+#else
+    return { x >> b.x, y >> b.y, z >> b.z, w >> b.w };
+#endif
+}
+
+VectorInt4& VectorInt4::operator <<= (const VectorInt4& b)
+{
+#ifdef RT_USE_AVX2
+    v = _mm_sllv_epi32(v, b);
+#else
+    x <<= b.x;
+    y <<= b.y;
+    z <<= b.z;
+    w <<= b.w;
+#endif
+    return *this;
+}
+
+VectorInt4& VectorInt4::operator >>= (const VectorInt4& b)
+{
+#ifdef RT_USE_AVX2
+    v = _mm_srlv_epi32(v, b);
+#else
+    x >>= b.x;
+    y >>= b.y;
+    z >>= b.z;
+    w >>= b.w;
+#endif
+    return *this;
+}
+
 const VectorInt4 VectorInt4::operator << (Int32 b) const
 {
     return _mm_slli_epi32(v, b);
@@ -218,13 +276,13 @@ VectorInt4& VectorInt4::operator >>= (Int32 b)
 const VectorInt4 VectorInt4::SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const
 {
     const __m128i mask = _mm_cmplt_epi32(v, reference.v);
-    return VectorInt4(_mm_blendv_epi8(target, v, mask));
+    return _mm_blendv_epi8(target, v, mask);
 }
 
 const VectorInt4 VectorInt4::SetIfLessThan(const VectorInt4& reference, const VectorInt4& target) const
 {
     const __m128i mask = _mm_cmplt_epi32(v, reference.v);
-    return VectorInt4(_mm_blendv_epi8(v, target, mask));
+    return _mm_blendv_epi8(v, target, mask);
 }
 
 const VectorBool4 VectorInt4::operator == (const VectorInt4& b) const

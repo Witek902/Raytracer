@@ -14,8 +14,7 @@ public:
     virtual bool TestRayHit(const math::Ray& ray, float& outDistance) const override;
     virtual const RayColor Illuminate(const IlluminateParam& param, IlluminateResult& outResult) const override;
     virtual const RayColor Emit(const EmitParam& param, EmitResult& outResult) const override;
-    virtual bool IsFinite() const override final;
-    virtual bool IsDelta() const override final;
+    virtual Flags GetFlags() const override final;
 
 private:
     math::Vector4 mPosition;

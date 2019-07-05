@@ -145,7 +145,7 @@ public:
 private:
 
     void GetCellRange(Uint32 cellIndex, Uint32& outStart, Uint32& outEnd) const
-    {
+    { 
         outStart = cellIndex == 0 ? 0 : mCellEnds[cellIndex - 1];
         outEnd = mCellEnds[cellIndex];
     }
@@ -156,12 +156,12 @@ private:
         return ((p.x * 73856093u) ^ (p.y * 19349663u) ^ (p.z * 83492791u)) & mHashTableMask;
     }
 
-
+    RT_FORCE_NOINLINE
     Uint32 GetCellIndex(const math::Vector4& p) const
     {
         const math::Vector4 distMin = p - mBox.min;
         const math::Vector4 coordF = mInvCellSize * distMin;
-        const math::VectorInt4 coordI = math::VectorInt4::Convert(math::Vector4::Floor(coordF));
+        const math::VectorInt4 coordI = math::VectorInt4::TruncateAndConvert(coordF);
 
         return GetCellIndex(coordI);
     }

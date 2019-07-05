@@ -19,8 +19,7 @@ public:
     const math::Vector4 GetNormal(const math::Vector4& hitPoint) const override;
     virtual const RayColor GetRadiance(RenderingContext& context, const math::Ray& ray, const math::Vector4& hitPoint, float* outDirectPdfA, float* outEmissionPdfW) const override;
     virtual const RayColor Emit(const EmitParam& param, EmitResult& outResult) const override;
-    virtual bool IsFinite() const override final;
-    virtual bool IsDelta() const override final;
+    virtual Flags GetFlags() const override final;
 
     TexturePtr mTexture = nullptr;
 

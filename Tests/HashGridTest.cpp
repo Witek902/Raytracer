@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "../Core/Utils/HashGrid.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 using namespace rt::math;
 

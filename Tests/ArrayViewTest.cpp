@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "../Core/Containers/ArrayView.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 
 

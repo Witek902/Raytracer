@@ -6,8 +6,6 @@
 #include "../Core/Utils/Bitmap.h"
 #include "../Core/Textures/BitmapTexture.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 using namespace rt::math;
 

@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "../Core/Math/Vector4.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt::math;
 
 

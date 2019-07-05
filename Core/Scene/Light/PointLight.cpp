@@ -60,14 +60,9 @@ const RayColor PointLight::Emit(const EmitParam& param, EmitResult& outResult) c
     return RayColor::Resolve(param.wavelength, GetColor());
 }
 
-bool PointLight::IsFinite() const
+ILight::Flags PointLight::GetFlags() const
 {
-    return true;
-}
-
-bool PointLight::IsDelta() const
-{
-    return true;
+    return Flags(Flag_IsFinite & Flag_IsDelta);
 }
 
 } // namespace rt

@@ -2,8 +2,6 @@
 #include "../Core/Utils/Entropy.h"
 #include "../Core/Math/Random.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 using namespace rt::math;
 

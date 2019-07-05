@@ -7,7 +7,11 @@
 #endif // _DEBUG
 
 #include <sstream>
+#include <array>
 #include <string>
 #include <vector>
 #include <memory>
 #include <limits>
+#include <functional>
+
+#include "gtest/gtest.h"

@@ -140,14 +140,9 @@ const RayColor DirectionalLight::Emit(const EmitParam& param, EmitResult& outRes
     return RayColor::Resolve(param.wavelength, GetColor());
 }
 
-bool DirectionalLight::IsFinite() const
+ILight::Flags DirectionalLight::GetFlags() const
 {
-    return false;
-}
-
-bool DirectionalLight::IsDelta() const
-{
-    return mIsDelta;
+    return mIsDelta ? Flag_IsDelta : Flag_None;
 }
 
 } // namespace rt

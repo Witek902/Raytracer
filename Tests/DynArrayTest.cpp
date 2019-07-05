@@ -1,8 +1,6 @@
 #include "PCH.h"
 #include "../Core/Containers/DynArray.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 
 #include "TestClasses.h"

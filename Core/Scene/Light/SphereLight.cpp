@@ -164,14 +164,9 @@ const Vector4 SphereLight::GetNormal(const Vector4& hitPoint) const
     return (hitPoint - mPosition).Normalized3();
 }
 
-bool SphereLight::IsFinite() const
+ILight::Flags SphereLight::GetFlags() const
 {
-    return true;
-}
-
-bool SphereLight::IsDelta() const
-{
-    return false;
+    return Flag_IsFinite;
 }
 
 } // namespace rt

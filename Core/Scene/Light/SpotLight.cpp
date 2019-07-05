@@ -97,14 +97,9 @@ const RayColor SpotLight::Emit(const EmitParam& param, EmitResult& outResult) co
     return RayColor::Resolve(param.wavelength, GetColor());
 }
 
-bool SpotLight::IsFinite() const
+ILight::Flags SpotLight::GetFlags() const
 {
-    return true;
-}
-
-bool SpotLight::IsDelta() const
-{
-    return mIsDelta;
+    return mIsDelta ? Flags(Flag_IsFinite & Flag_IsDelta) : Flag_IsFinite;
 }
 
 } // namespace rt

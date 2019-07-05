@@ -436,13 +436,15 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     outPath.ray = Ray(emitResult.position, emitResult.direction);
     outPath.ray.origin += outPath.ray.dir * 0.0001f;
     outPath.throughput = throughput * emissionInvPdfW;
-    outPath.isFiniteLight = light->IsFinite();
+
+    const ILight::Flags lightFlags = light->GetFlags();
+    outPath.isFiniteLight = lightFlags & ILight::Flag_IsFinite;
 
     // setup MIS weights
     {
         outPath.dVCM = Mis(emitResult.directPdfA * emissionInvPdfW);
 
-        if (!light->IsDelta())
+        if ((lightFlags & ILight::Flag_IsDelta) == 0)
         {
             const float cosAtLight = outPath.isFiniteLight ? emitResult.cosAtLight : 1.0f;
             outPath.dVC = Mis(cosAtLight * emissionInvPdfW);
@@ -651,8 +653,9 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     const float lightPickProbability = 1.0f;
 
     // TODO
+    const bool isDeltaLight = light.GetFlags() & ILight::Flag_IsDelta;
     const float continuationProbability = 1.0f;
-    bsdfPdfW *= light.IsDelta() ? 0.0f : continuationProbability;
+    bsdfPdfW *= isDeltaLight ? 0.0f : continuationProbability;
     bsdfRevPdfW *= continuationProbability;
 
     const float cosToLight = Vector4::Dot3(shadingData.frame[2], illuminateResult.directionToLight);

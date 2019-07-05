@@ -67,7 +67,7 @@ struct RenderingParams
     Uint16 tileSize = 16;
 
     // select mode of ray traversal
-    TraversalMode traversalMode = TraversalMode::Packet;
+    TraversalMode traversalMode = TraversalMode::Single;
 
     // describes how lights should be sampled
     LightSamplingStrategy lightSamplingStrategy = LightSamplingStrategy::Single;

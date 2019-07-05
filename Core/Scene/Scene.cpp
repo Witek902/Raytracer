@@ -35,11 +35,12 @@ bool Scene::BuildBVH()
 {
     for (const LightPtr& light : mLights)
     {
-        if (!light->IsDelta() && light->IsFinite())
+        const ILight::Flags lightFlags = light->GetFlags();
+        if (lightFlags == ILight::Flag_IsFinite)
         {
             mObjects.EmplaceBack(std::make_unique<LightSceneObject>(*light));
         }
-        else if (!light->IsFinite())
+        else if (!(lightFlags & ILight::Flag_IsFinite))
         {
             mGlobalLights.PushBack(light.get());
         }

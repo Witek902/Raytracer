@@ -2,8 +2,6 @@
 #include "../Core/Math/Vector4.h"
 #include "../Core/Math/VectorInt4.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt::math;
 
 namespace {
@@ -397,7 +395,6 @@ TEST(MathTest, Vector4_Swizzle_Variable)
     }
 }
 
-/*
 TEST(MathTest, Vector4_Swizzle_Immediate)
 {
     const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);
@@ -682,7 +679,6 @@ TEST(MathTest, Vector4_Swizzle_Immediate)
         EXPECT_TRUE((Vector4(3.0f, 3.0f, 3.0f, 3.0f) == (v.Swizzle<3, 3, 3, 3>())).All());
     }
 }
-*/
 
 TEST(MathTest, Vector4_ChangeSign)
 {

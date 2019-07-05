@@ -53,6 +53,8 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE VectorInt8& operator *= (Int32 b);
 
     // bit shifting
+    RT_FORCE_INLINE const VectorInt8 operator << (const VectorInt8& b) const;
+    RT_FORCE_INLINE const VectorInt8 operator >> (const VectorInt8& b) const;
     RT_FORCE_INLINE const VectorInt8 operator << (Int32 b) const;
     RT_FORCE_INLINE const VectorInt8 operator >> (Int32 b) const;
 

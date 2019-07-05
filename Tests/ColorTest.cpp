@@ -4,8 +4,6 @@
 #include "../Core/Color/ColorHelpers.h"
 #include "../Core/Math/Random.h"
 
-#include "gtest/gtest.h"
-
 using namespace rt;
 using namespace math;
 
