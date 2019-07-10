@@ -51,7 +51,7 @@ struct RT_ALIGN(16) Vector4
 
     RT_FORCE_INLINE explicit operator float() const { return x; }
     RT_FORCE_INLINE operator __m128() const { return v; }
-    RT_FORCE_INLINE operator __m128i() const { return reinterpret_cast<const __m128i*>(&v)[0]; }
+    RT_FORCE_INLINE operator __m128i() const { return _mm_castps_si128(v); }
     RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
     RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
 
@@ -93,9 +93,12 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE const Vector4 SplatZ() const;
     RT_FORCE_INLINE const Vector4 SplatW() const;
 
-    // Change sign of selected elements
+    // Change sign of selected elements (immediate)
     template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
     RT_FORCE_INLINE const Vector4 ChangeSign() const;
+
+    // Change sign of selected elements (variable)
+    RT_FORCE_INLINE const Vector4 ChangeSign(const VectorBool4& flip) const;
 
     // Prepare mask vector
     template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>

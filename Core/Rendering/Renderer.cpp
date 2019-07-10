@@ -24,7 +24,7 @@ void IRenderer::PreRender(Uint32, const Film&)
 {
 }
 
-void IRenderer::PreRender(RenderingContext&)
+void IRenderer::PreRender(Uint32, RenderingContext&)
 {
 }
 

@@ -129,6 +129,8 @@
     <ClInclude Include="Utils\TextureEvaluator.h" />
     <ClInclude Include="Utils\ThreadPool.h" />
     <ClInclude Include="Utils\Timer.h" />
+    <ClInclude Include="Math\Packed.h" />
+    <ClInclude Include="Utils\KdTree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />
@@ -209,6 +211,7 @@
     <ClCompile Include="Utils\ThreadPool.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\Entropy.cpp" />
+    <ClCompile Include="Utils\KdTree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

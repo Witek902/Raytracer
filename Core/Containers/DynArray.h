@@ -117,6 +117,7 @@ public:
      * @return 'false' if memory allocation failed.
      */
     bool Resize(Uint32 size);
+    bool Resize_SkipConstructor(Uint32 size);
     bool Resize(Uint32 size, const ElementType& defaultElement);
 
     /**

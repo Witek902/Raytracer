@@ -209,7 +209,7 @@ bool Viewport::Render(const Camera& camera)
         ctx.sampler = &mSamplers[i];
         ctx.sampler->ResetFrame(seed);
 
-        mRenderer->PreRender(ctx);
+        mRenderer->PreRender(mProgress.passesFinished, ctx);
     }
 
 #ifndef RT_CONFIGURATION_FINAL
@@ -308,7 +308,7 @@ void Viewport::PreRenderTile(const TileRenderingContext& tileCtx, RenderingConte
                 ctx.wavelength.Randomize(ctx.randomGenerator);
 
                 const Uint32 pixelIndex = y * GetHeight() + x;
-                const IRenderer::RenderParam renderParam = { pixelIndex, tileCtx.camera, film };
+                const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileCtx.camera, film };
 
                 tileCtx.renderer.PreRenderPixel(renderParam, ctx);
             }
@@ -353,7 +353,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 // generate primary ray
                 const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
 
-                const IRenderer::RenderParam renderParam = { pixelIndex, tileContext.camera, film };
+                const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileContext.camera, film };
                 const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx);
                 RT_ASSERT(color.IsValid());
 

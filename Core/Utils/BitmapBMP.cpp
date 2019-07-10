@@ -91,7 +91,8 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
         return false;
     }
 
-    if (!Init(infoHeader.biWidth, infoHeader.biHeight, format))
+    bool linearSpace = false;
+    if (!Init(infoHeader.biWidth, infoHeader.biHeight, format, nullptr, linearSpace))
     {
         return false;
     }

@@ -351,6 +351,7 @@
     <ClInclude Include="Math\Half.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Math\Matrix4.h" />
+    <ClInclude Include="Math\Packed.h" />
     <ClInclude Include="Math\Quaternion.h" />
     <ClInclude Include="Math\QuaternionImpl.h" />
     <ClInclude Include="Math\Random.h" />
@@ -434,6 +435,7 @@
     <ClInclude Include="Utils\Entropy.h" />
     <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
+    <ClInclude Include="Utils\KdTree.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\MemoryHelpers.h" />
     <ClInclude Include="Utils\Texture.h" />
@@ -531,6 +533,7 @@
     <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
     <ClCompile Include="Utils\Entropy.cpp" />
+    <ClCompile Include="Utils\KdTree.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />

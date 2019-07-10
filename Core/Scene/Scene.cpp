@@ -170,20 +170,26 @@ void Scene::Traverse_Leaf_Packet(const PacketTraversalContext& context, const Ui
 
 void Scene::Traverse_Single(const SingleTraversalContext& context) const
 {
+    context.context.localCounters.Reset();
+
     const Uint32 numObjects = mObjects.Size();
 
-    if (numObjects == 0) // scene is empty
+    if (numObjects == 0)
     {
-        return;
+        // scene is empty
     }
-    else if (numObjects == 1) // bypass BVH
+    else if (numObjects == 1)
     {
+        // bypass BVH
         Traverse_Object_Single(context, 0);
     }
-    else // full BVH traversal
+    else
     {
+        // full BVH traversal
         GenericTraverse_Single(context, 0, this);
     }
+
+    context.context.counters.Append(context.context.localCounters);
 }
 
 bool Scene::Traverse_Shadow_Single(const SingleTraversalContext& context) const
@@ -246,6 +252,7 @@ void Scene::Traverse_Packet(const PacketTraversalContext& context) const
     }
 }
 
+RT_FORCE_NOINLINE
 void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, const float time, ShadingData& outShadingData) const
 {
     RT_ASSERT(hitPoint.distance < FLT_MAX);
@@ -260,10 +267,11 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
 
     // calculate normal, tangent, tex coord, etc. from intersection data
     object->EvaluateShadingData_Single(hitPoint, outShadingData);
-
-    Matrix4 localSpaceFrame = outShadingData.frame;
-
     RT_ASSERT(outShadingData.texCoord.IsValid());
+
+    Vector4 localSpaceTangent = outShadingData.frame[0];
+    Vector4 localSpaceBitangent = outShadingData.frame[1];
+    Vector4 localSpaceNormal = outShadingData.frame[2];
 
     // apply normal mapping
     if (outShadingData.material->normalMap)
@@ -271,21 +279,16 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
         const Vector4 localNormal = outShadingData.material->GetNormalVector(outShadingData.texCoord);
 
         // transform normal vector
-        {
-            Vector4 newNormal = localSpaceFrame[0] * localNormal.x;
-            newNormal = Vector4::MulAndAdd(localSpaceFrame[1], localNormal.y, newNormal);
-            newNormal = Vector4::MulAndAdd(localSpaceFrame[2], localNormal.z, newNormal);
-            localSpaceFrame[2] = newNormal.FastNormalized3();
-        }
+        Vector4 newNormal = localSpaceTangent * localNormal.x;
+        newNormal = Vector4::MulAndAdd(localSpaceBitangent, localNormal.y, newNormal);
+        newNormal = Vector4::MulAndAdd(localSpaceNormal, localNormal.z, newNormal);
+        localSpaceNormal = newNormal.FastNormalized3();
     }
 
     // orthogonalize tangent vector (required due to normal/tangent vectors interpolation and normal mapping)
     // TODO this can be skipped if the tangent vector is the same for every point on the triangle (flat shading)
     // and normal mapping is disabled
-    localSpaceFrame[0] = Vector4::Orthogonalize(localSpaceFrame[0], localSpaceFrame[2]).Normalized3();
-
-    // Note: no need to normalize, as normal and tangent are both normalized and orthogonal
-    localSpaceFrame[1] = Vector4::Cross3(localSpaceFrame[0], localSpaceFrame[2]);
+    localSpaceTangent = Vector4::Orthogonalize(localSpaceTangent, localSpaceNormal).Normalized3();
 
     // TODO uncomment this after ExtractShadingData() is not called for light objects
     //RT_ASSERT(Abs(1.0f - outShadingData.frame[0].SqrLength3()) < 0.001f);
@@ -296,9 +299,9 @@ void Scene::ExtractShadingData(const math::Ray& ray, const HitPoint& hitPoint, c
     //RT_ASSERT(Vector4::Dot3(outShadingData.frame[2], outShadingData.frame[0]) < 0.001f);
 
     // transform shading data from local space to world space
-    outShadingData.frame[0] = transform.TransformVector(localSpaceFrame[0]);
-    outShadingData.frame[1] = transform.TransformVector(localSpaceFrame[1]);
-    outShadingData.frame[2] = transform.TransformVector(localSpaceFrame[2]);
+    outShadingData.frame[2] = transform.TransformVector(localSpaceNormal);
+    outShadingData.frame[0] = transform.TransformVector(localSpaceTangent);
+    outShadingData.frame[1] = Vector4::Cross3(outShadingData.frame[0], outShadingData.frame[2]);
     outShadingData.frame[3] = worldPosition;
 
     outShadingData.outgoingDirWorldSpace = -ray.dir;

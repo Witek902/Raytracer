@@ -2,7 +2,16 @@
 
 #include "Renderer.h"
 #include "../Material/BSDF/BSDF.h"
+#include "../Math/Packed.h"
+
+// too slow for now...
+#define RT_VCM_USE_KD_TREE
+
+#ifdef RT_VCM_USE_KD_TREE
+#include "../Utils/KdTree.h"
+#else
 #include "../Utils/HashGrid.h"
+#endif // RT_VCM_USE_KD_TREE
 
 namespace rt {
 
@@ -27,8 +36,7 @@ public:
     virtual RendererContextPtr CreateContext() const;
 
     virtual void PreRender(Uint32 passNumber, const Film& film) override;
-    virtual void PreRender(RenderingContext& ctx) override;
-    virtual void PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const override;
+    virtual void PreRender(Uint32 passNumber, RenderingContext& ctx) override;
     virtual void PreRenderGlobal(RenderingContext& ctx) override;
     virtual void PreRenderGlobal() override;
     virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
@@ -50,8 +58,8 @@ public:
 
     struct LightVertex
     {
-        PackedShadingData shadingData;
-        RayColor throughput;            // TODO should be Float3
+        ShadingData shadingData;
+        RayColor throughput;
 
         // quantities for MIS weight calculation
         float dVC;
@@ -59,9 +67,23 @@ public:
         float dVCM;
 
         Uint8 pathLength;
+    };
+
+    struct RT_ALIGN(32) Photon
+    {
+        math::Float3 position;
+        math::PackedColorRgbHdr throughput;
+        math::PackedUnitVector3 direction;
+
+        // quantities for MIS weight calculation
+        float dVM;  // TODO should be Half (watch out range)
+        float dVCM; // TODO should be Half (watch out range)
 
         // used by hash grid query
-        RT_FORCE_INLINE const math::Vector4 GetPosition() const { return math::Vector4(shadingData.position); }
+        RT_FORCE_INLINE const math::Vector4 GetPosition() const
+        {
+            return *reinterpret_cast<const math::Vector4*>(this);
+        }
     };
 
 private:
@@ -96,10 +118,10 @@ private:
     const RayColor SampleLight(const ILight& light, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateLight(Uint32 iteration, const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from global lights
-    const RayColor EvaluateGlobalLights(const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateGlobalLights(Uint32 iteration, const PathState& pathState, RenderingContext& ctx) const;
 
     // generate initial camera ray
     bool GenerateCameraPath(PathState& path, RenderingContext& ctx) const;
@@ -122,22 +144,25 @@ private:
 
     Uint32 mLightPathsCount;
 
-    float mCurrentMergingRadius;
+    float mMergingRadiusVC;
+    float mMergingRadiusVM;
 
     // computed based on merging radius and configuration
     float mVertexMergingNormalizationFactor;
-    float mMisVertexMergingWeightFactor;
-    float mMisVertexConnectionWeightFactor;
+    float mMisVertexMergingWeightFactorVC;
+    float mMisVertexConnectionWeightFactorVC;
+    float mMisVertexMergingWeightFactorVM;
+    float mMisVertexConnectionWeightFactorVM;
 
     // acceleration structure used for vertex merging
+#ifdef RT_VCM_USE_KD_TREE
+    KdTree mKdTree;
+#else
     HashGrid mHashGrid;
+#endif // RT_VCM_USE_KD_TREE
 
-    // list of all recorded light vertices
-    DynArray<LightVertex> mLightVertices;
-
-    // marks each path end index in the 'mLightVertices' array
-    // Note: path length is obtained by comparing two consequent values
-    DynArray<Uint32> mLightPathEnds;
+    // list of all recorded light photons
+    DynArray<Photon> mPhotons;
 };
 
 } // namespace rt

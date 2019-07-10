@@ -32,7 +32,10 @@ struct ShadingData
     const math::Vector4 LocalToWorld(const math::Vector4& localCoords) const;
     const math::Vector4 WorldToLocal(const math::Vector4& worldCoords) const;
 
-    float CosTheta(const math::Vector4& dir) const;
+    RT_FORCE_INLINE float CosTheta(const math::Vector4& dir) const
+    {
+        return math::Vector4::Dot3(frame[2], dir);
+    }
 };
 
 struct PackedShadingData

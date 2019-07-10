@@ -20,6 +20,7 @@ class RT_ALIGN(16) IRenderer : public Aligned<16>
 public:
     struct RenderParam
     {
+        Uint32 iteration;
         Uint32 pixelIndex;
         const Camera& camera;
         Film& film;
@@ -44,7 +45,7 @@ public:
     virtual void PreRender(Uint32 passNumber, const Film& film);
 
     // optional rendering pre-pass, called once per frame for every thread
-    virtual void PreRender(RenderingContext& ctx);
+    virtual void PreRender(Uint32 passNumber, RenderingContext& ctx);
 
     // optional rendering pre-pass, called for every pixel on screen
     // Note: this will be called from multiple threads, each thread provides own RenderingContext

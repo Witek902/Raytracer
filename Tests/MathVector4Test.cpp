@@ -680,7 +680,7 @@ TEST(MathTest, Vector4_Swizzle_Immediate)
     }
 }
 
-TEST(MathTest, Vector4_ChangeSign)
+TEST(MathTest, Vector4_ChangeSign_Immediate)
 {
     const Vector4 v(0.5f, 1.0f, 2.0f, 3.0f);
 
@@ -700,6 +700,16 @@ TEST(MathTest, Vector4_ChangeSign)
     EXPECT_TRUE((Vector4(-0.5f, -1.0f, 2.0f, -3.0f) == (v.ChangeSign<true, true, false, true>())).All());
     EXPECT_TRUE((Vector4(-0.5f, -1.0f, -2.0f, 3.0f) == (v.ChangeSign<true, true, true, false>())).All());
     EXPECT_TRUE((Vector4(-0.5f, -1.0f, -2.0f, -3.0f) == (v.ChangeSign<true, true, true, true>())).All());
+}
+
+TEST(MathTest, Vector4_ChangeSign)
+{
+    const Vector4 v(0.5f, 1.0f, 2.0f, 3.0f);
+
+    EXPECT_TRUE((Vector4(-0.5f, 1.0f, 2.0f, 3.0f) == (v.ChangeSign(Vector4(1.0f, 0.0f, 0.0f, 0.0f) > Vector4::Zero()))).All());
+    EXPECT_TRUE((Vector4(0.5f, -1.0f, 2.0f, 3.0f) == (v.ChangeSign(Vector4(0.0f, 1.0f, 0.0f, 0.0f) > Vector4::Zero()))).All());
+    EXPECT_TRUE((Vector4(0.5f, 1.0f, -2.0f, 3.0f) == (v.ChangeSign(Vector4(0.0f, 0.0f, 1.0f, 0.0f) > Vector4::Zero()))).All());
+    EXPECT_TRUE((Vector4(0.5f, 1.0f, 2.0f, -3.0f) == (v.ChangeSign(Vector4(0.0f, 0.0f, 0.0f, 1.0f) > Vector4::Zero()))).All());
 }
 
 TEST(MathTest, Vector4_MakeMask)

@@ -438,7 +438,7 @@ bool DemoWindow::Loop()
         mFrameCounterForAverage++;
         mFrameNumber++;
         mAverageRenderDeltaTime = mTotalRenderTime / (double)mFrameCounterForAverage;
-        mMinimumRenderDeltaTime = math::Min(mMinimumRenderDeltaTime, mRenderDeltaTime);
+        mMinimumRenderDeltaTime = mFrameNumber > 3 ? math::Min(mMinimumRenderDeltaTime, mRenderDeltaTime) : mRenderDeltaTime;
 
         // handle window input
         ProcessMessages();

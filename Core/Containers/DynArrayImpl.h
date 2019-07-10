@@ -443,12 +443,40 @@ bool DynArray<ElementType>::Reserve(Uint32 size)
 }
 
 template<typename ElementType>
+bool DynArray<ElementType>::Resize_SkipConstructor(Uint32 size)
+{
+    const Uint32 oldSize = this->mSize;
+
+    // call destructors
+    for (Uint32 i = size; i < oldSize; ++i)
+    {
+        this->mElements[i].~ElementType();
+    }
+
+    if (!Reserve(size))
+    {
+        return false;
+    }
+
+    this->mSize = size;
+    return true;
+}
+
+template<typename ElementType>
 bool DynArray<ElementType>::Resize(Uint32 size)
 {
     const Uint32 oldSize = this->mSize;
 
+    // call destructors
+    for (Uint32 i = size; i < oldSize; ++i)
+    {
+        this->mElements[i].~ElementType();
+    }
+
     if (!Reserve(size))
+    {
         return false;
+    }
 
     // initialize new elements
     for (Uint32 i = oldSize; i < size; ++i)
@@ -465,8 +493,16 @@ bool DynArray<ElementType>::Resize(Uint32 size, const ElementType& defaultElemen
 {
     const Uint32 oldSize = this->mSize;
 
+    // call destructors
+    for (Uint32 i = size; i < oldSize; ++i)
+    {
+        this->mElements[i].~ElementType();
+    }
+
     if (!Reserve(size))
+    {
         return false;
+    }
 
     // initialize new elements
     for (Uint32 i = oldSize; i < size; ++i)

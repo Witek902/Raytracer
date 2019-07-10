@@ -26,20 +26,26 @@ RT_FORCE_INLINE static constexpr float PdfWtoA(const float pdfW, const float dis
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BidirectionalPathTracerContext : public IRendererContext
+static constexpr Uint32 g_MaxLightVertices = 256;
+
+class RT_ALIGN(64) VertexConnectionAndMergingContext : public IRendererContext, public Aligned<64>
 {
 public:
+    using Photon = VertexConnectionAndMerging::Photon;
     using LightVertex = VertexConnectionAndMerging::LightVertex;
 
-    // list of all recorded light vertices
-    DynArray<LightVertex> lightVertices;
+    // list of photons recorded from a single thread
+    DynArray<Photon> photons;
 
-    // marks each path end index in the 'mLightVertices' array
-    // Note: path length is obtained by comparing two consequent values
-    DynArray<Uint32> pathEnds;
+    // list of light vertices used in current pixel processing
+    Uint32 numLightVertices = 0;
+    LightVertex lightVertices[g_MaxLightVertices];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+static_assert(sizeof(VertexConnectionAndMerging::Photon) == 32, "Invalid photon size");
+static_assert(sizeof(VertexConnectionAndMerging::LightVertex) == 192, "Invalid light vertex size");
 
 VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     : IRenderer(scene)
@@ -53,10 +59,11 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
 
     mUseVertexConnection = true;
     mUseVertexMerging = true;
-    mMaxPathLength = 7;
-    mInitialMergingRadius = mCurrentMergingRadius = 0.005f;
-    mMinMergingRadius = 0.005f;
-    mMergingRadiusMultiplier = 0.98f;
+    mMaxPathLength = 12;
+    mInitialMergingRadius = 0.01f;
+    mMergingRadiusVC = mMergingRadiusVM = mInitialMergingRadius;
+    mMinMergingRadius = 0.001f;
+    mMergingRadiusMultiplier = 1.0f; // 0.98f; // VCM_TODO
 }
 
 VertexConnectionAndMerging::~VertexConnectionAndMerging() = default;
@@ -68,94 +75,106 @@ const char* VertexConnectionAndMerging::GetName() const
 
 RendererContextPtr VertexConnectionAndMerging::CreateContext() const
 {
-    return std::make_unique<BidirectionalPathTracerContext>();
+    return std::make_unique<VertexConnectionAndMergingContext>();
 }
 
 void VertexConnectionAndMerging::PreRender(Uint32 passNumber, const Film& film)
 {
     RT_ASSERT(mInitialMergingRadius >= mMinMergingRadius);
     RT_ASSERT(mMergingRadiusMultiplier > 0.0f);
-    RT_ASSERT(mMergingRadiusMultiplier < 1.0f);
+    RT_ASSERT(mMergingRadiusMultiplier <= 1.0f);
     RT_ASSERT(mMaxPathLength > 0);
 
     mLightPathsCount = film.GetHeight() * film.GetWidth();
 
     if (passNumber == 0)
     {
-        mCurrentMergingRadius = mInitialMergingRadius;
+        mMergingRadiusVC = mInitialMergingRadius;
+        mMergingRadiusVM = mInitialMergingRadius;
     }
     else
     {
-        mCurrentMergingRadius *= mMergingRadiusMultiplier;
-        mCurrentMergingRadius = Max(mCurrentMergingRadius, mMinMergingRadius);
+        // merging radius for vertex merging is delayed by 1 frame
+        mMergingRadiusVM = mMergingRadiusVC;
+
+        mMergingRadiusVC *= mMergingRadiusMultiplier;
+        mMergingRadiusVC = Max(mMergingRadiusVC, mMinMergingRadius);
     }
 
     // Factor used to normalize vertex merging contribution.
     // We divide the summed up energy by disk radius and number of light paths
-    mVertexMergingNormalizationFactor = 1.0f / (Sqr(mCurrentMergingRadius) * RT_PI * mLightPathsCount);
+    mVertexMergingNormalizationFactor = 1.0f / (Sqr(mMergingRadiusVM) * RT_PI * mLightPathsCount);
 
-    const float etaVCM = RT_PI * Sqr(mCurrentMergingRadius) * mLightPathsCount;
-    mMisVertexMergingWeightFactor = mUseVertexMerging ? Mis(etaVCM) : 0.0f;
-    mMisVertexConnectionWeightFactor = mUseVertexConnection ?  Mis(1.f / etaVCM) : 0.0f;
+    // compute MIS weights for vertex connection
+    {
+        const float etaVCM = RT_PI * Sqr(mMergingRadiusVC) * mLightPathsCount;
+        // Note: we don't use merging in the first iteration
+        mMisVertexMergingWeightFactorVC = (mUseVertexMerging && passNumber > 0) ? Mis(etaVCM) : 0.0f;
+        mMisVertexConnectionWeightFactorVC = mUseVertexConnection ? Mis(1.f / etaVCM) : 0.0f;
+    }
+
+    // set MIS weights for vertex merging (delayed by 1 iteration)
+    {
+        const float etaVCM = RT_PI * Sqr(mMergingRadiusVM) * mLightPathsCount;
+        mMisVertexMergingWeightFactorVM = mUseVertexMerging ? Mis(etaVCM) : 0.0f;
+        mMisVertexConnectionWeightFactorVM = mUseVertexConnection ? Mis(1.f / etaVCM) : 0.0f;
+    }
 }
 
-void VertexConnectionAndMerging::PreRender(RenderingContext& ctx)
+void VertexConnectionAndMerging::PreRender(Uint32 passNumber, RenderingContext& ctx)
 {
     RT_ASSERT(ctx.rendererContext);
-    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+    VertexConnectionAndMergingContext& rendererContext = *static_cast<VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
 
-    // Stage 1 - prepare data structures
-    rendererContext.lightVertices.Clear();
-    rendererContext.pathEnds.Clear();
+    if (passNumber == 0)
+    {
+        rendererContext.photons.Clear();
+    }
 
     // TODO this is duplicated
-    mLightVertices.Clear();
-    mLightPathEnds.Clear();
-}
-
-void VertexConnectionAndMerging::PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const
-{
-    // Stage 2 - trace light paths
-    TraceLightPath(param.camera, param.film, ctx);
+    mPhotons.Clear();
 }
 
 void VertexConnectionAndMerging::PreRenderGlobal(RenderingContext& ctx)
 {
     RT_ASSERT(ctx.rendererContext);
-    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+    VertexConnectionAndMergingContext& rendererContext = *static_cast<VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
 
-    // Stage 3a - merge vertices list
+    // merge photon lists
     // TODO is there any way to get rid of this? (or at least make it multithreaded)
-    {
-        const Uint32 pathEndsOffset = mLightVertices.Size();
+    const Uint32 oldPhotonsSize = mPhotons.Size();
+    const Uint32 numPhotonsToAdd = rendererContext.photons.Size();
+    mPhotons.Resize_SkipConstructor(oldPhotonsSize + numPhotonsToAdd);
+    memcpy(mPhotons.Data() + oldPhotonsSize, rendererContext.photons.Data(), numPhotonsToAdd * sizeof(Photon));
 
-        mLightVertices.Reserve(mLightVertices.Size() + rendererContext.lightVertices.Size());
-        for (const LightVertex& vertex : rendererContext.lightVertices)
-        {
-            mLightVertices.PushBack(vertex);
-        }
-
-        mLightPathEnds.Reserve(mLightPathEnds.Size() + rendererContext.pathEnds.Size());
-        for (const Uint32 pathEndIndex : rendererContext.pathEnds)
-        {
-            mLightPathEnds.PushBack(pathEndsOffset + pathEndIndex);
-        }
-    }
+    // prepare data structures
+    rendererContext.photons.Clear();
 }
 
 void VertexConnectionAndMerging::PreRenderGlobal()
 {
-    // Stage 3b - build hash grid of all light vertices
+    // build hash grid of all light vertices
     // TODO make it multithreaded
     if (mUseVertexMerging)
     {
-        mHashGrid.Build(mLightVertices, mCurrentMergingRadius);
+#ifdef RT_VCM_USE_KD_TREE
+        mKdTree.Build(mPhotons);
+#else
+        mHashGrid.Build(mPhotons, mMergingRadiusVM);
+#endif // RT_VCM_USE_KD_TREE
     }
 }
 
 const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const
 {
-    // Stage 4 - trace camera paths
+    // step 1: trace light paths & record photons
+
+    TraceLightPath(param.camera, param.film, ctx);
+
+
+    // step 2: trace camera paths:
+
+    const VertexConnectionAndMergingContext& rendererContext = *static_cast<const VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
 
     RayColor resultColor = RayColor::Zero();
 
@@ -170,19 +189,19 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         pathState.lastSpecular = true;
     }
 
+    HitPoint hitPoint;
+
     for (;;)
     {
         RT_ASSERT(pathState.ray.IsValid());
 
-        HitPoint hitPoint;
-        ctx.localCounters.Reset();
+        hitPoint.distance = FLT_MAX;
         mScene.Traverse_Single({ pathState.ray, hitPoint, ctx });
-        ctx.counters.Append(ctx.localCounters);
 
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)
         {
-            resultColor.MulAndAccumulate(pathState.throughput, EvaluateGlobalLights(pathState, ctx));
+            resultColor.MulAndAccumulate(pathState.throughput, EvaluateGlobalLights(param.iteration, pathState, ctx));
             break;
         }
 
@@ -196,13 +215,16 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
                 const Vector4 hitPos = pathState.ray.GetAtDistance(hitPoint.distance);
                 const Vector4 normal = light.GetNormal(hitPos);
                 const float cosTheta = Vector4::Dot3(pathState.ray.dir, normal);
+                const float invMis = 1.0f / Mis(Abs(cosTheta));
                 pathState.dVCM *= Mis(Sqr(hitPoint.distance));
-                pathState.dVCM /= Mis(Abs(cosTheta));
-                pathState.dVC /= Mis(Abs(cosTheta));
-                pathState.dVM /= Mis(Abs(cosTheta));
+                pathState.dVCM *= invMis;
+                pathState.dVC *= invMis;
+                pathState.dVM *= invMis;
             }
 
-            resultColor.MulAndAccumulate(pathState.throughput, EvaluateLight(light, hitPoint.distance, pathState, ctx));
+            const RayColor lightColor = EvaluateLight(param.iteration, light, hitPoint.distance, pathState, ctx);
+            RT_ASSERT(lightColor.IsValid());
+            resultColor.MulAndAccumulate(pathState.throughput, lightColor);
             break;
         }
 
@@ -219,10 +241,11 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // update MIS quantities
         {
             const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.frame[2]);
+            const float invMis = 1.0f / Mis(Abs(cosTheta));
             pathState.dVCM *= Mis(Sqr(hitPoint.distance));
-            pathState.dVCM /= Mis(Abs(cosTheta));
-            pathState.dVC /= Mis(Abs(cosTheta));
-            pathState.dVM /= Mis(Abs(cosTheta));
+            pathState.dVCM *= invMis;
+            pathState.dVC *= invMis;
+            pathState.dVM *= invMis;
         }
 
         // accumulate material emission color
@@ -245,23 +268,20 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // Vertex Connection -sample lights directly (a.k.a. next event estimation)
         if (!isDeltaBsdf && mUseVertexConnection)
         {
-            resultColor.MulAndAccumulate(pathState.throughput, SampleLights(shadingData, pathState, ctx));
+            const RayColor lightColor = SampleLights(shadingData, pathState, ctx);
+            RT_ASSERT(lightColor.IsValid());
+            resultColor.MulAndAccumulate(pathState.throughput, lightColor);
         }
 
         // Vertex Connection - connect camera vertex to light vertices (bidirectional path tracing)
-        if (!isDeltaBsdf && mUseVertexConnection && !mLightPathEnds.Empty())
+        const Uint32 numLightVertices = rendererContext.numLightVertices;
+        if (!isDeltaBsdf && mUseVertexConnection && rendererContext.numLightVertices > 0)
         {
             RayColor vertexConnectionColor = RayColor::Zero();
 
-            // get indices of the light vertices that build a bath for given pixel
-            // Note: the path used here does not come from the same pixel index as in pre-render step,
-            // but it doesn't matter, because all the path are random anyways
-            Uint32 lightPathStart = (param.pixelIndex == 0) ? 0 : mLightPathEnds[param.pixelIndex - 1];
-            Uint32 lightPathEnd = mLightPathEnds[param.pixelIndex];
-
-            for (Uint32 i = lightPathStart; i < lightPathEnd; ++i)
+            for (Uint32 i = 0; i < numLightVertices; ++i)
             {
-                const LightVertex& lightVertex = mLightVertices[i];
+                const LightVertex& lightVertex = rendererContext.lightVertices[i];
 
                 // full path would be too long
                 // Note: all other light vertices can be skiped, as they will produce even longer paths
@@ -274,14 +294,15 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
             }
 
             vertexConnectionColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexConnectingWeight));
-
+            RT_ASSERT(vertexConnectionColor.IsValid());
             resultColor.MulAndAccumulate(pathState.throughput, vertexConnectionColor);
         }
 
         // Vertex Merging - merge camera vertex to light vertices nearby
-        if (!isDeltaBsdf && mUseVertexMerging && !mLightPathEnds.Empty())
+        if (!isDeltaBsdf && mUseVertexMerging && param.iteration > 0)
         {
             RayColor vertexMergingColor = MergeVertices(pathState, shadingData, ctx);
+            RT_ASSERT(vertexMergingColor.IsValid());
             vertexMergingColor *= RayColor::Resolve(ctx.wavelength, Spectrum(mVertexMergingWeight));
             resultColor.MulAndAccumulate(pathState.throughput * vertexMergingColor, mVertexMergingNormalizationFactor);
         }
@@ -306,7 +327,9 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
 void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film, RenderingContext& ctx) const
 {
     RT_ASSERT(ctx.rendererContext);
-    BidirectionalPathTracerContext& rendererContext = *static_cast<BidirectionalPathTracerContext*>(ctx.rendererContext.get());
+    VertexConnectionAndMergingContext& rendererContext = *static_cast<VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
+
+    rendererContext.numLightVertices = 0;
 
     PathState pathState;
 
@@ -316,14 +339,14 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
         return;
     }
 
+    HitPoint hitPoint;
+
     for (;;)
     {
         RT_ASSERT(pathState.ray.IsValid());
 
-        HitPoint hitPoint;
-        ctx.localCounters.Reset();
+        hitPoint.distance = FLT_MAX;
         mScene.Traverse_Single({ pathState.ray, hitPoint, ctx });
-        ctx.counters.Append(ctx.localCounters);
 
         if (hitPoint.distance == FLT_MAX)
         {
@@ -335,8 +358,11 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
             break; // for now, light sources do not reflect light
         }
 
+        RT_ASSERT(rendererContext.numLightVertices < g_MaxLightVertices);
+        LightVertex& vertex = rendererContext.lightVertices[rendererContext.numLightVertices];
+
         // fill up structure with shading data
-        ShadingData shadingData;
+        ShadingData& shadingData = vertex.shadingData;
         {
             // TODO this is copy-paste from TraceRay_Single
             mScene.ExtractShadingData(pathState.ray, hitPoint, ctx.time, shadingData);
@@ -353,29 +379,42 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
             }
 
             const float cosTheta = Vector4::Dot3(pathState.ray.dir, shadingData.frame[2]);
-            pathState.dVCM /= Mis(Abs(cosTheta));
-            pathState.dVC  /= Mis(Abs(cosTheta));
-            pathState.dVM  /= Mis(Abs(cosTheta));
+            const float invMis = 1.0f / Mis(Abs(cosTheta));
+            pathState.dVCM *= invMis;
+            pathState.dVC  *= invMis;
+            pathState.dVM  *= invMis;
         }
 
         // record the vertex for non-specular materials
-        const bool isDeltaBsdf = shadingData.material->GetBSDF()->IsDelta();
-        if (!isDeltaBsdf && (mUseVertexConnection || mUseVertexMerging))
+        if (!shadingData.material->GetBSDF()->IsDelta())
         {
-            rendererContext.lightVertices.EmplaceBack();
-            LightVertex& vertex = rendererContext.lightVertices.Back();
-
-            vertex.pathLength = Uint8(pathState.length);
-            vertex.throughput = pathState.throughput;
-            vertex.dVC = pathState.dVC;
-            vertex.dVM = pathState.dVM;
-            vertex.dVCM = pathState.dVCM;
-            PackShadingData(vertex.shadingData, shadingData);
-
-            // connect vertex to camera directly
+            // store light vertex for connection
             if (mUseVertexConnection)
             {
+                rendererContext.numLightVertices++;
+
+                vertex.pathLength = Uint8(pathState.length);
+                vertex.throughput = pathState.throughput;
+                vertex.dVC = pathState.dVC;
+                vertex.dVM = pathState.dVM;
+                vertex.dVCM = pathState.dVCM;
+
+                // connect vertex to camera directly
                 ConnectToCamera(camera, film, vertex, ctx);
+            }
+
+            // store simplified light vertex (photon) for merging
+            if (mUseVertexMerging)
+            {
+                rendererContext.photons.EmplaceBack();
+                Photon& photon = rendererContext.photons.Back();
+
+                photon.position = shadingData.frame[3].ToFloat3();
+                photon.direction.FromVector(shadingData.outgoingDirWorldSpace);
+                photon.throughput.FromVector(pathState.throughput.ConvertToTristimulus(ctx.wavelength));
+                photon.dVM = pathState.dVM;
+                photon.dVCM = pathState.dVCM;
+                //photon.pathLength = Uint8(pathState.length);
             }
         }
 
@@ -389,9 +428,6 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
             break;
         }
     }
-
-    const Uint32 numVertces = rendererContext.lightVertices.Size();
-    rendererContext.pathEnds.PushBack(numVertces);
 }
 
 bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, RenderingContext& ctx) const
@@ -454,7 +490,7 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
             outPath.dVC = 0.0f;
         }
 
-        outPath.dVM = outPath.dVC * mMisVertexConnectionWeightFactor;
+        outPath.dVM = outPath.dVC * mMisVertexConnectionWeightFactorVC;
     }
 
     return true;
@@ -500,14 +536,27 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     RT_ASSERT(bsdfDirPdf >= 0.0f);
     RT_ASSERT(IsValid(bsdfDirPdf));
 
+    // generate secondary ray
+    path.ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
+    path.ray.origin += path.ray.dir * 0.001f;
+    RT_ASSERT(path.ray.IsValid());
+
+    path.lastSampledBsdfEvent = sampledEvent;
+    path.length++;
+
     // TODO Russian roulette
 
-    float bsdfRevPdf = bsdfDirPdf;
-
-    // TODO for some reason this gives wrong result
-    // evaluate reverse PDF
-    if ((sampledEvent & BSDF::SpecularEvent) == 0)
+    if (sampledEvent & BSDF::SpecularEvent)
     {
+        path.dVC *= Mis(cosThetaOut);
+        path.dVM *= Mis(cosThetaOut);
+        path.dVCM = 0.0f;
+        path.lastSpecular = true;
+    }
+    else
+    {
+        // TODO for some reason this gives wrong result
+        // evaluate reverse PDF
         const BSDF::EvaluationContext evalContext =
         {
             *shadingData.material,
@@ -516,23 +565,12 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
             shadingData.WorldToLocal(shadingData.outgoingDirWorldSpace),
             -shadingData.WorldToLocal(incomingDirWorldSpace),
         };
-    
-        bsdfRevPdf = shadingData.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
-    }
 
-    if (sampledEvent & BSDF::SpecularEvent)
-    {
-        RT_ASSERT(bsdfRevPdf == bsdfDirPdf);
-        path.dVC *= Mis(cosThetaOut);
-        path.dVM *= Mis(cosThetaOut);
-        path.dVCM = 0.0f;
-        path.lastSpecular = true;
-    }
-    else
-    {
+        const float bsdfRevPdf = shadingData.material->GetBSDF()->Pdf(evalContext, BSDF::ReversePdf);
         const float invBsdfDirPdf = 1.0f / bsdfDirPdf;
-        path.dVC = Mis(cosThetaOut * invBsdfDirPdf) * (path.dVC * Mis(bsdfRevPdf) + path.dVCM + mMisVertexMergingWeightFactor);
-        path.dVM = Mis(cosThetaOut * invBsdfDirPdf) * (path.dVM * Mis(bsdfRevPdf) + path.dVCM * mMisVertexConnectionWeightFactor + 1.0f);
+
+        path.dVC = Mis(cosThetaOut * invBsdfDirPdf) * (path.dVC * Mis(bsdfRevPdf) + path.dVCM + mMisVertexMergingWeightFactorVC);
+        path.dVM = Mis(cosThetaOut * invBsdfDirPdf) * (path.dVM * Mis(bsdfRevPdf) + path.dVCM * mMisVertexConnectionWeightFactorVC + 1.0f);
         path.dVCM = Mis(invBsdfDirPdf);
         path.lastSpecular = false;
     }
@@ -541,19 +579,10 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     RT_ASSERT(IsValid(path.dVM) && path.dVM >= 0.0f);
     RT_ASSERT(IsValid(path.dVCM) && path.dVCM >= 0.0f);
 
-    // generate secondary ray
-    path.ray = Ray(shadingData.frame.GetTranslation(), incomingDirWorldSpace);
-    path.ray.origin += path.ray.dir * 0.001f;
-
-    path.lastSampledBsdfEvent = sampledEvent;
-    path.length++;
-
-    RT_ASSERT(path.ray.IsValid());
-
     return true;
 }
 
-const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateLight(Uint32 iteration, const ILight& light, float dist, const PathState& pathState, RenderingContext& ctx) const
 {
     const Vector4 hitPos = pathState.ray.GetAtDistance(dist);
 
@@ -572,7 +601,8 @@ const RayColor VertexConnectionAndMerging::EvaluateLight(const ILight& light, fl
     // no weighting required for directly visible lights
     if (pathState.length > 1)
     {
-        if (mUseVertexMerging && !mUseVertexConnection) // special case for photon mapping
+        const bool useVertexMerging = mUseVertexMerging && iteration > 0;
+        if (useVertexMerging && !mUseVertexConnection) // special case for photon mapping
         {
             if (!pathState.lastSpecular)
             {
@@ -665,7 +695,7 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     }
 
     const float wLight = Mis(bsdfPdfW / (lightPickProbability * illuminateResult.directPdfW));
-    const float wCamera = Mis(illuminateResult.emissionPdfW * cosToLight / (illuminateResult.directPdfW * illuminateResult.cosAtLight)) * (mMisVertexMergingWeightFactor + pathState.dVCM + pathState.dVC * Mis(bsdfRevPdfW));
+    const float wCamera = Mis(illuminateResult.emissionPdfW * cosToLight / (illuminateResult.directPdfW * illuminateResult.cosAtLight)) * (mMisVertexMergingWeightFactorVC + pathState.dVCM + pathState.dVC * Mis(bsdfRevPdfW));
     const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
     RT_ASSERT(misWeight >= 0.0f);
 
@@ -688,13 +718,13 @@ const RayColor VertexConnectionAndMerging::SampleLights(const ShadingData& shadi
     return accumulatedColor;
 }
 
-const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(Uint32 iteration, const PathState& pathState, RenderingContext& ctx) const
 {
     RayColor result = RayColor::Zero();
 
     for (const ILight* globalLight : mScene.GetGlobalLights())
     {
-        result += EvaluateLight(*globalLight, FLT_MAX, pathState, ctx);
+        result += EvaluateLight(iteration, *globalLight, FLT_MAX, pathState, ctx);
     }
 
     return result;
@@ -702,17 +732,14 @@ const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(const PathState&
 
 const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPathState, const ShadingData& shadingData, const LightVertex& lightVertex, RenderingContext& ctx) const
 {
-    ShadingData lightVertexShadingData;
-    UnpackShadingData(lightVertexShadingData, lightVertex.shadingData);
-
     // compute connection direction (from camera vertex to light vertex)
-    Vector4 lightDir = lightVertexShadingData.frame.GetTranslation() - shadingData.frame.GetTranslation();
+    Vector4 lightDir = lightVertex.shadingData.frame.GetTranslation() - shadingData.frame.GetTranslation();
     const float distanceSqr = lightDir.SqrLength3();
     const float distance = sqrtf(distanceSqr);
     lightDir /= distance;
 
     const float cosCameraVertex = shadingData.CosTheta(lightDir);
-    const float cosLightVertex = lightVertexShadingData.CosTheta(-lightDir);
+    const float cosLightVertex = lightVertex.shadingData.CosTheta(-lightDir);
 
     if (cosCameraVertex <= 0.0f || cosLightVertex <= 0.0f)
     {
@@ -734,7 +761,7 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
 
     // evaluate BSDF at light vertex
     float lightBsdfPdfW, lightBsdfRevPdfW;
-    const RayColor lightFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertexShadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
+    const RayColor lightFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, lightDir, &lightBsdfPdfW, &lightBsdfRevPdfW);
     RT_ASSERT(lightFactor.IsValid());
     if (lightFactor.AlmostZero())
     {
@@ -765,10 +792,10 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
     const float cameraBsdfPdfA = PdfWtoA(cameraBsdfPdfW, distance, cosLightVertex);
     const float lightBsdfPdfA = PdfWtoA(lightBsdfPdfW, distance, cosCameraVertex);
 
-    const float wLight = Mis(cameraBsdfPdfA) * (mMisVertexMergingWeightFactor + lightVertex.dVCM + lightVertex.dVC * Mis(lightBsdfRevPdfW));
+    const float wLight = Mis(cameraBsdfPdfA) * (mMisVertexMergingWeightFactorVC + lightVertex.dVCM + lightVertex.dVC * Mis(lightBsdfRevPdfW));
     RT_ASSERT(IsValid(wLight) && wLight >= 0.0f);
 
-    const float wCamera = Mis(lightBsdfPdfA) * (mMisVertexMergingWeightFactor + cameraPathState.dVCM + cameraPathState.dVC * Mis(cameraBsdfRevPdfW));
+    const float wCamera = Mis(lightBsdfPdfA) * (mMisVertexMergingWeightFactorVC + cameraPathState.dVCM + cameraPathState.dVC * Mis(cameraBsdfRevPdfW));
     RT_ASSERT(IsValid(wCamera) && wCamera >= 0.0f);
 
     const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
@@ -795,41 +822,52 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
 
         RT_FORCE_INLINE const RayColor& GetContribution() const { return mContribution; }
 
-        void operator()(Uint32 lightVectexIndex)
+        RT_FORCE_NOINLINE void operator()(Uint32 photonIndex)
         {
-            const LightVertex& lightVertex = mRenderer.mLightVertices[lightVectexIndex];
+            const Photon& photon = mRenderer.mPhotons[photonIndex];
 
-            if (lightVertex.pathLength + mCameraPathState.length > mRenderer.mMaxPathLength)
-            {
-                return;
-            }
+            // TODO russian roulette
+            //if (photon.pathLength + mCameraPathState.length > mRenderer.mMaxPathLength)
+            //{
+            //    return;
+            //}
 
-            // Retrieve light incoming direction in world coordinates
-            const Vector4 lightDirection = -Vector4(&lightVertex.shadingData.outgoingDirWorldSpace.x);
+            // decompress light incoming direction in world coordinates
+            const Vector4 lightDirection{ photon.direction.ToVector() };
+            RT_ASSERT(lightDirection.IsValid());
 
-            float cameraBsdfDirPdfW, cameraBsdfRevPdfW;
-            const RayColor cameraBsdfFactor = mShadingData.material->Evaluate(mContext.wavelength, mShadingData, lightDirection, &cameraBsdfDirPdfW, &cameraBsdfRevPdfW);
-            if (cameraBsdfFactor.AlmostZero())
-            {
-                return;
-            }
+            // decompress photon throughput
+            const RayColor throughput{ photon.throughput.ToVector() };
+            RT_ASSERT(throughput.IsValid());
 
-            const float cosToLight = mShadingData.CosTheta(-lightDirection);
+            const float cosToLight = mShadingData.CosTheta(lightDirection);
             if (cosToLight < FLT_EPSILON)
             {
                 return;
             }
 
-            // TODO
+            float cameraBsdfDirPdfW, cameraBsdfRevPdfW;
+            const RayColor cameraBsdfFactor = mShadingData.material->Evaluate(mContext.wavelength, mShadingData, -lightDirection, &cameraBsdfDirPdfW, &cameraBsdfRevPdfW);
+            RT_ASSERT(cameraBsdfFactor.IsValid());
+            
+            if (cameraBsdfFactor.AlmostZero())
+            {
+                return;
+            }
+
+            // TODO russian roulette
             //cameraBsdfDirPdfW *= mCameraBsdf.ContinuationProb();
             //cameraBsdfRevPdfW *= aLightVertex.mBSDF.ContinuationProb();
 
             // Partial light sub-path MIS weight [tech. rep. (38)]
-            const float wLight = lightVertex.dVCM * mRenderer.mMisVertexConnectionWeightFactor + lightVertex.dVM * Mis(cameraBsdfDirPdfW);
-            const float wCamera = mCameraPathState.dVCM * mRenderer.mMisVertexConnectionWeightFactor + mCameraPathState.dVM * Mis(cameraBsdfRevPdfW);
+            const float wLight = photon.dVCM * mRenderer.mMisVertexConnectionWeightFactorVM + photon.dVM * Mis(cameraBsdfDirPdfW);
+            const float wCamera = mCameraPathState.dVCM * mRenderer.mMisVertexConnectionWeightFactorVM + mCameraPathState.dVM * Mis(cameraBsdfRevPdfW);
             const float misWeight = 1.0f / (wLight + 1.0f + wCamera);
+            const float weight = misWeight / cosToLight;
+            RT_ASSERT(IsValid(weight));
+            RT_ASSERT(weight > 0.0f);
 
-            mContribution.MulAndAccumulate(cameraBsdfFactor * lightVertex.throughput, misWeight / cosToLight);
+            mContribution.MulAndAccumulate(cameraBsdfFactor * throughput, weight);
         }
 
     private:
@@ -843,17 +881,19 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
     const Vector4& cameraVertexPos = shadingData.frame.GetTranslation();
 
     RangeQuery query(*this, cameraPathState, shadingData, ctx);
-    mHashGrid.Process(cameraVertexPos, mLightVertices, query);
+#ifdef RT_VCM_USE_KD_TREE
+    mKdTree.Find(cameraVertexPos, mMergingRadiusVM, mPhotons, query);
+#else
+    mHashGrid.Process(cameraVertexPos, mPhotons, query);
+#endif // RT_VCM_USE_KD_TREE
+
     return query.GetContribution();
 }
 
 void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const
 {
-    ShadingData lightVertexShadingData;
-    UnpackShadingData(lightVertexShadingData, lightVertex.shadingData);
-
     const Vector4 cameraPos = camera.GetTransform().GetTranslation();
-    const Vector4 samplePos = lightVertexShadingData.frame.GetTranslation();
+    const Vector4 samplePos = lightVertex.shadingData.frame.GetTranslation();
 
     Vector4 dirToCamera = cameraPos - samplePos;
 
@@ -864,7 +904,7 @@ void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& fil
 
     // calculate BSDF contribution
     float bsdfPdfW, bsdfRevPdfW;
-    const RayColor cameraFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertexShadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
+    const RayColor cameraFactor = lightVertex.shadingData.material->Evaluate(ctx.wavelength, lightVertex.shadingData, -dirToCamera, &bsdfPdfW, &bsdfRevPdfW);
     RT_ASSERT(cameraFactor.IsValid());
 
     if (cameraFactor.AlmostZero())
@@ -891,7 +931,7 @@ void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& fil
         return;
     }
 
-    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertexShadingData.frame[2]);
+    const float cosToCamera = Vector4::Dot3(dirToCamera, lightVertex.shadingData.frame[2]);
     if (cosToCamera <= FLT_EPSILON)
     {
         return;
@@ -901,7 +941,7 @@ void VertexConnectionAndMerging::ConnectToCamera(const Camera& camera, Film& fil
     const float cameraPdfA = cameraPdfW * cosToCamera / cameraDistanceSqr;
 
     // compute MIS weight
-    const float wLight = Mis(cameraPdfA) * (mMisVertexMergingWeightFactor + lightVertex.dVCM + lightVertex.dVC * Mis(bsdfRevPdfW));
+    const float wLight = Mis(cameraPdfA) * (mMisVertexMergingWeightFactorVC + lightVertex.dVCM + lightVertex.dVC * Mis(bsdfRevPdfW));
     const float misWeight = 1.0f / (wLight + 1.0f);
     RT_ASSERT(misWeight >= 0.0f);
 

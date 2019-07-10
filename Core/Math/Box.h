@@ -87,6 +87,13 @@ public:
         max = Vector4::Max(max, point);
         return *this;
     }
+
+    // point-box intersection test
+    RT_FORCE_INLINE bool Intersects(const Vector4& point) const
+    {
+        const VectorBool4 mask = (point >= min) & (point <= max);
+        return (mask.GetMask() & 7) == 7;
+    }
 };
 
 

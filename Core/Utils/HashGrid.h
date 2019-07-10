@@ -122,21 +122,34 @@ public:
 
             visitedCells[numVisitedCells++] = cellIndex;
 
-            // collect particles from potential cells
+            // prefetch cell range to avoid cache miss in GetCellRange
+            RT_PREFETCH_L1(mCellEnds.Data() + cellIndex);
+        }
+
+        // collect particles from potential cells
+        for (Uint32 i = 0; i < numVisitedCells; ++i)
+        {
+            const Uint32 cellIndex = visitedCells[i];
+
+            Uint32 rangeStart, rangeEnd;
+            GetCellRange(cellIndex, rangeStart, rangeEnd);
+
+            // prefetch all the particles up front
+            for (Uint32 j = rangeStart; j < rangeEnd; ++j)
             {
-                Uint32 rangeStart, rangeEnd;
-                GetCellRange(cellIndex, rangeStart, rangeEnd);
+                const ParticleType& particle = particles[mIndices[j]];
+                RT_PREFETCH_L1(&particle);
+            }
 
-                for (Uint32 j = rangeStart; j < rangeEnd; ++j)
+            for (Uint32 j = rangeStart; j < rangeEnd; ++j)
+            {
+                const Uint32 particleIndex = mIndices[j];
+                const ParticleType& particle = particles[particleIndex];
+
+                const float distSqr = (queryPos - particle.GetPosition()).SqrLength3();
+                if (distSqr <= mRadiusSqr)
                 {
-                    const Uint32 particleIndex = mIndices[j];
-                    const ParticleType& particle = particles[particleIndex];
-
-                    const float distSqr = (queryPos - particle.GetPosition()).SqrLength3();
-                    if (distSqr <= mRadiusSqr)
-                    {
-                        query(particleIndex);
-                    }
+                    query(particleIndex);
                 }
             }
         }

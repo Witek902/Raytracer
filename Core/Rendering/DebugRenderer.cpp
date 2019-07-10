@@ -26,9 +26,7 @@ const char* DebugRenderer::GetName() const
 const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderParam&, RenderingContext& ctx) const
 {
     HitPoint hitPoint;
-    ctx.localCounters.Reset();
     mScene.Traverse_Single({ ray, hitPoint, ctx });
-    ctx.counters.Append(ctx.localCounters);
 
     if (hitPoint.distance == FLT_MAX)
     {

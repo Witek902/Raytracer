@@ -142,6 +142,8 @@ const RayColor AreaLight::GetRadiance(RenderingContext& context, const Ray& ray,
 
 const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) const
 {
+    // TODO sample texture, like in Illuminate()
+
     // generate random point on the light surface
     const Vector4 uv = Vector4(param.sample);
     // p0 + edge0 * uv.x + edge1 * uv.y;
@@ -164,7 +166,6 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
         color.rgbValues *= mTexture->Evaluate(Vector4(uv));
     }
 
-    // TODO texture
     return RayColor::Resolve(param.wavelength, color) * dirLocalSpace.z;
 }
 

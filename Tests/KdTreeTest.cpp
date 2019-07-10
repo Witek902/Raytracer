@@ -1,14 +1,15 @@
 #include "PCH.h"
-#include "../Core/Utils/HashGrid.h"
+#include "../Core/Utils/KdTree.h"
+#include "../Core/Math/Random.h"
 
 using namespace rt;
 using namespace rt::math;
 
 
-TEST(UtilsTest, HashGrid_RandomPoints)
+TEST(UtilsTest, KdTree_RandomPoints)
 {
-    const Uint32 numPoints = 50000;
-    const Uint32 numQueries = 10000;
+    const Uint32 numPoints = 500000;
+    const Uint32 numQueries = 1000;
     const float particleRadius = 1.0f;
     const float boxSize = 100.0f;
     const float queryBoxMarigin = 2.0f;
@@ -27,8 +28,8 @@ TEST(UtilsTest, HashGrid_RandomPoints)
         particles.PushBack({ random.GetVector4Bipolar() * boxSize });
     }
 
-    HashGrid grid;
-    grid.Build(particles, particleRadius);
+    KdTree kdTree;
+    kdTree.Build(particles);
 
     std::vector<Uint32> referenceIndices;
 
@@ -44,6 +45,9 @@ TEST(UtilsTest, HashGrid_RandomPoints)
 
     Query query;
 
+    Timer timer;
+    double totalTime = 0.0;
+
     for (Uint32 i = 0; i < numQueries; ++i)
     {
         const Vector4 queryPoint = random.GetVector4Bipolar() * (boxSize + queryBoxMarigin);
@@ -51,7 +55,9 @@ TEST(UtilsTest, HashGrid_RandomPoints)
 
         // collect using hash grid
         query.collectedIndices.clear();
-        grid.Process(queryPoint, particles, query);
+        timer.Start();
+        kdTree.Find(queryPoint, particleRadius, particles, query);
+        totalTime += timer.Stop();
         std::sort(query.collectedIndices.begin(), query.collectedIndices.end());
 
         // collect via brute force check
@@ -65,10 +71,11 @@ TEST(UtilsTest, HashGrid_RandomPoints)
         }
 
         ASSERT_EQ(referenceIndices.size(), query.collectedIndices.size());
-
         for (size_t j = 0; j < referenceIndices.size(); ++j)
         {
             ASSERT_EQ(referenceIndices[j], query.collectedIndices[j]) << j;
         }
     }
+
+    RT_LOG_INFO("Avg. query time: %.3f us", totalTime * 1000000.0 / numQueries);
 }

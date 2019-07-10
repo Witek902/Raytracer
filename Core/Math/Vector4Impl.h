@@ -247,6 +247,11 @@ const Vector4 Vector4::ChangeSign() const
     return _mm_xor_ps(v, mask);
 }
 
+const Vector4 Vector4::ChangeSign(const VectorBool4& flip) const
+{
+    return _mm_xor_ps(v, _mm_castsi128_ps(_mm_slli_epi32(flip, 31)));
+}
+
 template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
 RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
 {
@@ -295,6 +300,12 @@ const Vector4 Vector4::Swizzle() const
     {
         return _mm_movehdup_ps(v);
     }
+#ifdef RT_USE_AVX2
+    else if (ix == 0 && iy == 0 && iz == 0 && iw == 0)
+    {
+        return _mm_broadcastss_ps(v);
+    }
+#endif // RT_USE_AVX2
 
     return _mm_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
 }

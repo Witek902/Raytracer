@@ -62,12 +62,12 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     // TODO don't divide by pdf in ILight::Emit()
     throughput *= 1.0f / emitResult.emissionPdfW;
 
+    HitPoint hitPoint;
+
     for (;;)
     {
-        HitPoint hitPoint;
-        ctx.localCounters.Reset();
+        hitPoint.distance = FLT_MAX;
         mScene.Traverse_Single({ ray, hitPoint, ctx });
-        ctx.counters.Append(ctx.localCounters);
 
         if (hitPoint.distance == FLT_MAX)
         {

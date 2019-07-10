@@ -107,7 +107,7 @@ public:
 
     RAYLIB_API void SetBsdf(const std::string& bsdfName);
 
-    const BSDF* GetBSDF() const { return mBSDF.get(); }
+    RT_FORCE_INLINE const BSDF* GetBSDF() const { return mBSDF.get(); }
 
     RAYLIB_API void Compile();
 

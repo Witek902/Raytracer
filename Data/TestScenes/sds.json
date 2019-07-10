@@ -65,6 +65,18 @@
             "size": [6.0, 5.0, 1.0],
             "transform": { "translation": [-3.0, 5.0, -5.0] },
             "material": "gold"
+        },
+        {
+            "type": "box",
+            "size": [0.3, 0.3, 0.3],
+            "transform": { "translation": [-4.5, 0.3, -1.0] },
+            "material": "wall"
+        },
+        {
+            "type": "box",
+            "size": [0.3, 0.3, 0.3],
+            "transform": { "translation": [-3.5, 0.3, -2.5] },
+            "material": "wall"
         }
     ],
     "lights":

@@ -239,9 +239,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
     for (;;)
     {
         hitPoint.distance = FLT_MAX;
-        context.localCounters.Reset();
         mScene.Traverse_Single({ ray, hitPoint, context });
-        context.counters.Append(context.localCounters);
 
         // ray missed - return background light color
         if (hitPoint.distance == FLT_MAX)

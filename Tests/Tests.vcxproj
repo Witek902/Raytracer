@@ -361,10 +361,12 @@
     </ClCompile>
     <ClCompile Include="DynArrayTest.cpp" />
     <ClCompile Include="HashGridTest.cpp" />
+    <ClCompile Include="KdTreeTest.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathDistributionTest.cpp" />
     <ClCompile Include="MathGeometryTest.cpp" />
     <ClCompile Include="MathMatrix4Test.cpp" />
+    <ClCompile Include="MathPackedTest.cpp" />
     <ClCompile Include="MathQuaternionTest.cpp" />
     <ClCompile Include="MathTest.cpp" />
     <ClCompile Include="MathTranscendentalTest.cpp" />

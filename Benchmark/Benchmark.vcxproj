@@ -449,6 +449,7 @@
     <ClCompile Include="GeometryBenchmark.cpp" />
     <ClCompile Include="HashGridBenchmark.cpp" />
     <ClCompile Include="MatrixBenchmark.cpp" />
+    <ClCompile Include="PackedBenchmark.cpp" />
     <ClCompile Include="RandomBenchmark.cpp" />
     <ClCompile Include="PCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -23,11 +23,6 @@ const Vector4 ShadingData::WorldToLocal(const Vector4& worldCoords) const
     return result;
 }
 
-float ShadingData::CosTheta(const Vector4& dir) const
-{
-    return Max(0.0f, Vector4::Dot3(frame[2], dir));
-}
-
 void PackShadingData(PackedShadingData& outPacked, const ShadingData& input)
 {
     outPacked.material = input.material;

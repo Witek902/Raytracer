@@ -113,6 +113,9 @@ private:
     RT_FORCE_INLINE VectorBool4(const __m128 other) : v(other) { }
     RT_FORCE_INLINE VectorBool4(const __m128i other) : v(_mm_castsi128_ps(other)) { }
 
+    RT_FORCE_INLINE operator __m128() const { return v; }
+    RT_FORCE_INLINE operator __m128i() const { return _mm_castps_si128(v); }
+
     __m128 v;
 };
 
