@@ -12,9 +12,9 @@ TEST(BitmapTest, Empty)
 {
     Bitmap bitmap;
 
-    EXPECT_EQ(0, bitmap.GetWidth());
-    EXPECT_EQ(0, bitmap.GetHeight());
-    EXPECT_EQ(0, bitmap.GetStride());
+    EXPECT_EQ(0u, bitmap.GetWidth());
+    EXPECT_EQ(0u, bitmap.GetHeight());
+    EXPECT_EQ(0u, bitmap.GetStride());
     EXPECT_EQ(nullptr, bitmap.GetData());
 }
 
@@ -81,7 +81,7 @@ TEST(BitmapTest, Format_R8_UNorm)
             255,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R8_UNorm, data }));
-        ASSERT_EQ(2, bitmap.GetStride());
+        ASSERT_EQ(2u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -107,7 +107,7 @@ TEST(BitmapTest, Format_R8G8_UNorm)
             255,    13
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R8G8_UNorm, data }));
-        ASSERT_EQ(4, bitmap.GetStride());
+        ASSERT_EQ(4u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -133,7 +133,7 @@ TEST(BitmapTest, Format_B8G8R8_UNorm)
             255,    13,     0,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::B8G8R8_UNorm, data }));
-        ASSERT_EQ(6, bitmap.GetStride());
+        ASSERT_EQ(6u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -159,7 +159,7 @@ TEST(BitmapTest, Format_B8G8R8A8_UNorm)
             255,    13,     0,      190,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::B8G8R8A8_UNorm, data }));
-        ASSERT_EQ(8, bitmap.GetStride());
+        ASSERT_EQ(8u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -187,7 +187,7 @@ TEST(BitmapTest, Format_B5G6R5_UNorm)
             Packed565(31,  7,  0),
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::B5G6R5_UNorm, data }));
-        ASSERT_EQ(4, bitmap.GetStride());
+        ASSERT_EQ(4u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -215,7 +215,7 @@ TEST(BitmapTest, Format_R16_UNorm)
             65535,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16_UNorm, data }));
-        ASSERT_EQ(4, bitmap.GetStride());
+        ASSERT_EQ(4u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -241,7 +241,7 @@ TEST(BitmapTest, Format_R16G16_UNorm)
             65535,  47813,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16G16_UNorm, data }));
-        ASSERT_EQ(8, bitmap.GetStride());
+        ASSERT_EQ(8u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -267,7 +267,7 @@ TEST(BitmapTest, Format_R16G16B16A16_UNorm)
             65535,  47813,  0,      120,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16G16B16A16_UNorm, data }));
-        ASSERT_EQ(16, bitmap.GetStride());
+        ASSERT_EQ(16u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -295,7 +295,7 @@ TEST(BitmapTest, Format_R32_Float)
             10000.0f
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R32_Float, data }));
-        ASSERT_EQ(8, bitmap.GetStride());
+        ASSERT_EQ(8u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -321,7 +321,7 @@ TEST(BitmapTest, Format_R32G32_Float)
             10000.0f,   0.25f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R32G32_Float, data }));
-        ASSERT_EQ(16, bitmap.GetStride());
+        ASSERT_EQ(16u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -347,7 +347,7 @@ TEST(BitmapTest, Format_R32G32B32_Float)
             10000.0f,   0.25f,      -10.0f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R32G32B32_Float, data }));
-        ASSERT_EQ(24, bitmap.GetStride());
+        ASSERT_EQ(24u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -373,7 +373,7 @@ TEST(BitmapTest, Format_R32G32B32A32_Float)
             10000.0f,   0.25f,      -10.0f,     0.0f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R32G32B32A32_Float, data }));
-        ASSERT_EQ(32, bitmap.GetStride());
+        ASSERT_EQ(32u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -401,7 +401,7 @@ TEST(BitmapTest, Format_R16_Half)
             1000.0f
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16_Half, data }));
-        ASSERT_EQ(4, bitmap.GetStride());
+        ASSERT_EQ(4u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -427,7 +427,7 @@ TEST(BitmapTest, Format_R16G16_Half)
             1000.0f,    0.25f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16G16_Half, data }));
-        ASSERT_EQ(8, bitmap.GetStride());
+        ASSERT_EQ(8u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -453,7 +453,7 @@ TEST(BitmapTest, Format_R16G16B16_Half)
             1000.0f,    0.25f,      -10.0f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16G16B16_Half, data }));
-        ASSERT_EQ(12, bitmap.GetStride());
+        ASSERT_EQ(12u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =
@@ -479,7 +479,7 @@ TEST(BitmapTest, Format_R16G16B16A16_Half)
             1000.0f,    0.25f,      -10.0f,     0.0f,
         };
         ASSERT_TRUE(bitmap.Init({ 2, 2, Bitmap::Format::R16G16B16A16_Half, data }));
-        ASSERT_EQ(16, bitmap.GetStride());
+        ASSERT_EQ(16u, bitmap.GetStride());
     }
 
     const Vector4 expected[] =

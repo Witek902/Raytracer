@@ -5,7 +5,7 @@
 #include "../Math/Packed.h"
 
 // too slow for now...
-#define RT_VCM_USE_KD_TREE
+//#define RT_VCM_USE_KD_TREE
 
 #ifdef RT_VCM_USE_KD_TREE
 #include "../Utils/KdTree.h"

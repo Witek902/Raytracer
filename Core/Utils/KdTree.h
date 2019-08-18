@@ -54,7 +54,7 @@ public:
     template<typename ParticleType, typename Query>
     void Find(const math::Vector4& queryPos, const float radius, const DynArray<ParticleType>& particles, Query& query) const
     {
-        const Box queryBox(queryPos, radius);
+        const math::Box queryBox(queryPos, radius);
         const float sqrRadius = math::Sqr(radius);
 
         // "nodes to visit" stack
@@ -70,7 +70,7 @@ public:
         {
             const Node& node = mNodes[nodesStack[--stackSize]];
             const ParticleType& particle = particles[node.pointIndex];
-            const Vector4 particlePos = particle.GetPosition();
+            const math::Vector4 particlePos = particle.GetPosition();
 
             {
                 const float distSqr = (queryPos - particlePos).SqrLength3();
@@ -104,8 +104,8 @@ private:
 
         std::nth_element(indices, indices + mid, indices + npoints, [&](int lhs, int rhs)
         {
-            const Vector4 lPos = particles[lhs].GetPosition();
-            const Vector4 rPos = particles[rhs].GetPosition();
+            const math::Vector4 lPos = particles[lhs].GetPosition();
+            const math::Vector4 rPos = particles[rhs].GetPosition();
             return lPos[axis] < rPos[axis];
         });
 

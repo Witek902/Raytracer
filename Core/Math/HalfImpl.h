@@ -21,7 +21,10 @@ Half::Half(const float other)
 #else
     Uint32 result;
 
-    Uint32 iValue = *reinterpret_cast<const Uint32*>(&other);
+    Bits32 bits;
+    bits.f = other;
+
+    Uint32 iValue = bits.ui;
     Uint32 sign = (iValue & 0x80000000U) >> 16U;
     iValue = iValue & 0x7FFFFFFFU;
 

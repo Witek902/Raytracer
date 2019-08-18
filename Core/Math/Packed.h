@@ -18,7 +18,7 @@ public:
     static constexpr float Scale = 32767.0f;
 
     RT_FORCE_INLINE PackedUnitVector3() : u(0), v(0) { }
-    RT_FORCE_INLINE PackedUnitVector3(Int16 u, Int16 v) : v(v), u(u) { }
+    RT_FORCE_INLINE PackedUnitVector3(Int16 u, Int16 v) : u(u), v(v) { }
     RT_FORCE_INLINE PackedUnitVector3(const PackedUnitVector3&) = default;
     RT_FORCE_INLINE PackedUnitVector3& operator = (const PackedUnitVector3&) = default;
     
