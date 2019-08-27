@@ -47,10 +47,6 @@ public:
     // optional rendering pre-pass, called once per frame for every thread
     virtual void PreRender(Uint32 passNumber, RenderingContext& ctx);
 
-    // optional rendering pre-pass, called for every pixel on screen
-    // Note: this will be called from multiple threads, each thread provides own RenderingContext
-    virtual void PreRenderPixel(const RenderParam& param, RenderingContext& ctx) const;
-
     // optional rendering pre-pass, called once (single threaded)
     virtual void PreRenderGlobal(RenderingContext& ctx);
     virtual void PreRenderGlobal();

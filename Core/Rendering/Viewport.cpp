@@ -251,17 +251,10 @@ bool Viewport::Render(const Camera& camera)
             mRenderer->PreRender(mProgress.passesFinished, film);
         }
 
-        const auto preRenderCallback = [&](Uint32 id, Uint32 threadID)
-        {
-            PreRenderTile(tileContext, mThreadData[threadID], mRenderingTiles[id]);
-        };
-
         const auto renderCallback = [&](Uint32 id, Uint32 threadID)
         {
             RenderTile(tileContext, mThreadData[threadID], mRenderingTiles[id]);
         };
-
-        mThreadPool.RunParallelTask(preRenderCallback, mRenderingTiles.Size());
 
         for (RenderingContext& ctx : mThreadData)
         {
@@ -298,34 +291,6 @@ bool Viewport::Render(const Camera& camera)
     }
 
     return true;
-}
-
-void Viewport::PreRenderTile(const TileRenderingContext& tileCtx, RenderingContext& ctx, const Block& tile)
-{
-    RT_ASSERT(tile.minX < tile.maxX);
-    RT_ASSERT(tile.minY < tile.maxY);
-    RT_ASSERT(tile.maxX <= GetWidth());
-    RT_ASSERT(tile.maxY <= GetHeight());
-
-    Film film(mSum, mProgress.passesFinished % 2 == 0 ? &mSecondarySum : nullptr);
-
-    if (ctx.params->traversalMode == TraversalMode::Single)
-    {
-        for (Uint32 y = tile.minY; y < tile.maxY; ++y)
-        {
-            for (Uint32 x = tile.minX; x < tile.maxX; ++x)
-            {
-                // TODO this won't work with bidirectional path tracing
-                ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
-                ctx.wavelength.Randomize(ctx.randomGenerator);
-
-                const Uint32 pixelIndex = y * GetHeight() + x;
-                const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileCtx.camera, film };
-
-                tileCtx.renderer.PreRenderPixel(renderParam, ctx);
-            }
-        }
-    }
 }
 
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& ctx, const Block& tile)

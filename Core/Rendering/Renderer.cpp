@@ -28,10 +28,6 @@ void IRenderer::PreRender(Uint32, RenderingContext&)
 {
 }
 
-void IRenderer::PreRenderPixel(const RenderParam&, RenderingContext&) const
-{
-}
-
 void IRenderer::PreRenderGlobal(RenderingContext&)
 {
 }

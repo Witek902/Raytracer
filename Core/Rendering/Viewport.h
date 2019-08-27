@@ -92,7 +92,6 @@ private:
     void UpdateBlocksList();
 
     // raytrace single image tile (will be called from multiple threads)
-    void PreRenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile);
     void RenderTile(const TileRenderingContext& tileContext, RenderingContext& renderingContext, const Block& tile);
 
     void PerformPostProcess();
