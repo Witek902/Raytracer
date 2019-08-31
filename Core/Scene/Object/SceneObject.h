@@ -3,7 +3,7 @@
 #include "../../RayLib.h"
 #include "../../Math/Box.h"
 #include "../../Math/Matrix4.h"
-#include "../../Utils/AlignmentAllocator.h"
+#include "../../Utils/Memory.h"
 #include "../../Traversal/HitPoint.h"
 
 #include <memory>

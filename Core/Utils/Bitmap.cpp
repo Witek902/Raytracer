@@ -107,6 +107,7 @@ Bitmap::Bitmap(const char* debugName)
     , mPaletteSize(0)
     , mFormat(Format::Unknown)
     , mLinearSpace(false)
+    , mUsesDefaultAllocator(false)
 {
     RT_ASSERT(debugName, "Invalid debug name");
     mDebugName = strdup(debugName);
@@ -135,13 +136,20 @@ void Bitmap::Release()
 {
     if (mData)
     {
-        AlignedFree(mData);
+        if (mUsesDefaultAllocator)
+        {
+            DefaultAllocator::Free(mData);
+        }
+        else
+        {
+            SystemAllocator::Free(mData);
+        }
         mData = nullptr;
     }
 
     if (mPalette)
     {
-        AlignedFree(mPalette);
+        DefaultAllocator::Free(mPalette);
         mData = nullptr;
     }
 
@@ -170,7 +178,17 @@ bool Bitmap::Init(const InitData& initData)
 
     // align to cache line
     const Uint32 marigin = RT_CACHE_LINE_SIZE;
-    mData = (Uint8*)AlignedMalloc(dataSize + marigin, RT_CACHE_LINE_SIZE);
+
+    mUsesDefaultAllocator = initData.useDefaultAllocator;
+    if (mUsesDefaultAllocator)
+    {
+        mData = (Uint8*)DefaultAllocator::Allocate(dataSize + marigin);
+    }
+    else
+    {
+        mData = (Uint8*)SystemAllocator::Allocate(dataSize + marigin);
+    }
+
     if (!mData)
     {
         RT_LOG_ERROR("Bitmap: Memory allocation failed");
@@ -184,7 +202,7 @@ bool Bitmap::Init(const InitData& initData)
 
     if (initData.paletteSize > 0)
     {
-        mPalette = (Uint8*)AlignedMalloc(sizeof(Uint32) * (size_t)initData.paletteSize, RT_CACHE_LINE_SIZE);
+        mPalette = (Uint8*)DefaultAllocator::Allocate(sizeof(Uint32) * (size_t)initData.paletteSize);
     }
 
     // clear marigin

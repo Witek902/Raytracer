@@ -12,7 +12,7 @@
 #include "../Math/Rectangle.h"
 #include "../Utils/Bitmap.h"
 #include "../Utils/ThreadPool.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 
 
 namespace rt {

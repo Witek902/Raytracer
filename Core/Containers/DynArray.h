@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ArrayView.h"
+#include "../Utils/Memory.h"
 
 namespace rt {
 
 /**
  * Dynamic array (like std::vector).
  */
-template<typename ElementType>
+template<typename ElementType, typename Allocator = DefaultAllocator>
 class DynArray : public ArrayView<ElementType>
 {
 public:
@@ -96,8 +97,6 @@ public:
      * @return  True if the element has been removed.
      */
     bool Erase(const ConstIteratorType& first, const ConstIteratorType& last);
-
-    // TODO erase with index table
 
     /**
      * Remove last element if exists.

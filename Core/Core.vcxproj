@@ -446,7 +446,7 @@
     <ClInclude Include="Traversal\Traversal_Packet.h" />
     <ClInclude Include="Traversal\Traversal_Simd.h" />
     <ClInclude Include="Traversal\Traversal_Single.h" />
-    <ClInclude Include="Utils\AlignmentAllocator.h" />
+    <ClInclude Include="Utils\Memory.h" />
     <ClInclude Include="Utils\Bitmap.h" />
     <ClInclude Include="Utils\BlockCompression.h" />
     <ClInclude Include="Utils\Entropy.h" />
@@ -553,6 +553,7 @@
     <ClCompile Include="Utils\Entropy.cpp" />
     <ClCompile Include="Utils\KdTree.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
+    <ClCompile Include="Utils\Memory.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
   </ItemGroup>

@@ -4,7 +4,7 @@
         {
             "type": "background",
             "color": [2.0, 2.0, 2.0],
-            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr"
+            "texture" : "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_HIRES.exr"
         }
     ],
     "camera":
@@ -14,10 +14,9 @@
             "translation": [0.0, 0.0, 3.0],
             "orientation": [-0.3, 0.46, 0.0]
         },
-        "aperture": 0.1,
+        "aperture": 0.2,
         "enableDOF": true,
         "focalDistance": 2.0,
-        "fieldOfView": 55.0,
-        "bokehTexture" : "TEXTURES/bokeh/bokeh_20.bmp"
+        "fieldOfView": 55.0
     }
 }

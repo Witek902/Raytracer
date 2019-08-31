@@ -286,7 +286,7 @@ public:
     {
         mVertexTangents.resize(mVertexNormals.size());
 
-        std::vector<Vector4, AlignmentAllocator<Vector4>> bitangents;
+        std::vector<Vector4, AlignedAllocator<Vector4>> bitangents;
         bitangents.resize(mVertexNormals.size());
         memset((void*)bitangents.data(), 0, bitangents.size() * sizeof(Vector4));
 

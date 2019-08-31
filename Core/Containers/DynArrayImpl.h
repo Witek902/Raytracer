@@ -3,25 +3,25 @@
 #include "DynArray.h"
 #include "../Math/Math.h"
 #include "../Utils/MemoryHelpers.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 
 namespace rt {
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray()
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray()
     : mAllocSize(0)
 {
-    static_assert(sizeof(DynArray<ElementType>) == sizeof(void*) + 2 * sizeof(Uint32), "Invalid DynArray size");
+    static_assert(sizeof(DynArray<ElementType, Allocator>) == sizeof(void*) + 2 * sizeof(Uint32), "Invalid DynArray size");
 }
 
-template<typename ElementType>
-DynArray<ElementType>::~DynArray()
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::~DynArray()
 {
     Clear(true);
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(const DynArray& other)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(const DynArray& other)
     : ArrayView<ElementType>()
 {
     mAllocSize = 0;
@@ -41,8 +41,8 @@ DynArray<ElementType>::DynArray(const DynArray& other)
     }
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(DynArray&& other)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(DynArray&& other)
     : ArrayView<ElementType>()
 {
     // don't free memory if not needed
@@ -57,8 +57,8 @@ DynArray<ElementType>::DynArray(DynArray&& other)
     other.mAllocSize = 0;
 }
 
-template<typename ElementType>
-DynArray<ElementType>& DynArray<ElementType>::operator = (const DynArray& other)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>& DynArray<ElementType, Allocator>::operator = (const DynArray& other)
 {
     if (&other == this)
         return *this;
@@ -80,8 +80,8 @@ DynArray<ElementType>& DynArray<ElementType>::operator = (const DynArray& other)
     return *this;
 }
 
-template<typename ElementType>
-DynArray<ElementType>& DynArray<ElementType>::operator = (DynArray&& other)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>& DynArray<ElementType, Allocator>::operator = (DynArray&& other)
 {
     // don't free memory if not needed
     Clear(true);
@@ -97,8 +97,8 @@ DynArray<ElementType>& DynArray<ElementType>::operator = (DynArray&& other)
     return *this;
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(const std::initializer_list<ElementType>& list)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(const std::initializer_list<ElementType>& list)
     : DynArray()
 {
     if (!Reserve(static_cast<Uint32>(list.size())))
@@ -113,8 +113,8 @@ DynArray<ElementType>::DynArray(const std::initializer_list<ElementType>& list)
     }
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(const ElementType* elements, Uint32 count)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(const ElementType* elements, Uint32 count)
     : DynArray()
 {
     if (!Reserve(count))
@@ -130,8 +130,8 @@ DynArray<ElementType>::DynArray(const ElementType* elements, Uint32 count)
     }
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(Uint32 size)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(Uint32 size)
     : DynArray()
 {
     static_assert(std::is_trivially_constructible<ElementType>::value, "Element type is not trivially constructible");
@@ -149,8 +149,8 @@ DynArray<ElementType>::DynArray(Uint32 size)
     }
 }
 
-template<typename ElementType>
-DynArray<ElementType>::DynArray(Uint32 size, const ElementType& value)
+template<typename ElementType, typename Allocator>
+DynArray<ElementType, Allocator>::DynArray(Uint32 size, const ElementType& value)
     : DynArray()
 {
     if (!Reserve(size))
@@ -168,8 +168,8 @@ DynArray<ElementType>::DynArray(Uint32 size, const ElementType& value)
 
 //////////////////////////////////////////////////////////////////////////
 
-template<typename ElementType>
-void DynArray<ElementType>::Clear(bool freeMemory)
+template<typename ElementType, typename Allocator>
+void DynArray<ElementType, Allocator>::Clear(bool freeMemory)
 {
     if (!this->mElements)
     {
@@ -187,20 +187,20 @@ void DynArray<ElementType>::Clear(bool freeMemory)
 
     if (freeMemory)
     {
-        AlignedFree(this->mElements);
+        Allocator::Free(this->mElements);
         this->mElements = nullptr;
         mAllocSize = 0;
     }
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::ContainsElement(const ElementType& element) const
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::ContainsElement(const ElementType& element) const
 {
     return (&element - this->mElements >= 0) && (&element < this->mElements + this->mSize);
 }
 
-template<typename ElementType>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::PushBack(const ElementType& element)
+template<typename ElementType, typename Allocator>
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::PushBack(const ElementType& element)
 {
     RT_ASSERT(!ContainsElement(element), "Adding element to a DynArray that is already contained by the array is not supported");
 
@@ -213,8 +213,8 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::PushBack(con
     return IteratorType(this->mElements, this->mSize++);
 }
 
-template<typename ElementType>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::PushBack(ElementType&& element)
+template<typename ElementType, typename Allocator>
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::PushBack(ElementType&& element)
 {
     RT_ASSERT(!ContainsElement(element), "Adding element to a DynArray that is already contained by the array is not supported");
 
@@ -228,9 +228,9 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::PushBack(Ele
     return IteratorType(this->mElements, this->mSize++);
 }
 
-template<typename ElementType>
+template<typename ElementType, typename Allocator>
 template<typename ... Args>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::EmplaceBack(Args&& ... args)
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::EmplaceBack(Args&& ... args)
 {
     if (!Reserve(this->mSize + 1))
     {
@@ -242,9 +242,9 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::EmplaceBack(
     return IteratorType(this->mElements, this->mSize++);
 }
 
-template<typename ElementType>
+template<typename ElementType, typename Allocator>
 template<typename ElementType2>
-bool DynArray<ElementType>::PushBackArray(const ArrayView<ElementType2>& arrayView)
+bool DynArray<ElementType, Allocator>::PushBackArray(const ArrayView<ElementType2>& arrayView)
 {
     static_assert(std::is_same<typename std::remove_cv<ElementType>::type, typename std::remove_cv<ElementType2>::type>::value,
                   "Incompatible element types");
@@ -271,8 +271,8 @@ bool DynArray<ElementType>::PushBackArray(const ArrayView<ElementType2>& arrayVi
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::PopBack()
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::PopBack()
 {
     if (this->Empty())
         return false;
@@ -281,8 +281,8 @@ bool DynArray<ElementType>::PopBack()
     return true;
 }
 
-template<typename ElementType>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uint32 index, const ElementType& element)
+template<typename ElementType, typename Allocator>
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::InsertAt(Uint32 index, const ElementType& element)
 {
     if (!Reserve(this->mSize + 1))
     {
@@ -297,8 +297,8 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uin
     return IteratorType(this->mElements, index);
 }
 
-template<typename ElementType>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uint32 index, ElementType&& element)
+template<typename ElementType, typename Allocator>
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::InsertAt(Uint32 index, ElementType&& element)
 {
     if (!Reserve(this->mSize + 1))
     {
@@ -313,8 +313,8 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uin
     return IteratorType(this->mElements, index);
 }
 
-template<typename ElementType>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uint32 index, const ElementType& element, Uint32 count)
+template<typename ElementType, typename Allocator>
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::InsertAt(Uint32 index, const ElementType& element, Uint32 count)
 {
     if (count == 0)
     {
@@ -340,9 +340,9 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertAt(Uin
     return IteratorType(this->mElements, index);
 }
 
-template<typename ElementType>
+template<typename ElementType, typename Allocator>
 template<typename ElementType2>
-typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertArrayAt(Uint32 index, const ArrayView<ElementType2>& arrayView)
+typename DynArray<ElementType, Allocator>::IteratorType DynArray<ElementType, Allocator>::InsertArrayAt(Uint32 index, const ArrayView<ElementType2>& arrayView)
 {
     static_assert(std::is_same<typename std::remove_cv<ElementType>::type, typename std::remove_cv<ElementType2>::type>::value,
                   "Incompatible element types");
@@ -371,8 +371,8 @@ typename DynArray<ElementType>::IteratorType DynArray<ElementType>::InsertArrayA
     return IteratorType(this->mElements, index);
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Erase(const ConstIteratorType& iterator)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Erase(const ConstIteratorType& iterator)
 {
     if (iterator == this->End())
     {
@@ -387,8 +387,8 @@ bool DynArray<ElementType>::Erase(const ConstIteratorType& iterator)
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Erase(const ConstIteratorType& first, const ConstIteratorType& last)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Erase(const ConstIteratorType& first, const ConstIteratorType& last)
 {
     if (first.GetIndex() >= last.GetIndex())
     {
@@ -409,8 +409,8 @@ bool DynArray<ElementType>::Erase(const ConstIteratorType& first, const ConstIte
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Reserve(Uint32 size)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Reserve(Uint32 size)
 {
     if (size <= mAllocSize)
     {
@@ -425,7 +425,7 @@ bool DynArray<ElementType>::Reserve(Uint32 size)
         newAllocSize += math::Max<Uint32>(1, newAllocSize / 2);
     }
 
-    ElementType* newBuffer = static_cast<ElementType*>(AlignedMalloc(newAllocSize * sizeof(ElementType), alignof(ElementType)));
+    ElementType* newBuffer = static_cast<ElementType*>(Allocator::Allocate(newAllocSize * sizeof(ElementType), alignof(ElementType)));
     if (!newBuffer)
     {
         // memory allocation failed
@@ -436,14 +436,14 @@ bool DynArray<ElementType>::Reserve(Uint32 size)
     MemoryHelpers::MoveArray<ElementType>(newBuffer, this->mElements, this->mSize);
 
     // replace buffer
-    AlignedFree(this->mElements);
+    Allocator::Free(this->mElements);
     this->mElements = newBuffer;
     mAllocSize = newAllocSize;
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Resize_SkipConstructor(Uint32 size)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Resize_SkipConstructor(Uint32 size)
 {
     const Uint32 oldSize = this->mSize;
 
@@ -462,8 +462,8 @@ bool DynArray<ElementType>::Resize_SkipConstructor(Uint32 size)
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Resize(Uint32 size)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Resize(Uint32 size)
 {
     const Uint32 oldSize = this->mSize;
 
@@ -488,8 +488,8 @@ bool DynArray<ElementType>::Resize(Uint32 size)
     return true;
 }
 
-template<typename ElementType>
-bool DynArray<ElementType>::Resize(Uint32 size, const ElementType& defaultElement)
+template<typename ElementType, typename Allocator>
+bool DynArray<ElementType, Allocator>::Resize(Uint32 size, const ElementType& defaultElement)
 {
     const Uint32 oldSize = this->mSize;
 
@@ -514,8 +514,8 @@ bool DynArray<ElementType>::Resize(Uint32 size, const ElementType& defaultElemen
     return true;
 }
 
-template<typename ElementType>
-void DynArray<ElementType>::Swap(DynArray& other)
+template<typename ElementType, typename Allocator>
+void DynArray<ElementType, Allocator>::Swap(DynArray& other)
 {
     std::swap(this->mElements, other->mElements);
     std::swap(this->mSize, other->mSize);

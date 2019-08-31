@@ -25,7 +25,7 @@ static const Uint16* LoadTexture()
     }
 
     const size_t dataSize = (TextureBits / 8) * TextureLayers * TextureSize * TextureSize;
-    Uint16* data = (Uint16*)AlignedMalloc(dataSize, RT_CACHE_LINE_SIZE);
+    Uint16* data = (Uint16*)DefaultAllocator::Allocate(dataSize, RT_CACHE_LINE_SIZE);
     if (!data)
     {
         fclose(file);

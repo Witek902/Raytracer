@@ -15,7 +15,7 @@ namespace rt {
 template<typename ElementType>
 class ArrayView
 {
-    template<typename T> friend class DynArray;
+    template<typename T, typename Allocator> friend class DynArray;
 
 public:
 

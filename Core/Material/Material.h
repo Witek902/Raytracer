@@ -3,7 +3,7 @@
 #include "BSDF/BSDF.h"
 #include "MaterialParameter.h"
 #include "../Textures/Texture.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 #include "../Color/RayColor.h"
 #include "../Math/Ray.h"
 

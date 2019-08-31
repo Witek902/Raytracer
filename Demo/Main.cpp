@@ -50,6 +50,7 @@ Options gOptions;
 int main(int argc, char* argv[])
 {
     rt::math::SetFlushDenormalsToZero();
+    rt::InitMemory();
 
     if (!ParseOptions(argc, argv, gOptions))
     {

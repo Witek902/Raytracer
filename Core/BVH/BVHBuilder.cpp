@@ -10,12 +10,12 @@ using namespace math;
 
 BVHBuilder::Context::Context(Uint32 numLeaves)
 {
-    mLeftBoxesCache.Resize(numLeaves);
-    mRightBoxesCache.Resize(numLeaves);
+    mLeftBoxesCache.Resize_SkipConstructor(numLeaves);
+    mRightBoxesCache.Resize_SkipConstructor(numLeaves);
 
     for (Uint32 i = 0; i < NumAxes; ++i)
     {
-        mSortedLeavesIndicesCache[i].Resize(numLeaves);
+        mSortedLeavesIndicesCache[i].Resize_SkipConstructor(numLeaves);
     }
 }
 
@@ -216,8 +216,8 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
     const Indices& sortedIndices = context.mSortedLeavesIndicesCache[bestAxis];
 
     Indices leftIndices, rightIndices;
-    leftIndices.Resize(leftCount);
-    rightIndices.Resize(rightCount);
+    leftIndices.Resize_SkipConstructor(leftCount);
+    rightIndices.Resize_SkipConstructor(rightCount);
     memcpy(leftIndices.Data(), sortedIndices.Data(), sizeof(Uint32) * leftCount);
     memcpy(rightIndices.Data(), sortedIndices.Data() + leftCount, sizeof(Uint32) * rightCount);
 

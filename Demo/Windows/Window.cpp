@@ -266,7 +266,7 @@ bool Window::DrawPixels(const rt::Bitmap& bitmap)
 
     if (0 == SetDIBitsToDevice(mDC, 0, 0, mWidth, mHeight, 0, 0, 0, mHeight, bitmap.GetData(), &bmi, DIB_RGB_COLORS))
     {
-        RT_LOG_ERROR("Paint failed");
+        RT_LOG_ERROR("Paint failed, error code: %u", GetLastError());
         return false;
     }
 

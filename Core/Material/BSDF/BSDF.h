@@ -2,7 +2,7 @@
 
 #include "../../RayLib.h"
 #include "../../Rendering/ShadingData.h"
-#include "../../Utils/AlignmentAllocator.h"
+#include "../../Utils/Memory.h"
 #include "../../Math/Ray.h"
 #include "../../Color/RayColor.h"
 

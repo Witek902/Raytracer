@@ -111,13 +111,13 @@
     <ClInclude Include="Traversal\Traversal_Simd.h" />
     <ClInclude Include="Traversal\Traversal_Single.h" />
     <ClInclude Include="Traversal\TraversalContext.h" />
-    <ClInclude Include="Utils\AlignmentAllocator.h" />
     <ClInclude Include="Utils\Bitmap.h" />
     <ClInclude Include="Utils\BlockCompression.h" />
     <ClInclude Include="Utils\Entropy.h" />
     <ClInclude Include="Utils\HashGrid.h" />
     <ClInclude Include="Utils\iacaMarks.h" />
     <ClInclude Include="Utils\Logger.h" />
+    <ClInclude Include="Utils\Memory.h" />
     <ClInclude Include="Utils\MemoryHelpers.h" />
     <ClInclude Include="Utils\Texture.h" />
     <ClInclude Include="Utils\TextureEvaluator.h" />
@@ -221,6 +221,7 @@
     <ClCompile Include="Utils\BitmapDDS.cpp" />
     <ClCompile Include="Utils\BitmapEXR.cpp" />
     <ClCompile Include="Utils\BlockCompression.cpp" />
+    <ClCompile Include="Utils\Memory.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />

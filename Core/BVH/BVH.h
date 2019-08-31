@@ -6,7 +6,7 @@
 #include "../Math/Float3.h"
 #include "../Math/Box.h"
 #include "../Math/Simd8Box.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 #include "../Containers/DynArray.h"
 
 #include <string>
@@ -94,8 +94,7 @@ private:
     void CalculateStatsForNode(Uint32 node, Stats& outStats, Uint32 depth) const;
     bool AllocateNodes(Uint32 numNodes);
 
-    // TODO align to cache line size
-    DynArray<Node> mNodes;
+    DynArray<Node, SystemAllocator> mNodes;
     Uint32 mNumNodes;
 
     friend class BVHBuilder;

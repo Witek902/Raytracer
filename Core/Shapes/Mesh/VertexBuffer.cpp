@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "VertexBuffer.h"
 #include "Utils/Logger.h"
-#include "Utils/AlignmentAllocator.h"
+#include "Utils/Memory.h"
 #include "Math/Simd8Triangle.h"
 
 
@@ -30,13 +30,13 @@ void VertexBuffer::Clear()
 {
     if (mBuffer)
     {
-        AlignedFree(mBuffer);
+        SystemAllocator::Free(mBuffer);
         mBuffer = nullptr;
     }
 
     if (mPreprocessedTriangles)
     {
-        AlignedFree(mPreprocessedTriangles);
+        SystemAllocator::Free(mPreprocessedTriangles);
         mPreprocessedTriangles = nullptr;
     }
 
@@ -90,7 +90,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
 
     RT_LOG_DEBUG("Allocating vertex buffer for mesh, size = %u", bufferSizeRequired);
-    mBuffer = (char*)AlignedMalloc(bufferSizeRequired, RT_CACHE_LINE_SIZE);
+    mBuffer = (char*)SystemAllocator::Allocate(bufferSizeRequired);
     if (!mBuffer)
     {
         RT_LOG_ERROR("Memory allocation failed");
@@ -107,7 +107,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
     // preprocess triangles
     {
-        mPreprocessedTriangles = (ProcessedTriangle*)AlignedMalloc(preprocessedTrianglesBufferSize, RT_CACHE_LINE_SIZE);
+        mPreprocessedTriangles = (ProcessedTriangle*)SystemAllocator::Allocate(preprocessedTrianglesBufferSize);
         if (!mPreprocessedTriangles)
         {
             RT_LOG_ERROR("Memory allocation failed");

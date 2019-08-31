@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Math/VectorInt4.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 
 namespace rt {
 
@@ -49,6 +49,7 @@ public:
         Uint32 stride = 0;
         bool linearSpace = true;
         Uint32 paletteSize = 0;
+        bool useDefaultAllocator = false;
     };
 
     RAYLIB_API Bitmap(const char* debugName = "<unnamed>");
@@ -147,7 +148,8 @@ private:
     Uint32 mStride;         // number of bytes between rows
     Uint32 mPaletteSize;    // number of colors in the palette
     Format mFormat;
-    bool mLinearSpace;
+    bool mLinearSpace : 1;
+    bool mUsesDefaultAllocator : 1;
     char* mDebugName;
 };
 

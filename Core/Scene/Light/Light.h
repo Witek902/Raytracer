@@ -5,7 +5,7 @@
 #include "../../Math/Matrix4.h"
 #include "../../Color/RayColor.h"
 #include "../../Color/Spectrum.h"
-#include "../../Utils/AlignmentAllocator.h"
+#include "../../Utils/Memory.h"
 
 namespace rt {
 

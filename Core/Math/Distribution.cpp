@@ -1,7 +1,7 @@
 #include "PCH.h"
 #include "Distribution.h"
 #include "Math.h"
-#include "Utils/AlignmentAllocator.h"
+#include "Utils/Memory.h"
 #include "Utils/Logger.h"
 
 #include <algorithm>
@@ -17,8 +17,8 @@ Distribution::Distribution()
 
 Distribution::~Distribution()
 {
-    AlignedFree(mCDF);
-    AlignedFree(mPDF);
+    DefaultAllocator::Free(mCDF);
+    DefaultAllocator::Free(mPDF);
 
     mCDF = nullptr;
     mPDF = nullptr;
@@ -38,14 +38,14 @@ bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
         return false;
     }
 
-    mPDF = (float*)AlignedMalloc(sizeof(float) * (size_t)numValues, RT_CACHE_LINE_SIZE);
+    mPDF = (float*)DefaultAllocator::Allocate(sizeof(float) * (size_t)numValues, RT_CACHE_LINE_SIZE);
     if (!mPDF)
     {
         RT_LOG_ERROR("Failed to allocate memory for PDF");
         return false;
     }
 
-    mCDF = (float*)AlignedMalloc(sizeof(float) * ((size_t)numValues + 1), RT_CACHE_LINE_SIZE);
+    mCDF = (float*)DefaultAllocator::Allocate(sizeof(float) * ((size_t)numValues + 1), RT_CACHE_LINE_SIZE);
     if (!mCDF)
     {
         RT_LOG_ERROR("Failed to allocate memory for CDF");

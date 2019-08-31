@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Texture.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 
 namespace rt {
 

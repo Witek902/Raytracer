@@ -7,55 +7,45 @@
 
 namespace rt {
 
-RT_INLINE void* AlignedMalloc(size_t size, size_t alignment)
-{
-    void* ptr = nullptr;
-#if defined(WIN32)
-    ptr = _aligned_malloc(size, alignment);
-#elif defined(__LINUX__) | defined(__linux__)
-    alignment = std::max(alignment, sizeof(void*));
-    int ret = posix_memalign(&ptr, alignment, size);
-    if (ret != 0)
-    {
-        RT_ASSERT("posix_memalign() returned %i", ret);
-        ptr = nullptr;
-    }
-#endif // defined(WIN32)
-    return ptr;
-}
+RAYLIB_API void InitMemory();
 
-RT_INLINE void AlignedFree(void* ptr)
+class DefaultAllocator
 {
-#if defined(WIN32)
-    _aligned_free(ptr);
-#elif defined(__LINUX__) | defined(__linux__)
-    free(ptr);
-#endif // defined(WIN32)
-}
+public:
+    RAYLIB_API static void* Allocate(size_t size, size_t alignment = 1);
+    RAYLIB_API static void Free(void* ptr);
+};
+
+class SystemAllocator
+{
+public:
+    RAYLIB_API static void* Allocate(size_t size, size_t alignment = 1);
+    RAYLIB_API static void Free(void* ptr);
+};
 
 // Override this class to align children objects.
-template <size_t Alignment = 16>
+template <size_t Alignment, typename Allocator = DefaultAllocator>
 class Aligned
 {
 public:
     RT_FORCE_INLINE void* operator new(size_t size)
     {
-        return AlignedMalloc(size, Alignment);
+        return Allocator::Allocate(size, Alignment);
     }
 
     RT_FORCE_INLINE void operator delete(void* ptr)
     {
-        AlignedFree(ptr);
+        Allocator::Free(ptr);
     }
 
     RT_FORCE_INLINE void* operator new[](size_t size)
     {
-        return AlignedMalloc(size, Alignment);
+        return Allocator::Allocate(size, Alignment);
     }
 
-        RT_FORCE_INLINE void operator delete[](void* ptr)
+    RT_FORCE_INLINE void operator delete[](void* ptr)
     {
-        AlignedFree(ptr);
+        Allocator::Free(ptr);
     }
 
         RT_FORCE_INLINE void* operator new(size_t size, void* ptr)
@@ -71,8 +61,8 @@ public:
     }
 };
 
-template <typename T, std::size_t N = alignof(T)>
-class AlignmentAllocator
+template <typename T, std::size_t N = alignof(T), typename Allocator = DefaultAllocator>
+class AlignedAllocator
 {
 public:
     typedef T value_type;
@@ -86,12 +76,12 @@ public:
     typedef const T & const_reference;
 
 public:
-    AlignmentAllocator() throw () { }
+    AlignedAllocator() throw () { }
 
     template <typename T2>
-    AlignmentAllocator(const AlignmentAllocator<T2, N> &) throw () { }
+    AlignedAllocator(const AlignedAllocator<T2, N> &) throw () { }
 
-    ~AlignmentAllocator() throw () { }
+    ~AlignedAllocator() throw () { }
 
     pointer adress(reference r)
     {
@@ -105,12 +95,12 @@ public:
 
     pointer allocate(size_type n)
     {
-        return (pointer)AlignedMalloc(n * sizeof(value_type), N);
+        return (pointer)Allocator::Allocate(n * sizeof(value_type), N);
     }
 
     void deallocate(pointer p, size_type)
     {
-        AlignedFree(p);
+        Allocator::Free(p);
     }
 
     void construct(pointer p, const value_type & wert)
@@ -136,15 +126,15 @@ public:
     template <typename T2>
     struct rebind
     {
-        typedef AlignmentAllocator<T2, N> other;
+        typedef AlignedAllocator<T2, N> other;
     };
 
-    bool operator!=(const AlignmentAllocator<T, N>& other) const
+    bool operator!=(const AlignedAllocator<T, N>& other) const
     {
         return !(*this == other);
     }
 
-    bool operator==(const AlignmentAllocator<T, N>&) const
+    bool operator==(const AlignedAllocator<T, N>&) const
     {
         return true;
     }

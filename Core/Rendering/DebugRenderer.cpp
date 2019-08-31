@@ -14,7 +14,7 @@ using namespace math;
 
 DebugRenderer::DebugRenderer(const Scene& scene)
     : IRenderer(scene)
-    , mRenderingMode(DebugRenderingMode::BaseColor)
+    , mRenderingMode(DebugRenderingMode::TriangleID)
 {
 }
 

@@ -4,7 +4,7 @@
 
 #include "../Color/RayColor.h"
 #include "../Math/Ray.h"
-#include "../Utils/AlignmentAllocator.h"
+#include "../Utils/Memory.h"
 
 namespace rt {
 
