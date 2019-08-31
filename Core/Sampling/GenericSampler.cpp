@@ -14,11 +14,9 @@ RT_FORCE_INLINE static Uint32 XorShift(Uint32 x)
     return x;
 }
 
-GenericSampler::GenericSampler(Random& fallbackGenerator)
-    : mFallbackGenerator(fallbackGenerator)
+GenericSampler::GenericSampler()
+    : mFallbackGenerator(nullptr)
 {}
-
-GenericSampler::~GenericSampler() = default;
 
 void GenericSampler::ResetFrame(const DynArray<float>& seed)
 {
@@ -47,7 +45,7 @@ float GenericSampler::GetFloat()
         return sample;
     }
 
-    return mFallbackGenerator.GetFloat();
+    return mFallbackGenerator->GetFloat();
 }
 
 const Float2 GenericSampler::GetFloat2()

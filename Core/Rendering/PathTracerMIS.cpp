@@ -45,7 +45,7 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
     {
         shadingData,
         context.wavelength,
-        context.sampler->GetFloat2(),
+        context.sampler.GetFloat2(),
     };
 
     // calculate light contribution
@@ -112,6 +112,7 @@ const RayColor PathTracerMIS::SampleLight(const ILight& light, const ShadingData
     return (radiance * factor) * (weight / (lightPickProbability * illuminateResult.directPdfW));
 }
 
+RT_FORCE_NOINLINE
 const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     RayColor accumulatedColor = RayColor::Zero();
@@ -123,7 +124,7 @@ const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const
         {
             case LightSamplingStrategy::Single:
             {
-                const Uint32 lightIndex = context.sampler->GetFallbackGenerator().GetInt() % lights.Size();
+                const Uint32 lightIndex = context.sampler.GetFallbackGenerator().GetInt() % lights.Size();
                 const LightPtr& light = lights[lightIndex];
                 accumulatedColor = SampleLight(*light, shadingData, pathState, context, lightPickProbability);
                 break;
@@ -298,7 +299,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
                 threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
-            if (context.sampler->GetFloat() > threshold)
+            if (context.sampler.GetFloat() > threshold)
             {
                 pathTerminationReason = PathTerminationReason::RussianRoulette;
                 break;
@@ -311,7 +312,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         float pdf;
         Vector4 incomingDirWorldSpace;
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3(), &pdf, &lastSampledBsdfEvent);
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler.GetFloat3(), &pdf, &lastSampledBsdfEvent);
 
         if (lastSampledBsdfEvent == BSDF::NullEvent)
         {

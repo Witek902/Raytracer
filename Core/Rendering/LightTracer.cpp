@@ -41,8 +41,8 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     const ILight::EmitParam emitParam =
     {
         ctx.wavelength,
-        ctx.sampler->GetFloat2(),
-        ctx.sampler->GetFloat2(),
+        ctx.sampler.GetFloat2(),
+        ctx.sampler.GetFloat2(),
     };
 
     ILight::EmitResult emitResult;
@@ -152,7 +152,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.sampler->GetFloat3());
+        const RayColor bsdfValue = shadingData.material->Sample(ctx.wavelength, incomingDirWorldSpace, shadingData, ctx.sampler.GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;

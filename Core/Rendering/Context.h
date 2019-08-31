@@ -9,11 +9,12 @@
 
 #include "../Math/Random.h"
 
+#include "../Sampling/GenericSampler.h"
+
 namespace rt {
 
 struct PathDebugData;
 
-class GenericSampler;
 class Camera;
 class IRendererContext;
 using RendererContextPtr = std::unique_ptr<IRendererContext>;
@@ -96,7 +97,7 @@ struct RT_ALIGN(64) RenderingContext
 
     Wavelength wavelength;
 
-    GenericSampler* sampler = nullptr;
+    GenericSampler sampler;
 
     // per-thread pseudo-random number generator
     math::Random randomGenerator;

@@ -39,13 +39,12 @@ void Viewport::InitThreadData()
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.randomGenerator.Reset();
+        ctx.sampler.mFallbackGenerator = &ctx.randomGenerator;
 
         if (mRenderer)
         {
             ctx.rendererContext = mRenderer->CreateContext();
         }
-
-        mSamplers.EmplaceBack(ctx.randomGenerator);
     }
 }
 
@@ -218,8 +217,7 @@ bool Viewport::Render(const Camera& camera)
 #ifndef RT_CONFIGURATION_FINAL
         ctx.pixelBreakpoint = mPendingPixelBreakpoint;
 #endif // RT_CONFIGURATION_FINAL
-        ctx.sampler = &mSamplers[i];
-        ctx.sampler->ResetFrame(seed);
+        ctx.sampler.ResetFrame(seed);
 
         mRenderer->PreRender(mProgress.passesFinished, ctx);
     }
@@ -323,7 +321,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 const Uint32 pixelIndex = y * GetHeight() + x;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                ctx.sampler->ResetPixel(x, y);
+                ctx.sampler.ResetPixel(x, y);
                 ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
                 ctx.wavelength.Randomize(ctx.randomGenerator);
 

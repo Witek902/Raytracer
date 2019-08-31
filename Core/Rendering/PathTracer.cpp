@@ -110,7 +110,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
                 threshold *= 1.0f / static_cast<float>(Wavelength::NumComponents);
             }
 #endif
-            if (context.sampler->GetFloat() > threshold)
+            if (context.sampler.GetFloat() > threshold)
             {
                 break;
             }
@@ -121,7 +121,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
 
         // sample BSDF
         Vector4 incomingDirWorldSpace;
-        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler->GetFloat3());
+        const RayColor bsdfValue = shadingData.material->Sample(context.wavelength, incomingDirWorldSpace, shadingData, context.sampler.GetFloat3());
 
         RT_ASSERT(bsdfValue.IsValid());
         throughput *= bsdfValue;

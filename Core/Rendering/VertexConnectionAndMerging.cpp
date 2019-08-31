@@ -446,8 +446,8 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     const ILight::EmitParam emitParam =
     {
         ctx.wavelength,
-        ctx.sampler->GetFloat2(),
-        ctx.sampler->GetFloat2(),
+        ctx.sampler.GetFloat2(),
+        ctx.sampler.GetFloat2(),
     };
 
     ILight::EmitResult emitResult;
@@ -501,7 +501,7 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     Float3 sample;
     if (pathType == PathType::Camera)
     {
-        sample = ctx.sampler->GetFloat3();
+        sample = ctx.sampler.GetFloat3();
     }
     else
     {
@@ -633,7 +633,7 @@ const RayColor VertexConnectionAndMerging::SampleLight(const ILight& light, cons
     {
         shadingData,
         ctx.wavelength,
-        ctx.sampler->GetFloat2(),
+        ctx.sampler.GetFloat2(),
     };
 
     // calculate light contribution

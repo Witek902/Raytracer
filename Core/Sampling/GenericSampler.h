@@ -13,10 +13,10 @@ class Random;
 class GenericSampler
 {
 public:
-    GenericSampler(math::Random& fallbackGenerator);
-    ~GenericSampler();
+    GenericSampler();
+    ~GenericSampler() = default;
 
-    RT_FORCE_INLINE math::Random& GetFallbackGenerator() { return mFallbackGenerator; }
+    RT_FORCE_INLINE math::Random& GetFallbackGenerator() { return *mFallbackGenerator; }
 
     void ResetFrame(const DynArray<float>& seed);
 
@@ -27,14 +27,14 @@ public:
     const math::Float2 GetFloat2();
     const math::Float3 GetFloat3();
 
+    math::Random* mFallbackGenerator;
+
 private:
 
     Uint32 mSalt;
     Uint32 mSamplesGenerated;
 
     DynArray<float> mSeed;
-
-    math::Random& mFallbackGenerator;
 };
 
 

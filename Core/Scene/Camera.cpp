@@ -99,14 +99,14 @@ const Ray Camera::GenerateRay(const Vector4& coords, RenderingContext& context) 
         transform[2]);
 
     // depth of field
-    if (mDOF.enable && context.sampler)
+    if (mDOF.enable)
     {
         const Vector4 focusPoint = Vector4::MulAndAdd(direction, mDOF.focalPlaneDistance, origin);
 
         const Vector4 right = transform[0];
         const Vector4 up = transform[1];
 
-        const Vector4 randomPointOnCircle = GenerateBokeh(context.sampler->GetFloat3()) * mDOF.aperture;
+        const Vector4 randomPointOnCircle = GenerateBokeh(context.sampler.GetFloat3()) * mDOF.aperture;
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), right, origin);
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), up, origin);
 
