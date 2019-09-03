@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../RayLib.h"
-#include "../Math/Vector4.h"
+#include "../Math/Float3.h"
 #include "../Containers/DynArray.h"
 
 namespace rt {
@@ -16,25 +16,45 @@ public:
     GenericSampler();
     ~GenericSampler() = default;
 
-    RT_FORCE_INLINE math::Random& GetFallbackGenerator() { return *mFallbackGenerator; }
+    // move to next frame
+    void ResetFrame(const DynArray<Uint32>& sample, bool useBlueNoise);
 
-    void ResetFrame(const DynArray<float>& seed);
-
+    // move to next pixel
     void ResetPixel(const Uint32 x, const Uint32 y);
 
     // get next sample
-    float GetFloat();
-    const math::Float2 GetFloat2();
-    const math::Float3 GetFloat3();
+    // NOTE: effectively goes to next sample dimension
+    Uint32 GetInt();
 
-    math::Random* mFallbackGenerator;
+    RT_FORCE_INLINE float GetFloat()
+    {
+        return static_cast<float>(GetInt()) / static_cast<float>(UINT32_MAX);
+    }
+
+    RT_FORCE_INLINE const math::Float2 GetFloat2()
+    {
+        return math::Float2{ GetFloat(), GetFloat() };
+    }
+
+    RT_FORCE_INLINE const math::Float3 GetFloat3()
+    {
+        return math::Float3{ GetFloat(), GetFloat(), GetFloat() };
+    }
+
+    math::Random* fallbackGenerator = nullptr;
 
 private:
 
-    Uint32 mSalt;
-    Uint32 mSamplesGenerated;
+    Uint32 mBlueNoisePixelX = 0;
+    Uint32 mBlueNoisePixelY = 0;
+    Uint32 mBlueNoiseTextureLayers = 0;
 
-    DynArray<float> mSeed;
+    Uint32 mSalt = 0;
+    Uint32 mSamplesGenerated = 0;
+
+    const Uint16* mBlueNoiseTexture = nullptr;
+
+    DynArray<Uint32> mCurrentSample;
 };
 
 

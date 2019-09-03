@@ -45,7 +45,6 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 static_assert(sizeof(VertexConnectionAndMerging::Photon) == 32, "Invalid photon size");
-static_assert(sizeof(VertexConnectionAndMerging::LightVertex) == 192, "Invalid light vertex size");
 
 VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     : IRenderer(scene)
@@ -836,10 +835,6 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
             const Vector4 lightDirection{ photon.direction.ToVector() };
             RT_ASSERT(lightDirection.IsValid());
 
-            // decompress photon throughput
-            const RayColor throughput{ photon.throughput.ToVector() };
-            RT_ASSERT(throughput.IsValid());
-
             const float cosToLight = mShadingData.CosTheta(lightDirection);
             if (cosToLight < FLT_EPSILON)
             {
@@ -854,6 +849,10 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
             {
                 return;
             }
+
+            // decompress photon throughput
+            const RayColor throughput = RayColor::Resolve(mContext.wavelength, Spectrum{ photon.throughput.ToVector() });
+            RT_ASSERT(throughput.IsValid());
 
             // TODO russian roulette
             //cameraBsdfDirPdfW *= mCameraBsdf.ContinuationProb();

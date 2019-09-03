@@ -21,6 +21,12 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
 {
     auto bitmapTextureA = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/default.bmp");
     auto bitmapTextureB = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/Portal/dirty4x4.bmp");
+
+    if (!bitmapTextureA || !bitmapTextureB)
+    {
+        return false;
+    }
+
     auto noiseTexture = std::shared_ptr<ITexture>(new NoiseTexture(Vector4(1.0f), Vector4(0.0f)));
     auto texture = std::shared_ptr<ITexture>(new MixTexture(bitmapTextureA, bitmapTextureB, noiseTexture));
 

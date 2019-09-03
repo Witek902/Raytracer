@@ -124,7 +124,7 @@ const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const
         {
             case LightSamplingStrategy::Single:
             {
-                const Uint32 lightIndex = context.sampler.GetFallbackGenerator().GetInt() % lights.Size();
+                const Uint32 lightIndex = context.sampler.fallbackGenerator->GetInt() % lights.Size();
                 const LightPtr& light = lights[lightIndex];
                 accumulatedColor = SampleLight(*light, shadingData, pathState, context, lightPickProbability);
                 break;

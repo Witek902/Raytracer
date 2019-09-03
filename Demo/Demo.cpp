@@ -254,6 +254,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
         params.antiAliasingSpread = 0.0f;
 
         renderingContext->params = &params;
+        renderingContext->sampler.fallbackGenerator = &renderingContext->randomGenerator;
 
         const Vector4 coords((float)x / (float)width, 1.0f - (float)y / (float)height, 0.0f, 0.0f);
         const Ray ray = mCamera.GenerateRay(coords, *renderingContext);
@@ -364,6 +365,10 @@ void DemoWindow::OnKeyPress(KeyCode key)
     if (key == KeyCode::U)
     {
         mEnableUI = !mEnableUI;
+    }
+    else if (key == KeyCode::P && IsMouseButtonDown(MouseButton::Right))
+    {
+        mViewport->GetFrontBuffer().SaveBMP("screenshot.bmp", true);
     }
 
     mLastKeyDown = key;

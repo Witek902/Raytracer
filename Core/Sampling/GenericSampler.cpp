@@ -1,10 +1,57 @@
 #include "PCH.h"
 #include "GenericSampler.h"
 #include "../Math/Random.h"
+#include "../Utils/Logger.h"
 
 namespace rt {
 
 using namespace math;
+
+namespace BlueNoise
+{
+
+static const char* FilePath = "../Data/BlueNoise128_RGBA16.dat";
+static constexpr Uint32 TextureLayers = 4;
+static constexpr Uint32 TextureBits = 16;
+static constexpr Uint32 TextureSize = 128;
+
+static const Uint16* LoadTexture()
+{
+    FILE* file = fopen(FilePath, "rb");
+    if (!file)
+    {
+        RT_LOG_ERROR("Failed to load blue noise texture");
+        return nullptr;
+    }
+
+    const size_t dataSize = (TextureBits / 8) * TextureLayers * TextureSize * TextureSize;
+    Uint16* data = (Uint16*)AlignedMalloc(dataSize, RT_CACHE_LINE_SIZE);
+    if (!data)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Failed to allocate memory for blue noise texture");
+        return nullptr;
+    }
+
+    if (fread(data, dataSize, 1, file) != 1)
+    {
+        fclose(file);
+        RT_LOG_ERROR("Failed to read blue noise texture");
+        return nullptr;
+    }
+
+    RT_LOG_INFO("Blue noise texture loaded successfully");
+    fclose(file);
+    return data;
+}
+
+static const Uint16* GetTexture()
+{
+    static const Uint16* texture = LoadTexture();
+    return texture;
+}
+
+} // BlueNoise
 
 RT_FORCE_INLINE static Uint32 XorShift(Uint32 x)
 {
@@ -15,76 +62,53 @@ RT_FORCE_INLINE static Uint32 XorShift(Uint32 x)
 }
 
 GenericSampler::GenericSampler()
-    : mFallbackGenerator(nullptr)
-{}
-
-void GenericSampler::ResetFrame(const DynArray<float>& seed)
+    : mBlueNoiseTexture(BlueNoise::GetTexture())
 {
-    mSeed = seed;
+}
+
+void GenericSampler::ResetFrame(const DynArray<Uint32>& seed, bool useBlueNoise)
+{
+    mCurrentSample = seed;
+    mBlueNoiseTextureLayers = mBlueNoiseTexture && useBlueNoise ? BlueNoise::TextureLayers : 0;
 }
 
 void GenericSampler::ResetPixel(const Uint32 x, const Uint32 y)
 {
+    mBlueNoisePixelX = x & (BlueNoise::TextureSize - 1u);
+    mBlueNoisePixelY = y & (BlueNoise::TextureSize - 1u);
     mSalt = (Uint32)Hash((Uint64)(x | (y << 16)));
     mSamplesGenerated = 0;
 }
 
-float GenericSampler::GetFloat()
+Uint32 GenericSampler::GetInt()
 {
-    Uint32 currentSample = mSamplesGenerated++;
-    if (currentSample < mSeed.Size())
-    {
-        Uint32 salt = mSalt;
-        mSalt = XorShift(mSalt);
+    Uint32 sample;
 
-        float sample = mSeed[currentSample] + float(salt) / float(UINT32_MAX);
-        if (sample >= 1.0f)
+    if (mSamplesGenerated < mCurrentSample.Size())
+    {
+        sample = mCurrentSample[mSamplesGenerated];
+
+        if (mSamplesGenerated < mBlueNoiseTextureLayers) // blue noise dithering
         {
-            sample -= 1.0f;
+            const Uint32 pixelIndex = BlueNoise::TextureSize * mBlueNoisePixelY + mBlueNoisePixelX;
+            const Uint16* blueNoiseData = mBlueNoiseTexture + BlueNoise::TextureLayers * pixelIndex;
+            sample += static_cast<Uint32>(blueNoiseData[mSamplesGenerated]) << 16;
         }
-        return sample;
+        else
+        {
+            Uint32 salt = mSalt;
+            mSalt = XorShift(salt);
+            sample += salt;
+        }
+
+        mSamplesGenerated++;
     }
-
-    return mFallbackGenerator->GetFloat();
-}
-
-const Float2 GenericSampler::GetFloat2()
-{
-    return Float2{ GetFloat(), GetFloat() };
-}
-
-const Float3 GenericSampler::GetFloat3()
-{
-    /*
-    Vector4 v;
-
-    const Uint32 currentSample = mSamplesGenerated;
-    mSamplesGenerated += 3;
-
-    if (currentSample < mSeed.Size())
+    else // fallback to uniform random sampling
     {
-        const Uint32 salt0 = mSalt & INT32_MAX;
-        mSalt = XorShift(mSalt);
-        const Uint32 salt1 = mSalt & INT32_MAX;
-        mSalt = XorShift(mSalt);
-        const Uint32 salt2 = mSalt & INT32_MAX;
-        mSalt = XorShift(mSalt);
-
-        v = Vector4(Float3(mSeed.Data() + currentSample));
-        v += Vector4::FromIntegers(salt0, salt1, salt2, 0) * (1.0f / float(INT32_MAX));
-
-        // wrap
-        v = Vector4::Select(v, v - VECTOR_ONE, v >= VECTOR_ONE);
-    }
-    else
-    {
-        v = mFallbackGenerator.GetVector4();
+        sample = fallbackGenerator->GetInt();
     }
 
-    return v.ToFloat3();
-    */
-
-    return Float3{ GetFloat(), GetFloat(), GetFloat() };
+    return sample;
 }
 
 } // namespace rt

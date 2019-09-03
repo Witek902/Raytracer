@@ -242,6 +242,12 @@ bool DemoWindow::RenderUI_Settings()
         ImGui::TreePop();
     }
 
+    if (ImGui::TreeNode("Sampling"))
+    {
+        resetFrame |= RenderUI_Settings_Sampling();
+        ImGui::TreePop();
+    }
+
     if (ImGui::TreeNode("Adaptive Rendering"))
     {
         resetFrame |= RenderUI_Settings_AdaptiveRendering();
@@ -407,7 +413,6 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
     ImGui::SliderInt("Tile size", (int*)&tileSize, 2, 256);
 
-    resetFrame |= ImGui::SliderInt("Sample dimensions", (int*)&mRenderingParams.sampleDimensions, 0, 256);
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 200);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
@@ -416,6 +421,16 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
     mRenderingParams.lightSamplingStrategy = static_cast<LightSamplingStrategy>(lightSamplingStrategyIndex);
     mRenderingParams.tileSize = static_cast<Uint16>(tileSize);
+
+    return resetFrame;
+}
+
+bool DemoWindow::RenderUI_Settings_Sampling()
+{
+    bool resetFrame = false;
+
+    resetFrame |= ImGui::SliderInt("Sample dimensions", (int*)&mRenderingParams.samplingParams.dimensions, 0, 256);
+    resetFrame |= ImGui::Checkbox("Blue noise dithering", &mRenderingParams.samplingParams.useBlueNoiseDithering);
 
     return resetFrame;
 }

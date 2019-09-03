@@ -18,8 +18,8 @@ constexpr Float3::Float3(const float* src)
     : x(src[0]), y(src[1]), z(src[2])
 { }
 
-constexpr Float3::Float3(const Float2& src)
-    : x(src.x), y(src.y), z(0.0f)
+constexpr Float3::Float3(const Float2& src, const float z)
+    : x(src.x), y(src.y), z(z)
 { }
 
 constexpr Float3::Float3(float s)

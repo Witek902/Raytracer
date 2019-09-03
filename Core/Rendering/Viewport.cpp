@@ -39,7 +39,7 @@ void Viewport::InitThreadData()
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.randomGenerator.Reset();
-        ctx.sampler.mFallbackGenerator = &ctx.randomGenerator;
+        ctx.sampler.fallbackGenerator = &ctx.randomGenerator;
 
         if (mRenderer)
         {
@@ -122,10 +122,7 @@ void Viewport::Reset()
 
     mProgress = RenderingProgress();
 
-    if (mParams.sampleDimensions > 0)
-    {
-        mHaltonSequence.Initialize(mParams.sampleDimensions);
-    }
+    mHaltonSequence.Initialize(mParams.samplingParams.dimensions);
 
     mSum.Clear();
     mSecondarySum.Clear();
@@ -202,10 +199,10 @@ bool Viewport::Render(const Camera& camera)
     }
 
     mHaltonSequence.NextSample();
-    DynArray<float> seed(mHaltonSequence.GetNumDimensions());
+    DynArray<Uint32> seed(mHaltonSequence.GetNumDimensions());
     for (Uint32 i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
     {
-        seed[i] = (float)(mHaltonSequence.GetValue(i));
+        seed[i] = mHaltonSequence.GetInt(i);
     }
 
     for (Uint32 i = 0; i < mThreadData.Size(); ++i)
@@ -217,7 +214,8 @@ bool Viewport::Render(const Camera& camera)
 #ifndef RT_CONFIGURATION_FINAL
         ctx.pixelBreakpoint = mPendingPixelBreakpoint;
 #endif // RT_CONFIGURATION_FINAL
-        ctx.sampler.ResetFrame(seed);
+
+        ctx.sampler.ResetFrame(seed, ctx.params->samplingParams.useBlueNoiseDithering);
 
         mRenderer->PreRender(mProgress.passesFinished, ctx);
     }
@@ -323,7 +321,9 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 ctx.sampler.ResetPixel(x, y);
                 ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
-                ctx.wavelength.Randomize(ctx.randomGenerator);
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+                ctx.wavelength.Randomize(ctx.sampler.GetFloat());
+#endif // RT_ENABLE_SPECTRAL_RENDERING
 
                 // generate primary ray
                 const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
@@ -346,7 +346,9 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
     else if (ctx.params->traversalMode == TraversalMode::Packet)
     {
         ctx.time = ctx.randomGenerator.GetFloat() * ctx.params->motionBlurStrength;
-        ctx.wavelength.Randomize(ctx.randomGenerator);
+#ifdef RT_ENABLE_SPECTRAL_RENDERING
+        ctx.wavelength.Randomize(ctx.sampler.GetFloat());
+#endif // RT_ENABLE_SPECTRAL_RENDERING
 
         RayPacket& primaryPacket = ctx.rayPacket;
         primaryPacket.Clear();

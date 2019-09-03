@@ -21,7 +21,9 @@ public:
     RT_FORCE_INLINE Uint32 GetNumDimensions() const { return mDimensions; }
 
     RAYLIB_API void NextSample();
-    RT_FORCE_INLINE double GetValue(Uint32 dimension) { return rnd[dimension][0]; }
+
+    RT_FORCE_INLINE double GetDouble(Uint32 dimension) { return rnd[dimension][0]; }
+    RT_FORCE_INLINE Uint32 GetInt(Uint32 dimension) { return Uint32(rnd[dimension][0] * (double)UINT32_MAX); }
 
 private:
     Uint64 Permute(Uint32 i, Uint8 j);

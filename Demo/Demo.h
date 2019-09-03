@@ -113,6 +113,7 @@ private:
 
     bool RenderUI_Settings();
     bool RenderUI_Settings_Rendering();
+    bool RenderUI_Settings_Sampling();
     bool RenderUI_Settings_AdaptiveRendering();
     bool RenderUI_Settings_Camera();
     bool RenderUI_Settings_PostProcess();

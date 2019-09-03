@@ -106,7 +106,8 @@ const Ray Camera::GenerateRay(const Vector4& coords, RenderingContext& context) 
         const Vector4 right = transform[0];
         const Vector4 up = transform[1];
 
-        const Vector4 randomPointOnCircle = GenerateBokeh(context.sampler.GetFloat3()) * mDOF.aperture;
+        const Float3 sample{ context.sampler.GetFloat2(), 0.0f };
+        const Vector4 randomPointOnCircle = GenerateBokeh(sample) * mDOF.aperture;
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatX(), right, origin);
         origin = Vector4::MulAndAdd(randomPointOnCircle.SplatY(), up, origin);
 

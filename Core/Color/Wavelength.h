@@ -11,11 +11,6 @@
 
 namespace rt {
 
-namespace math
-{
-    class Random;
-}
-
 // Represents ray wavelength(s), randomized for primary rays
 struct Wavelength
 {
@@ -36,7 +31,7 @@ struct Wavelength
     bool isSingle = false;
 #endif
 
-    RAYLIB_API void Randomize(math::Random& rng);
+    RAYLIB_API void Randomize(float u);
 
     RT_FORCE_INLINE float GetBase() const
     {

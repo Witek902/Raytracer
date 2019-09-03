@@ -195,11 +195,14 @@ void HaltonSequence::Initialize(Uint32 dim)
     mStarts.Resize(mDimensions);
     mBase.Resize(mDimensions);
 
-    InitPrimes();
-    InitStart();
-    InitPowerBuffer();
-    InitPermutation();
-    InitExpansion();
+    if (mDimensions > 0)
+    {
+        InitPrimes();
+        InitStart();
+        InitPowerBuffer();
+        InitPermutation();
+        InitExpansion();
+    }
 }
 
 

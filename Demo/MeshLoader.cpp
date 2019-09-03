@@ -79,7 +79,7 @@ MaterialPtr LoadMaterial(const std::string& baseDir, const tinyobj::material_t& 
 {
     auto material = MaterialPtr(new Material);
 
-    material->SetBsdf("roughPlastic"); // TODO
+    material->SetBsdf("diffuse"); // TODO
     material->debugName = sourceMaterial.name;
     material->baseColor = Vector4(sourceMaterial.diffuse[0], sourceMaterial.diffuse[1], sourceMaterial.diffuse[2], 0.0f);
     material->emission.baseValue = Vector4(sourceMaterial.emission[0], sourceMaterial.emission[1], sourceMaterial.emission[2], 0.0f);
