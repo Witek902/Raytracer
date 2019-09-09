@@ -41,6 +41,6 @@ static void Benchmark_Matrix4_Multiply(benchmark::State& state)
         mat = mat * matC;
     }
 
-    fprintf(stderr, "det=%f\n", mat.Determinant());
+    benchmark::DoNotOptimize(mat);
 }
 BENCHMARK(Benchmark_Matrix4_Multiply);

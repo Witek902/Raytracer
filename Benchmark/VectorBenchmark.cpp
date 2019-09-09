@@ -17,7 +17,7 @@ static void Benchmark_Vector4_Normalize1(benchmark::State& state)
         vec.Normalize3();
     }
 
-    fprintf(stderr, "%f, %f, %f\n", vec.x, vec.y, vec.z);
+    benchmark::DoNotOptimize(vec);
 }
 BENCHMARK(Benchmark_Vector4_Normalize1);
 
@@ -36,12 +36,11 @@ static void Benchmark_Vector4_Normalize4(benchmark::State& state)
         vecC.Normalize3();
         vecD.Normalize3();
     }
-    benchmark::DoNotOptimize(vecA);
 
-    fprintf(stderr, "%f, %f, %f\n", vecA.x, vecA.y, vecA.z);
-    fprintf(stderr, "%f, %f, %f\n", vecB.x, vecB.y, vecB.z);
-    fprintf(stderr, "%f, %f, %f\n", vecC.x, vecC.y, vecC.z);
-    fprintf(stderr, "%f, %f, %f\n", vecD.x, vecD.y, vecD.z);
+    benchmark::DoNotOptimize(vecA);
+    benchmark::DoNotOptimize(vecB);
+    benchmark::DoNotOptimize(vecC);
+    benchmark::DoNotOptimize(vecD);
 }
 BENCHMARK(Benchmark_Vector4_Normalize4);
 
@@ -55,7 +54,7 @@ static void Benchmark_Vector4_FastNormalize1(benchmark::State& state)
         vec.FastNormalize3();
     }
 
-    fprintf(stderr, "%f, %f, %f\n", vec.x, vec.y, vec.z);
+    benchmark::DoNotOptimize(vec);
 }
 BENCHMARK(Benchmark_Vector4_FastNormalize1);
 
@@ -74,11 +73,10 @@ static void Benchmark_Vector4_FastNormalize4(benchmark::State& state)
         vecC.FastNormalize3();
         vecD.FastNormalize3();
     }
-    benchmark::DoNotOptimize(vecA);
 
-    fprintf(stderr, "%f, %f, %f\n", vecA.x, vecA.y, vecA.z);
-    fprintf(stderr, "%f, %f, %f\n", vecB.x, vecB.y, vecB.z);
-    fprintf(stderr, "%f, %f, %f\n", vecC.x, vecC.y, vecC.z);
-    fprintf(stderr, "%f, %f, %f\n", vecD.x, vecD.y, vecD.z);
+    benchmark::DoNotOptimize(vecA);
+    benchmark::DoNotOptimize(vecB);
+    benchmark::DoNotOptimize(vecC);
+    benchmark::DoNotOptimize(vecD);
 }
 BENCHMARK(Benchmark_Vector4_FastNormalize4);

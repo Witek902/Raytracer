@@ -56,20 +56,6 @@ const Vector4 SamplingHelpers::GetHexagon(const Float3 u)
     return Vector4(u.x * a.x + u.y * b.x, u.x * a.y + u.y * b.y, 0.0f, 0.0f);
 }
 
-const Vector2x8 SamplingHelpers::GetHexagon_Simd8(const Vector2x8& u1, const Vector8& u2)
-{
-    // TODO uint vector
-    const VectorInt8 i = VectorInt8::Convert(3.0f * u2);
-    const VectorInt8 j = i + 1;
-
-    const Vector8 hexVectorsX(-1.0f, 0.5f, 0.5f, -1.0f, -1.0f, 0.5f, 0.5f, -1.0f);
-    const Vector8 hexVectorsY(0.0f, 0.8660254f, -0.8660254f, 0.0f, 0.0f, 0.8660254f, -0.8660254f, 0.0f);
-    const Vector2x8 x{ _mm256_permutevar_ps(hexVectorsX, i), _mm256_permutevar_ps(hexVectorsX, j) };
-    const Vector2x8 y{ _mm256_permutevar_ps(hexVectorsY, i), _mm256_permutevar_ps(hexVectorsY, j) };
-
-    return { Vector2x8::Dot(u1, x), Vector2x8::Dot(u1, y) };
-}
-
 /*
 const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4& u)
 {

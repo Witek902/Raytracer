@@ -21,8 +21,6 @@ static void Benchmark_Geometry_BuildOrthonormalBasis(benchmark::State& state)
         x = (u + v).Normalized3();
     }
     benchmark::DoNotOptimize(x);
-
-    printf("%f", x.x);
 }
 BENCHMARK(Benchmark_Geometry_BuildOrthonormalBasis);
 
@@ -67,7 +65,5 @@ static void Benchmark_Geometry_RayTriIntersection(benchmark::State& state)
         i++;
     }
     benchmark::DoNotOptimize(tmin);
-
-    printf("%f", tmin);
 }
 BENCHMARK(Benchmark_Geometry_RayTriIntersection);

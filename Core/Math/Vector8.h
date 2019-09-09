@@ -13,10 +13,9 @@ namespace math {
 struct RT_ALIGN(32) Vector8
 {
     // constructors
-    RT_FORCE_INLINE Vector8() = default;
+    RT_FORCE_INLINE Vector8();
     RT_FORCE_INLINE Vector8(const Vector8& other);
     RT_FORCE_INLINE static const Vector8 Zero();
-    RT_FORCE_INLINE Vector8(const __m256& m);
     RT_FORCE_INLINE explicit Vector8(const Vector4& lo);
     RT_FORCE_INLINE Vector8(const Vector4& lo, const Vector4& hi);
     RT_FORCE_INLINE explicit Vector8(const float scalar);
@@ -33,22 +32,19 @@ struct RT_ALIGN(32) Vector8
     template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
     RT_FORCE_INLINE const Vector8 Swizzle() const;
 
+#ifdef RT_USE_AVX
+    RT_FORCE_INLINE Vector8(const __m256 & m);
     RT_FORCE_INLINE operator __m256() const { return v; }
     RT_FORCE_INLINE operator __m256i() const { return reinterpret_cast<const __m256i*>(&v)[0]; }
+#endif // RT_USE_AVX
+
     RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
     RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
 
     // extract lower lanes
-    RT_FORCE_INLINE const Vector4 Low() const
-    {
-        return Vector4(_mm256_extractf128_ps(v, 0));
-    }
-
+    RT_FORCE_INLINE const Vector4 Low() const;
     // extract higher lanes
-    RT_FORCE_INLINE const Vector4 High() const
-    {
-        return Vector4(_mm256_extractf128_ps(v, 1));
-    }
+    RT_FORCE_INLINE const Vector4 High() const;
 
     // simple arithmetics
     RT_FORCE_INLINE const Vector8 operator - () const;
@@ -64,6 +60,7 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE Vector8& operator /= (const Vector8& b);
     RT_FORCE_INLINE Vector8& operator *= (float b);
     RT_FORCE_INLINE Vector8& operator /= (float b);
+    friend const Vector8 operator * (float a, const Vector8& b);
 
     // comparison operators (returns true, if all the elements satisfy the equation)
     RT_FORCE_INLINE const VectorBool8 operator == (const Vector8& b) const;
@@ -95,8 +92,11 @@ struct RT_ALIGN(32) Vector8
     // Build mask of sign bits.
     RT_FORCE_INLINE Int32 GetSignMask() const;
 
-    // For each vector component, copy value from "a" if "sel" > 0.0f, or from "b" otherwise.
+    // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise.
     RT_FORCE_INLINE static const Vector8 Select(const Vector8& a, const Vector8& b, const VectorBool8& sel);
+
+    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+    RT_FORCE_INLINE static const Vector8 Select(const Vector8& a, const Vector8& b);
 
     // Check if the vector is equal to zero
     RT_FORCE_INLINE bool IsZero() const;
@@ -137,16 +137,26 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE static const Vector8 Fmod1(const Vector8& x);
 
     // transpose 8x8 matrix
-    RT_FORCE_INLINE static void Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, Vector8& v4, Vector8& v5, Vector8& v6, Vector8& v7);
+    //RT_FORCE_INLINE static void Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, Vector8& v4, Vector8& v5, Vector8& v6, Vector8& v7);
 
 private:
+
+    friend struct VectorInt8;
 
     union
     {
         float f[8];
         Int32 i[8];
         Uint32 u[8];
+#ifdef RT_USE_AVX
         __m256 v;
+#else
+        struct
+        {
+            Vector4 low;
+            Vector4 high;
+        };
+#endif // RT_USE_AVX
     };
 };
 
@@ -174,4 +184,10 @@ RT_GLOBAL_CONST Vector8 VECTOR8_255 = { 255.0f, 255.0f, 255.0f, 255.0f, 255.0f, 
 } // namespace math
 } // namespace rt
 
-#include "Vector8Impl.h"
+#ifdef RT_USE_AVX
+#include "Vector8ImplAVX.h"
+#else
+#include "Vector8ImplNaive.h"
+#endif // RT_USE_AVX
+
+#include "Vector8ImplCommon.h"

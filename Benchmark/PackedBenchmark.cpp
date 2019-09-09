@@ -20,8 +20,6 @@ static void Benchmark_Packed_UnitVector(benchmark::State& state)
         x = packed.ToVector();
     }
     benchmark::DoNotOptimize(x);
-
-    printf("%f", x.x);
 }
 BENCHMARK(Benchmark_Packed_UnitVector);
 
@@ -38,7 +36,5 @@ static void Benchmark_Packed_ColorRgbHdr(benchmark::State& state)
         x = packed.ToVector();
     }
     benchmark::DoNotOptimize(x);
-
-    printf("%f", x.x);
 }
 BENCHMARK(Benchmark_Packed_ColorRgbHdr);

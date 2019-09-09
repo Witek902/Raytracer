@@ -62,9 +62,15 @@
 #error "Target system not supported!"
 #endif // defined(WIN32)
 
-#define RT_PREFETCH_L1(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0);
-#define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1);
-#define RT_PREFETCH_L3(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T2);
+#ifdef RT_USE_SSE
+#define RT_PREFETCH_L1(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T0)
+#define RT_PREFETCH_L2(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T1)
+#define RT_PREFETCH_L3(addr) _mm_prefetch((const char*)(addr), _MM_HINT_T2)
+#else // !RT_USE_SSE
+#define RT_PREFETCH_L1(addr)
+#define RT_PREFETCH_L2(addr)
+#define RT_PREFETCH_L3(addr)
+#endif // RT_USE_SSE
 
 // fatal error
 #if defined(WIN32)

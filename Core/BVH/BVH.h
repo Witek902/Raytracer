@@ -39,13 +39,13 @@ public:
         {
             math::Box_Simd8 ret;
 
-            ret.min.x = _mm256_broadcast_ss(&min.x);
-            ret.min.y = _mm256_broadcast_ss(&min.y);
-            ret.min.z = _mm256_broadcast_ss(&min.z);
+            ret.min.x = math::Vector8(min.x);
+            ret.min.y = math::Vector8(min.y);
+            ret.min.z = math::Vector8(min.z);
 
-            ret.max.x = _mm256_broadcast_ss(&max.x);
-            ret.max.y = _mm256_broadcast_ss(&max.y);
-            ret.max.z = _mm256_broadcast_ss(&max.z);
+            ret.max.x = math::Vector8(max.x);
+            ret.max.y = math::Vector8(max.y);
+            ret.max.z = math::Vector8(max.z);
 
             return ret;
         }

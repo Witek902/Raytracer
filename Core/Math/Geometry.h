@@ -42,13 +42,13 @@ RT_FORCE_INLINE constexpr float SphereCapPdf(const float cosTheta)
 // Given a normalized vector 'n', generate orthonormal vectors 'u' and 'v'
 RAYLIB_API void BuildOrthonormalBasis(const Vector4& n, Vector4& u, Vector4& v);
 
-RT_INLINE float PointLineDistanceSqr(const Vector4& pointOnLine, const Vector4& lineDir, const Vector4& testPoint)
+RT_FORCE_INLINE float PointLineDistanceSqr(const Vector4& pointOnLine, const Vector4& lineDir, const Vector4& testPoint)
 {
     const Vector4 t = testPoint - pointOnLine;
     return Vector4::Cross3(lineDir, t).SqrLength3() / lineDir.SqrLength3();
 }
 
-RT_INLINE float TriangleSurfaceArea(const Vector4& edge0, const Vector4& edge1)
+RT_FORCE_INLINE float TriangleSurfaceArea(const Vector4& edge0, const Vector4& edge1)
 {
     const Vector4 cross = Vector4::Cross3(edge1, edge0);
     return cross.Length3() * 0.5f;
@@ -56,22 +56,20 @@ RT_INLINE float TriangleSurfaceArea(const Vector4& edge0, const Vector4& edge1)
 
 RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& outDistance)
 {
-    // The algorithm is based on "slabs" method. More info can be found here:
-    // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
-
     // calculate all box planes distances
     Vector4 tmp1 = Vector4::MulAndSub(box.min, ray.invDir, ray.originDivDir); // box.min * ray.invDir - ray.originDivDir;
     Vector4 tmp2 = Vector4::MulAndSub(box.max, ray.invDir, ray.originDivDir); // box.max * ray.invDir - ray.originDivDir;
     Vector4 lmin = Vector4::Min(tmp1, tmp2);
     Vector4 lmax = Vector4::Max(tmp1, tmp2);
 
+#ifdef RT_USE_SSE
+
     // transpose (we need to calculate min and max of X, Y and Z)
     Vector4 lx = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(0, 0, 0, 0));
     Vector4 ly = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(1, 1, 1, 1));
     Vector4 lz = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(2, 2, 2, 2));
 
-    // calculate minimum and maximum plane distances by taking min and max
-    // of all 3 components
+    // calculate minimum and maximum plane distances by taking min and max of all 3 components
     lmin = Vector4::Max(lx, Vector4::Max(ly, lz));
     lmax = Vector4::Min(lx, Vector4::Min(ly, lz));
     outDistance = lmin.x;
@@ -86,31 +84,47 @@ RT_FORCE_INLINE bool Intersect_BoxRay(const Ray& ray, const Box& box, float& out
     // The check below is a little bit redundant (we perform 4 comparisons), so
     // all 4 comparisons must return success (that's why we check if mask is 0xF).
     return (lmax >= lmin).All();
+
+#else // !RT_USE_SSE
+
+    // calculate minimum and maximum plane distances by taking min and max of all 3 components
+    const float minDist = Max(lmin.x, Max(lmin.y, lmin.z));
+    const float maxDist = Min(lmax.x, Min(lmax.y, lmax.z));
+    outDistance = minDist;
+
+    return (maxDist >= minDist) && (maxDist >= 0.0f);
+
+#endif // RT_USE_SSE
 }
 
 RT_FORCE_INLINE bool Intersect_BoxRay_TwoSided(const Ray& ray, const Box& box, float& outNearDist, float& outFarDist)
 {
-    // The algorithm is based on "slabs" method. More info can be found here:
-    // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
-
     // calculate all box planes distances
     Vector4 tmp1 = Vector4::MulAndSub(box.min, ray.invDir, ray.originDivDir); // box.min * ray.invDir - ray.originDivDir;
     Vector4 tmp2 = Vector4::MulAndSub(box.max, ray.invDir, ray.originDivDir); // box.max * ray.invDir - ray.originDivDir;
     Vector4 lmin = Vector4::Min(tmp1, tmp2);
     Vector4 lmax = Vector4::Max(tmp1, tmp2);
 
+#ifdef RT_USE_SSE
+
     // transpose (we need to calculate min and max of X, Y and Z)
     Vector4 lx = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(0, 0, 0, 0));
     Vector4 ly = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(1, 1, 1, 1));
     Vector4 lz = _mm_shuffle_ps(lmin, lmax, _MM_SHUFFLE(2, 2, 2, 2));
 
-    // calculate minimum and maximum plane distances by taking min and max
-    // of all 3 components
+    // calculate minimum and maximum plane distances by taking min and max of all 3 components
     lmin = Vector4::Max(lx, Vector4::Max(ly, lz));
     lmax = Vector4::Min(lx, Vector4::Min(ly, lz));
 
     outNearDist = lmin.x;
     outFarDist  = lmax.z;
+
+#else // !RT_USE_SSE
+
+    outNearDist = Max(lmin.x, Max(lmin.y, lmin.z));
+    outFarDist  = Min(lmax.x, Min(lmax.y, lmax.z));
+
+#endif // RT_USE_SSE
 
     return outNearDist < outFarDist;
 }
@@ -124,20 +138,14 @@ RT_FORCE_INLINE bool Intersect_TriangleRay(
 
     // calculate distance from vert0 to ray origin
     Vector4 tvec = ray.origin - vertex0;
-
-    // begin calculating determinant - also used to calculate U parameter
     Vector4 pvec = Vector4::Cross3(ray.dir, edge02);
-    // if determinant is near zero, ray lies in plane of triangle
-    Vector4 det = Vector4::Dot3V(edge01, pvec);
-    // calculate U parameter
-    Vector4 u = Vector4::Dot3V(tvec, pvec);
-
-
-    // prepare to test V parameter
     Vector4 qvec = Vector4::Cross3(tvec, edge01);
-    // calculate V parameter
+
+#ifdef RT_USE_SSE
+
+    Vector4 det = Vector4::Dot3V(edge01, pvec);
+    Vector4 u = Vector4::Dot3V(tvec, pvec);
     Vector4 v = Vector4::Dot3V(ray.dir, qvec);
-    // calculate t (distance)
     Vector4 t = Vector4::Dot3V(edge02, qvec);
 
     // prepare data to the final comparison
@@ -157,6 +165,27 @@ RT_FORCE_INLINE bool Intersect_TriangleRay(
     // so when performing SSE comparison 3 upper components must return true,
     // and last false, which yields to 0xE bit mask.
     return (tmp1 > tmp2).GetMask() == 0xE;
+
+#else // !RT_USE_SSE
+
+    // if determinant is near zero, ray lies in plane of triangle
+    float det = Vector4::Dot3(edge01, pvec);
+
+    float u = Vector4::Dot3(tvec, pvec);
+    float v = Vector4::Dot3(ray.dir, qvec);
+    float t = Vector4::Dot3(edge02, qvec);
+
+    u /= det;
+    v /= det;
+    t /= det;
+
+    outU = u;
+    outV = v;
+    outDistance = t;
+
+    return u >= 0.0f && v >= 0.0f && t >= 0.0f && u + v <= 1.0f;
+
+#endif // RT_USE_SSE
 }
 
 

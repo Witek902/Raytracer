@@ -180,7 +180,6 @@ TEST(MathTest, VectorInt4_VectorNotEqual)
 
 //////////////////////////////////////////////////////////////////////////
 
-/*
 TEST(MathTest, VectorInt4_VectorSwizzle)
 {
     const VectorInt4 v(0, 1, 2, 3);
@@ -464,24 +463,4 @@ TEST(MathTest, VectorInt4_VectorSwizzle)
         EXPECT_TRUE((VectorInt4(3, 3, 3, 2) == (v.Swizzle<3, 3, 3, 2>())).All());
         EXPECT_TRUE((VectorInt4(3, 3, 3, 3) == (v.Swizzle<3, 3, 3, 3>())).All());
     }
-}
-*/
-
-//////////////////////////////////////////////////////////////////////////
-
-TEST(MathTest, VectorInt4_SetIfEqual)
-{
-    const VectorInt4 v(1, 2, 3, 4);
-
-    EXPECT_TRUE((VectorInt4(~0, 2, 3, 4) == v.SetIfGreaterOrEqual(VectorInt4(1, 9, 9, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, ~0, 3, 4) == v.SetIfGreaterOrEqual(VectorInt4(9, 2, 9, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, 2, ~0, 4) == v.SetIfGreaterOrEqual(VectorInt4(9, 9, 3, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, 2, 3, ~0) == v.SetIfGreaterOrEqual(VectorInt4(9, 9, 9, 4), VectorInt4(~0, ~0, ~0, ~0))).All());
-
-    EXPECT_TRUE((VectorInt4(~0, 2, 3, 4) == v.SetIfGreaterOrEqual(VectorInt4(0, 9, 9, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, ~0, 3, 4) == v.SetIfGreaterOrEqual(VectorInt4(9, 1, 9, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, 2, ~0, 4) == v.SetIfGreaterOrEqual(VectorInt4(9, 9, 2, 9), VectorInt4(~0, ~0, ~0, ~0))).All());
-    EXPECT_TRUE((VectorInt4(1, 2, 3, ~0) == v.SetIfGreaterOrEqual(VectorInt4(9, 9, 9, 3), VectorInt4(~0, ~0, ~0, ~0))).All());
-
-    EXPECT_TRUE((v == v.SetIfGreaterOrEqual(VectorInt4(2, 3, 4, 5), VectorInt4(~0, ~0, ~0, ~0))).All());
 }

@@ -23,7 +23,6 @@ public:
     // get point on a regular hexagon
     // Note: 3 sample components are required
     RAYLIB_API static const Vector4 GetHexagon(const Float3 u);
-    RAYLIB_API static const Vector2x8 GetHexagon_Simd8(const Vector2x8& u1, const Vector8& u2);
 
     // TODO
     /*

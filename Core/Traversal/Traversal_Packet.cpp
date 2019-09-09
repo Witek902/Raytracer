@@ -130,15 +130,15 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const Vector3x8 rayOriginDivDirC = rayGroupC.rays[traversalDepth].origin * rayGroupC.rays[traversalDepth].invDir;
         const Vector3x8 rayOriginDivDirD = rayGroupD.rays[traversalDepth].origin * rayGroupD.rays[traversalDepth].invDir;
 
-        const Vector8 maskA = Intersect_BoxRay_Simd8(rayGroupA.rays[traversalDepth].invDir, rayOriginDivDirA, box, rayGroupA.maxDistances, distance);
-        const Vector8 maskB = Intersect_BoxRay_Simd8(rayGroupB.rays[traversalDepth].invDir, rayOriginDivDirB, box, rayGroupB.maxDistances, distance);
-        const Vector8 maskC = Intersect_BoxRay_Simd8(rayGroupC.rays[traversalDepth].invDir, rayOriginDivDirC, box, rayGroupC.maxDistances, distance);
-        const Vector8 maskD = Intersect_BoxRay_Simd8(rayGroupD.rays[traversalDepth].invDir, rayOriginDivDirD, box, rayGroupD.maxDistances, distance);
+        const VectorBool8 maskA = Intersect_BoxRay_Simd8(rayGroupA.rays[traversalDepth].invDir, rayOriginDivDirA, box, rayGroupA.maxDistances, distance);
+        const VectorBool8 maskB = Intersect_BoxRay_Simd8(rayGroupB.rays[traversalDepth].invDir, rayOriginDivDirB, box, rayGroupB.maxDistances, distance);
+        const VectorBool8 maskC = Intersect_BoxRay_Simd8(rayGroupC.rays[traversalDepth].invDir, rayOriginDivDirC, box, rayGroupC.maxDistances, distance);
+        const VectorBool8 maskD = Intersect_BoxRay_Simd8(rayGroupD.rays[traversalDepth].invDir, rayOriginDivDirD, box, rayGroupD.maxDistances, distance);
 
-        const Uint32 intMaskA = maskA.GetSignMask();
-        const Uint32 intMaskB = maskB.GetSignMask();
-        const Uint32 intMaskC = maskC.GetSignMask();
-        const Uint32 intMaskD = maskD.GetSignMask();
+        const Uint32 intMaskA = maskA.GetMask();
+        const Uint32 intMaskB = maskB.GetMask();
+        const Uint32 intMaskC = maskC.GetMask();
+        const Uint32 intMaskD = maskD.GetMask();
 
         const Uint32 intMaskCombined = (intMaskA | (intMaskB << 8u)) | ((intMaskC << 16u) | (intMaskD << 24u));
         *reinterpret_cast<Uint32*>(context.activeRaysMask + i) = intMaskCombined;
@@ -152,8 +152,8 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const RayGroup& rayGroup = packet.groups[context.activeGroupsIndices[i]];
         const Vector3x8 rayOriginDivDir = rayGroup.rays[traversalDepth].origin * rayGroup.rays[traversalDepth].invDir;
 
-        const Vector8 mask = Intersect_BoxRay_Simd8(rayGroup.rays[traversalDepth].invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
-        const Uint32 intMask = mask.GetSignMask();
+        const VectorBool8 mask = Intersect_BoxRay_Simd8(rayGroup.rays[traversalDepth].invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
+        const Uint32 intMask = mask.GetMask();
         context.activeRaysMask[i] = (Uint8)intMask;
         raysHit += PopCount(intMask);
     }

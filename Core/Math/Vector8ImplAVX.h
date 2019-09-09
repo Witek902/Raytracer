@@ -5,6 +5,8 @@ namespace math {
 
 // Constructors ===================================================================================
 
+Vector8::Vector8() = default;
+
 const Vector8 Vector8::Zero()
 {
     return _mm256_setzero_ps();
@@ -70,9 +72,16 @@ const Vector8 Vector8::Select(const Vector8& a, const Vector8& b, const VectorBo
     return _mm256_blendv_ps(a, b, sel.v);
 }
 
-bool Vector8::AlmostEqual(const Vector8& v1, const Vector8& v2, float epsilon)
+template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+const Vector8 Vector8::Select(const Vector8& a, const Vector8& b)
 {
-    return (Abs(v1 - v2) < Vector8(epsilon)).All();
+    static_assert(selX <= 1, "Invalid X index");
+    static_assert(selY <= 1, "Invalid Y index");
+    static_assert(selZ <= 1, "Invalid Z index");
+    static_assert(selW <= 1, "Invalid W index");
+
+    constexpr Uint32 maskLow = selX | (selY << 1) | (selZ << 2) | (selW << 3);
+    return _mm256_blend_ps(a, b, maskLow | (maskLow << 4));
 }
 
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
@@ -84,6 +93,18 @@ const Vector8 Vector8::Swizzle() const
     static_assert(iw < 4, "Invalid W element index");
 
     return _mm256_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
+}
+
+// extract lower lanes
+const Vector4 Vector8::Low() const
+{
+    return Vector4(_mm256_extractf128_ps(v, 0));
+}
+
+// extract higher lanes
+const Vector4 Vector8::High() const
+{
+    return Vector4(_mm256_extractf128_ps(v, 1));
 }
 
 // Logical operations =============================================================================
@@ -236,26 +257,6 @@ const Vector8 Vector8::NegMulAndSub(const Vector8& a, const Vector8& b, const Ve
 #endif
 }
 
-const Vector8 Vector8::MulAndAdd(const Vector8& a, const float b, const Vector8& c)
-{
-    return MulAndAdd(a, Vector8(b), c);
-}
-
-const Vector8 Vector8::MulAndSub(const Vector8& a, const float b, const Vector8& c)
-{
-    return MulAndSub(a, Vector8(b), c);
-}
-
-const Vector8 Vector8::NegMulAndAdd(const Vector8& a, const float b, const Vector8& c)
-{
-    return NegMulAndAdd(a, Vector8(b), c);
-}
-
-const Vector8 Vector8::NegMulAndSub(const Vector8& a, const float b, const Vector8& c)
-{
-    return NegMulAndSub(a, Vector8(b), c);
-}
-
 const Vector8 Vector8::Floor(const Vector8& V)
 {
     Vector8 vResult = _mm256_sub_ps(V, _mm256_set1_ps(0.49999f));
@@ -282,16 +283,6 @@ const Vector8 Vector8::FastReciprocal(const Vector8& v)
     return NegMulAndAdd(rcpSqr, v, rcp2);
 }
 
-const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, const Vector8& weight)
-{
-    return MulAndAdd(v2 - v1, weight, v1);
-}
-
-const Vector8 Vector8::Lerp(const Vector8& v1, const Vector8& v2, float weight)
-{
-    return MulAndAdd(v2 - v1, weight, v1);
-}
-
 const Vector8 Vector8::Min(const Vector8& a, const Vector8& b)
 {
     return _mm256_min_ps(a, b);
@@ -305,11 +296,6 @@ const Vector8 Vector8::Max(const Vector8& a, const Vector8& b)
 const Vector8 Vector8::Abs(const Vector8& v)
 {
     return _mm256_and_ps(v, VECTOR8_MASK_ABS);
-}
-
-const Vector8 Vector8::Clamped(const Vector8& min, const Vector8& max) const
-{
-    return Min(max, Max(min, *this));
 }
 
 Int32 Vector8::GetSignMask() const
@@ -331,6 +317,7 @@ const Vector8 Vector8::Fmod1(const Vector8& x)
     return _mm256_sub_ps(x, _mm256_round_ps(x, _MM_FROUND_TO_ZERO));
 }
 
+/*
 void Vector8::Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, Vector8& v4, Vector8& v5, Vector8& v6, Vector8& v7)
 {
     const __m256 t0 = _mm256_unpacklo_ps(v0, v1);
@@ -376,6 +363,7 @@ void Vector8::Transpose8x8(Vector8& v0, Vector8& v1, Vector8& v2, Vector8& v3, V
     v6 = _mm256_permute2f128_ps(tt2, tt6, 0x31);
     v7 = _mm256_permute2f128_ps(tt3, tt7, 0x31);
 }
+*/
 
 // Comparison functions ===========================================================================
 
@@ -428,11 +416,6 @@ bool Vector8::IsInfinite() const
     // Compare to infinity
     temp = _mm256_cmp_ps(temp, VECTOR8_INF, _CMP_EQ_OQ);
     return _mm256_movemask_ps(temp) != 0;
-}
-
-bool Vector8::IsValid() const
-{
-    return !IsNaN() && !IsInfinite();
 }
 
 } // namespace math

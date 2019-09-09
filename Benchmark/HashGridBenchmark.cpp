@@ -43,6 +43,6 @@ static void Benchmark_HashGrid_Collect(benchmark::State& state)
         grid.Process(queryPoint, particles, query);
     }
 
-    printf("%u\n", query.dummy);
+    benchmark::DoNotOptimize(query);
 }
 BENCHMARK(Benchmark_HashGrid_Collect);

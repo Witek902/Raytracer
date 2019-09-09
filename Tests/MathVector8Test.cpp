@@ -4,6 +4,11 @@
 
 using namespace rt::math;
 
+TEST(MathTest, Vector8_Constructor0)
+{
+    const Vector8 v;
+}
+
 TEST(MathTest, Vector8_Constructor1)
 {
     const Vector8 v(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
@@ -49,6 +54,7 @@ TEST(MathTest, Vector8_ConstructorHiLow)
     EXPECT_EQ(8.0f, v[7]);
 }
 
+/*
 TEST(MathTest, Vector8_Transpose8x8)
 {
     Vector8 v0(00.0f, 01.0f, 02.0f, 03.0f, 04.0f, 05.0f, 06.0f, 07.0f);
@@ -71,6 +77,7 @@ TEST(MathTest, Vector8_Transpose8x8)
     EXPECT_TRUE((Vector8(06.0f, 16.0f, 26.0f, 36.0f, 46.0f, 56.0f, 66.0f, 76.0f) == v6).All());
     EXPECT_TRUE((Vector8(07.0f, 17.0f, 27.0f, 37.0f, 47.0f, 57.0f, 67.0f, 77.0f) == v7).All());
 }
+*/
 
 TEST(MathTest, Vector8Bool_Get)
 {

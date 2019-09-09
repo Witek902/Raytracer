@@ -42,10 +42,16 @@ public:
     // splat single 3D vector
     RT_FORCE_INLINE explicit Vector3x8(const Vector4& v)
     {
-        const Vector8 temp(v, v); // copy "v" onto both AVX lanes
+#ifdef RT_USE_AVX
+        const Vector8 temp{ v, v }; // copy "v" onto both AVX lanes
         x = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(0, 0, 0, 0));
         y = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 1, 1, 1));
         z = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(2, 2, 2, 2));
+#else
+        x = Vector8{ v.x };
+        y = Vector8{ v.y };
+        z = Vector8{ v.z };
+#endif // RT_USE_AVX
     }
 
     // splat single scalar to all components an elements
@@ -83,6 +89,8 @@ public:
         //
         // note that "w" component is dropped
 
+#ifdef RT_USE_AVX
+
         const __m256 t0 = _mm256_unpacklo_ps(Vector8(v0), Vector8(v1));
         const __m256 t1 = _mm256_unpackhi_ps(Vector8(v0), Vector8(v1));
         const __m256 t2 = _mm256_unpacklo_ps(Vector8(v2), Vector8(v3));
@@ -100,11 +108,21 @@ public:
         x = _mm256_permute2f128_ps(tt0, tt4, 0x20);
         y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
         z = _mm256_permute2f128_ps(tt2, tt6, 0x20);
+
+#else // !RT_USE_AVX
+
+        x = Vector8{ v0.x, v1.x, v2.x, v3.x, v4.x, v5.x, v6.x, v7.x };
+        y = Vector8{ v0.y, v1.y, v2.y, v3.y, v4.y, v5.y, v6.y, v7.y };
+        z = Vector8{ v0.z, v1.z, v2.z, v3.z, v4.z, v5.z, v6.z, v7.z };
+
+#endif // RT_USE_AVX
     }
 
     // unpack to 8x Vector4
     RT_FORCE_INLINE void Unpack(Vector4 output[8]) const
     {
+#ifdef RT_USE_AVX
+
         __m256 row0 = x;
         __m256 row1 = y;
         __m256 row2 = z;
@@ -128,6 +146,15 @@ public:
         output[5] = _mm256_extractf128_ps(row1, 1);
         output[6] = _mm256_extractf128_ps(row2, 1);
         output[7] = _mm256_extractf128_ps(row3, 1);
+
+#else // !RT_USE_AVX
+
+        for (Uint32 i = 0; i < 8; ++i)
+        {
+            output[i] = Vector4(x[i], y[i], z[i]);
+        }
+
+#endif // RT_USE_AVX
     }
 
     //////////////////////////////////////////////////////////////////////////

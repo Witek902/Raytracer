@@ -53,18 +53,18 @@ public:
 
     RT_FORCE_INLINE Matrix4(const Matrix4& other)
     {
-        rows[0].v = other.rows[0].v;
-        rows[1].v = other.rows[1].v;
-        rows[2].v = other.rows[2].v;
-        rows[3].v = other.rows[3].v;
+        rows[0] = other.rows[0];
+        rows[1] = other.rows[1];
+        rows[2] = other.rows[2];
+        rows[3] = other.rows[3];
     }
 
     RT_FORCE_INLINE Matrix4& operator = (const Matrix4& other)
     {
-        rows[0].v = other.rows[0].v;
-        rows[1].v = other.rows[1].v;
-        rows[2].v = other.rows[2].v;
-        rows[3].v = other.rows[3].v;
+        rows[0] = other.rows[0];
+        rows[1] = other.rows[1];
+        rows[2] = other.rows[2];
+        rows[3] = other.rows[3];
         return *this;
     }
 
@@ -192,12 +192,20 @@ public:
 
     RT_FORCE_INLINE Matrix4& Transpose()
     {
+#ifdef RT_USE_SSE
         Vector4& row0 = rows[0];
         Vector4& row1 = rows[1];
         Vector4& row2 = rows[2];
         Vector4& row3 = rows[3];
-
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
+#else // !RT_USE_SSE
+        std::swap(rows[0][1], rows[1][0]);
+        std::swap(rows[0][2], rows[2][0]);
+        std::swap(rows[0][3], rows[3][0]);
+        std::swap(rows[1][2], rows[2][1]);
+        std::swap(rows[1][3], rows[3][1]);
+        std::swap(rows[2][3], rows[3][2]);
+#endif // RT_USE_SSE
 
         return *this;
     }
@@ -209,7 +217,16 @@ public:
         Vector4 row2 = rows[2];
         Vector4 row3 = rows[3];
 
+#ifdef RT_USE_SSE
         _MM_TRANSPOSE4_PS(row0, row1, row2, row3);
+#else // !RT_USE_SSE
+        std::swap(row0[1], row1[0]);
+        std::swap(row0[2], row2[0]);
+        std::swap(row0[3], row3[0]);
+        std::swap(row1[2], row2[1]);
+        std::swap(row1[3], row3[1]);
+        std::swap(row2[3], row3[2]);
+#endif // RT_USE_SSE
 
         return Matrix4(row0, row1, row2, row3);
     }

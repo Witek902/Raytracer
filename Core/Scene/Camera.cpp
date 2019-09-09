@@ -225,8 +225,8 @@ const Vector2x8 Camera::GenerateBokeh_Simd8(RenderingContext& context) const
     {
         case BokehShape::Circle:
             return SamplingHelpers::GetCircle_Simd8(u);
-        case BokehShape::Hexagon:
-            return SamplingHelpers::GetHexagon_Simd8(u, context.randomGenerator.GetVector8());
+        //case BokehShape::Hexagon:
+        //    return SamplingHelpers::GetHexagon_Simd8(u, context.randomGenerator.GetVector8());
         case BokehShape::Square:
             return 2.0f * u - Vector2x8(1.0f);
         //TODO

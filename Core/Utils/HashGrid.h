@@ -137,8 +137,7 @@ public:
             // prefetch all the particles up front
             for (Uint32 j = rangeStart; j < rangeEnd; ++j)
             {
-                const ParticleType& particle = particles[mIndices[j]];
-                RT_PREFETCH_L1(&particle);
+                RT_PREFETCH_L1(&particles[mIndices[j]]);
             }
 
             for (Uint32 j = rangeStart; j < rangeEnd; ++j)

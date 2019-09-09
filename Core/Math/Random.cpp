@@ -88,10 +88,26 @@ VectorInt4 Random::GetIntVector4()
     // xorshift128+ algorithm
     const VectorInt4 s0 = mSeedSimd4[1];
     VectorInt4 s1 = mSeedSimd4[0];
+
+    // TODO introduce Vector2ul
+#ifdef RT_USE_SSE
     VectorInt4 v = _mm_add_epi64(s0, s1);
     s1 = _mm_slli_epi64(s1, 23);
     const VectorInt4 t0 = _mm_srli_epi64(s0, 5);
     const VectorInt4 t1 = _mm_srli_epi64(s1, 18);
+#else
+    VectorInt4 v;
+    v.i64[0] = s0.i64[0] + s1.i64[0];
+    v.i64[1] = s0.i64[1] + s1.i64[1];
+    s1.i64[0] <<= 23;
+    s1.i64[1] <<= 23;
+    VectorInt4 t0, t1;
+    t0.i64[0] = s0.i64[0] >> 5;
+    t0.i64[1] = s0.i64[1] >> 5;
+    t1.i64[0] = s1.i64[0] >> 5;
+    t1.i64[1] = s1.i64[1] >> 5;
+#endif
+
     mSeedSimd4[0] = s0;
     mSeedSimd4[1] = (s0 ^ s1) ^ (t0 ^ t1);
     return v;

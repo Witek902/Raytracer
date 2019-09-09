@@ -3,13 +3,13 @@
 #include "../RayLib.h"
 
 #include <math.h>
+
+#ifdef RT_USE_SSE
 #include <xmmintrin.h>
 #include <smmintrin.h>
 #include <immintrin.h>
 #include <emmintrin.h>
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif // _MSC_VER
+#endif // RT_USE_SSE
 
 #define RT_EPSILON (0.000001f)
 #define RT_PI (3.14159265359f)
@@ -270,10 +270,15 @@ RT_FORCE_INLINE constexpr Uint64 Hash(Uint64 h)
 // bit population count
 RT_FORCE_INLINE Uint32 PopCount(Uint32 x)
 {
-#if defined(WIN32)
+#if defined(WIN32) && RT_USE_BMI
     return __popcnt(x);
 #elif defined(__LINUX__) | defined(__linux__)
     return __builtin_popcount(x);
+#else
+    // https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+    x = x - ((x >> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+    return ((x + (x >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
 #endif // defined(WIN32)
 }
 

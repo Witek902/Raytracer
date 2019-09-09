@@ -19,8 +19,11 @@ struct RT_ALIGN(16) Vector4
         float f[4];
         Int32 i[4];
         Uint32 u[4];
+
+#ifdef RT_USE_SSE
         __m128 v;
         __m128i vi;
+#endif // RT_USE_SSE
 
         struct
         {
@@ -31,15 +34,15 @@ struct RT_ALIGN(16) Vector4
         };
     };
 
-    // constructors
     RT_FORCE_INLINE Vector4();
     RT_FORCE_INLINE Vector4(const Vector4& other);
-    RT_FORCE_INLINE Vector4(const __m128& src);
     RT_FORCE_INLINE static const Vector4 Zero();
-    RT_FORCE_INLINE explicit Vector4(const float s); // splat
-    RT_FORCE_INLINE Vector4(const float x, const float y, const float z, const float w);
-    RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
-    RT_FORCE_INLINE Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w);
+    RT_FORCE_INLINE explicit Vector4(const float scalar); // splat
+    RT_FORCE_INLINE explicit Vector4(const Int32 scalar); // splat
+    RT_FORCE_INLINE explicit Vector4(const Uint32 scalar); // splat
+    RT_FORCE_INLINE Vector4(const float x, const float y, const float z = 0.0f, const float w = 0.0f);
+    RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z = 0, const Int32 w = 0);
+    RT_FORCE_INLINE Vector4(const Uint32 x, const Uint32 y, const Uint32 z = 0u, const Uint32 w = 0u);
     RT_FORCE_INLINE explicit Vector4(const float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
@@ -49,10 +52,14 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w);
 
     RT_FORCE_INLINE explicit operator float() const { return x; }
-    RT_FORCE_INLINE operator __m128() const { return v; }
-    RT_FORCE_INLINE operator __m128i() const { return _mm_castps_si128(v); }
     RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
     RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
+
+#ifdef RT_USE_SSE
+    RT_FORCE_INLINE Vector4(const __m128& src);
+    RT_FORCE_INLINE operator __m128() const { return v; }
+    RT_FORCE_INLINE operator __m128i() const { return _mm_castps_si128(v); }
+#endif // RT_USE_SSE
 
     // simple arithmetics
     RT_FORCE_INLINE const Vector4 operator- () const;
@@ -118,7 +125,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Float3 ToFloat3() const;
 
     RT_FORCE_INLINE static const Vector4 Floor(const Vector4& v);
-    RT_FORCE_INLINE static const Vector4 Sqrt4(const Vector4& v);
+    RT_FORCE_INLINE static const Vector4 Sqrt(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Reciprocal(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 FastReciprocal(const Vector4& v);
     RT_FORCE_INLINE static const Vector4 Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight);
@@ -134,7 +141,7 @@ struct RT_ALIGN(16) Vector4
     // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b, const VectorBool4& sel);
 
-    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selkW>
+    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b);
 
     // Calculate 2D dot product (scalar result)
@@ -247,6 +254,9 @@ struct RT_ALIGN(16) Vector4
 
     // make vector "v" orthogonal to "reference" vector
     RT_FORCE_INLINE static const Vector4 Orthogonalize(const Vector4& v, const Vector4& reference);
+
+    // Compute fmodf(x, 1.0f)
+    RT_FORCE_INLINE static const Vector4 Fmod1(const Vector4& v);
 };
 
 // like Vector4::operator * (float)
@@ -284,4 +294,9 @@ RT_GLOBAL_CONST Vector4 VECTOR_W = { 0.0f, 0.0f, 0.0f, 1.0f };
 } // namespace math
 } // namespace rt
 
-#include "Vector4Impl.h"
+
+#ifdef RT_USE_SSE
+#include "Vector4ImplSSE.h"
+#else
+#include "Vector4ImplNaive.h"
+#endif // RT_USE_SSE

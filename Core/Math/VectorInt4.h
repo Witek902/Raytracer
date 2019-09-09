@@ -15,8 +15,13 @@ struct RT_ALIGN(16) VectorInt4
 {
     union
     {
-        __m128i v;
         Int32 i[4];
+        Int64 i64[2];
+
+
+#ifdef RT_USE_SSE
+        __m128i v;
+#endif // RT_USE_SSE
 
         struct
         {
@@ -30,13 +35,16 @@ struct RT_ALIGN(16) VectorInt4
     // constructors
     RT_FORCE_INLINE VectorInt4() = default;
     RT_FORCE_INLINE static const VectorInt4 Zero();
-    RT_FORCE_INLINE VectorInt4(const __m128i& m);
     RT_FORCE_INLINE VectorInt4(const VectorInt4& other);
     RT_FORCE_INLINE VectorInt4(const VectorBool4& other);
     RT_FORCE_INLINE explicit VectorInt4(const Int32 scalar);
     RT_FORCE_INLINE explicit VectorInt4(const Uint32 scalar);
     RT_FORCE_INLINE VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w);
+
+#ifdef RT_USE_SSE
+    RT_FORCE_INLINE VectorInt4(const __m128i& m);
     RT_FORCE_INLINE operator __m128i() const { return v; }
+#endif // RT_USE_SSE
 
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
 
@@ -77,11 +85,6 @@ struct RT_ALIGN(16) VectorInt4
     // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
     RT_FORCE_INLINE static const VectorInt4 Select(const VectorInt4& a, const VectorInt4& b, const VectorBool4& sel);
 
-    // for each component, if it's greater-or-euqal to 'reference', set the value to 'target'
-    RT_FORCE_INLINE const VectorInt4 SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const;
-    // for each component, if it's less than 'reference', set the value to 'target'
-    RT_FORCE_INLINE const VectorInt4 SetIfLessThan(const VectorInt4& reference, const VectorInt4& target) const;
-
     RT_FORCE_INLINE const VectorBool4 operator == (const VectorInt4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator < (const VectorInt4& b) const;
     RT_FORCE_INLINE const VectorBool4 operator <= (const VectorInt4& b) const;
@@ -118,4 +121,8 @@ struct RT_ALIGN(16) VectorInt4
 } // namespace rt
 
 
-#include "VectorInt4Impl.h"
+#ifdef RT_USE_SSE
+#include "VectorInt4ImplSSE.h"
+#else
+#include "VectorInt4ImplNaive.h"
+#endif

@@ -59,15 +59,11 @@
     <ClInclude Include="Math\Vector2x8.h" />
     <ClInclude Include="Math\Vector3x8.h" />
     <ClInclude Include="Math\Vector4.h" />
-    <ClInclude Include="Math\Vector4Impl.h" />
     <ClInclude Include="Math\Vector8.h" />
-    <ClInclude Include="Math\Vector8Impl.h" />
     <ClInclude Include="Math\VectorBool4.h" />
     <ClInclude Include="Math\VectorBool8.h" />
     <ClInclude Include="Math\VectorInt4.h" />
-    <ClInclude Include="Math\VectorInt4Impl.h" />
     <ClInclude Include="Math\VectorInt8.h" />
-    <ClInclude Include="Math\VectorInt8Impl.h" />
     <ClInclude Include="Mesh\Mesh.h" />
     <ClInclude Include="Mesh\VertexBuffer.h" />
     <ClInclude Include="Mesh\VertexBufferDesc.h" />
@@ -133,6 +129,19 @@
     <ClInclude Include="Utils\KdTree.h" />
     <ClInclude Include="Math\Vector4Load.h" />
     <ClInclude Include="Math\HalfImpl.h" />
+    <ClInclude Include="Math\VectorBool4ImplSSE.h" />
+    <ClInclude Include="Math\VectorBool4ImplNaive.h" />
+    <ClInclude Include="Math\Vector4ImplNaive.h" />
+    <ClInclude Include="Math\Vector4ImplSSE.h" />
+    <ClInclude Include="Math\VectorInt4ImplSSE.h" />
+    <ClInclude Include="Math\VectorInt4ImplNaive.h" />
+    <ClInclude Include="Math\VectorBool8ImplAVX.h" />
+    <ClInclude Include="Math\VectorBool8ImplNaive.h" />
+    <ClInclude Include="Math\Vector8ImplAVX.h" />
+    <ClInclude Include="Math\Vector8ImplNaive.h" />
+    <ClInclude Include="Math\Vector8ImplCommon.h" />
+    <ClInclude Include="Math\VectorInt8ImplAVX2.h" />
+    <ClInclude Include="Math\VectorInt8ImplNaive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />

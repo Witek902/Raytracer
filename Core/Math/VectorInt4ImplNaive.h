@@ -5,66 +5,92 @@
 namespace rt {
 namespace math {
 
-
 const VectorInt4 VectorInt4::Zero()
 {
-    return _mm_setzero_si128();
+    return VectorInt4{ 0, 0, 0, 0 };
 }
 
-VectorInt4::VectorInt4(const __m128i& m)
-    : v(m)
-{}
-
 VectorInt4::VectorInt4(const VectorInt4& other)
-    : v(other.v)
+    : x(other.x), y(other.y), z(other.z), w(other.w)
 {}
 
 VectorInt4::VectorInt4(const VectorBool4& other)
-    : v(_mm_castps_si128(other.v))
+    : x(other.b[0] ? 0xFFFFFFFF : 0)
+    , y(other.b[1] ? 0xFFFFFFFF : 0)
+    , z(other.b[2] ? 0xFFFFFFFF : 0)
+    , w(other.b[3] ? 0xFFFFFFFF : 0)
 {}
 
 const VectorInt4 VectorInt4::Cast(const Vector4& v)
 {
-    return _mm_castps_si128(v);
+    return reinterpret_cast<const VectorInt4&>(v);
 }
 
 const Vector4 VectorInt4::CastToFloat() const
 {
-    return _mm_castsi128_ps(v);
+    return reinterpret_cast<const Vector4&>(*this);
 }
 
 VectorInt4::VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
-    : v(_mm_set_epi32(w, z, y, x))
+    : i{ x, y, z, w }
 {}
 
 VectorInt4::VectorInt4(const Int32 i)
-    : v(_mm_set1_epi32(i))
+    : i{ i, i, i, i }
 {}
 
 VectorInt4::VectorInt4(const Uint32 u)
-    : v(_mm_set1_epi32(u))
+    : x(static_cast<Int32>(u))
+    , y(static_cast<Int32>(u))
+    , z(static_cast<Int32>(u))
+    , w(static_cast<Int32>(u))
 {}
 
 const VectorInt4 VectorInt4::Convert(const Vector4& v)
 {
-    return _mm_cvtps_epi32(v);
+    return
+    {
+        static_cast<Int32>(v.x),
+        static_cast<Int32>(v.y),
+        static_cast<Int32>(v.z),
+        static_cast<Int32>(v.w)
+    };
 }
 
 const VectorInt4 VectorInt4::TruncateAndConvert(const Vector4& v)
 {
-    return _mm_cvttps_epi32(v);
+    // TODO
+    return
+    {
+        static_cast<Int32>(v.x),
+        static_cast<Int32>(v.y),
+        static_cast<Int32>(v.z),
+        static_cast<Int32>(v.w)
+    };
 }
 
 const Vector4 VectorInt4::ConvertToFloat() const
 {
-    return _mm_cvtepi32_ps(v);
+    return Vector4
+    {
+        static_cast<float>(x),
+        static_cast<float>(y),
+        static_cast<float>(z),
+        static_cast<float>(w)
+    };
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 const VectorInt4 VectorInt4::Select(const VectorInt4& a, const VectorInt4& b, const VectorBool4& sel)
 {
-    return _mm_blendv_epi8(a, b, _mm_castps_si128(sel.v));
+    return
+    {
+        sel.Get<0>() ? b.x : a.x,
+        sel.Get<1>() ? b.y : a.y,
+        sel.Get<2>() ? b.z : a.z,
+        sel.Get<3>() ? b.w : a.w,
+    };
 }
 
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
@@ -75,67 +101,55 @@ const VectorInt4 VectorInt4::Swizzle() const
     static_assert(iz < 4, "Invalid Z element index");
     static_assert(iw < 4, "Invalid W element index");
 
-    if (ix == 0 && iy == 1 && iz == 2 && iw == 3)
-    {
-        return *this;
-    }
-    else if (ix == 0 && iy == 0 && iz == 1 && iw == 1)
-    {
-        return _mm_unpacklo_epi32(v, v);
-    }
-    else if (ix == 2 && iy == 2 && iz == 3 && iw == 3)
-    {
-        return _mm_unpackhi_epi32(v, v);
-    }
-    else if (ix == 0 && iy == 1 && iz == 0 && iw == 1)
-    {
-        return _mm_unpacklo_epi64(v, v);
-    }
-    else if (ix == 2 && iy == 3 && iz == 2 && iw == 3)
-    {
-        return _mm_unpackhi_epi64(v, v);
-    }
-
-    return _mm_shuffle_epi32(v, _MM_SHUFFLE(iw, iz, iy, ix));
+    return { i[ix], i[iy], i[iz], i[iw] };
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 const VectorInt4 VectorInt4::operator & (const VectorInt4& b) const
 {
-    return _mm_and_si128(v, b.v);
+    return { x & b.x, y & b.y, z & b.z, w & b.w };
 }
 
 const VectorInt4 VectorInt4::AndNot(const VectorInt4& a, const VectorInt4& b)
 {
-    return _mm_andnot_si128(a.v, b.v);
+    return { (~a.x) & b.x, (~a.y) & b.y, (~a.z) & b.z, (~a.w) & b.w };
 }
 
 const VectorInt4 VectorInt4::operator | (const VectorInt4& b) const
 {
-    return _mm_or_si128(v, b.v);
+    return { x | b.x, y | b.y, z | b.z, w | b.w };
 }
 
 const VectorInt4 VectorInt4::operator ^ (const VectorInt4& b) const
 {
-    return _mm_xor_si128(v, b.v);
+    return { x ^ b.x, y ^ b.y, z ^ b.z, w ^ b.w };
 }
 
 VectorInt4& VectorInt4::operator &= (const VectorInt4& b)
 {
-    v = _mm_and_si128(v, b.v);
+    x &= b.x;
+    y &= b.y;
+    z &= b.z;
+    w &= b.w;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator |= (const VectorInt4& b)
 {
-    v = _mm_or_si128(v, b.v);
+    x |= b.x;
+    y |= b.y;
+    z |= b.z;
+    w |= b.w;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator ^= (const VectorInt4& b)
 {
-    v = _mm_xor_si128(v, b.v);
+    x ^= b.x;
+    y ^= b.y;
+    z ^= b.z;
+    w ^= b.w;
     return *this;
 }
 
@@ -148,67 +162,85 @@ const VectorInt4 VectorInt4::operator - () const
 
 const VectorInt4 VectorInt4::operator + (const VectorInt4& b) const
 {
-    return _mm_add_epi32(v, b);
+    return { x + b.x, y + b.y, z + b.z, w + b.w };
 }
 
 const VectorInt4 VectorInt4::operator - (const VectorInt4& b) const
 {
-    return _mm_sub_epi32(v, b);
+    return { x - b.x, y - b.y, z - b.z, w - b.w };
 }
 
 const VectorInt4 VectorInt4::operator * (const VectorInt4& b) const
 {
-    return _mm_mullo_epi32(v, b);
+    return { x * b.x, y * b.y, z * b.z, w * b.w };
 }
 
 VectorInt4& VectorInt4::operator += (const VectorInt4& b)
 {
-    v = _mm_add_epi32(v, b);
+    x += b.x;
+    y += b.y;
+    z += b.z;
+    w += b.w;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator -= (const VectorInt4& b)
 {
-    v = _mm_sub_epi32(v, b);
+    x -= b.x;
+    y -= b.y;
+    z -= b.z;
+    w -= b.w;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator *= (const VectorInt4& b)
 {
-    v = _mm_mullo_epi32(v, b);
+    x *= b.x;
+    y *= b.y;
+    z *= b.z;
+    w *= b.w;
     return *this;
 }
 
 const VectorInt4 VectorInt4::operator + (Int32 b) const
 {
-    return _mm_add_epi32(v, _mm_set1_epi32(b));
+    return { x + b, y + b, z + b, w + b };
 }
 
 const VectorInt4 VectorInt4::operator - (Int32 b) const
 {
-    return _mm_sub_epi32(v, _mm_set1_epi32(b));
+    return { x - b, y - b, z - b, w - b };
 }
 
 const VectorInt4 VectorInt4::operator * (Int32 b) const
 {
-    return _mm_mullo_epi32(v, _mm_set1_epi32(b));
+    return { x * b, y * b, z * b, w * b };
 }
 
 VectorInt4& VectorInt4::operator += (Int32 b)
 {
-    v = _mm_add_epi32(v, _mm_set1_epi32(b));
+    x += b;
+    y += b;
+    z += b;
+    w += b;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator -= (Int32 b)
 {
-    v = _mm_sub_epi32(v, _mm_set1_epi32(b));
+    x -= b;
+    y -= b;
+    z -= b;
+    w -= b;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator *= (Int32 b)
 {
-    v = _mm_mullo_epi32(v, _mm_set1_epi32(b));
+    x *= b;
+    y *= b;
+    z *= b;
+    w *= b;
     return *this;
 }
 
@@ -216,124 +248,110 @@ VectorInt4& VectorInt4::operator *= (Int32 b)
 
 const VectorInt4 VectorInt4::operator << (const VectorInt4& b) const
 {
-#ifdef RT_USE_AVX2
-    return _mm_sllv_epi32(v, b);
-#else
     return { x << b.x, y << b.y, z << b.z, w << b.w };
-#endif
 }
 
 const VectorInt4 VectorInt4::operator >> (const VectorInt4& b) const
 {
-#ifdef RT_USE_AVX2
-    return _mm_srlv_epi32(v, b);
-#else
     return { x >> b.x, y >> b.y, z >> b.z, w >> b.w };
-#endif
 }
 
 VectorInt4& VectorInt4::operator <<= (const VectorInt4& b)
 {
-#ifdef RT_USE_AVX2
-    v = _mm_sllv_epi32(v, b);
-#else
     x <<= b.x;
     y <<= b.y;
     z <<= b.z;
     w <<= b.w;
-#endif
     return *this;
 }
 
 VectorInt4& VectorInt4::operator >>= (const VectorInt4& b)
 {
-#ifdef RT_USE_AVX2
-    v = _mm_srlv_epi32(v, b);
-#else
     x >>= b.x;
     y >>= b.y;
     z >>= b.z;
     w >>= b.w;
-#endif
     return *this;
 }
 
 const VectorInt4 VectorInt4::operator << (Int32 b) const
 {
-    return _mm_slli_epi32(v, b);
+    return { x << b, y << b, z << b, w << b };
 }
 
 const VectorInt4 VectorInt4::operator >> (Int32 b) const
 {
-    return _mm_srli_epi32(v, b);
+    return { x >> b, y >> b, z >> b, w >> b };
 }
 
 VectorInt4& VectorInt4::operator <<= (Int32 b)
 {
-    v = _mm_slli_epi32(v, b);
+    x <<= b;
+    y <<= b;
+    z <<= b;
+    w <<= b;
     return *this;
 }
 
 VectorInt4& VectorInt4::operator >>= (Int32 b)
 {
-    v = _mm_srli_epi32(v, b);
+    x >>= b;
+    y >>= b;
+    z >>= b;
+    w >>= b;
     return *this;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-const VectorInt4 VectorInt4::SetIfGreaterOrEqual(const VectorInt4& reference, const VectorInt4& target) const
-{
-    const __m128i mask = _mm_cmplt_epi32(v, reference.v);
-    return _mm_blendv_epi8(target, v, mask);
-}
-
-const VectorInt4 VectorInt4::SetIfLessThan(const VectorInt4& reference, const VectorInt4& target) const
-{
-    const __m128i mask = _mm_cmplt_epi32(v, reference.v);
-    return _mm_blendv_epi8(v, target, mask);
 }
 
 const VectorBool4 VectorInt4::operator == (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_cmpeq_epi32(v, b.v));
+    return VectorBool4{ x == b.x, y == b.y, z == b.z, w == b.w };
 }
 
 const VectorBool4 VectorInt4::operator != (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmpeq_epi32(v, b.v)));
+    return VectorBool4{ x != b.x, y != b.y, z != b.z, w != b.w };
 }
 
 const VectorBool4 VectorInt4::operator < (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_cmplt_epi32(v, b.v));
+    return VectorBool4{ x < b.x, y < b.y, z < b.z, w < b.w };
 }
 
 const VectorBool4 VectorInt4::operator > (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_cmpgt_epi32(v, b.v));
+    return VectorBool4{ x > b.x, y > b.y, z > b.z, w > b.w };
 }
 
 const VectorBool4 VectorInt4::operator >= (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmplt_epi32(v, b.v)));
+    return VectorBool4{ x >= b.x, y >= b.y, z >= b.z, w >= b.w };
 }
 
 const VectorBool4 VectorInt4::operator <= (const VectorInt4& b) const
 {
-    return _mm_castsi128_ps(_mm_xor_si128(_mm_set1_epi32(0xFFFFFFFF), _mm_cmpgt_epi32(v, b.v)));
+    return VectorBool4{ x <= b.x, y <= b.y, z <= b.z, w <= b.w };
 }
-
-//////////////////////////////////////////////////////////////////////////
 
 const VectorInt4 VectorInt4::Min(const VectorInt4& a, const VectorInt4& b)
 {
-    return _mm_min_epi32(a, b);
+    return
+    {
+        math::Min(a.x, b.x),
+        math::Min(a.y, b.y),
+        math::Min(a.z, b.z),
+        math::Min(a.w, b.w)
+    };
 }
 
 const VectorInt4 VectorInt4::Max(const VectorInt4& a, const VectorInt4& b)
 {
-    return _mm_max_epi32(a, b);
+    return
+    {
+        math::Max(a.x, b.x),
+        math::Max(a.y, b.y),
+        math::Max(a.z, b.z),
+        math::Max(a.w, b.w)
+    };
 }
 
 

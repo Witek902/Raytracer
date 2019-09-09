@@ -189,7 +189,7 @@ const Quaternion Quaternion::FromMatrix(const Matrix4& m)
     Quaternion q;
     q.q = (Vector4(1.0f) + x) + (y + z);
     q.q = Vector4::Max(q.q, Vector4::Zero());
-    q.q = Vector4::Sqrt4(q.q) * 0.5f;
+    q.q = Vector4::Sqrt(q.q) * 0.5f;
 
     q.q.x = CopySign(q.q.x, m.m[1][2] - m.m[2][1]);
     q.q.y = CopySign(q.q.y, m.m[2][0] - m.m[0][2]);

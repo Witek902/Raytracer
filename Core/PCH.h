@@ -6,12 +6,6 @@
 #include <crtdbg.h>
 #endif // _DEBUG
 
-// SSE
-#include <xmmintrin.h>
-#include <smmintrin.h>
-#include <immintrin.h>
-#include <emmintrin.h>
-
 #include <cassert>
 #include <string.h>
 #include <stdint.h>
@@ -28,5 +22,3 @@
 #include <mutex>
 #include <sstream>
 #include <algorithm>
-
-#include "Utils/iacaMarks.h"

@@ -16,15 +16,18 @@ struct RT_ALIGN(32) VectorInt8
     RT_FORCE_INLINE static const VectorInt8 Zero();
     RT_FORCE_INLINE VectorInt8(const VectorInt8& other);
     RT_FORCE_INLINE VectorInt8& operator = (const VectorInt8& other);
-    RT_FORCE_INLINE VectorInt8(const __m256i& m);
     RT_FORCE_INLINE VectorInt8(const VectorInt4& lo, const VectorInt4& hi);
-    RT_FORCE_INLINE explicit VectorInt8(const __m256& m);
     RT_FORCE_INLINE explicit VectorInt8(const Int32 scalar);
     RT_FORCE_INLINE explicit VectorInt8(const Uint32 scalar);
     RT_FORCE_INLINE VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7);
 
+#ifdef RT_USE_AVX
+    RT_FORCE_INLINE VectorInt8(const __m256i & m);
+    RT_FORCE_INLINE explicit VectorInt8(const __m256 & m);
     RT_FORCE_INLINE operator __m256i() const { return v; }
     RT_FORCE_INLINE operator __m256() const { return _mm256_castsi256_ps(v); }
+#endif // RT_USE_AVX
+
     RT_FORCE_INLINE Int32 operator[] (const Uint32 index) const { return i[index]; }
     RT_FORCE_INLINE Int32& operator[] (const Uint32 index) { return i[index]; }
 
@@ -89,13 +92,16 @@ private:
     {
         Int32 i[8];
         Uint32 u[8];
+
+#ifdef RT_USE_AVX
         __m256 f;
         __m256i v;
-        
+#endif // RT_USE_AVX
+
         struct
         {
-            __m128i low;
-            __m128i high;
+            VectorInt4 low;
+            VectorInt4 high;
         };
     };
 };
@@ -107,4 +113,8 @@ RT_FORCE_INLINE const Vector8 Gather8(const float* basePtr, const VectorInt8& in
 } // namespace rt
 
 
-#include "VectorInt8Impl.h"
+#ifdef RT_USE_AVX2
+#include "VectorInt8ImplAVX2.h"
+#else
+#include "VectorInt8ImplNaive.h"
+#endif // RT_USE_AVX2

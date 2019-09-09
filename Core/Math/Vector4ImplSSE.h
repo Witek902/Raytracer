@@ -5,8 +5,6 @@
 namespace rt {
 namespace math {
 
-// Constructors ===================================================================================
-
 const Vector4 Vector4::Zero()
 {
     return _mm_setzero_ps();
@@ -32,15 +30,23 @@ Vector4::Vector4(const float s)
     : v(_mm_set1_ps(s))
 {}
 
-Vector4::Vector4(const float x, const float y, const float z = 0.0f, const float w = 0.0f)
+Vector4::Vector4(const Int32 i)
+    : v(_mm_castsi128_ps(_mm_set1_epi32(i)))
+{}
+
+Vector4::Vector4(const Uint32 u)
+    : v(_mm_castsi128_ps(_mm_set1_epi32(u)))
+{}
+
+Vector4::Vector4(const float x, const float y, const float z, const float w)
     : v(_mm_set_ps(w, z, y, x))
 {}
 
-Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z = 0, const Int32 w = 0)
+Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
-Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z = 0u, const Uint32 w = 0u)
+Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
@@ -144,8 +150,6 @@ RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
     return Vector4{ maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
 }
 
-// Elements rearrangement =========================================================================
-
 template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
 const Vector4 Vector4::Swizzle() const
 {
@@ -237,8 +241,6 @@ const Vector4 Vector4::Select(const Vector4& a, const Vector4& b)
     return _mm_blend_ps(a, b, selX | (selY << 1) | (selZ << 2) | (selW << 3));
 }
 
-// Logical operations =============================================================================
-
 const Vector4 Vector4::operator& (const Vector4& b) const
 {
     return _mm_and_ps(v, b);
@@ -271,8 +273,6 @@ Vector4& Vector4::operator^= (const Vector4& b)
     v = _mm_xor_ps(v, b);
     return *this;
 }
-
-// Simple arithmetics =============================================================================
 
 const Vector4 Vector4::operator- () const
 {
@@ -417,7 +417,7 @@ const Vector4 Vector4::Floor(const Vector4& v)
     return _mm_floor_ps(v);
 }
 
-const Vector4 Vector4::Sqrt4(const Vector4& V)
+const Vector4 Vector4::Sqrt(const Vector4& V)
 {
     return _mm_sqrt_ps(V);
 }
@@ -662,6 +662,11 @@ bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, float epsilon)
 const VectorBool4 Vector4::IsZero() const
 {
     return *this == Vector4::Zero();
+}
+
+const Vector4 Vector4::Fmod1(const Vector4& v)
+{
+    return _mm_sub_ps(v, _mm_round_ps(v, _MM_FROUND_TO_ZERO));
 }
 
 // Check if any component is NaN

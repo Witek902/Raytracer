@@ -41,9 +41,14 @@ public:
     // splat single 3D vector
     RT_FORCE_INLINE explicit Vector2x8(const Vector4& v)
     {
+#ifdef RT_USE_AVX
         const Vector8 temp(v, v); // copy "v" onto both AVX lanes
         x = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(0, 0, 0, 0));
         y = _mm256_shuffle_ps(temp, temp, _MM_SHUFFLE(1, 1, 1, 1));
+#else
+        x = Vector8{ v.x };
+        y = Vector8{ v.y };
+#endif // RT_USE_AVX
     }
 
     // build from eight 3D vectors
@@ -77,6 +82,8 @@ public:
         //
         // note that "z" and "w" component are dropped
 
+#ifdef RT_USE_AVX
+
         const __m256 t0 = _mm256_unpacklo_ps(Vector8(v0), Vector8(v1));
         const __m256 t2 = _mm256_unpacklo_ps(Vector8(v2), Vector8(v3));
         const __m256 t4 = _mm256_unpacklo_ps(Vector8(v4), Vector8(v5));
@@ -87,6 +94,13 @@ public:
         const __m256 tt5 = _mm256_shuffle_ps(t4, t6, _MM_SHUFFLE(3, 2, 3, 2));
         x = _mm256_permute2f128_ps(tt0, tt4, 0x20);
         y = _mm256_permute2f128_ps(tt1, tt5, 0x20);
+
+#else // !RT_USE_AVX
+
+        x = Vector8{ v0.x, v1.x, v2.x, v3.x, v4.x, v5.x, v6.x, v7.x };
+        y = Vector8{ v0.y, v1.y, v2.y, v3.y, v4.y, v5.y, v6.y, v7.y };
+
+#endif // RT_USE_AVX
     }
 
     //////////////////////////////////////////////////////////////////////////

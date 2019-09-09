@@ -63,7 +63,7 @@ Half::Half(const float other)
     }
 
     value = static_cast<Uint16>(result | sign);
-#endif // !_XM_F16C_INTRINSICS_
+#endif // RT_USE_FP16C
 }
 
 float Half::ToFloat() const
