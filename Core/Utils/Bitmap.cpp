@@ -21,6 +21,7 @@ Uint8 Bitmap::BitsPerPixel(Format format)
     case Format::R8G8_UNorm:                return 8 * sizeof(Uint8) * 2;
     case Format::B8G8R8_UNorm:              return 8 * sizeof(Uint8) * 3;
     case Format::B8G8R8A8_UNorm:            return 8 * sizeof(Uint8) * 4;
+    case Format::R8G8B8A8_UNorm:            return 8 * sizeof(Uint8) * 4;
     case Format::B8G8R8A8_UNorm_Palette:    return 8 * sizeof(Uint8);
     case Format::B5G6R5_UNorm:              return 16;
     case Format::R16_UNorm:                 return 8 * sizeof(Uint16);
@@ -53,6 +54,7 @@ const char* Bitmap::FormatToString(Format format)
     case Format::R8G8_UNorm:                return "R8G8_UNorm";
     case Format::B8G8R8_UNorm:              return "B8G8R8_UNorm";
     case Format::B8G8R8A8_UNorm:            return "B8G8R8A8_UNorm";
+    case Format::R8G8B8A8_UNorm:            return "R8G8B8A8_UNorm";
     case Format::B8G8R8A8_UNorm_Palette:    return "B8G8R8A8_UNorm_Palette";
     case Format::B5G6R5_UNorm:              return "B5G6R5_UNorm";
     case Format::R16_UNorm:                 return "R16_UNorm";
@@ -315,6 +317,13 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
         break;
     }
 
+    case Format::R8G8B8A8_UNorm:
+    {
+        const Uint8* source = rowData + 4u * (size_t)x;
+        color = Vector4_Load_4xUint8(source) * (1.0f / 255.0f);
+        break;
+    }
+
     case Format::B8G8R8A8_UNorm_Palette:
     {
         const size_t paletteIndex = rowData[x];
@@ -512,6 +521,17 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
         color[1] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
         color[2] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
         color[3] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
+        break;
+    }
+
+    case Format::R8G8B8A8_UNorm:
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        const VectorInt4 offsets = coords << 2; // offset = 4 * coords
+        color[0] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.x) * scale;
+        color[1] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.z) * scale;
+        color[2] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.x) * scale;
+        color[3] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.z) * scale;
         break;
     }
 

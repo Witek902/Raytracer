@@ -19,6 +19,7 @@ public:
         R8G8_UNorm,
         B8G8R8_UNorm,
         B8G8R8A8_UNorm,
+        R8G8B8A8_UNorm,
         B8G8R8A8_UNorm_Palette,
         B5G6R5_UNorm,
         R16_UNorm,

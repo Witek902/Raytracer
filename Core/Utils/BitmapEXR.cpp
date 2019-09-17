@@ -59,6 +59,11 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
         return false;
     }
 
+    InitData initData;
+    initData.linearSpace = true;
+    initData.width = exrImage.width;
+    initData.height = exrImage.height;
+
     if (exrHeader.num_channels == 3)
     {
         const bool sameFormat = exrHeader.pixel_types[0] == exrHeader.pixel_types[1] && exrHeader.pixel_types[0] == exrHeader.pixel_types[2];
@@ -67,11 +72,6 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
             RT_LOG_ERROR("Unsupported EXR format. All channels must be of the same type");
             goto exrImageError;
         }
-
-        InitData initData;
-        initData.linearSpace = true;
-        initData.width = exrImage.width;
-        initData.height = exrImage.height;
 
         if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_FLOAT)
         {
@@ -110,6 +110,65 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
                     typedData[3 * x    ] = reinterpret_cast<const Uint16*>(exrImage.images[2])[index];
                     typedData[3 * x + 1] = reinterpret_cast<const Uint16*>(exrImage.images[1])[index];
                     typedData[3 * x + 2] = reinterpret_cast<const Uint16*>(exrImage.images[0])[index];
+                }
+            }
+        }
+        else
+        {
+            RT_LOG_ERROR("Unsupported EXR format: %i", exrHeader.pixel_types[0]);
+            goto exrImageError;
+        }
+    }
+    else if (exrHeader.num_channels == 4)
+    {
+        const bool sameFormat = exrHeader.pixel_types[0] == exrHeader.pixel_types[1]
+            && exrHeader.pixel_types[0] == exrHeader.pixel_types[2]
+            && exrHeader.pixel_types[0] == exrHeader.pixel_types[3];
+        if (!sameFormat)
+        {
+            RT_LOG_ERROR("Unsupported EXR format. All channels must be of the same type");
+            goto exrImageError;
+        }
+
+        if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_FLOAT)
+        {
+            initData.format = Format::R32G32B32A32_Float;
+            if (!Init(initData))
+            {
+                goto exrImageError;
+            }
+
+            for (size_t y = 0; y < (size_t)exrImage.height; ++y)
+            {
+                float* typedData = reinterpret_cast<float*>(mData + (size_t)mStride * y);
+                for (size_t x = 0; x < (size_t)exrImage.width; ++x)
+                {
+                    const size_t index = y * exrImage.width + x;
+                    typedData[4 * x    ] = reinterpret_cast<const float*>(exrImage.images[3])[index];
+                    typedData[4 * x + 1] = reinterpret_cast<const float*>(exrImage.images[2])[index];
+                    typedData[4 * x + 2] = reinterpret_cast<const float*>(exrImage.images[1])[index];
+                    typedData[4 * x + 3] = reinterpret_cast<const float*>(exrImage.images[0])[index];
+                }
+            }
+        }
+        else if (exrHeader.pixel_types[0] == TINYEXR_PIXELTYPE_HALF)
+        {
+            initData.format = Format::R16G16B16A16_Half;
+            if (!Init(initData))
+            {
+                goto exrImageError;
+            }
+
+            for (size_t y = 0; y < (size_t)exrImage.height; ++y)
+            {
+                Uint16* typedData = reinterpret_cast<Uint16*>(mData + (size_t)mStride * y);
+                for (size_t x = 0; x < (size_t)exrImage.width; ++x)
+                {
+                    const size_t index = y * exrImage.width + x;
+                    typedData[4 * x    ] = reinterpret_cast<const Uint16*>(exrImage.images[3])[index];
+                    typedData[4 * x + 1] = reinterpret_cast<const Uint16*>(exrImage.images[2])[index];
+                    typedData[4 * x + 2] = reinterpret_cast<const Uint16*>(exrImage.images[1])[index];
+                    typedData[4 * x + 3] = reinterpret_cast<const Uint16*>(exrImage.images[0])[index];
                 }
             }
         }

@@ -305,9 +305,14 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
     {
         if (pf.rgbBitCount == 32)
         {
-            if (pf.rBitMask == 0xFF && pf.gBitMask == 0xFF && pf.bBitMask == 0xFF && pf.aBitMask == 0xFF)
+            if (pf.rBitMask == 0x00FF0000 && pf.gBitMask == 0x0000FF00 && pf.bBitMask == 0x000000FF && pf.aBitMask == 0xFF000000)
             {
                 initData.format = Format::B8G8R8A8_UNorm;
+                initData.linearSpace = false;
+            }
+            else if (pf.rBitMask == 0x000000FF && pf.gBitMask == 0x0000FF00 && pf.bBitMask == 0x00FF0000 && pf.aBitMask == 0xFF000000)
+            {
+                initData.format = Format::R8G8B8A8_UNorm;
                 initData.linearSpace = false;
             }
             else if (pf.rBitMask == 0xFFFFFFFF && pf.gBitMask == 0 && pf.bBitMask == 0 && pf.aBitMask == 0)
