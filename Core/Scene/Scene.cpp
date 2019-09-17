@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "Light/BackgroundLight.h"
 #include "Object/SceneObject_Light.h"
+#include "Object/SceneObject_Decal.h"
 #include "Rendering/ShadingData.h"
 #include "BVH/BVHBuilder.h"
 #include "Material/Material.h"
@@ -34,7 +35,8 @@ void Scene::AddObject(SceneObjectPtr object)
 bool Scene::BuildBVH()
 {
     // determine objects to be added to the BVH
-    mObjectsInBvh.Clear();
+    mTraceableObjects.Clear();
+    mDecals.Clear();
     mLights.Clear();
     mGlobalLights.Clear();
     for (const auto& object : mAllObjects)
@@ -46,54 +48,85 @@ bool Scene::BuildBVH()
 
             const ILight& light = lightObject->GetLight();
 
-            auto a = light.GetFlags() & ILight::Flag_IsFinite;
-            if (a)
+            if (light.GetFlags() & ILight::Flag_IsFinite)
             {
-                mObjectsInBvh.PushBack(object.get());
+                mTraceableObjects.PushBack(static_cast<const ITraceableSceneObject*>(object.get()));
             }
             else if (!(light.GetFlags() & ILight::Flag_IsFinite))
             {
                 mGlobalLights.PushBack(lightObject);
             }
         }
-        else
+        else if (object->GetType() == ISceneObject::Type::Shape)
         {
-            mObjectsInBvh.PushBack(object.get());
+            mTraceableObjects.PushBack(static_cast<const ITraceableSceneObject*>(object.get()));
+        }
+        else if (object->GetType() == ISceneObject::Type::Decal)
+        {
+            const DecalSceneObject* decalObject = static_cast<const DecalSceneObject*>(object.get());
+            mDecals.PushBack(decalObject);
         }
     }
 
-    // collect boxes for BVH construction
-    DynArray<Box> boxes;
-    for (const ISceneObject* obj : mObjectsInBvh)
+    // build BVH for traceable objects
     {
-        boxes.PushBack(obj->GetBoundingBox());
+        DynArray<Box> boxes;
+        for (const ISceneObject* obj : mTraceableObjects)
+        {
+            boxes.PushBack(obj->GetBoundingBox());
+        }
+
+        BVHBuilder::Indices newOrder;
+        BVHBuilder bvhBuilder(mTraceableObjectsBVH);
+        if (!bvhBuilder.Build(boxes.Data(), mTraceableObjects.Size(), BvhBuildingParams(), newOrder))
+        {
+            return false;
+        }
+
+        DynArray<const ITraceableSceneObject*> newObjectsArray;
+        newObjectsArray.Reserve(mTraceableObjects.Size());
+        for (Uint32 i = 0; i < mTraceableObjects.Size(); ++i)
+        {
+            Uint32 sourceIndex = newOrder[i];
+            newObjectsArray.PushBack(mTraceableObjects[sourceIndex]);
+        }
+        mTraceableObjects = std::move(newObjectsArray);
     }
 
-    BVHBuilder::BuildingParams params;
-    params.maxLeafNodeSize = 2;
-
-    BVHBuilder::Indices newOrder;
-    BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.Data(), mObjectsInBvh.Size(), params, newOrder))
+    // build BVH for decals
     {
-        return false;
-    }
+        DynArray<Box> boxes;
+        for (const DecalSceneObject* decal : mDecals)
+        {
+            boxes.PushBack(decal->GetBoundingBox());
+        }
 
-    DynArray<const ISceneObject*> newObjectsArray;
-    newObjectsArray.Reserve(mObjectsInBvh.Size());
-    for (Uint32 i = 0; i < mObjectsInBvh.Size(); ++i)
-    {
-        Uint32 sourceIndex = newOrder[i];
-        newObjectsArray.PushBack(mObjectsInBvh[sourceIndex]);
+        BvhBuildingParams params;
+        params.heuristics = BvhBuildingParams::Heuristics::Volume;
+
+        BVHBuilder::Indices newOrder;
+        BVHBuilder bvhBuilder(mDecalsBVH);
+        if (!bvhBuilder.Build(boxes.Data(), boxes.Size(), params, newOrder))
+        {
+            return false;
+        }
+
+        DynArray<const DecalSceneObject*> newObjectsArray;
+        newObjectsArray.Reserve(mDecals.Size());
+        for (Uint32 i = 0; i < mDecals.Size(); ++i)
+        {
+            Uint32 sourceIndex = newOrder[i];
+            newObjectsArray.PushBack(mDecals[sourceIndex]);
+        }
+        mDecals = std::move(newObjectsArray);
     }
-    mObjectsInBvh = std::move(newObjectsArray);
 
     return true;
 }
 
 void Scene::Traverse_Object(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    const ISceneObject* object = mObjectsInBvh[objectID];
+    const ITraceableSceneObject* object = mTraceableObjects[objectID];
 
     const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
@@ -112,7 +145,7 @@ void Scene::Traverse_Object(const SingleTraversalContext& context, const Uint32 
 
 bool Scene::Traverse_Object_Shadow(const SingleTraversalContext& context, const Uint32 objectID) const
 {
-    const ISceneObject* object = mObjectsInBvh[objectID];
+    const ITraceableSceneObject* object = mTraceableObjects[objectID];
 
     const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
@@ -166,7 +199,7 @@ void Scene::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 ob
     for (Uint32 i = 0; i < node.numLeaves; ++i)
     {
         const Uint32 objectIndex = node.childIndex + i;
-        const ISceneObject* object = mObjectsInBvh[objectIndex];
+        const ITraceableSceneObject* object = mTraceableObjects[objectIndex];
         const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
         // transform ray to local-space
@@ -186,7 +219,7 @@ void Scene::Traverse(const SingleTraversalContext& context) const
 {
     context.context.localCounters.Reset();
 
-    const Uint32 numObjects = mObjectsInBvh.Size();
+    const Uint32 numObjects = mTraceableObjects.Size();
 
     if (numObjects == 0)
     {
@@ -208,7 +241,7 @@ void Scene::Traverse(const SingleTraversalContext& context) const
 
 bool Scene::Traverse_Shadow(const SingleTraversalContext& context) const
 {
-    const Uint32 numObjects = mObjectsInBvh.Size();
+    const Uint32 numObjects = mTraceableObjects.Size();
 
     if (numObjects == 0) // scene is empty
     {
@@ -226,7 +259,7 @@ bool Scene::Traverse_Shadow(const SingleTraversalContext& context) const
 
 void Scene::Traverse(const PacketTraversalContext& context) const
 {
-    const Uint32 numObjects = mObjectsInBvh.Size();
+    const Uint32 numObjects = mTraceableObjects.Size();
 
     const Uint32 numRayGroups = context.ray.GetNumGroups();
     for (Uint32 i = 0; i < numRayGroups; ++i)
@@ -247,7 +280,7 @@ void Scene::Traverse(const PacketTraversalContext& context) const
     }
     else if (numObjects == 1) // bypass BVH
     {
-        const ISceneObject* object = mObjectsInBvh.Front();
+        const ISceneObject* object = mTraceableObjects.Front();
         const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
         for (Uint32 j = 0; j < numRayGroups; ++j)
@@ -258,7 +291,7 @@ void Scene::Traverse(const PacketTraversalContext& context) const
             rayGroup.rays[1].invDir = Vector3x8::FastReciprocal(rayGroup.rays[1].dir);
         }
 
-        mObjectsInBvh.Front()->Traverse(context, 0, numRayGroups);
+        mTraceableObjects.Front()->Traverse(context, 0, numRayGroups);
     }
     else // full BVH traversal
     {
@@ -266,12 +299,11 @@ void Scene::Traverse(const PacketTraversalContext& context) const
     }
 }
 
-RT_FORCE_NOINLINE
 void Scene::EvaluateIntersection(const Ray& ray, const HitPoint& hitPoint, const float time, IntersectionData& outData) const
 {
     RT_ASSERT(hitPoint.distance < FLT_MAX);
 
-    const ISceneObject* object = mObjectsInBvh[hitPoint.objectId];
+    const ITraceableSceneObject* object = mTraceableObjects[hitPoint.objectId];
 
     const Matrix4 transform = object->GetTransform(time);
     const Matrix4 invTransform = transform.FastInverseNoScale();
@@ -324,6 +356,104 @@ void Scene::EvaluateIntersection(const Ray& ray, const HitPoint& hitPoint, const
         // validate headness
         //const Vector4 computedNormal = Vector4::Cross3(outData.frame[0], outData.frame[1]);
         //RT_ASSERT((computedNormal - outData.frame[2]).SqrLength3() < 0.001f);
+    }
+}
+
+void Scene::EvaluateShadingData(ShadingData& shadingData, RenderingContext& context) const
+{
+    RT_ASSERT(shadingData.intersection.material != nullptr);
+    shadingData.intersection.material->EvaluateShadingData(context.wavelength, shadingData);
+
+    EvaluateDecals(shadingData, context);
+}
+
+void Scene::EvaluateDecals(ShadingData& shadingData, RenderingContext& context) const
+{
+    if (mDecals.Empty())
+    {
+        return; // no decals
+    }
+
+    const Uint32 maxOverlappingDecals = 8;
+    Uint32 numOverlappingDecals = 0;
+    const DecalSceneObject* decals[maxOverlappingDecals];
+
+    // collect overlapping decals
+
+    const Vector4& point = shadingData.intersection.frame.GetTranslation();
+
+    // all nodes
+    const BVH::Node* __restrict nodes = mDecalsBVH.GetNodes();
+
+    // "nodes to visit" stack
+    Uint32 stackSize = 0;
+    const BVH::Node* __restrict nodesStack[BVH::MaxDepth];
+
+    // BVH traversal
+    for (const BVH::Node* __restrict currentNode = nodes;;)
+    {
+        if (currentNode->IsLeaf())
+        {
+            const Uint32 numLeaves = currentNode->numLeaves;
+            const Uint32 firstChild = currentNode->childIndex;
+
+            for (Uint32 i = 0; i < numLeaves; ++i)
+            {
+                RT_ASSERT(numOverlappingDecals < maxOverlappingDecals);
+                decals[numOverlappingDecals++] = mDecals[firstChild + i];
+            }
+        }
+        else
+        {
+            const BVH::Node* __restrict childA = nodes + currentNode->childIndex;
+            const BVH::Node* __restrict childB = childA + 1;
+
+            bool hitA = childA->GetBox().Intersects(point);
+            bool hitB = childB->GetBox().Intersects(point);
+
+            if (hitA && hitB)
+            {
+                currentNode = childA;
+                nodesStack[stackSize++] = childB;
+                continue;
+            }
+            if (hitA)
+            {
+                currentNode = childA;
+                continue;
+            }
+            if (hitB)
+            {
+                currentNode = childB;
+                continue;
+            }
+        }
+
+        if (stackSize == 0)
+        {
+            break;
+        }
+
+        // pop a node
+        currentNode = nodesStack[--stackSize];
+    }
+
+    if (numOverlappingDecals > 0u)
+    {
+        struct DecalSorter
+        {
+            RT_FORCE_INLINE bool operator() (const DecalSceneObject* a, const DecalSceneObject* b) const
+            {
+                return a->order > b->order;
+            }
+        };
+        std::sort(decals, decals + numOverlappingDecals, DecalSorter());
+
+        // apply decals
+        for (Uint32 i = 0; i < numOverlappingDecals; ++i)
+        {
+            decals[i]->Apply(shadingData, context);
+        }
     }
 }
 

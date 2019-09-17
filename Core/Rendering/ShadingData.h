@@ -12,6 +12,7 @@ class Material;
 struct SampledMaterialParameters
 {
     RayColor baseColor;
+    RayColor emissionColor;
     float roughness;
     float metalness;
     float IoR;

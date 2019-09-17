@@ -7,7 +7,7 @@ namespace rt {
 class ILight;
 using LightPtr = std::unique_ptr<ILight>;
 
-class LightSceneObject : public ISceneObject
+class LightSceneObject : public ITraceableSceneObject
 {
 public:
     RAYLIB_API explicit LightSceneObject(LightPtr light);

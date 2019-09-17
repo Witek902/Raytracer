@@ -306,7 +306,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
                 mScene->EvaluateIntersection(ray, hitPoint, renderingContext->time, intersectionData);
 
                 mSelectedMaterial = const_cast<Material*>(intersectionData.material);
-                mSelectedObject = const_cast<ISceneObject*>(mScene->GetHitObject(hitPoint.objectId));
+                mSelectedObject = const_cast<ITraceableSceneObject*>(mScene->GetHitObject(hitPoint.objectId));
                 mSelectedLight = nullptr;
             }
         }

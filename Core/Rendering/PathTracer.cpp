@@ -113,14 +113,11 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
             break;
         }
 
-        RT_ASSERT(shadingData.intersection.material != nullptr);
-        shadingData.intersection.material->EvaluateShadingData(context.wavelength, shadingData);
+        mScene.EvaluateShadingData(shadingData, context);
 
         // accumulate emission color
-        const Vector4 emissionColorRgb = shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord);
-        const RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(emissionColorRgb));
-        RT_ASSERT(emissionColor.IsValid());
-        resultColor.MulAndAccumulate(throughput, emissionColor);
+        RT_ASSERT(shadingData.materialParams.emissionColor.IsValid());
+        resultColor.MulAndAccumulate(throughput, shadingData.materialParams.emissionColor);
         RT_ASSERT(resultColor.IsValid());
 
         // check if the ray depth won't be exeeded in the next iteration

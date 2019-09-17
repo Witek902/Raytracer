@@ -302,16 +302,12 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
         }
 
         // fill up structure with shading data
-        {
-            shadingData.outgoingDirWorldSpace = -ray.dir;
-            RT_ASSERT(shadingData.intersection.material != nullptr);
-            shadingData.intersection.material->EvaluateShadingData(context.wavelength, shadingData);
-        }
+        shadingData.outgoingDirWorldSpace = -ray.dir;
+        mScene.EvaluateShadingData(shadingData, context);
 
         // accumulate emission color
         {
-            const Vector4 emissionColorRgb = shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord);
-            RayColor emissionColor = RayColor::Resolve(context.wavelength, Spectrum(emissionColorRgb));
+            RayColor emissionColor = shadingData.materialParams.emissionColor;
             RT_ASSERT(emissionColor.IsValid());
 
             emissionColor *= RayColor::Resolve(context.wavelength, Spectrum(mBSDFSamplingWeight));

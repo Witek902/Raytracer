@@ -79,7 +79,7 @@
         {
             "type": "directional",
             "color": [75.0, 70.0, 65.0],
-            "direction": [-1.0, -1.0, -1.0],
+            "transform": { "orientation": [45.0, 45.0, 0.0] },
             "angle": 6.0
         },
         {
@@ -92,7 +92,7 @@
         "transform":
         {
             "translation": [-2.4, 4.03, 4.49],
-            "orientation": [0.69, 2.76, 0.0]
+            "orientation": [30.0, 154.0, 0.0]
         },
         "fieldOfView": 45.0
     }

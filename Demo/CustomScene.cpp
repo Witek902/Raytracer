@@ -8,9 +8,11 @@
 
 #include "../Core/Scene/Light/DirectionalLight.h"
 #include "../Core/Scene/Light/BackgroundLight.h"
+#include "../Core/Scene/Light/PointLight.h"
 
 #include "../Core/Scene/Object/SceneObject_Shape.h"
 #include "../Core/Scene/Object/SceneObject_Light.h"
+#include "../Core/Scene/Object/SceneObject_Decal.h"
 #include "../Core/Shapes/RectShape.h"
 #include "../Core/Shapes/BoxShape.h"
 #include "../Core/Shapes/SphereShape.h"
@@ -23,6 +25,7 @@ using namespace math;
 bool LoadCustomScene(Scene& scene, rt::Camera& camera)
 {
     auto bitmapTextureA = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/default.bmp");
+    auto backgroundTexture = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/ENV/OutdoorCityParkingLotEveningClear_4K.exr");
     //auto bitmapTextureB = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/Portal/dirty4x4.bmp");
     //auto noiseTexture = std::shared_ptr<ITexture>(new NoiseTexture(Vector4(1.0f), Vector4(0.0f)));
     //auto texture = std::shared_ptr<ITexture>(new MixTexture(bitmapTextureA, bitmapTextureB, noiseTexture));
@@ -32,7 +35,7 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
         auto material = Material::Create();
         material->debugName = "floor";
         material->SetBsdf("diffuse");
-        material->baseColor = math::Vector4(0.9f, 0.9f, 0.9f);
+        material->baseColor = math::Vector4(0.3f, 0.3f, 0.3f);
         material->baseColor.texture = bitmapTextureA;
         //material->emission = math::Vector4(4.0f, 4.0f, 4.0f);
         //material->emission.texture = emissionTexture;
@@ -45,7 +48,7 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
         auto rect = std::make_unique<RectShape>(size, texScale);
         std::unique_ptr<ShapeSceneObject> instance = std::make_unique<ShapeSceneObject>(std::move(rect));
         instance->SetDefaultMaterial(material);
-        instance->SetTransform(Quaternion::FromEulerAngles(Float3(RT_PI / 2.0f, 0.0f, 0.0f)).ToMatrix4());
+        instance->SetTransform(Quaternion::FromEulerAngles(Float3(-RT_PI / 2.0f, 0.0f, 0.0f)).ToMatrix4());
         scene.AddObject(std::move(instance));
     }
 
@@ -74,20 +77,20 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     }
     */
 
-    {
-        auto material = Material::Create();
-        material->debugName = "default";
-        material->SetBsdf("diffuse");
-        material->baseColor = Vector4::Zero();
-        material->emission.baseValue = Vector4(4.0f, 0.0f, 0.0f);
-        material->Compile();
+    //{
+    //    auto material = Material::Create();
+    //    material->debugName = "default";
+    //    material->SetBsdf("diffuse");
+    //    material->baseColor = Vector4::Zero();
+    //    material->emission.baseValue = Vector4(4.0f, 0.0f, 0.0f);
+    //    material->Compile();
 
-        ShapePtr shape = std::make_unique<BoxShape>(Vector4(1.0f));
-        ShapeSceneObjectPtr instance = std::make_unique<ShapeSceneObject>(std::move(shape));
-        instance->SetDefaultMaterial(material);
-        instance->SetTransform(Matrix4::MakeTranslation(Vector4(0.0f, 1.0f, 0.0f)));
-        scene.AddObject(std::move(instance));
-    }
+    //    ShapePtr shape = std::make_unique<BoxShape>(Vector4(1.0f));
+    //    ShapeSceneObjectPtr instance = std::make_unique<ShapeSceneObject>(std::move(shape));
+    //    instance->SetDefaultMaterial(material);
+    //    instance->SetTransform(Matrix4::MakeTranslation(Vector4(0.0f, 1.0f, 0.0f)));
+    //    scene.AddObject(std::move(instance));
+    //}
 
     //{
     //    auto material = Material::Create();
@@ -142,12 +145,55 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     //    scene.AddObject(std::move(lightObject));
     //}
 
+    // test decal A
     {
-        const Vector4 lightColor(0.1f, 0.2f, 2.0f);
-        auto background = std::make_unique<BackgroundLight>(lightColor);
+        std::unique_ptr<DecalSceneObject> decal = std::make_unique<DecalSceneObject>();
+        decal->SetTransform(Quaternion::FromAxisAndAngle(VECTOR_X, RT_PI / 2.0f).ToMatrix4() * Matrix4::MakeScaling(Vector4(5.0f, 1.0f, 5.0f)));
+        decal->baseColor.texture = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/Decals/CityStreetRoadAsphaltRepairPatch005/CityStreetRoadAsphaltRepairPatch005_ALPHAMASKED_4K.DDS");
+        decal->roughness.texture = helpers::LoadTexture(gOptions.dataPath, "TEXTURES/Decals/CityStreetRoadAsphaltRepairPatch005/CityStreetRoadAsphaltRepairPatch005_ROUGHNESS_4K.DDS");
+        decal->order = 0;
+
+        scene.AddObject(std::move(decal));
+    }
+
+    /*
+    // test decal B
+    for (Uint32 i = 0; i < 10; ++i)
+    {
+        for (Uint32 j = 0; j < 10; ++j)
+        {
+            std::unique_ptr<DecalSceneObject> decal = std::make_unique<DecalSceneObject>();
+            decal->SetTransform(
+                Quaternion::FromAxisAndAngle(VECTOR_X, RT_PI / 2.0f).ToMatrix4() *
+                Matrix4::MakeTranslation(Vector4(3.0f * i, 0.0f, 3.0f * j)) *
+                Matrix4::MakeScaling(Vector4(0.5f, 1.0f, 0.5f)));
+            //decal->baseColor.baseValue = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+            decal->baseColor.texture = bitmapTextureA;
+            decal->baseColor.baseValue = Vector4(1.0f, 0.5f, 0.5f, 1.0f);
+            decal->alphaMin = 1.0f;
+            decal->alphaMax = 1.0f;
+            decal->order = 1;
+
+            scene.AddObject(std::move(decal));
+        }
+    }
+    */
+
+    {
+        const Vector4 lightColor(100.0f, 100.0f, 100.0f);
+        auto background = std::make_unique<PointLight>(lightColor);
         auto lightObject = std::make_unique<LightSceneObject>(std::move(background));
+        lightObject->SetTransform(Matrix4::MakeTranslation(Vector4(5.0f, 5.0f, 5.0f)));
         scene.AddObject(std::move(lightObject));
     }
+
+    //{
+    //    const Vector4 lightColor(2.0f, 2.0f, 2.0f);
+    //    auto background = std::make_unique<BackgroundLight>(lightColor);
+    //    background->mTexture = backgroundTexture;
+    //    auto lightObject = std::make_unique<LightSceneObject>(std::move(background));
+    //    scene.AddObject(std::move(lightObject));
+    //}
 
     {
         Transform transform(Vector4(2.0f, 3.0f, -5.0f), Quaternion::FromEulerAngles(Float3(0.588f, -0.75f, 0.0f)));

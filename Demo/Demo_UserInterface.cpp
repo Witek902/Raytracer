@@ -391,6 +391,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
             "Material Emission Color",
             "Material Roughness",
             "Material Metalness",
+            "Material Index of Refraction",
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
             "RayBoxIntersection", "RayBoxIntersectionPassed", "RayTriIntersection", "RayTriIntersectionPassed",
 #endif // RT_ENABLE_INTERSECTION_COUNTERS

@@ -180,6 +180,8 @@ public:
     // Create scaling matrix
     RAYLIB_API static const Matrix4 MakeScaling(const Vector4& scale);
 
+    // Full inverse
+    RAYLIB_API const Matrix4 Inverse() const;
 
     RT_FORCE_INLINE const Matrix4 FastInverseNoScale() const
     {

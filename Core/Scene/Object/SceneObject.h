@@ -26,6 +26,7 @@ public:
     {
         Shape,
         Light,
+        Decal,
     };
 
     RAYLIB_API ISceneObject();
@@ -34,18 +35,6 @@ public:
     virtual Type GetType() const = 0;
 
     RAYLIB_API void SetTransform(const math::Matrix4& matrix);
-
-    // traverse the object and return hit points
-    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
-    virtual void Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
-
-    // check shadow ray occlusion
-    virtual bool Traverse_Shadow(const SingleTraversalContext& context) const = 0;
-
-    // Calculate input data for shading routine
-    // NOTE: all calculations are performed in local space
-    // NOTE: frame[3] (translation) will be already filled, because it can be always calculated from ray distance
-    virtual void EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const = 0;
 
     // Get world-space bounding box
     virtual math::Box GetBoundingBox() const = 0;
@@ -63,6 +52,22 @@ private:
     math::Matrix4 mInverseTranform;
 
     // TODO velocity
+};
+
+class ITraceableSceneObject : public ISceneObject
+{
+public:
+    // traverse the object and return hit points
+    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
+    virtual void Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
+
+    // check shadow ray occlusion
+    virtual bool Traverse_Shadow(const SingleTraversalContext& context) const = 0;
+
+    // Calculate input data for shading routine
+    // NOTE: all calculations are performed in local space
+    // NOTE: frame[3] (translation) will be already filled, because it can be always calculated from ray distance
+    virtual void EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const = 0;
 };
 
 using SceneObjectPtr = std::unique_ptr<ISceneObject>;

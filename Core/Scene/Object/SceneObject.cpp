@@ -20,7 +20,7 @@ void ISceneObject::SetTransform(const math::Matrix4& matrix)
     mTransform = matrix;
 
     // TODO scaling support
-    mInverseTranform = matrix.FastInverseNoScale();
+    mInverseTranform = matrix.Inverse();
 }
 
 const Matrix4 ISceneObject::GetTransform(const float t) const

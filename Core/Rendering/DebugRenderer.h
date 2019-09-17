@@ -22,6 +22,7 @@ enum class DebugRenderingMode : Uint8
     Emission,                   // visualize emission color
     Roughness,                  // visualize "rougness" parameter
     Metalness,                  // visualize "metalness" parameter
+    IoR,                        // visualize "index of refraction" parameter
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
     // stats

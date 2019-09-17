@@ -340,6 +340,7 @@
     <ClInclude Include="Material\BSDF\RoughDiffuseBSDF.h" />
     <ClInclude Include="Material\BSDF\RoughPlasticBSDF.h" />
     <ClInclude Include="Material\Material.h" />
+    <ClInclude Include="Material\MaterialParameter.h" />
     <ClInclude Include="Math\Box.h" />
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Distribution.h" />
@@ -372,6 +373,7 @@
     <ClInclude Include="Math\Transcendental.h" />
     <ClInclude Include="Math\Triangle.h" />
     <ClInclude Include="Math\Vector4.h" />
+    <ClInclude Include="Math\Vector4Impl.h" />
     <ClInclude Include="Math\Vector4ImplNaive.h" />
     <ClInclude Include="Math\Vector4Load.h" />
     <ClInclude Include="Math\Vector8.h" />
@@ -418,6 +420,7 @@
     <ClInclude Include="Scene\Light\PointLight.h" />
     <ClInclude Include="Scene\Light\SpotLight.h" />
     <ClInclude Include="Scene\Object\SceneObject.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Decal.h" />
     <ClInclude Include="Scene\Object\SceneObject_Light.h" />
     <ClInclude Include="Scene\Object\SceneObject_Shape.h" />
     <ClInclude Include="Scene\Scene.h" />
@@ -521,6 +524,7 @@
     <ClCompile Include="Scene\Light\PointLight.cpp" />
     <ClCompile Include="Scene\Light\SpotLight.cpp" />
     <ClCompile Include="Scene\Object\SceneObject.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Decal.cpp" />
     <ClCompile Include="Scene\Object\SceneObject_Light.cpp" />
     <ClCompile Include="Scene\Object\SceneObject_Shape.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />

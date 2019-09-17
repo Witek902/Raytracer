@@ -145,6 +145,9 @@
     <ClInclude Include="Shapes\MeshShape.h" />
     <ClInclude Include="Shapes\Mesh\VertexBuffer.h" />
     <ClInclude Include="Shapes\Mesh\VertexBufferDesc.h" />
+    <ClInclude Include="Scene\Object\SceneObject_Decal.h" />
+    <ClInclude Include="Material\MaterialParameter.h" />
+    <ClInclude Include="Math\Vector4Impl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />
@@ -226,6 +229,7 @@
     <ClCompile Include="Shapes\RectShape.cpp" />
     <ClCompile Include="Shapes\MeshShape.cpp" />
     <ClCompile Include="Shapes\Mesh\VertexBuffer.cpp" />
+    <ClCompile Include="Scene\Object\SceneObject_Decal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

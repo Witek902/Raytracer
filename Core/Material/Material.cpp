@@ -151,6 +151,7 @@ bool Material::GetMaskValue(const Vector4& uv) const
 void Material::EvaluateShadingData(const Wavelength& wavelength, ShadingData& shadingData) const
 {
     shadingData.materialParams.baseColor = RayColor::Resolve(wavelength, Spectrum(baseColor.Evaluate(shadingData.intersection.texCoord)));
+    shadingData.materialParams.emissionColor = RayColor::Resolve(wavelength, Spectrum(emission.Evaluate(shadingData.intersection.texCoord)));
     shadingData.materialParams.roughness = roughness.Evaluate(shadingData.intersection.texCoord);
     shadingData.materialParams.metalness = metalness.Evaluate(shadingData.intersection.texCoord);
     shadingData.materialParams.IoR = IoR;

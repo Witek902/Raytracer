@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BSDF/BSDF.h"
+#include "MaterialParameter.h"
 #include "../Textures/Texture.h"
 #include "../Utils/AlignmentAllocator.h"
 #include "../Color/RayColor.h"
@@ -12,9 +13,6 @@ namespace rt {
 
 struct ShadingData;
 
-class ITexture;
-using TexturePtr = std::shared_ptr<ITexture>;
-
 // coefficients of Sellmeier dispersion equation
 struct RAYLIB_API DispersionParams
 {
@@ -22,31 +20,6 @@ struct RAYLIB_API DispersionParams
     float D;
 
     DispersionParams();
-};
-
-template<typename T>
-struct MaterialParameter
-{
-    T baseValue;
-    TexturePtr texture = nullptr;
-
-    MaterialParameter() = default;
-
-    RT_FORCE_INLINE MaterialParameter(const T baseValue)
-        : baseValue(baseValue)
-    {}
-
-    RT_FORCE_INLINE const T Evaluate(const math::Vector4& uv) const
-    {
-        T value = baseValue;
-
-        if (texture)
-        {
-            value = static_cast<T>(value * texture->Evaluate(uv));
-        }
-
-        return value;
-    };
 };
 
 class Material;

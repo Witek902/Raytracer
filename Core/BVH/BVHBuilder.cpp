@@ -35,7 +35,7 @@ BVHBuilder::~BVHBuilder()
 }
 
 bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
-                       const BuildingParams& params,
+                       const BvhBuildingParams& params,
                        DynArray<Uint32>& outLeavesOrder)
 {
     mLeafBoxes = data;
@@ -168,14 +168,25 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
             const Box& leftBox = context.mLeftBoxesCache[splitPos];
             const Box& rightBox = context.mRightBoxesCache[splitPos + 1];
 
-            const float leftArea = leftBox.SurfaceArea();
-            const float rightArea = rightBox.SurfaceArea();
+            float leftCost = 0.0f, rightCost = 0.0f;
+            if (mParams.heuristics == BvhBuildingParams::Heuristics::SurfaceArea)
+            {
+                leftCost = leftBox.SurfaceArea();
+                rightCost = rightBox.SurfaceArea();
+            }
+            else if (mParams.heuristics == BvhBuildingParams::Heuristics::Volume)
+            {
+                leftCost = leftBox.Volume();
+                rightCost = rightBox.Volume();
+            }
+            else
+            {
+                RT_FATAL();
+            }
+
             const Uint32 leftCount = splitPos + 1;
             const Uint32 rightCount = workSet.numLeaves - leftCount;
-
-            const float totalCost =
-                leftArea * static_cast<float>(leftCount) +
-                rightArea * static_cast<float>(rightCount);
+            const float totalCost = leftCost * static_cast<float>(leftCount) + rightCost * static_cast<float>(rightCount);
 
             if (totalCost < bestCost)
             {

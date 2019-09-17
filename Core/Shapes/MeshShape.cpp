@@ -53,12 +53,9 @@ bool MeshShape::Initialize(const MeshDesc& desc)
         mBoundingBox = Box(mBoundingBox, triBox);
     }
 
-    BVHBuilder::BuildingParams params;
-    params.maxLeafNodeSize = 2;
-
     BVHBuilder::Indices newTrianglesOrder;
     BVHBuilder bvhBuilder(mBVH);
-    if (!bvhBuilder.Build(boxes.Data(), desc.vertexBufferDesc.numTriangles, params, newTrianglesOrder))
+    if (!bvhBuilder.Build(boxes.Data(), desc.vertexBufferDesc.numTriangles, BvhBuildingParams(), newTrianglesOrder))
     {
         return false;
     }

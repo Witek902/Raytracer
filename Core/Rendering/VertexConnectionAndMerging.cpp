@@ -242,10 +242,8 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         // accumulate material emission color
         // Note: no importance sampling for this
         {
-            const Spectrum emissionSpectrum(shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord));
-            const RayColor emissionColor = RayColor::Resolve(ctx.wavelength, emissionSpectrum);
-            RT_ASSERT(emissionColor.IsValid());
-            resultColor.MulAndAccumulate(pathState.throughput, emissionColor);
+            RT_ASSERT(shadingData.materialParams.emissionColor.IsValid());
+            resultColor.MulAndAccumulate(pathState.throughput, shadingData.materialParams.emissionColor);
         }
 
         if (pathState.length >= mMaxPathLength)

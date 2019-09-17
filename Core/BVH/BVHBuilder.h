@@ -5,20 +5,22 @@
 
 namespace rt {
 
+struct BvhBuildingParams
+{
+    enum class Heuristics
+    {
+        SurfaceArea,
+        Volume
+    };
+
+    Uint32 maxLeafNodeSize = 2; // max number of objects in leaf nodes
+    Heuristics heuristics = Heuristics::SurfaceArea;
+};
 
 // helper class for constructing BVH using SAH algorithm
 class BVHBuilder
 {
 public:
-
-    struct BuildingParams
-    {
-        Uint32 maxLeafNodeSize; // max number of objects in leaf nodes
-
-        BuildingParams()
-            : maxLeafNodeSize(2)
-        { }
-    };
 
     using Indices = DynArray<Uint32>;
 
@@ -28,7 +30,7 @@ public:
     void SetLeafData();
 
     // construct the BVH and return new leaves order
-    bool Build(const math::Box* data, const Uint32 numLeaves, const BuildingParams& params, Indices& outLeavesOrder);
+    bool Build(const math::Box* data, const Uint32 numLeaves, const BvhBuildingParams& params, Indices& outLeavesOrder);
 
 private:
 
@@ -64,7 +66,7 @@ private:
     void GenerateLeaf(const WorkSet& workSet, BVH::Node& targetNode);
 
     // input data
-    BuildingParams mParams;
+    BvhBuildingParams mParams;
     const math::Box* mLeafBoxes;
     Uint32 mNumLeaves;
 

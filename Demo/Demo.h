@@ -87,7 +87,7 @@ private:
     // debugging
     rt::PathDebugData mPathDebugData;
     rt::Material* mSelectedMaterial;
-    rt::ISceneObject* mSelectedObject;
+    rt::ITraceableSceneObject* mSelectedObject;
     rt::ILight* mSelectedLight;
     bool mFocalDistancePicking = false;
     bool mPixelDebuggingPicking = false;

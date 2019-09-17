@@ -76,16 +76,17 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         {
             mScene.EvaluateIntersection(ray, hitPoint, ctx.time, shadingData.intersection);
         }
+        mScene.EvaluateShadingData(shadingData, ctx);
     }
 
-    Vector4 resultColor;
+    RayColor resultColor;
 
     switch (mRenderingMode)
     {
         case DebugRenderingMode::CameraLight:
         {
             const float NdotL = Vector4::Dot3(ray.dir, shadingData.intersection.frame[2]);
-            resultColor = shadingData.intersection.material->baseColor.Evaluate(shadingData.intersection.texCoord) * Abs(NdotL);
+            resultColor = shadingData.materialParams.baseColor * Abs(NdotL);
             break;
         }
 
@@ -93,7 +94,7 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         case DebugRenderingMode::Depth:
         {
             const float invDepth = 1.0f - 1.0f / (1.0f + hitPoint.distance / 10.0f);
-            resultColor = Vector4(invDepth);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(Vector4(invDepth)));
             break;
         }
         case DebugRenderingMode::TriangleID:
@@ -101,68 +102,79 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
             const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
             const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
             const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
-            resultColor = HSVtoRGB(hue, saturation, 1.0f);
+            const Vector4 rgbColor = HSVtoRGB(hue, saturation, 1.0f);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::Tangents:
         {
-            resultColor = BipolarToUnipolar(shadingData.intersection.frame[0]);
+            const Vector4 rgbColor = Vector4::Saturate(BipolarToUnipolar(shadingData.intersection.frame[0]));
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::Bitangents:
         {
-            resultColor = BipolarToUnipolar(shadingData.intersection.frame[1]);
+            const Vector4 rgbColor = Vector4::Saturate(BipolarToUnipolar(shadingData.intersection.frame[1]));
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::Normals:
         {
-            resultColor = BipolarToUnipolar(shadingData.intersection.frame[2]);
+            const Vector4 rgbColor = Vector4::Saturate(BipolarToUnipolar(shadingData.intersection.frame[2]));
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::Position:
         {
-            resultColor = Vector4::Max(Vector4::Zero(), shadingData.intersection.frame[3]);
+            const Vector4 rgbColor = Vector4::Max(Vector4::Zero(), shadingData.intersection.frame[3]);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::TexCoords:
         {
-            resultColor = Vector4::Mod1(shadingData.intersection.texCoord & Vector4::MakeMask<1,1,0,0>());
+            const Vector4 rgbColor = Vector4::Mod1(shadingData.intersection.texCoord & Vector4::MakeMask<1,1,0,0>());
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
 
         // Material
         case DebugRenderingMode::BaseColor:
         {
-            resultColor = shadingData.intersection.material->baseColor.Evaluate(shadingData.intersection.texCoord);
+            resultColor = shadingData.materialParams.baseColor;
             break;
         }
         case DebugRenderingMode::Emission:
         {
-            resultColor = shadingData.intersection.material->emission.Evaluate(shadingData.intersection.texCoord);
+            resultColor = shadingData.materialParams.emissionColor;
             break;
         }
         case DebugRenderingMode::Roughness:
         {
-            resultColor = Vector4(shadingData.intersection.material->roughness.Evaluate(shadingData.intersection.texCoord));
+            const Vector4 rgbColor = Vector4(shadingData.materialParams.roughness);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
         case DebugRenderingMode::Metalness:
         {
-            resultColor = Vector4(shadingData.intersection.material->metalness.Evaluate(shadingData.intersection.texCoord));
+            const Vector4 rgbColor = Vector4(shadingData.materialParams.metalness);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
+            break;
+        }
+        case DebugRenderingMode::IoR:
+        {
+            const Vector4 rgbColor = Vector4(shadingData.materialParams.IoR);
+            resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
         }
 
         default:
         {
             RT_FATAL("Invalid debug rendering mode");
-            resultColor = Vector4::Zero();
+            resultColor = RayColor::Zero();
         }
     }
 
-    // clamp color
-    resultColor = Vector4::Max(Vector4::Zero(), resultColor);
-
-    return RayColor::Resolve(ctx.wavelength, Spectrum(resultColor));
+    return resultColor;
 }
 
 void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film, RenderingContext& context) const

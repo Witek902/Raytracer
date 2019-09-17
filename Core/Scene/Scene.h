@@ -10,11 +10,14 @@
 namespace rt {
 
 class ISceneObject;
+class ITraceableSceneObject;
 class ILight;
 class LightSceneObject;
 class ShapeSceneObject;
+class DecalSceneObject;
 struct RenderingContext;
 struct HitPoint;
+struct ShadingData;
 struct IntersectionData;
 struct SingleTraversalContext;
 struct PacketTraversalContext;
@@ -44,8 +47,8 @@ public:
 
     RAYLIB_API bool BuildBVH();
 
-    RT_FORCE_INLINE const BVH& GetBVH() const { return mBVH; }
-    RT_FORCE_INLINE const ISceneObject* GetHitObject(Uint32 id) const { return mObjectsInBvh[id]; }
+    RT_FORCE_INLINE const BVH& GetBVH() const { return mTraceableObjectsBVH; }
+    RT_FORCE_INLINE const ITraceableSceneObject* GetHitObject(Uint32 id) const { return mTraceableObjects[id]; }
     RT_FORCE_INLINE const DynArray<const LightSceneObject*>& GetLights() const { return mLights; }
     RT_FORCE_INLINE const DynArray<const LightSceneObject*>& GetGlobalLights() const { return mGlobalLights; }
 
@@ -65,6 +68,8 @@ public:
 
     bool Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const;
 
+    void EvaluateShadingData(ShadingData& shadingData, RenderingContext& context) const;
+
 private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;
@@ -72,16 +77,19 @@ private:
     RT_FORCE_NOINLINE void Traverse_Object(const SingleTraversalContext& context, const Uint32 objectID) const;
     RT_FORCE_NOINLINE bool Traverse_Object_Shadow(const SingleTraversalContext& context, const Uint32 objectID) const;
 
+    void EvaluateDecals(ShadingData& shadingData, RenderingContext& context) const;
+
     // keeps ownership
     DynArray<SceneObjectPtr> mAllObjects;
 
     DynArray<const LightSceneObject*> mLights;
     DynArray<const LightSceneObject*> mGlobalLights;
 
-    DynArray<const ISceneObject*> mObjectsInBvh;
+    DynArray<const ITraceableSceneObject*> mTraceableObjects;
+    BVH mTraceableObjectsBVH;
 
-    // bounding volume hierarchy for scene object that has finite volume
-    BVH mBVH;
+    DynArray<const DecalSceneObject*> mDecals;
+    BVH mDecalsBVH;
 };
 
 } // namespace rt

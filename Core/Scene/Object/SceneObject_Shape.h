@@ -7,7 +7,7 @@ namespace rt {
 class IShape;
 using ShapePtr = std::shared_ptr<IShape>;
 
-class ShapeSceneObject : public ISceneObject
+class ShapeSceneObject : public ITraceableSceneObject
 {
 public:
     RAYLIB_API ShapeSceneObject(const ShapePtr& shape);
