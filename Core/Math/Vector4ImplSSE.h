@@ -109,16 +109,6 @@ Uint32 Vector4::ToBGR() const
     return _mm_extract_epi32(result, 0);
 }
 
-Float2 Vector4::ToFloat2() const
-{
-    return Float2{ x, y };
-}
-
-Float3 Vector4::ToFloat3() const
-{
-    return Float3{ x, y, z };
-}
-
 template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
 const Vector4 Vector4::ChangeSign() const
 {
@@ -203,26 +193,6 @@ const Vector4 Vector4::Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const
 #else
     return Vector4{ f[ix], f[iy], f[iz], f[iw] };
 #endif
-}
-
-const Vector4 Vector4::SplatX() const
-{
-    return Swizzle<0, 0, 0, 0>();
-}
-
-const Vector4 Vector4::SplatY() const
-{
-    return Swizzle<1, 1, 1, 1>();
-}
-
-const Vector4 Vector4::SplatZ() const
-{
-    return Swizzle<2, 2, 2, 2>();
-}
-
-const Vector4 Vector4::SplatW() const
-{
-    return Swizzle<3, 3, 3, 3>();
 }
 
 const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBool4& sel)
@@ -392,26 +362,6 @@ const Vector4 Vector4::NegMulAndSub(const Vector4& a, const Vector4& b, const Ve
 #endif
 }
 
-const Vector4 Vector4::MulAndAdd(const Vector4& a, const float b, const Vector4& c)
-{
-    return MulAndAdd(a, Vector4(b), c);
-}
-
-const Vector4 Vector4::MulAndSub(const Vector4& a, const float b, const Vector4& c)
-{
-    return MulAndSub(a, Vector4(b), c);
-}
-
-const Vector4 Vector4::NegMulAndAdd(const Vector4& a, const float b, const Vector4& c)
-{
-    return NegMulAndAdd(a, Vector4(b), c);
-}
-
-const Vector4 Vector4::NegMulAndSub(const Vector4& a, const float b, const Vector4& c)
-{
-    return NegMulAndSub(a, Vector4(b), c);
-}
-
 const Vector4 Vector4::Floor(const Vector4& v)
 {
     return _mm_floor_ps(v);
@@ -435,16 +385,6 @@ const Vector4 Vector4::FastReciprocal(const Vector4& v)
     return NegMulAndAdd(rcpSqr, v, rcp2);
 }
 
-const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, const Vector4& weight)
-{
-    return MulAndAdd(v2 - v1, weight, v1);
-}
-
-const Vector4 Vector4::Lerp(const Vector4& v1, const Vector4& v2, float weight)
-{
-    return MulAndAdd(v2 - v1, Vector4(weight), v1);
-}
-
 const Vector4 Vector4::Min(const Vector4& a, const Vector4& b)
 {
     return _mm_min_ps(a, b);
@@ -458,11 +398,6 @@ const Vector4 Vector4::Max(const Vector4& a, const Vector4& b)
 const Vector4 Vector4::Abs(const Vector4& v)
 {
     return _mm_and_ps(v, VECTOR_MASK_ABS);
-}
-
-const Vector4 Vector4::Clamped(const Vector4& min, const Vector4& max) const
-{
-    return Min(max, Max(min, *this));
 }
 
 int Vector4::GetSignMask() const
@@ -548,11 +483,6 @@ const Vector4 Vector4::Cross3(const Vector4& v1, const Vector4& v2)
     return NegMulAndAdd(vTemp1, vTemp2, vResult);
 }
 
-float Vector4::SqrLength2() const
-{
-    return Dot2(*this, *this);
-}
-
 float Vector4::Length2() const
 {
     return _mm_cvtss_f32(Length2V());
@@ -593,30 +523,6 @@ Vector4& Vector4::FastNormalize3()
     return *this;
 }
 
-const Vector4 Vector4::Normalized3() const
-{
-    Vector4 result = *this;
-    result.Normalize3();
-    return result;
-}
-
-const Vector4 Vector4::InvNormalized(Vector4& outInvNormalized) const
-{
-    const Vector4 len = Length3V();
-    const Vector4 temp = Vector4::Select<0, 0, 0, 1>(*this, len);
-    const Vector4 invTemp = Vector4::Reciprocal(temp); // [1/x, 1/y, 1/y, 1/length]
-
-    outInvNormalized = len * invTemp;
-    return (*this) * invTemp.w;
-}
-
-const Vector4 Vector4::FastNormalized3() const
-{
-    Vector4 result = *this;
-    result.FastNormalize3();
-    return result;
-}
-
 float Vector4::Length4() const
 {
     return _mm_cvtss_f32(Length4V());
@@ -627,41 +533,12 @@ const Vector4 Vector4::Length4V() const
     return _mm_sqrt_ps(Dot4V(v, v));
 }
 
-float Vector4::SqrLength4() const
-{
-    return Dot4(*this, *this);
-}
-
 Vector4& Vector4::Normalize4()
 {
     const __m128 vDot = Dot4V(v, v);
     const __m128 vTemp = _mm_sqrt_ps(vDot);
     v = _mm_div_ps(v, vTemp);
     return *this;
-}
-
-const Vector4 Vector4::Normalized4() const
-{
-    Vector4 result = *this;
-    result.Normalize4();
-    return result;
-}
-
-const Vector4 Vector4::Reflect3(const Vector4& i, const Vector4& n)
-{
-    // return (i - 2.0f * Dot(i, n) * n);
-    const Vector4 vDot = Dot3V(i, n);
-    return NegMulAndAdd(vDot + vDot, n, i);
-}
-
-bool Vector4::AlmostEqual(const Vector4& v1, const Vector4& v2, float epsilon)
-{
-    return (Abs(v1 - v2) < Vector4(epsilon)).All();
-}
-
-const VectorBool4 Vector4::IsZero() const
-{
-    return *this == Vector4::Zero();
 }
 
 const Vector4 Vector4::Fmod1(const Vector4& v)

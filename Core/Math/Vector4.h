@@ -133,6 +133,7 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE static const Vector4 Min(const Vector4& a, const Vector4& b);
     RT_FORCE_INLINE static const Vector4 Max(const Vector4& a, const Vector4& b);
     RT_FORCE_INLINE static const Vector4 Abs(const Vector4& v);
+    RT_FORCE_INLINE static const Vector4 Saturate(const Vector4& v);
     RT_FORCE_INLINE const Vector4 Clamped(const Vector4& min, const Vector4& max) const;
 
     // Build mask of sign bits
@@ -294,6 +295,8 @@ RT_GLOBAL_CONST Vector4 VECTOR_W = { 0.0f, 0.0f, 0.0f, 1.0f };
 } // namespace math
 } // namespace rt
 
+
+#include "Vector4Impl.h"
 
 #ifdef RT_USE_SSE
 #include "Vector4ImplSSE.h"
