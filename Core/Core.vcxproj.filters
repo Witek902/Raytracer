@@ -148,6 +148,7 @@
     <ClInclude Include="Scene\Object\SceneObject_Decal.h" />
     <ClInclude Include="Material\MaterialParameter.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
+    <ClInclude Include="Utils\Profiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />
@@ -231,6 +232,8 @@
     <ClCompile Include="Shapes\MeshShape.cpp" />
     <ClCompile Include="Shapes\Mesh\VertexBuffer.cpp" />
     <ClCompile Include="Scene\Object\SceneObject_Decal.cpp" />
+    <ClCompile Include="Utils\MemoryHelpers.cpp" />
+    <ClCompile Include="Utils\Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Math">

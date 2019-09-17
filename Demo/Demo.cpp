@@ -4,6 +4,7 @@
 
 #include "../Core/Utils/Timer.h"
 #include "../Core/Utils/Logger.h"
+#include "../Core/Utils/Profiler.h"
 #include "../Core/Rendering/Renderer.h"
 #include "../Core/Traversal/TraversalContext.h"
 
@@ -432,7 +433,10 @@ bool DemoWindow::Loop()
         mViewport->Render(mCamera);
         mRenderDeltaTime = localTimer.Stop();
 
-        rt::Bitmap::Copy(mImage, mViewport->GetFrontBuffer());
+        {
+            RT_SCOPED_TIMER(CopyFrontBuffer);
+            rt::Bitmap::Copy(mImage, mViewport->GetFrontBuffer());
+        }
 
         if (mVisualizeAdaptiveRenderingBlocks)
         {

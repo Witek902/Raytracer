@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Common.h"
+#include "../RayLib.h"
+
 #include <type_traits>
 #include <string.h>
 
@@ -88,5 +91,9 @@ public:
         }
     }
 };
+
+// Memcopy optimized for copying large memory blocks
+// NOTE: source and destination has to be aligned to 32 bytes
+RAYLIB_API void LargeMemCopy(void* __restrict dest, const void* __restrict src, size_t size);
 
 } // rt

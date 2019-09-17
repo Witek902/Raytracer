@@ -10,6 +10,7 @@
 #include <time.h>
 #endif
 
+namespace rt {
 
 /**
  * High resolution timer.
@@ -48,3 +49,7 @@ private:
 #endif // defined(WIN32)
 
 };
+
+extern const double gTimerPeriod;
+
+} // namespace rt

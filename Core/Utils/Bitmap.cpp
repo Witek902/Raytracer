@@ -3,6 +3,7 @@
 #include "Logger.h"
 #include "BlockCompression.h"
 #include "Timer.h"
+#include "MemoryHelpers.h"
 #include "../Math/Packed.h"
 #include "../Math/Vector4Load.h"
 #include "../Color/ColorHelpers.h"
@@ -182,7 +183,7 @@ bool Bitmap::Init(const InitData& initData)
     mUsesDefaultAllocator = initData.useDefaultAllocator;
     if (mUsesDefaultAllocator)
     {
-        mData = (Uint8*)DefaultAllocator::Allocate(dataSize + marigin);
+        mData = (Uint8*)DefaultAllocator::Allocate(dataSize + marigin, RT_CACHE_LINE_SIZE);
     }
     else
     {
@@ -202,7 +203,7 @@ bool Bitmap::Init(const InitData& initData)
 
     if (initData.paletteSize > 0)
     {
-        mPalette = (Uint8*)DefaultAllocator::Allocate(sizeof(Uint32) * (size_t)initData.paletteSize);
+        mPalette = (Uint8*)DefaultAllocator::Allocate(sizeof(Uint32) * (size_t)initData.paletteSize, RT_CACHE_LINE_SIZE);
     }
 
     // clear marigin
@@ -242,7 +243,7 @@ bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
     if (target.mStride == source.mStride)
     {
         RT_ASSERT(target.GetDataSize() == source.GetDataSize());
-        memcpy(target.GetData(), source.GetData(), source.GetDataSize());
+        LargeMemCopy(target.GetData(), source.GetData(), source.GetDataSize());
     }
     else
     {

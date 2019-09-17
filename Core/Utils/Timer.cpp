@@ -1,9 +1,9 @@
 #include "PCH.h"
 #include "Timer.h"
 
-#ifdef WIN32
+namespace rt {
 
-namespace {
+#ifdef WIN32
 
 static double GetCounterPeriod()
 {
@@ -12,9 +12,7 @@ static double GetCounterPeriod()
     return 1.0 / static_cast<double>(freq.QuadPart);
 }
 
-static const double gTimerPeriod = GetCounterPeriod();
-
-} // namespace
+const double gTimerPeriod = GetCounterPeriod();
 
 #endif // WIN32
 
@@ -73,3 +71,5 @@ double Timer::Reset()
 
 #endif // defined(WIN32)
 }
+
+} // namespace rt

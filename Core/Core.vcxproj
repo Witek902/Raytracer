@@ -188,7 +188,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RAYLIB_EXPORTS;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -221,7 +220,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RAYLIB_EXPORTS;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;_USRDLL;RT_CONFIGURATION_FINAL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -254,7 +252,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -287,7 +284,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;RAYLIB_EXPORTS;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;RT_CONFIGURATION_FINAL;RT_CORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -455,6 +451,7 @@
     <ClInclude Include="Utils\KdTree.h" />
     <ClInclude Include="Utils\Logger.h" />
     <ClInclude Include="Utils\MemoryHelpers.h" />
+    <ClInclude Include="Utils\Profiler.h" />
     <ClInclude Include="Utils\Texture.h" />
     <ClInclude Include="Utils\TextureEvaluator.h" />
     <ClInclude Include="Utils\Timer.h" />
@@ -554,6 +551,8 @@
     <ClCompile Include="Utils\KdTree.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Memory.cpp" />
+    <ClCompile Include="Utils\MemoryHelpers.cpp" />
+    <ClCompile Include="Utils\Profiler.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
     <ClCompile Include="Utils\ThreadPool.cpp" />
   </ItemGroup>

@@ -10,6 +10,8 @@
 #include "Material/Material.h"
 #include "Traversal/TraversalContext.h"
 #include "Sampling/GenericSampler.h"
+#include "Utils/Profiler.h"
+#include "Utils/MemoryHelpers.h"
 
 namespace rt {
 
@@ -57,8 +59,8 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mCameraConnectingWeight = Vector4(1.0f);
     mVertexMergingWeight = Vector4(1.0f);
 
-    mUseVertexConnection = true;
-    mUseVertexMerging = false;
+    mUseVertexConnection = false;
+    mUseVertexMerging = true;
     mMaxPathLength = 10;
     mInitialMergingRadius = 0.04f;
     mMergingRadiusVC = mMergingRadiusVM = mInitialMergingRadius;
@@ -140,12 +142,14 @@ void VertexConnectionAndMerging::PreRenderGlobal(RenderingContext& ctx)
     RT_ASSERT(ctx.rendererContext);
     VertexConnectionAndMergingContext& rendererContext = *static_cast<VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
 
+    RT_SCOPED_TIMER(MergePhotonLists);
+
     // merge photon lists
     // TODO is there any way to get rid of this? (or at least make it multithreaded)
     const Uint32 oldPhotonsSize = mPhotons.Size();
     const Uint32 numPhotonsToAdd = rendererContext.photons.Size();
     mPhotons.Resize_SkipConstructor(oldPhotonsSize + numPhotonsToAdd);
-    memcpy(mPhotons.Data() + oldPhotonsSize, rendererContext.photons.Data(), numPhotonsToAdd * sizeof(Photon));
+    LargeMemCopy(mPhotons.Data() + oldPhotonsSize, rendererContext.photons.Data(), numPhotonsToAdd * sizeof(Photon));
 
     // prepare data structures
     rendererContext.photons.Clear();
@@ -818,6 +822,8 @@ const RayColor VertexConnectionAndMerging::ConnectVertices(PathState& cameraPath
 
 const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathState, const ShadingData& shadingData, RenderingContext& ctx) const
 {
+    RT_SCOPED_TIMER(MergeVertices);
+
     class RangeQuery
     {
     public:

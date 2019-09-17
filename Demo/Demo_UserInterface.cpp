@@ -8,6 +8,7 @@
 #include "../Core/Rendering/VertexConnectionAndMerging.h"
 #include "../Core/Rendering/DebugRenderer.h"
 #include "../Core/Color/ColorHelpers.h"
+#include "../Core/Utils/Profiler.h"
 
 using namespace rt;
 using namespace math;
@@ -99,6 +100,68 @@ void DemoWindow::RenderUI_Stats()
         ImGui::Text("%.3fM", (float)counters.numPassedRayTriangleTests / 1.0e+6f); ImGui::NextColumn();
     }
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
+
+    ImGui::Columns(1);
+}
+
+static void ImGuiPrintTime(double t)
+{
+    if (t == 0)
+    {
+        ImGui::Text("0.0 s", t);
+    }
+    else if (t > 1.0)
+    {
+        ImGui::Text("%.4g s", t);
+    }
+    else if (t > 0.001)
+    {
+        ImGui::Text("%.4g ms", t * 1000.0);
+    }
+    else if (t > 0.000001)
+    {
+        ImGui::Text("%.4g us", t * 1000000.0);
+    }
+    else
+    {
+        ImGui::Text("%.4g ns", t * 1000000000.0);
+    }
+}
+
+void DemoWindow::RenderUI_Profiler()
+{
+    static const char* selectedScope = nullptr;
+
+    if (ImGui::Button("Reset"))
+    {
+        Profiler::GetInstance().ResetAll();
+    }
+
+    DynArray<ProfilerResult> profilerResults;
+    Profiler::GetInstance().Collect(profilerResults);
+
+    ImGui::Columns(4);
+
+    ImGui::Text("Scope"); ImGui::NextColumn();
+    ImGui::Text("Count"); ImGui::NextColumn();
+    ImGui::Text("Avg. time"); ImGui::NextColumn();
+    ImGui::Text("Min time"); ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    for (const ProfilerResult& result : profilerResults)
+    {
+        bool selected = selectedScope == result.scopeName;
+        if (ImGui::Selectable(result.scopeName, &selected))
+        {
+            selectedScope = result.scopeName;
+        }
+        ImGui::NextColumn();
+
+        ImGui::Text("%llu", result.count); ImGui::NextColumn();
+        ImGuiPrintTime(result.avgTime); ImGui::NextColumn();
+        ImGuiPrintTime(result.minTime); ImGui::NextColumn();
+    }
 
     ImGui::Columns(1);
 }
@@ -728,6 +791,7 @@ bool DemoWindow::RenderUI()
     ImGui::NewFrame();
     {
         static bool showStats = true;
+        static bool showProfiler = true;
         static bool showDebugging = false;
         static bool showRenderSettings = true;
 
@@ -738,6 +802,7 @@ bool DemoWindow::RenderUI()
                 ImGui::Checkbox("Settings", &showRenderSettings);
                 ImGui::Checkbox("Debugging", &showDebugging);
                 ImGui::Checkbox("Stats", &showStats);
+                ImGui::Checkbox("Profiler", &showProfiler);
 
                 ImGui::EndMenu();
             }
@@ -750,6 +815,15 @@ bool DemoWindow::RenderUI()
             if (ImGui::Begin("Stats", &showStats))
             {
                 RenderUI_Stats();
+            }
+            ImGui::End();
+        }
+
+        if (showProfiler)
+        {
+            if (ImGui::Begin("Profiler", &showProfiler))
+            {
+                RenderUI_Profiler();
             }
             ImGui::End();
         }

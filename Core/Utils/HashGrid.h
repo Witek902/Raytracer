@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Timer.h"
 #include "Logger.h"
+#include "Profiler.h"
 #include "../Math/Box.h"
 #include "../Math/Random.h"
 #include "../Containers/DynArray.h"
@@ -16,9 +16,8 @@ public:
     template<typename ParticleType>
     RT_FORCE_NOINLINE void Build(const DynArray<ParticleType>& particles, float radius)
     {
-        //Timer timer;
+        RT_SCOPED_TIMER(HashGrid_Build);
 
-        mRadius = radius;
         mRadiusSqr = math::Sqr(radius);
         mCellSize = radius * 2.0f;
         mInvCellSize = 1.0f / mCellSize;
@@ -36,7 +35,7 @@ public:
         // determine number of particles in each hash table entry
         {
             // TODO tweak this
-            Uint32 hashTableSize = math::NextPowerOfTwo(Uint32(particles.Size()));
+            Uint32 hashTableSize = math::NextPowerOfTwo(particles.Size());
             mHashTableMask = hashTableSize - 1;
             mCellEnds.Resize(hashTableSize);
 
@@ -51,7 +50,7 @@ public:
 
             // run exclusive prefix sum to really get the cell starts
             // mCellEnds[x] is now where the cell starts
-            int sum = 0;
+            Uint32 sum = 0;
             for (Uint32 i = 0; i < mCellEnds.Size(); i++)
             {
                 Uint32 temp = mCellEnds[i];
@@ -69,10 +68,6 @@ public:
             const int targetIdx = mCellEnds[GetCellIndex(pos)]++;
             mIndices[targetIdx] = Uint32(i);
         }
-
-        //RT_LOG_INFO("Building hash grid took %.2f ms, %zu particels, max perticles per cell = %u, min=[%f,%f,%f], max=[%f,%f,%f]",
-        //    timer.Stop() * 1000.0, particles.Size(), maxPerticlesPerCell,
-        //    mBox.min.x, mBox.min.y, mBox.min.z, mBox.max.x, mBox.max.y, mBox.max.z);
     }
 
     template<typename ParticleType, typename Query>
@@ -84,24 +79,8 @@ public:
         }
 
         const math::Vector4 distMin = queryPos - mBox.min;
-        // TODO check if point is inside box?
-
-        const math::Vector4 cellCoords = mInvCellSize * distMin;
-        // Note: -0.5 is to reduce cells search from 3x3x3 to 2x2x2 (emulates spheres shift in the cells)
-        const math::Vector4 coordF = math::Vector4::Floor(cellCoords - math::Vector4(0.5f));
-        const math::VectorInt4 coordI = math::VectorInt4::Convert(coordF);
-
-        const math::VectorInt4 offsets[] = 
-        {
-            math::VectorInt4(0, 0, 0, 0),
-            math::VectorInt4(0, 0, 1, 0),
-            math::VectorInt4(0, 1, 0, 0),
-            math::VectorInt4(0, 1, 1, 0),
-            math::VectorInt4(1, 0, 0, 0),
-            math::VectorInt4(1, 0, 1, 0),
-            math::VectorInt4(1, 1, 0, 0),
-            math::VectorInt4(1, 1, 1, 0),
-        };
+        const math::Vector4 cellCoords = math::Vector4::MulAndSub(distMin, mInvCellSize, math::Vector4(0.5f));
+        const math::VectorInt4 coordI = math::VectorInt4::TruncateAndConvert(cellCoords);
 
         Uint32 numVisitedCells = 0;
         Uint32 visitedCells[8];
@@ -109,21 +88,31 @@ public:
         // find neigboring (potential) cells - 2x2x2 block
         for (Uint32 i = 0; i < 8; ++i)
         {
-            const Uint32 cellIndex = GetCellIndex(coordI + offsets[i]);
+            //const Uint32 cellIndex = GetCellIndex(coordI + offsets[i]);
+
+            const Uint32 x = coordI.x + ( i       & 1);
+            const Uint32 y = coordI.y + ((i >> 1) & 1);
+            const Uint32 z = coordI.z + ((i >> 2)    );
+            const Uint32 cellIndex = GetCellIndex(x, y, z);
 
             // check if the cell is not already marked to visit
+            bool visited = false;
             for (Uint32 j = 0; j < numVisitedCells; ++j)
             {
                 if (visitedCells[j] == cellIndex)
                 {
-                    continue;
+                    visited = true;
+                    break;
                 }
             }
 
-            visitedCells[numVisitedCells++] = cellIndex;
+            if (!visited)
+            {
+                visitedCells[numVisitedCells++] = cellIndex;
 
-            // prefetch cell range to avoid cache miss in GetCellRange
-            RT_PREFETCH_L1(mCellEnds.Data() + cellIndex);
+                // prefetch cell range to avoid cache miss in GetCellRange
+                RT_PREFETCH_L1(mCellEnds.Data() + cellIndex);
+            }
         }
 
         // collect particles from potential cells
@@ -156,19 +145,24 @@ public:
 
 private:
 
-    void GetCellRange(Uint32 cellIndex, Uint32& outStart, Uint32& outEnd) const
+    RT_FORCE_INLINE void GetCellRange(Uint32 cellIndex, Uint32& outStart, Uint32& outEnd) const
     { 
         outStart = cellIndex == 0 ? 0 : mCellEnds[cellIndex - 1];
         outEnd = mCellEnds[cellIndex];
     }
 
-    Uint32 GetCellIndex(const math::VectorInt4& p) const
+    RT_FORCE_INLINE Uint32 GetCellIndex(Uint32 x, Uint32 y, Uint32 z) const
+    {
+        // "Optimized Spatial Hashing for Collision Detection of Deformable Objects", Matthias Teschner, 2003
+        return ((x * 73856093u) ^ (y * 19349663u) ^ (z * 83492791u)) & mHashTableMask;
+    }
+
+    RT_FORCE_INLINE Uint32 GetCellIndex(const math::VectorInt4& p) const
     {
         // "Optimized Spatial Hashing for Collision Detection of Deformable Objects", Matthias Teschner, 2003
         return ((p.x * 73856093u) ^ (p.y * 19349663u) ^ (p.z * 83492791u)) & mHashTableMask;
     }
 
-    RT_FORCE_NOINLINE
     Uint32 GetCellIndex(const math::Vector4& p) const
     {
         const math::Vector4 distMin = p - mBox.min;
@@ -182,7 +176,6 @@ private:
     DynArray<Uint32> mIndices;
     DynArray<Uint32> mCellEnds;
 
-    float mRadius;
     float mRadiusSqr;
     float mCellSize;
     float mInvCellSize;

@@ -85,6 +85,9 @@
     <ClCompile Include="PackedBenchmark.cpp">
       <Filter>Benchmarks</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryBenchmark.cpp">
+      <Filter>Benchmarks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH.h" />

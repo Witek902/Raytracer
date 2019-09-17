@@ -99,6 +99,7 @@ private:
 
     bool RenderUI();
     void RenderUI_Stats();
+    void RenderUI_Profiler();
 
     void RenderUI_Debugging();
     void RenderUI_Debugging_Path();

@@ -6,6 +6,7 @@
 #include "Rendering/ShadingData.h"
 #include "BVH/BVHBuilder.h"
 #include "Material/Material.h"
+#include "Utils/Profiler.h"
 
 #include "Traversal/Traversal_Single.h"
 #include "Traversal/Traversal_Packet.h"
@@ -217,6 +218,8 @@ void Scene::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 ob
 
 void Scene::Traverse(const SingleTraversalContext& context) const
 {
+    RT_SCOPED_TIMER(Scene_Traverse);
+
     context.context.localCounters.Reset();
 
     const Uint32 numObjects = mTraceableObjects.Size();
@@ -301,6 +304,8 @@ void Scene::Traverse(const PacketTraversalContext& context) const
 
 void Scene::EvaluateIntersection(const Ray& ray, const HitPoint& hitPoint, const float time, IntersectionData& outData) const
 {
+    RT_SCOPED_TIMER(Scene_EvaluateIntersection);
+
     RT_ASSERT(hitPoint.distance < FLT_MAX);
 
     const ITraceableSceneObject* object = mTraceableObjects[hitPoint.objectId];

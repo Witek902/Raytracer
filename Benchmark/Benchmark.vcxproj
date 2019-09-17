@@ -190,7 +190,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\External\benchmark\include;$(ProjectDir)..\External\benchmark</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -209,10 +208,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;RT_CONFIGURATION_FINAL;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -222,7 +220,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\External\benchmark\include;$(ProjectDir)..\External\benchmark</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -254,7 +251,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\External\benchmark\include;$(ProjectDir)..\External\benchmark</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -273,10 +269,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;RT_USE_SSE;RT_USE_AVX;RT_USE_AVX2;RT_USE_FP16C;RT_USE_FMA;RT_CONFIGURATION_FINAL;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -286,7 +281,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\External\benchmark\include;$(ProjectDir)..\External\benchmark</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -449,6 +443,7 @@
     <ClCompile Include="GeometryBenchmark.cpp" />
     <ClCompile Include="HashGridBenchmark.cpp" />
     <ClCompile Include="MatrixBenchmark.cpp" />
+    <ClCompile Include="MemoryBenchmark.cpp" />
     <ClCompile Include="PackedBenchmark.cpp" />
     <ClCompile Include="RandomBenchmark.cpp" />
     <ClCompile Include="PCH.cpp">
