@@ -40,8 +40,6 @@ const char* PathTracerMIS::GetName() const
     return "Path Tracer MIS";
 }
 
-#pragma optimize("",off)
-
 const RayColor PathTracerMIS::SampleLight(const LightSceneObject* lightObject, const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
     const ILight& light = lightObject->GetLight();
@@ -123,8 +121,6 @@ const RayColor PathTracerMIS::SampleLight(const LightSceneObject* lightObject, c
 
     return result;
 }
-
-#pragma optimize("",on)
 
 const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const PathState& pathState, RenderingContext& context, const float lightPickProbability) const
 {
