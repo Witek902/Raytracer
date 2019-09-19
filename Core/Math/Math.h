@@ -117,6 +117,15 @@ RT_FORCE_INLINE constexpr const T Cube(const T x)
     return x * x * x;
 }
 
+RT_FORCE_INLINE static float FastDivide(float a, float b)
+{
+#ifdef RT_USE_SSE
+    return a * _mm_cvtss_f32(_mm_rcp_ss(_mm_load_ss(&b)));
+#else
+    return a / b; // TODO
+#endif
+}
+
 // Square root
 RT_FORCE_INLINE float Sqrt(const float x)
 {

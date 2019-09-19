@@ -13,19 +13,19 @@ namespace rt {
 
 using namespace math;
 
-RT_FORCE_INLINE static constexpr float Mis(const float samplePdf)
+RT_FORCE_INLINE static float Mis(const float samplePdf)
 {
     return samplePdf;
 }
 
-RT_FORCE_INLINE static constexpr float CombineMis(const float samplePdf, const float otherPdf)
+RT_FORCE_INLINE static float CombineMis(const float samplePdf, const float otherPdf)
 {
-    return Mis(samplePdf) / (Mis(samplePdf) + Mis(otherPdf));
+    return FastDivide(Mis(samplePdf), Mis(samplePdf) + Mis(otherPdf));
 }
 
-RT_FORCE_INLINE static constexpr float PdfAtoW(const float pdfA, const float distance, const float cosThere)
+RT_FORCE_INLINE static float PdfAtoW(const float pdfA, const float distance, const float cosThere)
 {
-    return pdfA * Sqr(distance) / Abs(cosThere);
+    return FastDivide(pdfA * Sqr(distance), Abs(cosThere));
 }
 
 PathTracerMIS::PathTracerMIS(const Scene& scene)
@@ -116,7 +116,7 @@ const RayColor PathTracerMIS::SampleLight(const LightSceneObject* lightObject, c
         weight = CombineMis(illuminateResult.directPdfW * lightPickProbability, bsdfPdfW);
     }
 
-    const RayColor result = (radiance * factor) * (weight / (lightPickProbability * illuminateResult.directPdfW));
+    const RayColor result = (radiance * factor) * FastDivide(weight, lightPickProbability * illuminateResult.directPdfW);
     RT_ASSERT(result.IsValid());
 
     return result;

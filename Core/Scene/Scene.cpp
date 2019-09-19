@@ -134,19 +134,23 @@ void Scene::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 ob
 {
     RT_UNUSED(objectID);
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    const Uint32 numLeaves = node.numLeaves;
+    const Uint32 firstChild = node.childIndex;
+
+    for (Uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 objectIndex = node.childIndex + i;
-        Traverse_Object(context, objectIndex);
+        Traverse_Object(context, firstChild + i);
     }
 }
 
 bool Scene::Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const
 {
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    const Uint32 numLeaves = node.numLeaves;
+    const Uint32 firstChild = node.childIndex;
+
+    for (Uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 objectIndex = node.childIndex + i;
-        if (Traverse_Object_Shadow(context, objectIndex))
+        if (Traverse_Object_Shadow(context, firstChild + i))
         {
             return true;
         }
