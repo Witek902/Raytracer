@@ -19,15 +19,18 @@ class RAYLIB_API Timer
 public:
     Timer();
 
-    /**
-     * Start time measurement
-     */
-    void Start();
+    // Start time measurement
+    RT_FORCE_INLINE void Start()
+    {
+#if defined(WIN32)
+        QueryPerformanceCounter(&mStart);
+#elif defined(__LINUX__) | defined(__linux__)
+        clock_gettime(CLOCK_MONOTONIC, &mStart);
+#endif // defined(WIN32)
+    }
 
-    /**
-     * Stop time measurement
-     * @return Seconds elapsed since last Start() call
-     */
+    // Stop time measurement
+    // Returns econds elapsed since last Start() call
     double Stop();
 
     /**
@@ -43,4 +46,5 @@ private:
 #elif defined(__LINUX__) | defined(__linux__)
     struct timespec mStart;
 #endif // defined(WIN32)
+
 };

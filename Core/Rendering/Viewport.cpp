@@ -290,6 +290,8 @@ bool Viewport::Render(const Camera& camera)
 
 void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingContext& ctx, const Block& tile)
 {
+    Timer timer;
+
     RT_ASSERT(tile.minX < tile.maxX);
     RT_ASSERT(tile.minY < tile.maxY);
     RT_ASSERT(tile.maxX <= GetWidth());
@@ -330,8 +332,20 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 const float vignettingFactor = Sqr(Sqr(Vector4::Dot3(ray.dir, tileContext.camera.GetLocalToWorld()[2])));
 
                 const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileContext.camera, film };
-                const RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx) * vignettingFactor;
+
+                if (ctx.params->visualizeTimePerPixel)
+                {
+                    timer.Start();
+                }
+
+                RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx) * vignettingFactor;
                 RT_ASSERT(color.IsValid());
+
+                if (ctx.params->visualizeTimePerPixel)
+                {
+                    const float timePerRay = 1000.0f * static_cast<float>(timer.Stop());
+                    color = RayColor(timePerRay);
+                }
 
                 const Vector4 sampleColor = color.ConvertToTristimulus(ctx.wavelength);
 

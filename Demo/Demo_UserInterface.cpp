@@ -440,6 +440,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     ImGui::SliderInt("Tile size", (int*)&tileSize, 2, 256);
 
     resetFrame |= ImGui::SliderInt("Max ray depth", (int*)&mRenderingParams.maxRayDepth, 0, 200);
+    resetFrame |= ImGui::Checkbox("Visualize time per pixel", &mRenderingParams.visualizeTimePerPixel);
     resetFrame |= ImGui::SliderInt("Russian roulette depth", (int*)&mRenderingParams.minRussianRouletteDepth, 1, 64);
     resetFrame |= ImGui::SliderFloat("Antialiasing spread", &mRenderingParams.antiAliasingSpread, 0.0f, 3.0f);
     resetFrame |= ImGui::SliderFloat("Motion blur strength", &mRenderingParams.motionBlurStrength, 0.0f, 1.0f);

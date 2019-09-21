@@ -81,6 +81,10 @@ struct RenderingParams
     // describes how lights should be sampled
     LightSamplingStrategy lightSamplingStrategy = LightSamplingStrategy::Single;
 
+    // generate image which represents time per pixel (in milliseconds)
+    // instead of regular rays color image
+    bool visualizeTimePerPixel = false;
+
     // adaptive rendering settings
     AdaptiveRenderingSettings adaptiveSettings;
 };

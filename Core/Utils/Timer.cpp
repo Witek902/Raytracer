@@ -12,6 +12,8 @@ static double GetCounterPeriod()
     return 1.0 / static_cast<double>(freq.QuadPart);
 }
 
+static const double gTimerPeriod = GetCounterPeriod();
+
 } // namespace
 
 #endif // WIN32
@@ -19,23 +21,13 @@ static double GetCounterPeriod()
 Timer::Timer()
 {
 #if defined(WIN32)
-    static double gPeriod = GetCounterPeriod();
-    mPeriod = gPeriod;
+    mPeriod = gTimerPeriod;
 #elif defined(__LINUX__) | defined(__linux__)
     mStart.tv_sec = 0;
     mStart.tv_nsec = 0;
 #endif // defined(WIN32)
 
     Start();
-}
-
-void Timer::Start()
-{
-#if defined(WIN32)
-    QueryPerformanceCounter(&mStart);
-#elif defined(__LINUX__) | defined(__linux__)
-    clock_gettime(CLOCK_MONOTONIC, &mStart);
-#endif // defined(WIN32)
 }
 
 double Timer::Stop()
