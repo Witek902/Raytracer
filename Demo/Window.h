@@ -41,7 +41,7 @@ public:
     void* GetHandle() const;
 
     // Get Window's size
-    void GetSize(Uint32& width, Uint32& height) const;
+    void GetSize(uint32& width, uint32& height) const;
 
     // Acquire how much did the mouse wheel scroll.
     int GetMouseWheelDelta() const;
@@ -56,7 +56,7 @@ public:
     bool IsKeyPressed(KeyCode key) const;
 
     // Set window's new size
-    void SetSize(Uint32 width, Uint32 height);
+    void SetSize(uint32 width, uint32 height);
 
     // Make window invisible or visible
     void SetInvisible(bool invisible);
@@ -75,7 +75,7 @@ public:
 
     // callbacks, overridden by inheritance
     virtual void OnClose();
-    virtual void OnResize(Uint32 width, Uint32 height);
+    virtual void OnResize(uint32 width, uint32 height);
     virtual void OnKeyPress(KeyCode key);
     virtual void OnCharTyped(const char* charUTF8);
     virtual void OnScroll(int delta);
@@ -115,8 +115,8 @@ private:
 
     bool mClosed;
     bool mInvisible;
-    Uint32 mWidth;
-    Uint32 mHeight;
+    uint32 mWidth;
+    uint32 mHeight;
     int mLeft;
     int mTop;
     std::string mTitle;

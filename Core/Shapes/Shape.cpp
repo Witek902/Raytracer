@@ -16,7 +16,7 @@ float IShape::GetSurfaceArea() const
     return 0.0f;
 }
 
-void IShape::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
+void IShape::Traverse(const SingleTraversalContext& context, const uint32 objectID) const
 {
     ShapeIntersection intersection;
 

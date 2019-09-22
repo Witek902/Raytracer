@@ -149,7 +149,7 @@ public:
 
 #else // !RT_USE_AVX
 
-        for (Uint32 i = 0; i < 8; ++i)
+        for (uint32 i = 0; i < 8; ++i)
         {
             output[i] = Vector4(x[i], y[i], z[i]);
         }

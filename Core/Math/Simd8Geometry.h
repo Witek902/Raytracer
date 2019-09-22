@@ -12,7 +12,7 @@
 namespace rt {
 namespace math {
 
-template<Uint32 Octatnt>
+template<uint32 Octatnt>
 RT_FORCE_INLINE const VectorBool8 Intersect_BoxRay_Simd8_Octant(
     const Vector3x8& rayInvDir,
     const Vector3x8& rayOriginDivDir,
@@ -25,9 +25,9 @@ RT_FORCE_INLINE const VectorBool8 Intersect_BoxRay_Simd8_Octant(
     const Vector3x8 tmp1 = Vector3x8::MulAndSub(box.min, rayInvDir, rayOriginDivDir);
     const Vector3x8 tmp2 = Vector3x8::MulAndSub(box.max, rayInvDir, rayOriginDivDir);
 
-    constexpr Uint32 maskX = Octatnt & 1 ? 1 : 0;
-    constexpr Uint32 maskY = Octatnt & 2 ? 1 : 0;
-    constexpr Uint32 maskZ = Octatnt & 4 ? 1 : 0;
+    constexpr uint32 maskX = Octatnt & 1 ? 1 : 0;
+    constexpr uint32 maskY = Octatnt & 2 ? 1 : 0;
+    constexpr uint32 maskZ = Octatnt & 4 ? 1 : 0;
 
     Vector3x8 lmin, lmax;
     // lmax.x = _mm256_blend_ps(tmp2.x, tmp1.x, maskX);

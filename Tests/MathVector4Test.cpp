@@ -289,13 +289,13 @@ TEST(MathTest, Vector4_Swizzle_Variable)
 {
     const Vector4 v(0.0f, 1.0f, 2.0f, 3.0f);
 
-    for (Int32 x = 0; x < 4; ++x)
+    for (int32 x = 0; x < 4; ++x)
     {
-        for (Int32 y = 0; y < 4; ++y)
+        for (int32 y = 0; y < 4; ++y)
         {
-            for (Int32 z = 0; z < 4; ++z)
+            for (int32 z = 0; z < 4; ++z)
             {
-                for (Int32 w = 0; w < 4; ++w)
+                for (int32 w = 0; w < 4; ++w)
                 {
                     const Vector4 s = v.Swizzle(x, y, z, w);
                     EXPECT_EQ(v[x], s.x);

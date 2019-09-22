@@ -17,16 +17,16 @@ namespace rt {
 class BVH
 {
 public:
-    static constexpr Uint32 MaxDepth = 128;
+    static constexpr uint32 MaxDepth = 128;
 
     struct RT_ALIGN(32) Node
     {
         // TODO revisit this structure: keeping a pointer to child would be faster than index
         math::Float3 min;
-        Uint32 childIndex; // first child node / leaf index
+        uint32 childIndex; // first child node / leaf index
         math::Float3 max;
-        Uint32 numLeaves : 30;
-        Uint32 splitAxis : 2;
+        uint32 numLeaves : 30;
+        uint32 splitAxis : 2;
 
         RT_FORCE_INLINE const math::Box GetBox() const
         {
@@ -55,7 +55,7 @@ public:
             return numLeaves != 0;
         }
 
-        RT_FORCE_INLINE Uint32 GetSplitAxis() const
+        RT_FORCE_INLINE uint32 GetSplitAxis() const
         {
             return splitAxis;
         }
@@ -63,10 +63,10 @@ public:
 
     struct Stats
     {
-        Uint32 maxDepth;    // max leaf depth
+        uint32 maxDepth;    // max leaf depth
         double totalNodesArea;
         double totalNodesVolume;
-        DynArray<Uint32> leavesCountHistogram;
+        DynArray<uint32> leavesCountHistogram;
 
         // TODO overlap factor, etc.
 
@@ -88,14 +88,14 @@ public:
     bool LoadFromFile(const std::string& filePath);
 
     RT_FORCE_INLINE const Node* GetNodes() const { return mNodes.Data(); }
-    RT_FORCE_INLINE Uint32 GetNumNodes() const { return mNumNodes; }
+    RT_FORCE_INLINE uint32 GetNumNodes() const { return mNumNodes; }
 
 private:
-    void CalculateStatsForNode(Uint32 node, Stats& outStats, Uint32 depth) const;
-    bool AllocateNodes(Uint32 numNodes);
+    void CalculateStatsForNode(uint32 node, Stats& outStats, uint32 depth) const;
+    bool AllocateNodes(uint32 numNodes);
 
     DynArray<Node, SystemAllocator> mNodes;
-    Uint32 mNumNodes;
+    uint32 mNumNodes;
 
     friend class BVHBuilder;
 };

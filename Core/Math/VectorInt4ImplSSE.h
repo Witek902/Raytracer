@@ -33,15 +33,15 @@ const Vector4 VectorInt4::CastToFloat() const
     return _mm_castsi128_ps(v);
 }
 
-VectorInt4::VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
+VectorInt4::VectorInt4(const int32 x, const int32 y, const int32 z, const int32 w)
     : v(_mm_set_epi32(w, z, y, x))
 {}
 
-VectorInt4::VectorInt4(const Int32 i)
+VectorInt4::VectorInt4(const int32 i)
     : v(_mm_set1_epi32(i))
 {}
 
-VectorInt4::VectorInt4(const Uint32 u)
+VectorInt4::VectorInt4(const uint32 u)
     : v(_mm_set1_epi32(u))
 {}
 
@@ -67,7 +67,7 @@ const VectorInt4 VectorInt4::Select(const VectorInt4& a, const VectorInt4& b, co
     return _mm_blendv_epi8(a, b, _mm_castps_si128(sel.v));
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const VectorInt4 VectorInt4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -179,34 +179,34 @@ VectorInt4& VectorInt4::operator *= (const VectorInt4& b)
     return *this;
 }
 
-const VectorInt4 VectorInt4::operator + (Int32 b) const
+const VectorInt4 VectorInt4::operator + (int32 b) const
 {
     return _mm_add_epi32(v, _mm_set1_epi32(b));
 }
 
-const VectorInt4 VectorInt4::operator - (Int32 b) const
+const VectorInt4 VectorInt4::operator - (int32 b) const
 {
     return _mm_sub_epi32(v, _mm_set1_epi32(b));
 }
 
-const VectorInt4 VectorInt4::operator * (Int32 b) const
+const VectorInt4 VectorInt4::operator * (int32 b) const
 {
     return _mm_mullo_epi32(v, _mm_set1_epi32(b));
 }
 
-VectorInt4& VectorInt4::operator += (Int32 b)
+VectorInt4& VectorInt4::operator += (int32 b)
 {
     v = _mm_add_epi32(v, _mm_set1_epi32(b));
     return *this;
 }
 
-VectorInt4& VectorInt4::operator -= (Int32 b)
+VectorInt4& VectorInt4::operator -= (int32 b)
 {
     v = _mm_sub_epi32(v, _mm_set1_epi32(b));
     return *this;
 }
 
-VectorInt4& VectorInt4::operator *= (Int32 b)
+VectorInt4& VectorInt4::operator *= (int32 b)
 {
     v = _mm_mullo_epi32(v, _mm_set1_epi32(b));
     return *this;
@@ -258,23 +258,23 @@ VectorInt4& VectorInt4::operator >>= (const VectorInt4& b)
     return *this;
 }
 
-const VectorInt4 VectorInt4::operator << (Int32 b) const
+const VectorInt4 VectorInt4::operator << (int32 b) const
 {
     return _mm_slli_epi32(v, b);
 }
 
-const VectorInt4 VectorInt4::operator >> (Int32 b) const
+const VectorInt4 VectorInt4::operator >> (int32 b) const
 {
     return _mm_srli_epi32(v, b);
 }
 
-VectorInt4& VectorInt4::operator <<= (Int32 b)
+VectorInt4& VectorInt4::operator <<= (int32 b)
 {
     v = _mm_slli_epi32(v, b);
     return *this;
 }
 
-VectorInt4& VectorInt4::operator >>= (Int32 b)
+VectorInt4& VectorInt4::operator >>= (int32 b)
 {
     v = _mm_srli_epi32(v, b);
     return *this;

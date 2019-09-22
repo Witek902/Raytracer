@@ -55,7 +55,7 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
     /*
     Random random;
 
-    for (Int32 i = 0; i < 2000; ++i)
+    for (int32 i = 0; i < 2000; ++i)
     {
         auto material = Material::Create();
         material->debugName = "default";
@@ -158,9 +158,9 @@ bool LoadCustomScene(Scene& scene, rt::Camera& camera)
 
     /*
     // test decal B
-    for (Uint32 i = 0; i < 10; ++i)
+    for (uint32 i = 0; i < 10; ++i)
     {
-        for (Uint32 j = 0; j < 10; ++j)
+        for (uint32 j = 0; j < 10; ++j)
         {
             std::unique_ptr<DecalSceneObject> decal = std::make_unique<DecalSceneObject>();
             decal->SetTransform(

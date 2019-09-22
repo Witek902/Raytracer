@@ -27,8 +27,8 @@ public:
     // TODO
     /*
     // get point on a regular polygon
-    RAYLIB_API static const Vector4 GetRegularPolygon(const Uint32 n, const Vector4& u);
-    RAYLIB_API static const Vector2x8 GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8& u);
+    RAYLIB_API static const Vector4 GetRegularPolygon(const uint32 n, const Vector4& u);
+    RAYLIB_API static const Vector2x8 GetRegularPolygon_Simd8(const uint32 n, const Vector2x8& u);
     */
 
     // get point on a sphere (radius = 1.0)

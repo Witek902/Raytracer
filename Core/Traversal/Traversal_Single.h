@@ -13,7 +13,7 @@ namespace rt {
 
 // simple single-ray traversal
 template <typename ObjectType>
-void GenericTraverse(const SingleTraversalContext& context, const Uint32 objectID, const ObjectType* object)
+void GenericTraverse(const SingleTraversalContext& context, const uint32 objectID, const ObjectType* object)
 {
     float distanceA, distanceB;
 
@@ -27,7 +27,7 @@ void GenericTraverse(const SingleTraversalContext& context, const Uint32 objectI
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
 
     // "nodes to visit" stack
-    Uint32 stackSize = 0;
+    uint32 stackSize = 0;
     const BVH::Node* __restrict nodesStack[BVH::MaxDepth];
 
     // BVH traversal
@@ -110,7 +110,7 @@ bool GenericTraverse_Shadow(const SingleTraversalContext& context, const ObjectT
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
 
     // "nodes to visit" stack
-    Uint32 stackSize = 0;
+    uint32 stackSize = 0;
     const BVH::Node* __restrict nodesStack[BVH::MaxDepth];
 
     // BVH traversal

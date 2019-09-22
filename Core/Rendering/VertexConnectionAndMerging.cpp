@@ -29,7 +29,7 @@ RT_FORCE_INLINE static constexpr float PdfWtoA(const float pdfW, const float dis
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-static constexpr Uint32 g_MaxLightVertices = 256;
+static constexpr uint32 g_MaxLightVertices = 256;
 
 class RT_ALIGN(64) VertexConnectionAndMergingContext : public IRendererContext, public Aligned<64>
 {
@@ -41,7 +41,7 @@ public:
     DynArray<Photon> photons;
 
     // list of light vertices used in current pixel processing
-    Uint32 numLightVertices = 0;
+    uint32 numLightVertices = 0;
     LightVertex lightVertices[g_MaxLightVertices];
 };
 
@@ -80,7 +80,7 @@ RendererContextPtr VertexConnectionAndMerging::CreateContext() const
     return std::make_unique<VertexConnectionAndMergingContext>();
 }
 
-void VertexConnectionAndMerging::PreRender(Uint32 passNumber, const Film& film)
+void VertexConnectionAndMerging::PreRender(uint32 passNumber, const Film& film)
 {
     RT_ASSERT(mInitialMergingRadius >= mMinMergingRadius);
     RT_ASSERT(mMergingRadiusMultiplier > 0.0f);
@@ -123,7 +123,7 @@ void VertexConnectionAndMerging::PreRender(Uint32 passNumber, const Film& film)
     }
 }
 
-void VertexConnectionAndMerging::PreRender(Uint32 passNumber, RenderingContext& ctx)
+void VertexConnectionAndMerging::PreRender(uint32 passNumber, RenderingContext& ctx)
 {
     RT_ASSERT(ctx.rendererContext);
     VertexConnectionAndMergingContext& rendererContext = *static_cast<VertexConnectionAndMergingContext*>(ctx.rendererContext.get());
@@ -146,8 +146,8 @@ void VertexConnectionAndMerging::PreRenderGlobal(RenderingContext& ctx)
 
     // merge photon lists
     // TODO is there any way to get rid of this? (or at least make it multithreaded)
-    const Uint32 oldPhotonsSize = mPhotons.Size();
-    const Uint32 numPhotonsToAdd = rendererContext.photons.Size();
+    const uint32 oldPhotonsSize = mPhotons.Size();
+    const uint32 numPhotonsToAdd = rendererContext.photons.Size();
     mPhotons.Resize_SkipConstructor(oldPhotonsSize + numPhotonsToAdd);
     LargeMemCopy(mPhotons.Data() + oldPhotonsSize, rendererContext.photons.Data(), numPhotonsToAdd * sizeof(Photon));
 
@@ -267,12 +267,12 @@ const RayColor VertexConnectionAndMerging::RenderPixel(const math::Ray& ray, con
         }
 
         // Vertex Connection - connect camera vertex to light vertices (bidirectional path tracing)
-        const Uint32 numLightVertices = rendererContext.numLightVertices;
+        const uint32 numLightVertices = rendererContext.numLightVertices;
         if (!isDeltaBsdf && mUseVertexConnection && rendererContext.numLightVertices > 0)
         {
             RayColor vertexConnectionColor = RayColor::Zero();
 
-            for (Uint32 i = 0; i < numLightVertices; ++i)
+            for (uint32 i = 0; i < numLightVertices; ++i)
             {
                 const LightVertex& lightVertex = rendererContext.lightVertices[i];
 
@@ -387,7 +387,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
             {
                 rendererContext.numLightVertices++;
 
-                vertex.pathLength = Uint8(pathState.length);
+                vertex.pathLength = uint8(pathState.length);
                 vertex.throughput = pathState.throughput;
                 vertex.dVC = pathState.dVC;
                 vertex.dVM = pathState.dVM;
@@ -408,7 +408,7 @@ void VertexConnectionAndMerging::TraceLightPath(const Camera& camera, Film& film
                 photon.throughput.FromVector(pathState.throughput.ConvertToTristimulus(ctx.wavelength));
                 photon.dVM = pathState.dVM;
                 photon.dVCM = pathState.dVCM;
-                //photon.pathLength = Uint8(pathState.length);
+                //photon.pathLength = uint8(pathState.length);
             }
         }
 
@@ -434,7 +434,7 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     }
 
     const float lightPickProbability = 1.0f / (float)allLocalLights.Size();
-    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size(); // TODO get rid of division
+    const uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size(); // TODO get rid of division
 
     const LightSceneObject* lightObject = allLocalLights[lightIndex];
     const ILight& light = lightObject->GetLight();
@@ -576,7 +576,7 @@ bool VertexConnectionAndMerging::AdvancePath(PathState& path, const ShadingData&
     return true;
 }
 
-const RayColor VertexConnectionAndMerging::EvaluateLight(Uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateLight(uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const
 {
     const Matrix4 worldToLight = lightObject->GetInverseTransform(ctx.time);
     const Ray lightSpaceRay = worldToLight.TransformRay_Unsafe(pathState.ray);
@@ -731,7 +731,7 @@ const RayColor VertexConnectionAndMerging::SampleLights(const ShadingData& shadi
     return accumulatedColor;
 }
 
-const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(Uint32 iteration, const PathState& pathState, RenderingContext& ctx) const
+const RayColor VertexConnectionAndMerging::EvaluateGlobalLights(uint32 iteration, const PathState& pathState, RenderingContext& ctx) const
 {
     RayColor result = RayColor::Zero();
 
@@ -837,7 +837,7 @@ const RayColor VertexConnectionAndMerging::MergeVertices(PathState& cameraPathSt
 
         RT_FORCE_INLINE const RayColor& GetContribution() const { return mContribution; }
 
-        RT_FORCE_NOINLINE void operator()(Uint32 photonIndex)
+        RT_FORCE_NOINLINE void operator()(uint32 photonIndex)
         {
             const Photon& photon = mRenderer.mPhotons[photonIndex];
 

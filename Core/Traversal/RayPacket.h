@@ -10,17 +10,17 @@ namespace rt {
 
 // maximum number of rays in ray stream
 // TODO experiment with this value
-static const Uint32 MaxRayPacketSize = 4096;
+static const uint32 MaxRayPacketSize = 4096;
 
 struct RT_ALIGN(4) ImageLocationInfo
 {
-    Uint16 x;
-    Uint16 y;
+    uint16 x;
+    uint16 y;
 
     ImageLocationInfo() = default;
-    RT_FORCE_INLINE ImageLocationInfo(Uint32 x, Uint32 y)
-        : x((Uint16)x)
-        , y((Uint16)y)
+    RT_FORCE_INLINE ImageLocationInfo(uint32 x, uint32 y)
+        : x((uint16)x)
+        , y((uint16)y)
     { }
 };
 
@@ -34,8 +34,8 @@ struct RT_ALIGN(32) RayGroup
 // packet of coherent rays (8-SIMD version)
 struct RT_ALIGN(32) RayPacket
 {
-    static constexpr Uint32 RaysPerGroup = 8;
-    static constexpr Uint32 MaxNumGroups = MaxRayPacketSize / RaysPerGroup;
+    static constexpr uint32 RaysPerGroup = 8;
+    static constexpr uint32 MaxNumGroups = MaxRayPacketSize / RaysPerGroup;
 
     RayGroup groups[MaxNumGroups];
 
@@ -46,13 +46,13 @@ struct RT_ALIGN(32) RayPacket
     ImageLocationInfo imageLocations[MaxRayPacketSize];
 
     // number of rays (not groups!)
-    Uint32 numRays;
+    uint32 numRays;
 
     RT_FORCE_INLINE RayPacket()
         : numRays(0)
     { }
 
-    RT_FORCE_INLINE Uint32 GetNumGroups() const
+    RT_FORCE_INLINE uint32 GetNumGroups() const
     {
         return (numRays + RaysPerGroup - 1) / RaysPerGroup;
     }
@@ -61,8 +61,8 @@ struct RT_ALIGN(32) RayPacket
     {
         RT_ASSERT(numRays < MaxRayPacketSize);
 
-        const Uint32 groupIndex = numRays / RaysPerGroup;
-        const Uint32 rayIndex = numRays % RaysPerGroup;
+        const uint32 groupIndex = numRays / RaysPerGroup;
+        const uint32 rayIndex = numRays % RaysPerGroup;
 
         RayGroup& group = groups[groupIndex];
         group.rays[0].dir.x[rayIndex] = ray.dir.x;
@@ -129,8 +129,8 @@ struct RT_ALIGN(64) RayStreamHitData
     float distance[MaxRayPacketSize];
     float u[MaxRayPacketSize];
     float v[MaxRayPacketSize];
-    Uint32 subObjectId[MaxRayPacketSize];
-    Uint32 objectId[MaxRayPacketSize];
+    uint32 subObjectId[MaxRayPacketSize];
+    uint32 objectId[MaxRayPacketSize];
 };
 */
 

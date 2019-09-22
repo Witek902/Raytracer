@@ -48,17 +48,17 @@ RT_FORCE_INLINE const Vector4 Vector4_Load_Half4(const Half src[4])
 #endif // RT_USE_FP16C
 }
 
-// Convert Uint16 (B5G6R5 format) to a Vector4 (normalized range)
-RT_FORCE_INLINE const Vector4 Vector4_Load_B5G6R5_Norm(const Uint16* src)
+// Convert uint16 (B5G6R5 format) to a Vector4 (normalized range)
+RT_FORCE_INLINE const Vector4 Vector4_Load_B5G6R5_Norm(const uint16* src)
 {
     const VectorInt4 mask{ 0x1F << 11, 0x3F << 5, 0x1F, 0 };
     const Vector4 scale{ 1.0f / 2048.0f / 31.0f, 1.0f / 32.0f / 63.0f, 1.0f / 31.0f, 0.0f };
-    const VectorInt4 raw = VectorInt4(*reinterpret_cast<const Int32*>(src)) & mask;
+    const VectorInt4 raw = VectorInt4(*reinterpret_cast<const int32*>(src)) & mask;
     return raw.ConvertToFloat() * scale;
 }
 
-// Convert 2 Uint8 to a Vector4 (normalized range)
-RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint8_Norm(const Uint8* src)
+// Convert 2 uint8 to a Vector4 (normalized range)
+RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint8_Norm(const uint8* src)
 {
 #ifdef RT_USE_SSE
     const Vector4 mask{ 0xFFu, 0xFF00u, 0u, 0u };
@@ -82,8 +82,8 @@ RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint8_Norm(const Uint8* src)
 #endif // RT_USE_SSE
 }
 
-// Convert 4 Uint8 to a Vector4
-RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint8(const Uint8* src)
+// Convert 4 uint8 to a Vector4
+RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint8(const uint8* src)
 {
 #ifdef RT_USE_SSE
     const Vector4 mask{ 0xFFu, 0xFF00u, 0xFF0000u, 0xFF000000u };
@@ -109,8 +109,8 @@ RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint8(const Uint8* src)
 #endif // RT_USE_SSE
 }
 
-// Convert 2 Uint16 to a Vector4 (normalized range)
-RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint16_Norm(const Uint16* src)
+// Convert 2 uint16 to a Vector4 (normalized range)
+RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint16_Norm(const uint16* src)
 {
 #ifdef RT_USE_SSE
     const Vector4 maskX16Y16{ 0x0000FFFFu, 0xFFFF0000u, 0u, 0u };
@@ -138,8 +138,8 @@ RT_FORCE_INLINE const Vector4 Vector4_Load_2xUint16_Norm(const Uint16* src)
 #endif // RT_USE_SSE
 }
 
-// Convert 4 Uint16 to a Vector4
-RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint16(const Uint16* src)
+// Convert 4 uint16 to a Vector4
+RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint16(const uint16* src)
 {
 #ifdef RT_USE_SSE
     const Vector4 maskX16Y16Z16W16{ 0x0000FFFFu, 0x0000FFFFu, 0xFFFF0000u, 0xFFFF0000u };
@@ -163,7 +163,7 @@ RT_FORCE_INLINE const Vector4 Vector4_Load_4xUint16(const Uint16* src)
 }
 
 // Convert 3 uint8 to a Vector4 and scale to 0...1 range
-RT_FORCE_INLINE const Vector4 Vector4_LoadBGR_UNorm(const Uint8* src)
+RT_FORCE_INLINE const Vector4 Vector4_LoadBGR_UNorm(const uint8* src)
 {
 #ifdef RT_USE_SSE
     const Vector4 mask{ 0xFF0000u, 0xFF00u, 0xFFu, 0x0u };

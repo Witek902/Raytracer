@@ -24,7 +24,7 @@ Box LightSceneObject::GetBoundingBox() const
     return { GetBaseTransform().TransformBox(localSpaceBox), GetTransform(1.0f).TransformBox(localSpaceBox) };
 }
 
-void LightSceneObject::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
+void LightSceneObject::Traverse(const SingleTraversalContext& context, const uint32 objectID) const
 {
     float lightDistance;
     if (mLight->TestRayHit(context.ray, lightDistance))
@@ -52,7 +52,7 @@ bool LightSceneObject::Traverse_Shadow(const SingleTraversalContext& context) co
     return false;
 }
 
-void LightSceneObject::Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
+void LightSceneObject::Traverse(const PacketTraversalContext& context, const uint32 objectID, const uint32 numActiveGroups) const
 {
     RT_UNUSED(context);
     RT_UNUSED(objectID);

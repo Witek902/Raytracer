@@ -17,7 +17,7 @@ VectorBool8::VectorBool8(bool e0, bool e1, bool e2, bool e3, bool e4, bool e5, b
     ));
 }
 
-template<Uint32 index>
+template<uint32 index>
 bool VectorBool8::Get() const
 {
     static_assert(index < 8, "Invalid index");

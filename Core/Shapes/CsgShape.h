@@ -4,7 +4,7 @@
 
 namespace rt {
 
-enum class CsgOperator : Uint8
+enum class CsgOperator : uint8
 {
     Union,
     Difference,

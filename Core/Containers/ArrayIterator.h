@@ -24,7 +24,7 @@ public:
     using self_type = ConstArrayIterator;
 
     ConstArrayIterator() : mElements(nullptr), mIndex(0) { }
-    ConstArrayIterator(const ElementType* elements, Int32 index) : mElements(elements), mIndex(index) { }
+    ConstArrayIterator(const ElementType* elements, int32 index) : mElements(elements), mIndex(index) { }
 
     RT_FORCE_INLINE ConstArrayIterator(const ArrayIterator<const ElementType>& other);
     RT_FORCE_INLINE ConstArrayIterator(const ConstArrayIterator<const ElementType>& other);
@@ -50,11 +50,11 @@ public:
     RT_FORCE_INLINE ConstArrayIterator operator - (ptrdiff_t offset) const;
 
     // get array index
-    Int32 GetIndex() const { return mIndex; }
+    int32 GetIndex() const { return mIndex; }
 
 protected:
     const ElementType* mElements;   // array elements
-    Int32 mIndex;                   // current index in the array
+    int32 mIndex;                   // current index in the array
 };
 
 /**
@@ -68,7 +68,7 @@ public:
     using self_type = ArrayIterator;
 
     ArrayIterator() = default;
-    ArrayIterator(ElementType* elements, Uint32 index)
+    ArrayIterator(ElementType* elements, uint32 index)
         : ConstArrayIterator<ElementType>(const_cast<ElementType*>(elements), index)
     { }
 

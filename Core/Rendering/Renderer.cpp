@@ -20,11 +20,11 @@ RendererContextPtr IRenderer::CreateContext() const
     return nullptr;
 }
 
-void IRenderer::PreRender(Uint32, const Film&)
+void IRenderer::PreRender(uint32, const Film&)
 {
 }
 
-void IRenderer::PreRender(Uint32, RenderingContext&)
+void IRenderer::PreRender(uint32, RenderingContext&)
 {
 }
 

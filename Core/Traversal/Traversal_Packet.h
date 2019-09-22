@@ -18,16 +18,16 @@ namespace rt {
 struct RenderingContext;
 
 // remove groups where all rays missed a bounding box
-RT_FORCE_NOINLINE Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups);
+RT_FORCE_NOINLINE uint32 RemoveMissedGroups(RenderingContext& context, uint32 numGroups);
 
 // reorder rays to restore coherency
-RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, Uint32 numRays, Uint32 traversalDepth);
+RT_FORCE_NOINLINE void ReorderRays(RenderingContext& context, uint32 numRays, uint32 traversalDepth);
 
 // test all alive groups in a packet agains a BVH node
-RT_FORCE_NOINLINE Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context, Uint32 traversalDepth);
+RT_FORCE_NOINLINE uint32 TestRayPacket(RayPacket& packet, uint32 numGroups, const BVH::Node& node, RenderingContext& context, uint32 traversalDepth);
 
-template <typename ObjectType, Uint32 traversalDepth>
-void GenericTraverse(const PacketTraversalContext& context, const Uint32 objectID, const ObjectType* object, Uint32 numActiveGroups)
+template <typename ObjectType, uint32 traversalDepth>
+void GenericTraverse(const PacketTraversalContext& context, const uint32 objectID, const ObjectType* object, uint32 numActiveGroups)
 {
     // all nodes
     const BVH::Node* __restrict nodes = object->GetBVH().GetNodes();
@@ -35,20 +35,20 @@ void GenericTraverse(const PacketTraversalContext& context, const Uint32 objectI
     struct StackFrame
     {
         const BVH::Node* node;
-        Uint32 numActiveGroups;
-        Uint32 numActiveRays;
+        uint32 numActiveGroups;
+        uint32 numActiveRays;
     };
 
     StackFrame stack[BVH::MaxDepth];
 
     // push root
-    Uint32 stackSize = 1;
+    uint32 stackSize = 1;
     stack[0].node = nodes;
     stack[0].numActiveGroups = numActiveGroups;
     stack[0].numActiveRays = context.ray.numRays; // all rays are active at the beginning
 
     // TODO packets should be octant-sorted
-    Uint32 rayOctant = 0;
+    uint32 rayOctant = 0;
     rayOctant = context.ray.groups[0].rays[traversalDepth].dir.x[0] < 0.0f ? 1 : 0;
     rayOctant |= context.ray.groups[0].rays[traversalDepth].dir.y[0] < 0.0f ? 2 : 0;
     rayOctant |= context.ray.groups[0].rays[traversalDepth].dir.z[0] < 0.0f ? 4 : 0;
@@ -59,8 +59,8 @@ void GenericTraverse(const PacketTraversalContext& context, const Uint32 objectI
         // pop element from stack
         const StackFrame& frame = stack[--stackSize];
 
-        Uint32 numGroups = frame.numActiveGroups;
-        Uint32 raysHit = TestRayPacket(context.ray, numGroups, *frame.node, context.context, traversalDepth);
+        uint32 numGroups = frame.numActiveGroups;
+        uint32 raysHit = TestRayPacket(context.ray, numGroups, *frame.node, context.context, traversalDepth);
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
         context.context.localCounters.numRayBoxTests += 8 * numGroups;
@@ -100,8 +100,8 @@ void GenericTraverse(const PacketTraversalContext& context, const Uint32 objectI
             RT_PREFETCH_L1(children);
 
             // stored split axis trick: pust stack elements based on current node's split axis
-            const Uint32 firstIndex = (rayOctant >> frame.node->GetSplitAxis()) & 1u;
-            const Uint32 secondIndex = firstIndex ^ 1u;
+            const uint32 firstIndex = (rayOctant >> frame.node->GetSplitAxis()) & 1u;
+            const uint32 secondIndex = firstIndex ^ 1u;
 
             stack[stackSize].node = children + secondIndex;
             stack[stackSize].numActiveGroups = numGroups;

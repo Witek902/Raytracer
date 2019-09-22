@@ -47,7 +47,7 @@ const Vector4 SamplingHelpers::GetHexagon(const Float3 u)
         { -1.0f, 0.0f },
     };
 
-    const Uint32 x = static_cast<Uint32>(3.0f * u.z);
+    const uint32 x = static_cast<uint32>(3.0f * u.z);
     RT_ASSERT(x < 3);
 
     const Float2 a = hexVectors[x];
@@ -57,7 +57,7 @@ const Vector4 SamplingHelpers::GetHexagon(const Float3 u)
 }
 
 /*
-const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4& u)
+const Vector4 SamplingHelpers::GetRegularPolygon(const uint32 n, const Vector4& u)
 {
     RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
 
@@ -81,7 +81,7 @@ const Vector4 SamplingHelpers::GetRegularPolygon(const Uint32 n, const Vector4& 
     return Vector4(sinCosAlpha.y * base.x - sinCosAlpha.x * base.y, sinCosAlpha.y * base.y + sinCosAlpha.x * base.x, 0.0f, 0.0f);
 }
 
-const Vector2x8 SamplingHelpers::GetRegularPolygon_Simd8(const Uint32 n, const Vector2x8& u)
+const Vector2x8 SamplingHelpers::GetRegularPolygon_Simd8(const uint32 n, const Vector2x8& u)
 {
     RT_ASSERT(n >= 3, "Polygon must have at least 3 sides");
 

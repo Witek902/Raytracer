@@ -13,7 +13,7 @@ struct BvhBuildingParams
         Volume
     };
 
-    Uint32 maxLeafNodeSize = 2; // max number of objects in leaf nodes
+    uint32 maxLeafNodeSize = 2; // max number of objects in leaf nodes
     Heuristics heuristics = Heuristics::SurfaceArea;
 };
 
@@ -22,7 +22,7 @@ class BVHBuilder
 {
 public:
 
-    using Indices = DynArray<Uint32>;
+    using Indices = DynArray<uint32>;
 
     BVHBuilder(BVH& targetBVH);
     ~BVHBuilder();
@@ -30,11 +30,11 @@ public:
     void SetLeafData();
 
     // construct the BVH and return new leaves order
-    bool Build(const math::Box* data, const Uint32 numLeaves, const BvhBuildingParams& params, Indices& outLeavesOrder);
+    bool Build(const math::Box* data, const uint32 numLeaves, const BvhBuildingParams& params, Indices& outLeavesOrder);
 
 private:
 
-    constexpr static Uint32 NumAxes = 3;
+    constexpr static uint32 NumAxes = 3;
 
     struct Context
     {
@@ -42,20 +42,20 @@ private:
         DynArray<math::Box> mRightBoxesCache;
         Indices mSortedLeavesIndicesCache[3];
 
-        Context(Uint32 numLeaves);
+        Context(uint32 numLeaves);
     };
 
     struct RT_ALIGN(16) WorkSet
     {
         math::Box box;
         Indices leafIndices;
-        Uint32 numLeaves;
-        Uint32 sortedBy;
-        Uint32 depth;
+        uint32 numLeaves;
+        uint32 sortedBy;
+        uint32 depth;
 
         WorkSet()
             : numLeaves(0)
-            , sortedBy(std::numeric_limits<Uint32>::max())
+            , sortedBy(std::numeric_limits<uint32>::max())
             , depth(0)
         { }
     };
@@ -68,10 +68,10 @@ private:
     // input data
     BvhBuildingParams mParams;
     const math::Box* mLeafBoxes;
-    Uint32 mNumLeaves;
+    uint32 mNumLeaves;
 
-    Uint32 mNumGeneratedNodes;
-    Uint32 mNumGeneratedLeaves;
+    uint32 mNumGeneratedNodes;
+    uint32 mNumGeneratedLeaves;
     Indices mLeavesOrder;
 
     // target BVH

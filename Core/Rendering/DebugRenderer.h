@@ -4,7 +4,7 @@
 
 namespace rt {
 
-enum class DebugRenderingMode : Uint8
+enum class DebugRenderingMode : uint8
 {
     CameraLight = 0,            // simple shading based on normal vector orientation
 

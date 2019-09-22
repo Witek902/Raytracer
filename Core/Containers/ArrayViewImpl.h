@@ -12,7 +12,7 @@ ArrayView<ElementType>::ArrayView()
 }
 
 template<typename ElementType>
-ArrayView<ElementType>::ArrayView(ElementType* elements, Uint32 numElements)
+ArrayView<ElementType>::ArrayView(ElementType* elements, uint32 numElements)
     : mElements(elements)
     , mSize(numElements)
 {
@@ -44,7 +44,7 @@ ArrayView<ElementType>& ArrayView<ElementType>::operator = (const ArrayView<Elem
 //////////////////////////////////////////////////////////////////////////
 
 template<typename ElementType>
-Uint32 ArrayView<ElementType>::Size() const
+uint32 ArrayView<ElementType>::Size() const
 {
     return mSize;
 }
@@ -121,7 +121,7 @@ typename ArrayView<ElementType>::Iterator ArrayView<ElementType>::End()
 }
 
 template<typename ElementType>
-ElementType& ArrayView<ElementType>::operator[](Uint32 index)
+ElementType& ArrayView<ElementType>::operator[](uint32 index)
 {
     static_assert(!std::is_const<ElementType>::value, "You can only use const-reference to access const-typed ArrayView elements");
     RT_ASSERT(index < mSize, "Invalid array index %u (size is %u)", index, mSize);
@@ -129,14 +129,14 @@ ElementType& ArrayView<ElementType>::operator[](Uint32 index)
 }
 
 template<typename ElementType>
-const ElementType& ArrayView<ElementType>::operator[](Uint32 index) const
+const ElementType& ArrayView<ElementType>::operator[](uint32 index) const
 {
     RT_ASSERT(index < mSize, "Invalid array index %u (size is %u)", index, mSize);
     return mElements[index];
 }
 
 template<typename ElementType>
-ArrayView<ElementType> ArrayView<ElementType>::Range(Uint32 index, Uint32 size) const
+ArrayView<ElementType> ArrayView<ElementType>::Range(uint32 index, uint32 size) const
 {
     RT_ASSERT(index < mSize, "Invalid array index %u (size is %u)", index, mSize);
     RT_ASSERT(index + size < mSize + 1, "Subrange exceedes array size (last index is %u, size is %u)", index + size, mSize);
@@ -146,7 +146,7 @@ ArrayView<ElementType> ArrayView<ElementType>::Range(Uint32 index, Uint32 size) 
 template<typename ElementType>
 typename ArrayView<ElementType>::ConstIterator ArrayView<ElementType>::Find(const ElementType& element) const
 {
-    for (Uint32 i = 0; i < mSize; ++i)
+    for (uint32 i = 0; i < mSize; ++i)
     {
         if (mElements[i] == element)
         {
@@ -160,7 +160,7 @@ typename ArrayView<ElementType>::ConstIterator ArrayView<ElementType>::Find(cons
 template<typename ElementType>
 typename ArrayView<ElementType>::Iterator ArrayView<ElementType>::Find(const ElementType& element)
 {
-    for (Uint32 i = 0; i < mSize; ++i)
+    for (uint32 i = 0; i < mSize; ++i)
     {
         if (mElements[i] == element)
         {
@@ -181,7 +181,7 @@ bool operator == (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementTyp
     if (lhs.Size() != rhs.Size())
         return false;
 
-    for (Uint32 i = 0; i < lhs.Size(); ++i)
+    for (uint32 i = 0; i < lhs.Size(); ++i)
     {
         if (lhs[i] != rhs[i])
         {
@@ -202,7 +202,7 @@ bool operator != (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementTyp
     if (lhs.Size() != rhs.Size())
         return true;
 
-    for (Uint32 i = 0; i < lhs.Size(); ++i)
+    for (uint32 i = 0; i < lhs.Size(); ++i)
     {
         if (lhs[i] != rhs[i])
         {
@@ -226,7 +226,7 @@ bool operator < (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementType
     if (lhs.Size() > rhs.Size())
         return false;
 
-    for (Uint32 i = 0; i < lhs.Size(); ++i)
+    for (uint32 i = 0; i < lhs.Size(); ++i)
     {
         if (lhs[i] < rhs[i])
             return true;
@@ -258,7 +258,7 @@ bool operator <= (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementTyp
     if (lhs.Size() > rhs.Size())
         return false;
 
-    for (Uint32 i = 0; i < lhs.Size(); ++i)
+    for (uint32 i = 0; i < lhs.Size(); ++i)
     {
         if (lhs[i] < rhs[i])
             return true;
@@ -278,11 +278,11 @@ bool operator >= (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementTyp
 }
 
 template<typename ElementType>
-Uint32 GetHash(const ArrayView<ElementType>& arrayView)
+uint32 GetHash(const ArrayView<ElementType>& arrayView)
 {
     // hashing algorithm based on boost's hash_combine
 
-    Uint32 seed = 0;
+    uint32 seed = 0;
     for (const ElementType& element : arrayView)
     {
         seed ^= GetHash(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);

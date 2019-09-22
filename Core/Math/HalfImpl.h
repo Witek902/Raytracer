@@ -17,15 +17,15 @@ Half::Half(const float other)
 #ifdef RT_USE_FP16C
     __m128 v1 = _mm_set_ss(other);
     __m128i v2 = _mm_cvtps_ph(v1, 0);
-    value = static_cast<Uint16>(_mm_cvtsi128_si32(v2));
+    value = static_cast<uint16>(_mm_cvtsi128_si32(v2));
 #else
-    Uint32 result;
+    uint32 result;
 
     Bits32 bits;
     bits.f = other;
 
-    Uint32 iValue = bits.ui;
-    Uint32 sign = (iValue & 0x80000000U) >> 16U;
+    uint32 iValue = bits.ui;
+    uint32 sign = (iValue & 0x80000000U) >> 16U;
     iValue = iValue & 0x7FFFFFFFU;
 
     if (iValue > 0x477FE000U)
@@ -50,7 +50,7 @@ Half::Half(const float other)
         {
             // The number is too small to be represented as a normalized half.
             // Convert it to a denormalized value.
-            Uint32 Shift = 113U - (iValue >> 23U);
+            uint32 Shift = 113U - (iValue >> 23U);
             iValue = (0x800000U | (iValue & 0x7FFFFFU)) >> Shift;
         }
         else
@@ -62,7 +62,7 @@ Half::Half(const float other)
         result = ((iValue + 0x0FFFU + ((iValue >> 13U) & 1U)) >> 13U) & 0x7FFFU;
     }
 
-    value = static_cast<Uint16>(result | sign);
+    value = static_cast<uint16>(result | sign);
 #endif // RT_USE_FP16C
 }
 
@@ -72,8 +72,8 @@ float Half::ToFloat() const
     const __m128i v = _mm_cvtsi32_si128(static_cast<int>(value));
     return _mm_cvtss_f32(_mm_cvtph_ps(v));
 #else // RT_USE_FP16C
-    Uint32 mantissa = static_cast<Uint32>(value & 0x03FF);
-    Uint32 exponent = (value & 0x7C00);
+    uint32 mantissa = static_cast<uint32>(value & 0x03FF);
+    uint32 exponent = (value & 0x7C00);
 
     if (exponent == 0x7C00) // INF/NAN
     {
@@ -81,7 +81,7 @@ float Half::ToFloat() const
     }
     else if (exponent != 0) // The value is normalized
     {
-        exponent = static_cast<Uint32>((static_cast<int>(value) >> 10) & 0x1F);
+        exponent = static_cast<uint32>((static_cast<int>(value) >> 10) & 0x1F);
     }
     else if (mantissa != 0) // The value is denormalized
     {
@@ -97,11 +97,11 @@ float Half::ToFloat() const
     }
     else // The value is zero
     {
-        exponent = static_cast<Uint32>(-112);
+        exponent = static_cast<uint32>(-112);
     }
 
     math::Bits32 result;
-    result.ui = ((static_cast<Uint32>(value) & 0x8000) << 16) | ((exponent + 112) << 23) | (mantissa << 13);
+    result.ui = ((static_cast<uint32>(value) & 0x8000) << 16) | ((exponent + 112) << 23) | (mantissa << 13);
     return result.f;
 #endif // RT_USE_FP16C
 }

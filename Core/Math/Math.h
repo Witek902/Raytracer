@@ -32,16 +32,16 @@ RAYLIB_API bool GetFlushDenormalsToZero();
 union Bits32
 {
     float f;
-    Uint32 ui;
-    Int32 si;
+    uint32 ui;
+    int32 si;
 };
 
 // Union providing easy manipulations on 64-bit values
 union Bits64
 {
     double f;
-    Uint64 ui;
-    Int64 si;
+    uint64 ui;
+    int64 si;
 };
 
 // convert degrees to radians
@@ -97,9 +97,9 @@ RT_FORCE_INLINE constexpr const T Abs(const T x)
 }
 
 // compute floor and convert to integer
-RT_FORCE_INLINE constexpr Int32 FloorInt(float fp)
+RT_FORCE_INLINE constexpr int32 FloorInt(float fp)
 {
-    const Int32 i = static_cast<Int32>(fp);
+    const int32 i = static_cast<int32>(fp);
     return fp < i ? (i - 1) : i;
 }
 
@@ -232,7 +232,7 @@ RT_FORCE_INLINE constexpr bool PowerOfTwo(const T x)
 }
 
 // Roundup to next power of two
-RT_FORCE_INLINE constexpr Uint32 NextPowerOfTwo(Uint32 v)
+RT_FORCE_INLINE constexpr uint32 NextPowerOfTwo(uint32 v)
 {
     v--;
     v |= v >> 1;
@@ -255,7 +255,7 @@ RT_FORCE_INLINE constexpr const T RoundUp(const T x, const T multiple)
 }
 
 // Wang hash
-RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
+RT_FORCE_INLINE constexpr uint32 Hash(uint32 a)
 {
     a = (a ^ 61) ^ (a >> 16);
     a += (a << 3);
@@ -266,7 +266,7 @@ RT_FORCE_INLINE constexpr Uint32 Hash(Uint32 a)
 }
 
 // MurmurHash3
-RT_FORCE_INLINE constexpr Uint64 Hash(Uint64 h)
+RT_FORCE_INLINE constexpr uint64 Hash(uint64 h)
 {
     h ^= h >> 33;
     h *= 0xff51afd7ed558ccdL;
@@ -277,7 +277,7 @@ RT_FORCE_INLINE constexpr Uint64 Hash(Uint64 h)
 }
 
 // bit population count
-RT_FORCE_INLINE Uint32 PopCount(Uint32 x)
+RT_FORCE_INLINE uint32 PopCount(uint32 x)
 {
 #if defined(WIN32) && RT_USE_BMI
     return __popcnt(x);

@@ -27,14 +27,14 @@ public:
     DynArray(const std::initializer_list<ElementType>& list);
 
     // initialize using C-style array
-    DynArray(const ElementType* elements, Uint32 count);
+    DynArray(const ElementType* elements, uint32 count);
 
     // initialize with given size (creates default objects)
     // NOTE: ElementType must be trivially constructible
-    explicit DynArray(Uint32 size);
+    explicit DynArray(uint32 size);
 
     // initialize with given size
-    DynArray(Uint32 size, const ElementType& value);
+    DynArray(uint32 size, const ElementType& value);
 
     /**
      * Remove all the elements.
@@ -67,14 +67,14 @@ public:
      * Insert a new element at given index.
      * @return  Iterator to the inserted element, or iterator to the end if the insertion failed.
      */
-    IteratorType InsertAt(Uint32 index, const ElementType& element);
-    IteratorType InsertAt(Uint32 index, ElementType&& element);
+    IteratorType InsertAt(uint32 index, const ElementType& element);
+    IteratorType InsertAt(uint32 index, ElementType&& element);
 
     /**
      * Insert a new element multiple times, at given index.
      * @return  Iterator to the first inserted element, or iterator to the end if the insertion failed.
      */
-    IteratorType InsertAt(Uint32 index, const ElementType& element, Uint32 count);
+    IteratorType InsertAt(uint32 index, const ElementType& element, uint32 count);
 
     /**
      * Insert elements from a view at given index.
@@ -84,7 +84,7 @@ public:
      * @return  Iterator to the inserted element, or iterator to the end if the insertion failed.
      */
     template<typename ElementType2>
-    IteratorType InsertArrayAt(Uint32 index, const ArrayView<ElementType2>& arrayView);
+    IteratorType InsertArrayAt(uint32 index, const ArrayView<ElementType2>& arrayView);
 
     /**
      * Remove an element by iterator.
@@ -108,16 +108,16 @@ public:
      * Reserve space.
      * @return  'false' if memory allocation failed.
      */
-    bool Reserve(Uint32 size);
+    bool Reserve(uint32 size);
 
     /**
      * Resize the array.
      * Element type must have default constructor.
      * @return 'false' if memory allocation failed.
      */
-    bool Resize(Uint32 size);
-    bool Resize_SkipConstructor(Uint32 size);
-    bool Resize(Uint32 size, const ElementType& defaultElement);
+    bool Resize(uint32 size);
+    bool Resize_SkipConstructor(uint32 size);
+    bool Resize(uint32 size, const ElementType& defaultElement);
 
     /**
      * Replace contents of two arrays.
@@ -136,14 +136,14 @@ private:
     bool ContainsElement(const ElementType& element) const;
 
     // allocated size
-    Uint32 mAllocSize;
+    uint32 mAllocSize;
 };
 
 /**
  * Calculate hash of an dynamic array (simple wrapper for ArrayView's GetHash).
  */
 template<typename ElementType>
-RT_FORCE_INLINE Uint32 GetHash(const DynArray<ElementType>& array)
+RT_FORCE_INLINE uint32 GetHash(const DynArray<ElementType>& array)
 {
     return GetHash(static_cast<const ArrayView<ElementType>&>(array));
 }

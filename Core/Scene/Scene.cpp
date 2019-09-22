@@ -86,9 +86,9 @@ bool Scene::BuildBVH()
 
         DynArray<const ITraceableSceneObject*> newObjectsArray;
         newObjectsArray.Reserve(mTraceableObjects.Size());
-        for (Uint32 i = 0; i < mTraceableObjects.Size(); ++i)
+        for (uint32 i = 0; i < mTraceableObjects.Size(); ++i)
         {
-            Uint32 sourceIndex = newOrder[i];
+            uint32 sourceIndex = newOrder[i];
             newObjectsArray.PushBack(mTraceableObjects[sourceIndex]);
         }
         mTraceableObjects = std::move(newObjectsArray);
@@ -114,9 +114,9 @@ bool Scene::BuildBVH()
 
         DynArray<const DecalSceneObject*> newObjectsArray;
         newObjectsArray.Reserve(mDecals.Size());
-        for (Uint32 i = 0; i < mDecals.Size(); ++i)
+        for (uint32 i = 0; i < mDecals.Size(); ++i)
         {
-            Uint32 sourceIndex = newOrder[i];
+            uint32 sourceIndex = newOrder[i];
             newObjectsArray.PushBack(mDecals[sourceIndex]);
         }
         mDecals = std::move(newObjectsArray);
@@ -125,7 +125,7 @@ bool Scene::BuildBVH()
     return true;
 }
 
-void Scene::Traverse_Object(const SingleTraversalContext& context, const Uint32 objectID) const
+void Scene::Traverse_Object(const SingleTraversalContext& context, const uint32 objectID) const
 {
     const ITraceableSceneObject* object = mTraceableObjects[objectID];
 
@@ -144,7 +144,7 @@ void Scene::Traverse_Object(const SingleTraversalContext& context, const Uint32 
     object->Traverse(objectContext, objectID);
 }
 
-bool Scene::Traverse_Object_Shadow(const SingleTraversalContext& context, const Uint32 objectID) const
+bool Scene::Traverse_Object_Shadow(const SingleTraversalContext& context, const uint32 objectID) const
 {
     const ITraceableSceneObject* object = mTraceableObjects[objectID];
 
@@ -164,14 +164,14 @@ bool Scene::Traverse_Object_Shadow(const SingleTraversalContext& context, const 
     return object->Traverse_Shadow(objectContext);
 }
 
-void Scene::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void Scene::Traverse_Leaf(const SingleTraversalContext& context, const uint32 objectID, const BVH::Node& node) const
 {
     RT_UNUSED(objectID);
 
-    const Uint32 numLeaves = node.numLeaves;
-    const Uint32 firstChild = node.childIndex;
+    const uint32 numLeaves = node.numLeaves;
+    const uint32 firstChild = node.childIndex;
 
-    for (Uint32 i = 0; i < numLeaves; ++i)
+    for (uint32 i = 0; i < numLeaves; ++i)
     {
         Traverse_Object(context, firstChild + i);
     }
@@ -179,10 +179,10 @@ void Scene::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 ob
 
 bool Scene::Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const
 {
-    const Uint32 numLeaves = node.numLeaves;
-    const Uint32 firstChild = node.childIndex;
+    const uint32 numLeaves = node.numLeaves;
+    const uint32 firstChild = node.childIndex;
 
-    for (Uint32 i = 0; i < numLeaves; ++i)
+    for (uint32 i = 0; i < numLeaves; ++i)
     {
         if (Traverse_Object_Shadow(context, firstChild + i))
         {
@@ -193,18 +193,18 @@ bool Scene::Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BV
     return false;
 }
 
-void Scene::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const
+void Scene::Traverse_Leaf(const PacketTraversalContext& context, const uint32 objectID, const BVH::Node& node, uint32 numActiveGroups) const
 {
     RT_UNUSED(objectID);
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    for (uint32 i = 0; i < node.numLeaves; ++i)
     {
-        const Uint32 objectIndex = node.childIndex + i;
+        const uint32 objectIndex = node.childIndex + i;
         const ITraceableSceneObject* object = mTraceableObjects[objectIndex];
         const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
         // transform ray to local-space
-        for (Uint32 j = 0; j < numActiveGroups; ++j)
+        for (uint32 j = 0; j < numActiveGroups; ++j)
         {
             RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
             rayGroup.rays[1].origin = invTransform.TransformPoint(rayGroup.rays[0].origin);
@@ -222,7 +222,7 @@ void Scene::Traverse(const SingleTraversalContext& context) const
 
     context.context.localCounters.Reset();
 
-    const Uint32 numObjects = mTraceableObjects.Size();
+    const uint32 numObjects = mTraceableObjects.Size();
 
     if (numObjects == 0)
     {
@@ -244,7 +244,7 @@ void Scene::Traverse(const SingleTraversalContext& context) const
 
 bool Scene::Traverse_Shadow(const SingleTraversalContext& context) const
 {
-    const Uint32 numObjects = mTraceableObjects.Size();
+    const uint32 numObjects = mTraceableObjects.Size();
 
     if (numObjects == 0) // scene is empty
     {
@@ -262,16 +262,16 @@ bool Scene::Traverse_Shadow(const SingleTraversalContext& context) const
 
 void Scene::Traverse(const PacketTraversalContext& context) const
 {
-    const Uint32 numObjects = mTraceableObjects.Size();
+    const uint32 numObjects = mTraceableObjects.Size();
 
-    const Uint32 numRayGroups = context.ray.GetNumGroups();
-    for (Uint32 i = 0; i < numRayGroups; ++i)
+    const uint32 numRayGroups = context.ray.GetNumGroups();
+    for (uint32 i = 0; i < numRayGroups; ++i)
     {
         context.ray.groups[i].maxDistances = VECTOR8_MAX;
-        context.context.activeGroupsIndices[i] = (Uint16)i;
+        context.context.activeGroupsIndices[i] = (uint16)i;
     }
 
-    for (Uint32 i = 0; i < context.ray.numRays; ++i)
+    for (uint32 i = 0; i < context.ray.numRays; ++i)
     {
         context.context.hitPoints[i].distance = FLT_MAX;
         context.context.hitPoints[i].objectId = UINT32_MAX;
@@ -286,7 +286,7 @@ void Scene::Traverse(const PacketTraversalContext& context) const
         const ISceneObject* object = mTraceableObjects.Front();
         const Matrix4 invTransform = object->GetInverseTransform(context.context.time);
 
-        for (Uint32 j = 0; j < numRayGroups; ++j)
+        for (uint32 j = 0; j < numRayGroups; ++j)
         {
             RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
             rayGroup.rays[1].origin = invTransform.TransformPoint(rayGroup.rays[0].origin);
@@ -379,8 +379,8 @@ void Scene::EvaluateDecals(ShadingData& shadingData, RenderingContext& context) 
         return; // no decals
     }
 
-    const Uint32 maxOverlappingDecals = 8;
-    Uint32 numOverlappingDecals = 0;
+    const uint32 maxOverlappingDecals = 8;
+    uint32 numOverlappingDecals = 0;
     const DecalSceneObject* decals[maxOverlappingDecals];
 
     // collect overlapping decals
@@ -391,7 +391,7 @@ void Scene::EvaluateDecals(ShadingData& shadingData, RenderingContext& context) 
     const BVH::Node* __restrict nodes = mDecalsBVH.GetNodes();
 
     // "nodes to visit" stack
-    Uint32 stackSize = 0;
+    uint32 stackSize = 0;
     const BVH::Node* __restrict nodesStack[BVH::MaxDepth];
 
     // BVH traversal
@@ -399,10 +399,10 @@ void Scene::EvaluateDecals(ShadingData& shadingData, RenderingContext& context) 
     {
         if (currentNode->IsLeaf())
         {
-            const Uint32 numLeaves = currentNode->numLeaves;
-            const Uint32 firstChild = currentNode->childIndex;
+            const uint32 numLeaves = currentNode->numLeaves;
+            const uint32 firstChild = currentNode->childIndex;
 
-            for (Uint32 i = 0; i < numLeaves; ++i)
+            for (uint32 i = 0; i < numLeaves; ++i)
             {
                 RT_ASSERT(numOverlappingDecals < maxOverlappingDecals);
                 decals[numOverlappingDecals++] = mDecals[firstChild + i];
@@ -455,7 +455,7 @@ void Scene::EvaluateDecals(ShadingData& shadingData, RenderingContext& context) 
         std::sort(decals, decals + numOverlappingDecals, DecalSorter());
 
         // apply decals
-        for (Uint32 i = 0; i < numOverlappingDecals; ++i)
+        for (uint32 i = 0; i < numOverlappingDecals; ++i)
         {
             decals[i]->Apply(shadingData, context);
         }

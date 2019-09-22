@@ -51,7 +51,7 @@ TEST(MathPacked, UnitVector)
 
     Random random;
 
-    for (Uint32 i = 0; i < 1000; ++i)
+    for (uint32 i = 0; i < 1000; ++i)
     {
         const Vector4 vec = SamplingHelpers::GetSphere(random.GetFloat2()).Normalized3();
         TestUnitVector(vec, 0.0002f);
@@ -85,13 +85,13 @@ TEST(MathPacked, ColorRgbHdr)
 
     Random random;
 
-    for (Uint32 i = 0; i < 1000; ++i)
+    for (uint32 i = 0; i < 1000; ++i)
     {
         const Vector4 vec = random.GetVector4() * 0.001f;
         TestColorRgbHdr(vec, 0.0000002f);
     }
 
-    for (Uint32 i = 0; i < 1000; ++i)
+    for (uint32 i = 0; i < 1000; ++i)
     {
         const Vector4 vec = random.GetVector4() * 1000.0f;
         TestColorRgbHdr(vec, 0.2f);

@@ -103,13 +103,13 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
 
             for (size_t y = 0; y < (size_t)exrImage.height; ++y)
             {
-                Uint16* typedData = reinterpret_cast<Uint16*>(mData + (size_t)mStride * y);
+                uint16* typedData = reinterpret_cast<uint16*>(mData + (size_t)mStride * y);
                 for (size_t x = 0; x < (size_t)exrImage.width; ++x)
                 {
                     const size_t index = y * exrImage.width + x;
-                    typedData[3 * x    ] = reinterpret_cast<const Uint16*>(exrImage.images[2])[index];
-                    typedData[3 * x + 1] = reinterpret_cast<const Uint16*>(exrImage.images[1])[index];
-                    typedData[3 * x + 2] = reinterpret_cast<const Uint16*>(exrImage.images[0])[index];
+                    typedData[3 * x    ] = reinterpret_cast<const uint16*>(exrImage.images[2])[index];
+                    typedData[3 * x + 1] = reinterpret_cast<const uint16*>(exrImage.images[1])[index];
+                    typedData[3 * x + 2] = reinterpret_cast<const uint16*>(exrImage.images[0])[index];
                 }
             }
         }
@@ -161,14 +161,14 @@ bool Bitmap::LoadEXR(FILE* file, const char* path)
 
             for (size_t y = 0; y < (size_t)exrImage.height; ++y)
             {
-                Uint16* typedData = reinterpret_cast<Uint16*>(mData + (size_t)mStride * y);
+                uint16* typedData = reinterpret_cast<uint16*>(mData + (size_t)mStride * y);
                 for (size_t x = 0; x < (size_t)exrImage.width; ++x)
                 {
                     const size_t index = y * exrImage.width + x;
-                    typedData[4 * x    ] = reinterpret_cast<const Uint16*>(exrImage.images[3])[index];
-                    typedData[4 * x + 1] = reinterpret_cast<const Uint16*>(exrImage.images[2])[index];
-                    typedData[4 * x + 2] = reinterpret_cast<const Uint16*>(exrImage.images[1])[index];
-                    typedData[4 * x + 3] = reinterpret_cast<const Uint16*>(exrImage.images[0])[index];
+                    typedData[4 * x    ] = reinterpret_cast<const uint16*>(exrImage.images[3])[index];
+                    typedData[4 * x + 1] = reinterpret_cast<const uint16*>(exrImage.images[2])[index];
+                    typedData[4 * x + 2] = reinterpret_cast<const uint16*>(exrImage.images[1])[index];
+                    typedData[4 * x + 3] = reinterpret_cast<const uint16*>(exrImage.images[0])[index];
                 }
             }
         }
@@ -219,8 +219,8 @@ bool Bitmap::SaveEXR(const char* path, const float exposure) const
     images[2].Resize(mWidth * mHeight);
 
     // Split RGBRGBRGB... into R, G and B layer
-    const Uint32 numPixels = GetWidth() * GetHeight();
-    for (Uint32 i = 0; i < numPixels; i++)
+    const uint32 numPixels = GetWidth() * GetHeight();
+    for (uint32 i = 0; i < numPixels; i++)
     {
         images[0][i] = exposure * data[i].x;
         images[1][i] = exposure * data[i].y;

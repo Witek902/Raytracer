@@ -16,7 +16,7 @@ namespace rt {
 
 using namespace math;
 
-static const Uint32 MAX_IMAGE_SZIE = 1 << 16;
+static const uint32 MAX_IMAGE_SZIE = 1 << 16;
 
 Viewport::Viewport()
 {
@@ -29,14 +29,14 @@ Viewport::~Viewport() = default;
 
 void Viewport::InitThreadData()
 {
-    const Uint32 numThreads = mThreadPool.GetNumThreads();
+    const uint32 numThreads = mThreadPool.GetNumThreads();
 
     mThreadData.Resize(numThreads);
 
     mSamplers.Clear();
     mSamplers.Reserve(numThreads);
 
-    for (Uint32 i = 0; i < numThreads; ++i)
+    for (uint32 i = 0; i < numThreads; ++i)
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.randomGenerator.Reset();
@@ -49,7 +49,7 @@ void Viewport::InitThreadData()
     }
 }
 
-bool Viewport::Resize(Uint32 width, Uint32 height)
+bool Viewport::Resize(uint32 width, uint32 height)
 {
     if (width > MAX_IMAGE_SZIE || height > MAX_IMAGE_SZIE || width == 0 || height == 0)
     {
@@ -96,7 +96,7 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     mPassesPerPixel.Resize(width * height);
 
     mPixelSalt.Resize(width * height);
-    for (Uint32 i = 0; i < width * height; ++i)
+    for (uint32 i = 0; i < width * height; ++i)
     {
         mPixelSalt[i] = mRandomGenerator.GetVector4().ToFloat2();
     }
@@ -106,7 +106,7 @@ bool Viewport::Resize(Uint32 width, Uint32 height)
     return true;
 }
 
-void Viewport::SetPixelBreakpoint(Uint32 x, Uint32 y)
+void Viewport::SetPixelBreakpoint(uint32 x, uint32 y)
 {
 #ifndef RT_CONFIGURATION_FINAL
     mPendingPixelBreakpoint.x = x;
@@ -132,7 +132,7 @@ void Viewport::Reset()
         blurredImage.Clear();
     }
 
-    memset(mPassesPerPixel.Data(), 0, sizeof(Uint32) * GetWidth() * GetHeight());
+    memset(mPassesPerPixel.Data(), 0, sizeof(uint32) * GetWidth() * GetHeight());
 
     BuildInitialBlocksList();
 }
@@ -184,8 +184,8 @@ void Viewport::ComputeError()
 
 bool Viewport::Render(const Camera& camera)
 {
-    const Uint32 width = GetWidth();
-    const Uint32 height = GetHeight();
+    const uint32 width = GetWidth();
+    const uint32 height = GetHeight();
     if (width == 0 || height == 0)
     {
         return false;
@@ -198,13 +198,13 @@ bool Viewport::Render(const Camera& camera)
     }
 
     mHaltonSequence.NextSample();
-    DynArray<Uint32> seed(mHaltonSequence.GetNumDimensions());
-    for (Uint32 i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
+    DynArray<uint32> seed(mHaltonSequence.GetNumDimensions());
+    for (uint32 i = 0; i < mHaltonSequence.GetNumDimensions(); ++i)
     {
         seed[i] = mHaltonSequence.GetInt(i);
     }
 
-    for (Uint32 i = 0; i < mThreadData.Size(); ++i)
+    for (uint32 i = 0; i < mThreadData.Size(); ++i)
     {
         RenderingContext& ctx = mThreadData[i];
         ctx.counters.Reset();
@@ -246,7 +246,7 @@ bool Viewport::Render(const Camera& camera)
             mRenderer->PreRender(mProgress.passesFinished, film);
         }
 
-        const auto renderCallback = [&](Uint32 id, Uint32 threadID)
+        const auto renderCallback = [&](uint32 id, uint32 threadID)
         {
             RenderTile(tileContext, mThreadData[threadID], mRenderingTiles[id]);
         };
@@ -304,11 +304,11 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
     if (ctx.params->traversalMode == TraversalMode::Single)
     {
-        for (Uint32 y = tile.minY; y < tile.maxY; ++y)
+        for (uint32 y = tile.minY; y < tile.maxY; ++y)
         {
-            const Uint32 realY = GetHeight() - 1u - y;
+            const uint32 realY = GetHeight() - 1u - y;
 
-            for (Uint32 x = tile.minX; x < tile.maxX; ++x)
+            for (uint32 x = tile.minX; x < tile.maxX; ++x)
             {
 #ifndef RT_CONFIGURATION_FINAL
                 if (ctx.pixelBreakpoint.x == x && ctx.pixelBreakpoint.y == y)
@@ -317,7 +317,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                 }
 #endif // RT_CONFIGURATION_FINAL
 
-                const Uint32 pixelIndex = y * GetHeight() + x;
+                const uint32 pixelIndex = y * GetHeight() + x;
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
                 ctx.sampler.ResetPixel(x, y);
@@ -373,34 +373,34 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
         RT_ASSERT((tile.maxY - tile.minY) % 2 == 0);
         RT_ASSERT((tile.maxX - tile.minX) % 4 == 0);
         /*
-        for (Uint32 y = tile.minY; y < tile.maxY; ++y)
+        for (uint32 y = tile.minY; y < tile.maxY; ++y)
         {
-            const Uint32 realY = GetHeight() - 1u - y;
+            const uint32 realY = GetHeight() - 1u - y;
 
-            for (Uint32 x = tile.minX; x < tile.maxX; ++x)
+            for (uint32 x = tile.minX; x < tile.maxX; ++x)
             {
                 const Vector4 coords = (Vector4::FromIntegers(x, realY, 0, 0) + tileContext.sampleOffset) * invSize;
 
-                for (Uint32 s = 0; s < samplesPerPixel; ++s)
+                for (uint32 s = 0; s < samplesPerPixel; ++s)
                 {
                     // generate primary ray
                     const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
 
-                    const ImageLocationInfo location = { (Uint16)x, (Uint16)y };
+                    const ImageLocationInfo location = { (uint16)x, (uint16)y };
                     primaryPacket.PushRay(ray, Vector4(sampleScale), location);
                 }
             }
         }
         */
 
-        constexpr Uint32 rayGroupSizeX = 4;
-        constexpr Uint32 rayGroupSizeY = 2;
+        constexpr uint32 rayGroupSizeX = 4;
+        constexpr uint32 rayGroupSizeY = 2;
 
-        for (Uint32 y = tile.minY; y < tile.maxY; y += rayGroupSizeY)
+        for (uint32 y = tile.minY; y < tile.maxY; y += rayGroupSizeY)
         {
-            const Uint32 realY = GetHeight() - 1u - y;
+            const uint32 realY = GetHeight() - 1u - y;
 
-            for (Uint32 x = tile.minX; x < tile.maxX; x += rayGroupSizeX)
+            for (uint32 x = tile.minX; x < tile.maxX; x += rayGroupSizeX)
             {
                 // generate ray group with following layout:
                 //  0 1 2 3
@@ -429,7 +429,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
         ctx.counters.Append(ctx.localCounters);
     }
 
-    ctx.counters.numPrimaryRays += (Uint64)(tile.maxY - tile.minY) * (Uint64)(tile.maxX - tile.minX);
+    ctx.counters.numPrimaryRays += (uint64)(tile.maxY - tile.minY) * (uint64)(tile.maxX - tile.minX);
 }
 
 void Viewport::PerformPostProcess()
@@ -439,7 +439,7 @@ void Viewport::PerformPostProcess()
         Timer timer;
 
         float blurSigma = 2.0f;
-        for (Uint32 i = 0; i < mBlurredImages.Size(); ++i)
+        for (uint32 i = 0; i < mBlurredImages.Size(); ++i)
         {
             Bitmap::Copy(mBlurredImages[i], i == 0 ? mSum : mBlurredImages[i - 1]);
             mBlurredImages[i].GaussianBlur(blurSigma, 8);
@@ -459,9 +459,9 @@ void Viewport::PerformPostProcess()
     {
         // post processing params has changed, perfrom full image update
 
-        const Uint32 numTiles = mThreadPool.GetNumThreads();
+        const uint32 numTiles = mThreadPool.GetNumThreads();
 
-        const auto taskCallback = [this, numTiles](Uint32 id, Uint32 threadID)
+        const auto taskCallback = [this, numTiles](uint32 id, uint32 threadID)
         {
             Block block;
             block.minY = GetHeight() * id / numTiles;
@@ -482,7 +482,7 @@ void Viewport::PerformPostProcess()
 
         if (!mRenderingTiles.Empty())
         {
-            const auto taskCallback = [this](Uint32 id, Uint32 threadID)
+            const auto taskCallback = [this](uint32 id, uint32 threadID)
             {
                 PostProcessTile(mRenderingTiles[id], threadID);
             };
@@ -492,7 +492,7 @@ void Viewport::PerformPostProcess()
     }
 }
 
-void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
+void Viewport::PostProcessTile(const Block& block, uint32 threadID)
 {
     Random& randomGenerator = mThreadData[threadID].randomGenerator;
 
@@ -501,9 +501,9 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
 
     const float pixelScaling = 1.0f / (float)(1u + mProgress.passesFinished);
   
-    for (Uint32 y = block.minY; y < block.maxY; ++y)
+    for (uint32 y = block.minY; y < block.maxY; ++y)
     {
-        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        for (uint32 x = block.minX; x < block.maxX; ++x)
         {
             const Vector4 rawValue = Vector4_Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
@@ -518,7 +518,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
                 rgbColor *= 1.0f - mPostprocessParams.params.bloomFactor;
 
                 Vector4 bloomColor = Vector4::Zero();
-                for (Uint32 i = 0; i < mBlurredImages.Size(); ++i)
+                for (uint32 i = 0; i < mBlurredImages.Size(); ++i)
                 {
                     const Vector4 blurredColor = Vector4_Load_Float3_Unsafe(mBlurredImages[i].GetPixelRef<Float3>(x, y));
                     bloomColor = Vector4::MulAndAdd(blurredColor, bloomWeights[i], bloomColor);
@@ -547,7 +547,7 @@ void Viewport::PostProcessTile(const Block& block, Uint32 threadID)
             // TODO blue noise dithering
             const Vector4 dithered = Vector4::MulAndAdd(randomGenerator.GetVector4Bipolar(), mPostprocessParams.params.ditheringStrength, toneMapped);
 
-            mFrontBuffer.GetPixelRef<Uint32>(x, y) = dithered.ToBGR();
+            mFrontBuffer.GetPixelRef<uint32>(x, y) = dithered.ToBGR();
         }
     }
 }
@@ -564,10 +564,10 @@ float Viewport::ComputeBlockError(const Block& block) const
     const float imageScalingFactor = 1.0f / (float)mProgress.passesFinished;
 
     float totalError = 0.0f;
-    for (Uint32 y = block.minY; y < block.maxY; ++y)
+    for (uint32 y = block.minY; y < block.maxY; ++y)
     {
         float rowError = 0.0f;
-        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        for (uint32 x = block.minX; x < block.maxX; ++x)
         {
             const Vector4 a = imageScalingFactor * Vector4_Load_Float3_Unsafe(mSum.GetPixelRef<Float3>(x, y));
             const Vector4 b = (2.0f * imageScalingFactor) * Vector4_Load_Float3_Unsafe(mSecondarySum.GetPixelRef<Float3>(x, y));
@@ -578,8 +578,8 @@ float Viewport::ComputeBlockError(const Block& block) const
         totalError += rowError;
     }
 
-    const Uint32 totalArea = GetWidth() * GetHeight();
-    const Uint32 blockArea = block.Width() * block.Height();
+    const uint32 totalArea = GetWidth() * GetHeight();
+    const uint32 blockArea = block.Width() * block.Height();
     return totalError * Sqrt((float)blockArea / (float)totalArea) / (float)blockArea;
 }
 
@@ -588,22 +588,22 @@ void Viewport::GenerateRenderingTiles()
     mRenderingTiles.Clear();
     mRenderingTiles.Reserve(mBlocks.Size());
 
-    const Uint32 tileSize = mParams.tileSize;
+    const uint32 tileSize = mParams.tileSize;
 
     for (const Block& block : mBlocks)
     {
-        const Uint32 rows = 1 + (block.Height() - 1) / tileSize;
-        const Uint32 columns = 1 + (block.Width() - 1) / tileSize;
+        const uint32 rows = 1 + (block.Height() - 1) / tileSize;
+        const uint32 columns = 1 + (block.Width() - 1) / tileSize;
 
         Block tile;
 
-        for (Uint32 j = 0; j < rows; ++j)
+        for (uint32 j = 0; j < rows; ++j)
         {
             tile.minY = block.minY + j * tileSize;
             tile.maxY = Min(block.maxY, block.minY + j * tileSize + tileSize);
             RT_ASSERT(tile.maxY > tile.minY);
 
-            for (Uint32 i = 0; i < columns; ++i)
+            for (uint32 i = 0; i < columns; ++i)
             {
                 tile.minX = block.minX + i * tileSize;
                 tile.maxX = Min(block.maxX, block.minX + i * tileSize + tileSize);
@@ -619,11 +619,11 @@ void Viewport::BuildInitialBlocksList()
 {
     mBlocks.Clear();
 
-    const Uint32 blockSize = mParams.adaptiveSettings.maxBlockSize;
-    const Uint32 rows = 1 + (GetHeight() - 1) / blockSize;
-    const Uint32 columns = 1 + (GetWidth() - 1) / blockSize;
+    const uint32 blockSize = mParams.adaptiveSettings.maxBlockSize;
+    const uint32 rows = 1 + (GetHeight() - 1) / blockSize;
+    const uint32 columns = 1 + (GetWidth() - 1) / blockSize;
 
-    for (Uint32 j = 0; j < rows; ++j)
+    for (uint32 j = 0; j < rows; ++j)
     {
         Block block;
 
@@ -631,7 +631,7 @@ void Viewport::BuildInitialBlocksList()
         block.maxY = Min(GetHeight(), (j + 1) * blockSize);
         RT_ASSERT(block.maxY > block.minY);
 
-        for (Uint32 i = 0; i < columns; ++i)
+        for (uint32 i = 0; i < columns; ++i)
         {
             block.minX = i * blockSize;
             block.maxX = Min(GetWidth(), (i + 1) * blockSize);
@@ -655,7 +655,7 @@ void Viewport::UpdateBlocksList()
         return;
     }
 
-    for (Uint32 i = 0; i < mBlocks.Size(); ++i)
+    for (uint32 i = 0; i < mBlocks.Size(); ++i)
     {
         const Block block = mBlocks[i];
         const float blockError = ComputeBlockError(block);
@@ -682,7 +682,7 @@ void Viewport::UpdateBlocksList()
 
             if (block.Width() > block.Height())
             {
-                const Uint32 halfPoint = (block.minX + block.maxX) / 2u;
+                const uint32 halfPoint = (block.minX + block.maxX) / 2u;
 
                 childA.minX = block.minX;
                 childA.maxX = halfPoint;
@@ -696,7 +696,7 @@ void Viewport::UpdateBlocksList()
             }
             else
             {
-                const Uint32 halfPoint = (block.minY + block.maxY) / 2u;
+                const uint32 halfPoint = (block.minY + block.maxY) / 2u;
 
                 childA.minX = block.minX;
                 childA.maxX = block.maxX;
@@ -737,35 +737,35 @@ void Viewport::UpdateBlocksList()
 void Viewport::VisualizeActiveBlocks(Bitmap& bitmap) const
 {
     const LdrColor color(255, 0, 0);
-    const Uint8 alpha = 64;
+    const uint8 alpha = 64;
 
     for (const Block& block : mBlocks)
     {
-        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        for (uint32 y = block.minY; y < block.maxY; ++y)
         {
-            for (Uint32 x = block.minX; x < block.maxX; ++x)
+            for (uint32 x = block.minX; x < block.maxX; ++x)
             {
                 LdrColor& pixel = bitmap.GetPixelRef<LdrColor>(x, y);
                 pixel = Lerp(pixel, color, alpha);
             }
         }
 
-        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        for (uint32 y = block.minY; y < block.maxY; ++y)
         {
             bitmap.GetPixelRef<LdrColor>(block.minX, y) = color;
         }
 
-        for (Uint32 y = block.minY; y < block.maxY; ++y)
+        for (uint32 y = block.minY; y < block.maxY; ++y)
         {
             bitmap.GetPixelRef<LdrColor>(block.maxX - 1, y) = color;
         }
 
-        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        for (uint32 x = block.minX; x < block.maxX; ++x)
         {
             bitmap.GetPixelRef<LdrColor>(x, block.minY) = color;
         }
 
-        for (Uint32 x = block.minX; x < block.maxX; ++x)
+        for (uint32 x = block.minX; x < block.maxX; ++x)
         {
             bitmap.GetPixelRef<LdrColor>(x, block.maxY - 1) = color;
         }

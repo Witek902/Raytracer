@@ -204,14 +204,14 @@ public:
                     const tinyobj::index_t indices = idx[i];
                     const auto iter = mUniqueIndices.find(indices);
 
-                    Uint32 uniqueIndex = 0;
+                    uint32 uniqueIndex = 0;
                     if (iter != mUniqueIndices.end())
                     {
                         uniqueIndex = (*iter).second;
                     }
                     else
                     {
-                        uniqueIndex = (Uint32)mUniqueIndices.size();
+                        uniqueIndex = (uint32)mUniqueIndices.size();
                         mUniqueIndices[indices] = uniqueIndex;
 
                         mVertexPositions.push_back(verts[i].ToFloat3());
@@ -270,7 +270,7 @@ public:
 
             mMaterialPointers.push_back(CreateDefaultMaterial(outMaterials));
 
-            for (Uint32& index : mMaterialIndices)
+            for (uint32& index : mMaterialIndices)
             {
                 index = 0;
             }
@@ -290,15 +290,15 @@ public:
         bitangents.resize(mVertexNormals.size());
         memset((void*)bitangents.data(), 0, bitangents.size() * sizeof(Vector4));
 
-        Uint32 numTriangles = static_cast<Uint32>(mVertexIndices.size() / 3);
-        for (Uint32 i = 0; i < numTriangles; ++i)
+        uint32 numTriangles = static_cast<uint32>(mVertexIndices.size() / 3);
+        for (uint32 i = 0; i < numTriangles; ++i)
         {
             // algorithm based on: http://www.terathon.com/code/tangent.html
             // (Lengyel�s Method)
 
-            const Uint32 i0 = mVertexIndices[3 * i + 0];
-            const Uint32 i1 = mVertexIndices[3 * i + 1];
-            const Uint32 i2 = mVertexIndices[3 * i + 2];
+            const uint32 i0 = mVertexIndices[3 * i + 0];
+            const uint32 i1 = mVertexIndices[3 * i + 1];
+            const uint32 i2 = mVertexIndices[3 * i + 2];
 
             const Vector4 p0(mVertexPositions[i0]);
             const Vector4 p1(mVertexPositions[i1]);
@@ -336,8 +336,8 @@ public:
             bitangents[i2] += tdir;
         }
 
-        Uint32 numVertices = static_cast<Uint32>(mVertexPositions.size());
-        for (Uint32 i = 0; i < numVertices; ++i)
+        uint32 numVertices = static_cast<uint32>(mVertexPositions.size());
+        for (uint32 i = 0; i < numVertices; ++i)
         {
             Vector4 tangent(mVertexTangents[i]);
             Vector4 normal(mVertexNormals[i]);
@@ -380,9 +380,9 @@ public:
     {
         MeshDesc meshDesc;
         meshDesc.path = mFilePath;
-        meshDesc.vertexBufferDesc.numTriangles = static_cast<Uint32>(mVertexIndices.size() / 3);
-        meshDesc.vertexBufferDesc.numVertices = static_cast<Uint32>(mVertexPositions.size());
-        meshDesc.vertexBufferDesc.numMaterials = static_cast<Uint32>(mMaterialPointers.size());
+        meshDesc.vertexBufferDesc.numTriangles = static_cast<uint32>(mVertexIndices.size() / 3);
+        meshDesc.vertexBufferDesc.numVertices = static_cast<uint32>(mVertexPositions.size());
+        meshDesc.vertexBufferDesc.numMaterials = static_cast<uint32>(mMaterialPointers.size());
         meshDesc.vertexBufferDesc.materials = mMaterialPointers.data();
         meshDesc.vertexBufferDesc.materialIndexBuffer = mMaterialIndices.data();
         meshDesc.vertexBufferDesc.vertexIndexBuffer = mVertexIndices.data();
@@ -404,14 +404,14 @@ public:
 private:
     std::string mFilePath;
 
-    std::vector<Uint32> mVertexIndices;
-    std::vector<Uint32> mMaterialIndices;
+    std::vector<uint32> mVertexIndices;
+    std::vector<uint32> mMaterialIndices;
     std::vector<Float3> mVertexPositions;
     std::vector<Float3> mVertexNormals;
     std::vector<Float3> mVertexTangents;
     std::vector<Float2> mVertexTexCoords;
     std::vector<MaterialPtr> mMaterialPointers;
-    std::unordered_map<tinyobj::index_t, Uint32, TriangleIndicesHash, TriangleIndicesComparator> mUniqueIndices;
+    std::unordered_map<tinyobj::index_t, uint32, TriangleIndicesHash, TriangleIndicesComparator> mUniqueIndices;
 };
 
 rt::MeshShapePtr LoadMesh(const std::string& filePath, MaterialsMap& outMaterials, const float scale)

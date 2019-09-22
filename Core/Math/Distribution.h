@@ -14,15 +14,15 @@ public:
     ~Distribution();
 
     // initialize with 1D pdf function
-    bool Initialize(const float* pdfValues, Uint32 numValues);
+    bool Initialize(const float* pdfValues, uint32 numValues);
 
     // sample discrete
-    Uint32 SampleDiscrete(const float u, float& outPdf) const;
+    uint32 SampleDiscrete(const float u, float& outPdf) const;
 
 private:
     float* mPDF;
     float* mCDF; // Cumulative distribution function
-    Uint32 mSize;
+    uint32 mSize;
 };
 
 } // namespace math

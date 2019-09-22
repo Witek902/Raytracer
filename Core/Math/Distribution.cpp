@@ -24,7 +24,7 @@ Distribution::~Distribution()
     mPDF = nullptr;
 }
 
-bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
+bool Distribution::Initialize(const float* pdfValues, uint32 numValues)
 {
     if (numValues == 0)
     {
@@ -55,7 +55,7 @@ bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
     // compute cumulated distribution function
     float accumulated = 0.0f;
     mCDF[0] = 0.0f;
-    for (Uint32 i = 0; i < numValues; ++i)
+    for (uint32 i = 0; i < numValues; ++i)
     {
         RT_ASSERT(IsValid(pdfValues[i]), "Corrupted pdf");
         RT_ASSERT(pdfValues[i] >= 0.0f, "Pdf must be non-negative");
@@ -69,7 +69,7 @@ bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
     // normalize
     const float cdfNormFactor = 1.0f / accumulated;
     const float pdfNormFactor = cdfNormFactor * static_cast<float>(numValues);
-    for (Uint32 i = 0; i < numValues; ++i)
+    for (uint32 i = 0; i < numValues; ++i)
     {
         mCDF[i] *= cdfNormFactor;
         mPDF[i] = pdfValues[i] * pdfNormFactor;
@@ -82,15 +82,15 @@ bool Distribution::Initialize(const float* pdfValues, Uint32 numValues)
     return true;
 }
 
-Uint32 Distribution::SampleDiscrete(const float u, float& outPdf) const
+uint32 Distribution::SampleDiscrete(const float u, float& outPdf) const
 {
-    Uint32 low = 0u;
-    Uint32 high = mSize;
+    uint32 low = 0u;
+    uint32 high = mSize;
 
     // binary search
     while (low < high)
     {
-        Uint32 mid = (low + high) / 2u;
+        uint32 mid = (low + high) / 2u;
         if (u >= mCDF[mid])
         {
             low = mid + 1u;
@@ -101,7 +101,7 @@ Uint32 Distribution::SampleDiscrete(const float u, float& outPdf) const
         }
     }
     
-    Uint32 offset = low - 1u;
+    uint32 offset = low - 1u;
 
     outPdf = mPDF[offset];
 

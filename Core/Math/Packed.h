@@ -18,7 +18,7 @@ public:
     static constexpr float Scale = 32767.0f;
 
     RT_FORCE_INLINE PackedUnitVector3() : u(0), v(0) { }
-    RT_FORCE_INLINE PackedUnitVector3(Int16 u, Int16 v) : u(u), v(v) { }
+    RT_FORCE_INLINE PackedUnitVector3(int16 u, int16 v) : u(u), v(v) { }
     RT_FORCE_INLINE PackedUnitVector3(const PackedUnitVector3&) = default;
     RT_FORCE_INLINE PackedUnitVector3& operator = (const PackedUnitVector3&) = default;
     
@@ -35,8 +35,8 @@ public:
         }
 
         const VectorInt4 i = VectorInt4::Convert(n * Scale);
-        u = static_cast<Int16>(i.x);
-        v = static_cast<Int16>(i.y);
+        u = static_cast<int16>(i.x);
+        v = static_cast<int16>(i.y);
     }
 
     const Vector4 ToVector() const
@@ -57,8 +57,8 @@ public:
     }
 
 private:
-    Int16 u;
-    Int16 v;
+    int16 u;
+    int16 v;
 };
 
 static_assert(sizeof(PackedUnitVector3) == 4, "Invalid size of PackedUnitVector3");
@@ -92,8 +92,8 @@ public:
         }
 
         const VectorInt4 i = VectorInt4::Convert(ycocg);
-        co = static_cast<Int16>(i.y);
-        cg = static_cast<Int16>(i.z);
+        co = static_cast<int16>(i.y);
+        cg = static_cast<int16>(i.z);
     }
 
     const Vector4 ToVector() const
@@ -105,8 +105,8 @@ public:
 
 private:
     float y;
-    Int16 co;
-    Int16 cg;
+    int16 co;
+    int16 cg;
 };
 
 static_assert(sizeof(PackedColorRgbHdr) == 8, "Invalid size of PackedColorRgbHdr");
@@ -119,7 +119,7 @@ class SharedExpFloat3
 {
 public:
     RT_FORCE_INLINE SharedExpFloat3() : v(0) { }
-    RT_FORCE_INLINE explicit SharedExpFloat3(Uint32 value) : v(value) { }
+    RT_FORCE_INLINE explicit SharedExpFloat3(uint32 value) : v(value) { }
     RT_FORCE_INLINE SharedExpFloat3(const SharedExpFloat3&) = default;
     RT_FORCE_INLINE SharedExpFloat3& operator = (const SharedExpFloat3&) = default;
 
@@ -135,12 +135,12 @@ private:
     {
         struct
         {
-            Uint32 x : 9; // 'x' mantissa
-            Uint32 y : 9; // 'y' mantissa
-            Uint32 z : 9; // 'z' mantissa
-            Uint32 e : 5; // shared exponent
+            uint32 x : 9; // 'x' mantissa
+            uint32 y : 9; // 'y' mantissa
+            uint32 z : 9; // 'z' mantissa
+            uint32 e : 5; // shared exponent
         };
-        Uint32 v;
+        uint32 v;
     };
 };
 
@@ -153,16 +153,16 @@ class PackedFloat3
 {
 public:
     RT_FORCE_INLINE PackedFloat3() : v(0) { }
-    RT_FORCE_INLINE explicit PackedFloat3(Uint32 value) : v(value) { }
+    RT_FORCE_INLINE explicit PackedFloat3(uint32 value) : v(value) { }
     RT_FORCE_INLINE PackedFloat3(const PackedFloat3&) = default;
     RT_FORCE_INLINE PackedFloat3& operator = (const PackedFloat3&) = default;
 
     const Vector4 ToVector() const
     {
         // TODO handle INF, NAN and denormals?
-        Uint32 x = ((xe + 112) << 23) | (xm << 17);
-        Uint32 y = ((ye + 112) << 23) | (ym << 17);
-        Uint32 z = ((ze + 112) << 23) | (zm << 17);
+        uint32 x = ((xe + 112) << 23) | (xm << 17);
+        uint32 y = ((ye + 112) << 23) | (ym << 17);
+        uint32 z = ((ze + 112) << 23) | (zm << 17);
         return Vector4(x, y, z, 0u);
     }
 
@@ -171,14 +171,14 @@ private:
     {
         struct
         {
-            Uint32 xm : 6; // x-mantissa
-            Uint32 xe : 5; // x-exponent
-            Uint32 ym : 6; // y-mantissa
-            Uint32 ye : 5; // y-exponent
-            Uint32 zm : 5; // z-mantissa
-            Uint32 ze : 5; // z-exponent
+            uint32 xm : 6; // x-mantissa
+            uint32 xe : 5; // x-exponent
+            uint32 ym : 6; // y-mantissa
+            uint32 ye : 5; // y-exponent
+            uint32 zm : 5; // z-mantissa
+            uint32 ze : 5; // z-exponent
         };
-        Uint32 v;
+        uint32 v;
     };
 };
 
@@ -190,8 +190,8 @@ struct Packed565
 {
 public:
     RT_FORCE_INLINE Packed565() : v(0) { }
-    RT_FORCE_INLINE Packed565(Uint8 x, Uint8 y, Uint8 z) : x(x), y(y), z(z) { }
-    RT_FORCE_INLINE explicit Packed565(Uint16 value) : v(value) { }
+    RT_FORCE_INLINE Packed565(uint8 x, uint8 y, uint8 z) : x(x), y(y), z(z) { }
+    RT_FORCE_INLINE explicit Packed565(uint16 value) : v(value) { }
     RT_FORCE_INLINE Packed565(const Packed565&) = default;
     RT_FORCE_INLINE Packed565& operator = (const Packed565&) = default;
 
@@ -199,11 +199,11 @@ public:
     {
         struct
         {
-            Uint16 x : 5;
-            Uint16 y : 6;
-            Uint16 z : 5;
+            uint16 x : 5;
+            uint16 y : 6;
+            uint16 z : 5;
         };
-        Uint16 v;
+        uint16 v;
     };
 };
 

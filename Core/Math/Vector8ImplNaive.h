@@ -27,11 +27,11 @@ Vector8::Vector8(float e0, float e1, float e2, float e3, float e4, float e5, flo
     : f{ e0, e1, e2, e3, e4, e5, e6, e7 }
 {}
 
-Vector8::Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7)
+Vector8::Vector8(int32 e0, int32 e1, int32 e2, int32 e3, int32 e4, int32 e5, int32 e6, int32 e7)
     : i{ e0, e1, e2, e3, e4, e5, e6, e7 }
 {}
 
-Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7)
+Vector8::Vector8(uint32 e0, uint32 e1, uint32 e2, uint32 e3, uint32 e4, uint32 e5, uint32 e6, uint32 e7)
     : u{ e0, e1, e2, e3, e4, e5, e6, e7 }
 {}
 
@@ -45,12 +45,12 @@ Vector8::Vector8(const float scalar)
     , high{ scalar }
 {}
 
-Vector8::Vector8(const Int32 i)
+Vector8::Vector8(const int32 i)
     : low{ i }
     , high{ i }
 {}
 
-Vector8::Vector8(const Uint32 u)
+Vector8::Vector8(const uint32 u)
     : low{ u }
     , high{ u }
 {}
@@ -60,7 +60,7 @@ const Vector8 Vector8::Zero()
     return { Vector4::Zero(), Vector4::Zero() };
 }
 
-const Vector8 Vector8::FromInteger(Int32 x)
+const Vector8 Vector8::FromInteger(int32 x)
 {
     return { Vector4::FromInteger(x), Vector4::FromInteger(x) };
 }
@@ -87,13 +87,13 @@ const Vector8 Vector8::Select(const Vector8& a, const Vector8& b, const VectorBo
     };
 }
 
-template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
 const Vector8 Vector8::Select(const Vector8& a, const Vector8& b)
 {
     return { Vector4::Select<selX,selY,selZ,selW>(a.low, b.low), Vector4::Select<selX,selY,selZ,selW>(a.high, b.high) };
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const Vector8 Vector8::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -287,7 +287,7 @@ const Vector8 Vector8::Abs(const Vector8& v)
     return { Vector4::Abs(v.low), Vector4::Abs(v.high) };
 }
 
-Int32 Vector8::GetSignMask() const
+int32 Vector8::GetSignMask() const
 {
     return low.GetSignMask() | (high.GetSignMask() << 4);
 }

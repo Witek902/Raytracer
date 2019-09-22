@@ -20,7 +20,7 @@ void HaltonSequence::ClearPermutation()
 {
     if (ppm)
     {
-        for (Uint32 i = 0; i < mDimensions; i++)
+        for (uint32 i = 0; i < mDimensions; i++)
         {
             delete[] * (ppm + i);
             *(ppm + i) = nullptr;
@@ -32,9 +32,9 @@ void HaltonSequence::ClearPermutation()
 
 void HaltonSequence::InitPowerBuffer()
 {
-    for (Uint32 d = 0; d < mDimensions; d++)
+    for (uint32 d = 0; d < mDimensions; d++)
     {
-        for (Uint8 j = 0; j < Width; j++)
+        for (uint8 j = 0; j < Width; j++)
         {
             if (j == 0)
             {
@@ -60,10 +60,10 @@ void HaltonSequence::InitPowerBuffer()
 
 void HaltonSequence::InitExpansion()
 {
-    for (Uint32 i = 0; i < mDimensions; i++)
+    for (uint32 i = 0; i < mDimensions; i++)
     {
-        Uint64 n = mStarts[i] - 1;
-        Int8 j = 0;
+        uint64 n = mStarts[i] - 1;
+        int8 j = 0;
         while (n > 0)
         {
             digit[i][j] = n % mBase[i];
@@ -73,7 +73,7 @@ void HaltonSequence::InitExpansion()
         j--;
         while (j >= 0)
         {
-            Uint64 d = digit[i][j];
+            uint64 d = digit[i][j];
             d = Permute(i, j);
             rnd[i][j] = rnd[i][j + 1] + d * 1.0 / mPowerBuffer[i][j];
             j--;
@@ -83,15 +83,15 @@ void HaltonSequence::InitExpansion()
 
 void HaltonSequence::NextSample()
 {
-    for (Uint32 i = 0; i < mDimensions; i++)
+    for (uint32 i = 0; i < mDimensions; i++)
     {
-        Int8 j = 0;
+        int8 j = 0;
         while (digit[i][j] + 1 >= mBase[i])
         {
             j++;
         }
         digit[i][j]++;
-        Uint64 d = digit[i][j];
+        uint64 d = digit[i][j];
         d = Permute(i, j);
         rnd[i][j] = rnd[i][j + 1] + d * 1.0 / mPowerBuffer[i][j];
 
@@ -105,29 +105,29 @@ void HaltonSequence::NextSample()
     }
 }
 
-Uint64 HaltonSequence::Permute(Uint32 i, Uint8 j)
+uint64 HaltonSequence::Permute(uint32 i, uint8 j)
 {
     return *(*(ppm + i) + digit[i][j]);
 }
 
 void HaltonSequence::InitPermutation()
 {
-    ppm = new Uint64*[mDimensions];
+    ppm = new uint64*[mDimensions];
 
-    for (Uint32 i = 0; i < mDimensions; i++)
+    for (uint32 i = 0; i < mDimensions; i++)
     {
-        *(ppm + i) = new Uint64[mBase[i]];
-        for (Uint64 j = 0; j < mBase[i]; j++)
+        *(ppm + i) = new uint64[mBase[i]];
+        for (uint64 j = 0; j < mBase[i]; j++)
         {
             *(*(ppm + i) + j) = j;
         }
 
-        for (Uint64 j = 1; j < mBase[i]; j++)
+        for (uint64 j = 1; j < mBase[i]; j++)
         {
-            Uint64 tmp = (Uint64)floor(mRandom.GetDouble() * mBase[i]);
+            uint64 tmp = (uint64)floor(mRandom.GetDouble() * mBase[i]);
             if (tmp != 0)
             {
-                Uint64 k = *(*(ppm + i) + j);
+                uint64 k = *(*(ppm + i) + j);
                 *(*(ppm + i) + j) = *(*(ppm + i) + tmp);
                 *(*(ppm + i) + tmp) = k;
             }
@@ -137,15 +137,15 @@ void HaltonSequence::InitPermutation()
 
 void HaltonSequence::InitPrimes()
 {
-    Int64 n = mDimensions;
-    Uint32 prime = 1;
-    Uint32 m = 0;
+    int64 n = mDimensions;
+    uint32 prime = 1;
+    uint32 m = 0;
     do
     {
         prime++;
         mBase[m++] = prime;
         n--;
-        for (Uint64 i = 2; i <= sqrt(prime); i++)
+        for (uint64 i = 2; i <= sqrt(prime); i++)
         {
             if (prime % i == 0)
             {
@@ -159,19 +159,19 @@ void HaltonSequence::InitPrimes()
 
 void HaltonSequence::InitStart()
 {
-    for (Uint32 i = 0; i < mDimensions; i++)
+    for (uint32 i = 0; i < mDimensions; i++)
     {
         double r = mRandom.GetDouble();
-        const Uint64 base = mBase[i];
+        const uint64 base = mBase[i];
 
-        Uint64 z = 0;
-        Uint64 b = base;
+        uint64 z = 0;
+        uint64 b = base;
         while (r > 1.0e-16)
         {
-            Uint64 cnt = 0;
+            uint64 cnt = 0;
             if (r >= 1.0 / b)
             {
-                cnt = (Uint64)floor(r * b);
+                cnt = (uint64)floor(r * b);
                 r = r - cnt * 1.0 / b;
                 z += cnt * b / base;
             }
@@ -182,7 +182,7 @@ void HaltonSequence::InitStart()
     }
 }
 
-void HaltonSequence::Initialize(Uint32 dim)
+void HaltonSequence::Initialize(uint32 dim)
 {
     ClearPermutation();
 
@@ -190,8 +190,8 @@ void HaltonSequence::Initialize(Uint32 dim)
     mDimensions = dim;
 
     rnd.Resize(mDimensions, DynArray<double>(Width));
-    digit.Resize(mDimensions, DynArray<Uint64>(Width));
-    mPowerBuffer.Resize(mDimensions, DynArray<Uint64>(Width));
+    digit.Resize(mDimensions, DynArray<uint64>(Width));
+    mPowerBuffer.Resize(mDimensions, DynArray<uint64>(Width));
     mStarts.Resize(mDimensions);
     mBase.Resize(mDimensions);
 

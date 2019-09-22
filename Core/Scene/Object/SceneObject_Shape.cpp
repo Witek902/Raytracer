@@ -38,7 +38,7 @@ void ShapeSceneObject::SetDefaultMaterial(const MaterialPtr& material)
     }
 }
 
-void ShapeSceneObject::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
+void ShapeSceneObject::Traverse(const SingleTraversalContext& context, const uint32 objectID) const
 {
     return mShape->Traverse(context, objectID);
 }
@@ -48,7 +48,7 @@ bool ShapeSceneObject::Traverse_Shadow(const SingleTraversalContext& context) co
     return mShape->Traverse_Shadow(context);
 }
 
-void ShapeSceneObject::Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
+void ShapeSceneObject::Traverse(const PacketTraversalContext& context, const uint32 objectID, const uint32 numActiveGroups) const
 {
     // TODO
 

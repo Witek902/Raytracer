@@ -22,7 +22,7 @@ using MaterialPtr = std::shared_ptr<rt::Material>;
 class ISceneObject : public Aligned<16>
 {
 public:
-    enum class Type : Uint8
+    enum class Type : uint8
     {
         Shape,
         Light,
@@ -58,8 +58,8 @@ class ITraceableSceneObject : public ISceneObject
 {
 public:
     // traverse the object and return hit points
-    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const = 0;
-    virtual void Traverse(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const = 0;
+    virtual void Traverse(const SingleTraversalContext& context, const uint32 objectID) const = 0;
+    virtual void Traverse(const PacketTraversalContext& context, const uint32 objectID, const uint32 numActiveGroups) const = 0;
 
     // check shadow ray occlusion
     virtual bool Traverse_Shadow(const SingleTraversalContext& context) const = 0;

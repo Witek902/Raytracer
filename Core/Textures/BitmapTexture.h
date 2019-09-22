@@ -11,7 +11,7 @@ class Distribution;
 class Bitmap;
 using BitmapPtr = std::shared_ptr<Bitmap>;
 
-enum class BitmapTextureFilter : Uint8
+enum class BitmapTextureFilter : uint8
 {
     NearestNeighbor = 0,
     Bilinear = 1,

@@ -336,6 +336,7 @@
     <ClInclude Include="..\External\imgui\imgui_sw.hpp" />
     <ClInclude Include="..\External\tiny_obj_loader.h" />
     <ClInclude Include="Demo.h" />
+    <ClInclude Include="KeyCodes.h" />
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="PCH.h" />
     <ClInclude Include="SceneLoader.h" />

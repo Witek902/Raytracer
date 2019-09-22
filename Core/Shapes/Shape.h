@@ -21,7 +21,7 @@ struct ShapeIntersection
 {
     float nearDist;
     float farDist;
-    Uint32 subObjectId = UINT32_MAX;
+    uint32 subObjectId = UINT32_MAX;
 };
 
 struct ShapeSampleResult
@@ -44,7 +44,7 @@ public:
     virtual float GetSurfaceArea() const;
 
     // traverse the object and find nearest intersection
-    virtual void Traverse(const SingleTraversalContext& context, const Uint32 objectID) const;
+    virtual void Traverse(const SingleTraversalContext& context, const uint32 objectID) const;
 
     // traverse the object and check if the ray is occluded
     virtual bool Traverse_Shadow(const SingleTraversalContext& context) const;

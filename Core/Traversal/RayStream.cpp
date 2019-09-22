@@ -36,8 +36,8 @@ bool RayStream::PopPacket(RayPacket& outPacket)
         return false;
     }
 
-    Uint32 numRaysInPacket = math::Min(mNumRays, MaxRayPacketSize);
-    Uint32 numRayGroups = math::RoundUp(numRaysInPacket, RayPacket::RaysPerGroup) / RayPacket::RaysPerGroup;
+    uint32 numRaysInPacket = math::Min(mNumRays, MaxRayPacketSize);
+    uint32 numRayGroups = math::RoundUp(numRaysInPacket, RayPacket::RaysPerGroup) / RayPacket::RaysPerGroup;
 
     // TODO
     (void)outPacket;

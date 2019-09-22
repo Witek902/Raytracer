@@ -99,9 +99,9 @@ const RayColor DebugRenderer::RenderPixel(const math::Ray& ray, const RenderPara
         }
         case DebugRenderingMode::TriangleID:
         {
-            const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
-            const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
-            const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+            const uint64 hash = Hash((uint64)hitPoint.objectId | ((uint64)hitPoint.subObjectId << 32));
+            const float hue = (float)(uint32)hash / (float)UINT32_MAX;
+            const float saturation = 0.5f + 0.5f * (float)(uint32)(hash >> 32) / (float)UINT32_MAX;
             const Vector4 rgbColor = HSVtoRGB(hue, saturation, 1.0f);
             resultColor = RayColor::Resolve(ctx.wavelength, Spectrum(rgbColor));
             break;
@@ -183,8 +183,8 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
 
     ShadingData shadingData;
 
-    const Uint32 numGroups = packet.GetNumGroups();
-    for (Uint32 i = 0; i < numGroups; ++i)
+    const uint32 numGroups = packet.GetNumGroups();
+    for (uint32 i = 0; i < numGroups; ++i)
     {
         Vector4 weights[RayPacket::RaysPerGroup];
         packet.rayWeights[i].Unpack(weights);
@@ -194,7 +194,7 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
         packet.groups[i].rays[0].origin.Unpack(rayOrigins);
         packet.groups[i].rays[0].dir.Unpack(rayDirs);
 
-        for (Uint32 j = 0; j < RayPacket::RaysPerGroup; ++j)
+        for (uint32 j = 0; j < RayPacket::RaysPerGroup; ++j)
         {
             const HitPoint& hitPoint = context.hitPoints[RayPacket::RaysPerGroup * i + j];
 
@@ -249,9 +249,9 @@ void DebugRenderer::Raytrace_Packet(RayPacket& packet, const Camera&, Film& film
                     }
                     case DebugRenderingMode::TriangleID:
                     {
-                        const Uint64 hash = Hash((Uint64)hitPoint.objectId | ((Uint64)hitPoint.subObjectId << 32));
-                        const float hue = (float)(Uint32)hash / (float)UINT32_MAX;
-                        const float saturation = 0.5f + 0.5f * (float)(Uint32)(hash >> 32) / (float)UINT32_MAX;
+                        const uint64 hash = Hash((uint64)hitPoint.objectId | ((uint64)hitPoint.subObjectId << 32));
+                        const float hue = (float)(uint32)hash / (float)UINT32_MAX;
+                        const float saturation = 0.5f + 0.5f * (float)(uint32)(hash >> 32) / (float)UINT32_MAX;
                         color = weights[j] * HSVtoRGB(hue, saturation, 1.0f);
                         break;
                     }

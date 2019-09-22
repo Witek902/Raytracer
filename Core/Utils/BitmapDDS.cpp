@@ -25,7 +25,7 @@
 #define ID_DXT5   0x35545844
 
 #ifndef MAKEFOURCC
-#define MAKEFOURCC(ch0, ch1, ch2, ch3) (((Uint32)(Uint8)(ch0) | ((Uint32)(Uint8)(ch1) << 8) | ((Uint32)(Uint8)(ch2) << 16) | ((Uint32)(Uint8)(ch3) << 24)))
+#define MAKEFOURCC(ch0, ch1, ch2, ch3) (((uint32)(uint8)(ch0) | ((uint32)(uint8)(ch1) << 8) | ((uint32)(uint8)(ch2) << 16) | ((uint32)(uint8)(ch3) << 24)))
 #endif /* defined(MAKEFOURCC) */
 
 namespace rt {
@@ -230,27 +230,27 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
 {
     struct DDS_PIXELFORMAT
     {
-        Uint32 size;
-        Uint32 flags;
-        Uint32 fourCC;
-        Uint32 rgbBitCount;
-        Uint32 rBitMask;
-        Uint32 gBitMask;
-        Uint32 bBitMask;
-        Uint32 aBitMask;
+        uint32 size;
+        uint32 flags;
+        uint32 fourCC;
+        uint32 rgbBitCount;
+        uint32 rBitMask;
+        uint32 gBitMask;
+        uint32 bBitMask;
+        uint32 aBitMask;
     };
 
     struct Header
     {
-        Uint32 magic;
-        Uint32 size;
-        Uint32 flags;
-        Uint32 height;
-        Uint32 width;
-        Uint32 pitchOrLinearSize;
-        Uint32 depth;
-        Uint32 mipMapCount;
-        Uint32 reserved1[11];
+        uint32 magic;
+        uint32 size;
+        uint32 flags;
+        uint32 height;
+        uint32 width;
+        uint32 pitchOrLinearSize;
+        uint32 depth;
+        uint32 mipMapCount;
+        uint32 reserved1[11];
 
         //  DDPIXELFORMAT
         DDS_PIXELFORMAT pixelFormat;
@@ -258,22 +258,22 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
         //  DDCAPS2
         struct
         {
-            Uint32 caps1;
-            Uint32 caps2;
-            Uint32 DDSX;
-            Uint32 reserved;
+            uint32 caps1;
+            uint32 caps2;
+            uint32 DDSX;
+            uint32 reserved;
         } sCaps;
 
-        Uint32 dwReserved2;
+        uint32 dwReserved2;
     };
 
     struct HeaderDX10
     {
-        Uint32 dxgiFormat;
-        Uint32 resourceDimension;
-        Uint32 miscFlag;
-        Uint32 arraySize;
-        Uint32 miscFlags2;
+        uint32 dxgiFormat;
+        uint32 resourceDimension;
+        uint32 miscFlag;
+        uint32 arraySize;
+        uint32 miscFlags2;
     };
 
     // read header
@@ -294,7 +294,7 @@ bool Bitmap::LoadDDS(FILE* file, const char* path)
     initData.linearSpace = true;
     initData.width = header.width;
     initData.height = header.height;
-    if (initData.width < 1 || initData.height < 1 || initData.width >= std::numeric_limits<Uint16>::max() || initData.height >= std::numeric_limits<Uint16>::max())
+    if (initData.width < 1 || initData.height < 1 || initData.width >= std::numeric_limits<uint16>::max() || initData.height >= std::numeric_limits<uint16>::max())
     {
         RT_LOG_ERROR("Unsupported DDS format in file '%hs': dimensions are out of bounds (%ux%u)", path, initData.width, initData.height);
         return false;

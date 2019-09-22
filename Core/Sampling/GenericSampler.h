@@ -17,14 +17,14 @@ public:
     ~GenericSampler() = default;
 
     // move to next frame
-    void ResetFrame(const DynArray<Uint32>& sample, bool useBlueNoise);
+    void ResetFrame(const DynArray<uint32>& sample, bool useBlueNoise);
 
     // move to next pixel
-    void ResetPixel(const Uint32 x, const Uint32 y);
+    void ResetPixel(const uint32 x, const uint32 y);
 
     // get next sample
     // NOTE: effectively goes to next sample dimension
-    Uint32 GetInt();
+    uint32 GetInt();
 
     RT_FORCE_INLINE float GetFloat()
     {
@@ -45,16 +45,16 @@ public:
 
 private:
 
-    Uint32 mBlueNoisePixelX = 0;
-    Uint32 mBlueNoisePixelY = 0;
-    Uint32 mBlueNoiseTextureLayers = 0;
+    uint32 mBlueNoisePixelX = 0;
+    uint32 mBlueNoisePixelY = 0;
+    uint32 mBlueNoiseTextureLayers = 0;
 
-    Uint32 mSalt = 0;
-    Uint32 mSamplesGenerated = 0;
+    uint32 mSalt = 0;
+    uint32 mSamplesGenerated = 0;
 
-    const Uint16* mBlueNoiseTexture = nullptr;
+    const uint16* mBlueNoiseTexture = nullptr;
 
-    DynArray<Uint32> mCurrentSample;
+    DynArray<uint32> mCurrentSample;
 };
 
 

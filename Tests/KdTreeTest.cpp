@@ -8,8 +8,8 @@ using namespace rt::math;
 
 TEST(UtilsTest, KdTree_RandomPoints)
 {
-    const Uint32 numPoints = 500000;
-    const Uint32 numQueries = 1000;
+    const uint32 numPoints = 500000;
+    const uint32 numQueries = 1000;
     const float particleRadius = 1.0f;
     const float boxSize = 100.0f;
     const float queryBoxMarigin = 2.0f;
@@ -23,7 +23,7 @@ TEST(UtilsTest, KdTree_RandomPoints)
     };
 
     DynArray<Particle> particles;
-    for (Uint32 i = 0; i < numPoints; ++i)
+    for (uint32 i = 0; i < numPoints; ++i)
     {
         particles.PushBack({ random.GetVector4Bipolar() * boxSize });
     }
@@ -31,16 +31,16 @@ TEST(UtilsTest, KdTree_RandomPoints)
     KdTree kdTree;
     kdTree.Build(particles);
 
-    std::vector<Uint32> referenceIndices;
+    std::vector<uint32> referenceIndices;
 
     struct Query
     {
-        void operator()(Uint32 index)
+        void operator()(uint32 index)
         {
             collectedIndices.push_back(index);
         }
 
-        std::vector<Uint32> collectedIndices;
+        std::vector<uint32> collectedIndices;
     };
 
     Query query;
@@ -48,7 +48,7 @@ TEST(UtilsTest, KdTree_RandomPoints)
     Timer timer;
     double totalTime = 0.0;
 
-    for (Uint32 i = 0; i < numQueries; ++i)
+    for (uint32 i = 0; i < numQueries; ++i)
     {
         const Vector4 queryPoint = random.GetVector4Bipolar() * (boxSize + queryBoxMarigin);
         SCOPED_TRACE("Query point: [" + std::to_string(queryPoint.x) + ',' + std::to_string(queryPoint.y) + ',' + std::to_string(queryPoint.z) + "]");
@@ -62,7 +62,7 @@ TEST(UtilsTest, KdTree_RandomPoints)
 
         // collect via brute force check
         referenceIndices.clear();
-        for (Uint32 j = 0; j < numPoints; ++j)
+        for (uint32 j = 0; j < numPoints; ++j)
         {
             if ((queryPoint - particles[j].pos).SqrLength3() <= particleRadius * particleRadius)
             {

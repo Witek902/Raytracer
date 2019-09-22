@@ -15,14 +15,14 @@ struct RT_ALIGN(16) VectorBool4
     RT_FORCE_INLINE explicit VectorBool4(bool x, bool y, bool z, bool w);
     RT_FORCE_INLINE explicit VectorBool4(int x, int y, int z, int w);
 
-    template<Uint32 index>
+    template<uint32 index>
     RT_FORCE_INLINE bool Get() const;
 
-    template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+    template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
     RT_FORCE_INLINE const VectorBool4 Swizzle() const;
 
     // combine into 4-bit mask
-    RT_FORCE_INLINE Int32 GetMask() const;
+    RT_FORCE_INLINE int32 GetMask() const;
 
     RT_FORCE_INLINE bool All() const;
     RT_FORCE_INLINE bool None() const;

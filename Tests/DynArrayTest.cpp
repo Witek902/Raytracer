@@ -28,12 +28,12 @@ TEST(DynArray, Empty)
 
 TEST(DynArray, CreateWithSize_Default)
 {
-    const Uint32 size = 123;
+    const uint32 size = 123;
     DynArray<int> array(size);
 
     EXPECT_EQ(size, array.Size());
 
-    for (Uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; ++i)
     {
         EXPECT_EQ(0, array[i]) << "i=" << i;
     }
@@ -41,12 +41,12 @@ TEST(DynArray, CreateWithSize_Default)
 
 TEST(DynArray, CreateWithSize_Custom)
 {
-    const Uint32 size = 123;
+    const uint32 size = 123;
     DynArray<int> array(size, 567);
 
     EXPECT_EQ(size, array.Size());
 
-    for (Uint32 i = 0; i < size; ++i)
+    for (uint32 i = 0; i < size; ++i)
     {
         EXPECT_EQ(567, array[i]) << "i=" << i;
     }
@@ -104,10 +104,10 @@ TEST(DynArray, InitializeFromArray)
 
 TEST(DynArray, Clear)
 {
-    const Uint32 numElements = 20;
+    const uint32 numElements = 20;
     DynArray<int> array;
 
-    for (Uint32 i = 0; i < numElements; ++i)
+    for (uint32 i = 0; i < numElements; ++i)
     {
         array.PushBack(i);
     }
@@ -146,7 +146,7 @@ TEST(DynArray, Resize)
 
 TEST(DynArray, Resize_ReduceSize)
 {
-    DynArray<Int32> array;
+    DynArray<int32> array;
     array.PushBack(1);
     array.PushBack(2);
     array.PushBack(3);
@@ -161,7 +161,7 @@ TEST(DynArray, Resize_ReduceSize)
 
 TEST(DynArray, Resize_CustomElement)
 {
-    DynArray<Int32> array;
+    DynArray<int32> array;
     array.PushBack(1);
     array.PushBack(2);
 

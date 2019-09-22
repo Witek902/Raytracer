@@ -217,7 +217,7 @@ void DemoWindow::ResetCounters()
     mTotalRenderTime = 0.0;
 }
 
-void DemoWindow::OnResize(Uint32 width, Uint32 height)
+void DemoWindow::OnResize(uint32 width, uint32 height)
 {
     if (mViewport)
     {
@@ -244,7 +244,7 @@ void DemoWindow::OnMouseDown(MouseButton button, int x, int y)
     if (io.WantCaptureMouse)
         return;
 
-    Uint32 width, height;
+    uint32 width, height;
     GetSize(width, height);
 
     auto renderingContext = std::make_unique<rt::RenderingContext>();
@@ -476,7 +476,7 @@ bool DemoWindow::IsPreview() const
 
 void DemoWindow::UpdateCamera()
 {
-    Uint32 width, height;
+    uint32 width, height;
     GetSize(width, height);
 
     const Camera oldCameraSetup = mCamera;

@@ -11,7 +11,7 @@ namespace rt {
 class RayStream
 {
 public:
-    static constexpr Uint32 MaxRays = 1024 * 1024;
+    static constexpr uint32 MaxRays = 1024 * 1024;
 
     RayStream();
     ~RayStream();
@@ -38,7 +38,7 @@ private:
         ImageLocationInfo imageLocation;
     };
 
-    Uint32 mNumRays;
+    uint32 mNumRays;
     PendingRay mRays[MaxRays];
 };
 

@@ -17,7 +17,7 @@ enum class PathTerminationReason
     RussianRoulette,
 };
 
-enum class RaySource : Uint8
+enum class RaySource : uint8
 {
     Eye = 0,
     Reflection,

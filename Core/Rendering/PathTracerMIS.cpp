@@ -133,7 +133,7 @@ const RayColor PathTracerMIS::SampleLights(const ShadingData& shadingData, const
         {
             case LightSamplingStrategy::Single:
             {
-                const Uint32 lightIndex = context.randomGenerator.GetInt() % lights.Size();
+                const uint32 lightIndex = context.randomGenerator.GetInt() % lights.Size();
                 accumulatedColor = SampleLight(lights[lightIndex], shadingData, pathState, context, lightPickProbability);
                 break;
             }
@@ -409,7 +409,7 @@ const RayColor PathTracerMIS::RenderPixel(const math::Ray& primaryRay, const Ren
     }
 #endif // RT_CONFIGURATION_FINAL
 
-    context.counters.numRays += (Uint64)pathState.depth + 1;
+    context.counters.numRays += (uint64)pathState.depth + 1;
 
     return resultColor;
 }

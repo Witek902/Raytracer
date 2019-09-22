@@ -36,16 +36,16 @@ const Vector8 VectorInt8::CastToFloat() const
     return reinterpret_cast<const Vector8&>(*this);
 }
 
-VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7)
+VectorInt8::VectorInt8(const int32 e0, const int32 e1, const int32 e2, const int32 e3, const int32 e4, const int32 e5, const int32 e6, const int32 e7)
     : i{ e0, e1, e2, e3, e4, e5, e6, e7 }
 {}
 
-VectorInt8::VectorInt8(const Int32 i)
+VectorInt8::VectorInt8(const int32 i)
     : low{ i }
     , high{ i }
 {}
 
-VectorInt8::VectorInt8(const Uint32 u)
+VectorInt8::VectorInt8(const uint32 u)
     : low{ u }
     , high{ u }
 {}
@@ -137,42 +137,42 @@ VectorInt8& VectorInt8::operator *= (const VectorInt8& b)
     return *this;
 }
 
-const VectorInt8 VectorInt8::operator + (Int32 b) const
+const VectorInt8 VectorInt8::operator + (int32 b) const
 {
     return { low + b, high + b };
 }
 
-const VectorInt8 VectorInt8::operator - (Int32 b) const
+const VectorInt8 VectorInt8::operator - (int32 b) const
 {
     return { low - b, high - b };
 }
 
-const VectorInt8 VectorInt8::operator * (Int32 b) const
+const VectorInt8 VectorInt8::operator * (int32 b) const
 {
     return { low * b, high * b };
 }
 
-const VectorInt8 VectorInt8::operator % (Int32 b) const
+const VectorInt8 VectorInt8::operator % (int32 b) const
 {
     // TODO
     return VectorInt8(i[0] % b, i[1] % b, i[2] % b, i[3] % b, i[4] % b, i[5] % b, i[6] % b, i[7] % b);
 }
 
-VectorInt8& VectorInt8::operator += (Int32 b)
+VectorInt8& VectorInt8::operator += (int32 b)
 {
     low += b;
     high += b;
     return *this;
 }
 
-VectorInt8& VectorInt8::operator -= (Int32 b)
+VectorInt8& VectorInt8::operator -= (int32 b)
 {
     low -= b;
     high -= b;
     return *this;
 }
 
-VectorInt8& VectorInt8::operator *= (Int32 b)
+VectorInt8& VectorInt8::operator *= (int32 b)
 {
     low *= b;
     high *= b;
@@ -219,12 +219,12 @@ const VectorInt8 VectorInt8::operator >> (const VectorInt8& b) const
     };
 }
 
-const VectorInt8 VectorInt8::operator << (Int32 b) const
+const VectorInt8 VectorInt8::operator << (int32 b) const
 {
     return { low << b, high << b };
 }
 
-const VectorInt8 VectorInt8::operator >> (Int32 b) const
+const VectorInt8 VectorInt8::operator >> (int32 b) const
 {
     return { low >> b, high >> b };
 }
@@ -242,7 +242,7 @@ const VectorInt8 VectorInt8::Max(const VectorInt8& a, const VectorInt8& b)
 const Vector8 Gather8(const float* basePtr, const VectorInt8& indices)
 {
     Vector8 result;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         result[i] = basePtr[indices[i]];
     }

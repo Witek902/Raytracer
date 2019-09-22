@@ -5,8 +5,8 @@
 
 #include <float.h>
 
-constexpr Uint32 RT_INVALID_OBJECT = UINT32_MAX;
-constexpr Uint32 RT_LIGHT_OBJECT = 0xFFFFFFFE;
+constexpr uint32 RT_INVALID_OBJECT = UINT32_MAX;
+constexpr uint32 RT_LIGHT_OBJECT = 0xFFFFFFFE;
 
 namespace rt {
 
@@ -17,11 +17,11 @@ struct HitPoint
     {
         struct
         {
-            Uint32 objectId;
-            Uint32 subObjectId;
+            uint32 objectId;
+            uint32 subObjectId;
         };
 
-        Uint64 combinedObjectId;
+        uint64 combinedObjectId;
     };
 
     float distance;
@@ -35,7 +35,7 @@ struct HitPoint
         , distance(DefaultDistance)
     {}
 
-    RT_FORCE_INLINE void Set(float newDistance, Uint32 newObjectId, Uint32 newSubObjectId)
+    RT_FORCE_INLINE void Set(float newDistance, uint32 newObjectId, uint32 newSubObjectId)
     {
         distance = newDistance;
         objectId = newObjectId;
@@ -43,7 +43,7 @@ struct HitPoint
     }
 
     // optimization: perform single 64-bit write instead of two 32-bit writes
-    RT_FORCE_INLINE void Set(float newDistance, Uint32 newObjectId)
+    RT_FORCE_INLINE void Set(float newDistance, uint32 newObjectId)
     {
         distance = newDistance;
         combinedObjectId = newObjectId;
@@ -65,7 +65,7 @@ struct RT_ALIGN(32) HitPoint_Simd8
     {}
 
     // extract single hit point
-    RT_FORCE_INLINE HitPoint Get(Uint32 i) const
+    RT_FORCE_INLINE HitPoint Get(uint32 i) const
     {
         RT_ASSERT(i < 8);
 

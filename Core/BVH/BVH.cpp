@@ -5,14 +5,14 @@
 
 namespace rt {
 
-static const Uint32 BvhFileVersion = 0;
-static const Uint32 BvhMagic = 'bvhc';
+static const uint32 BvhFileVersion = 0;
+static const uint32 BvhMagic = 'bvhc';
 
 struct BVHFileHeader
 {
-    Uint32 magic;
-    Uint32 version;
-    Uint32 numNodes;
+    uint32 magic;
+    uint32 version;
+    uint32 numNodes;
     // TODO checksum, mesh/scene name, etc.
 };
 
@@ -22,7 +22,7 @@ BVH::BVH()
     : mNumNodes(0)
 { }
 
-bool BVH::AllocateNodes(Uint32 numNodes)
+bool BVH::AllocateNodes(uint32 numNodes)
 {
     mNodes.Resize(numNodes);
     mNumNodes = numNodes;
@@ -120,7 +120,7 @@ void BVH::CalculateStats(Stats& outStats) const
     CalculateStatsForNode(0, outStats, 1);
 }
 
-void BVH::CalculateStatsForNode(Uint32 nodeIndex, Stats& outStats, Uint32 depth) const
+void BVH::CalculateStatsForNode(uint32 nodeIndex, Stats& outStats, uint32 depth) const
 {
     const Node& node = mNodes[nodeIndex];
     const math::Box box = node.GetBox();

@@ -18,10 +18,10 @@ struct Wavelength
     static constexpr float Higher = 0.720e-6f;
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
-    static constexpr Uint32 NumComponents = 8;
+    static constexpr uint32 NumComponents = 8;
     using ValueType = math::Vector8;
 #else
-    static constexpr Uint32 NumComponents = 4;
+    static constexpr uint32 NumComponents = 4;
     using ValueType = math::Vector4;
 #endif
 

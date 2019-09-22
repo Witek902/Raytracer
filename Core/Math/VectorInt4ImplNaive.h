@@ -31,29 +31,29 @@ const Vector4 VectorInt4::CastToFloat() const
     return reinterpret_cast<const Vector4&>(*this);
 }
 
-VectorInt4::VectorInt4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
+VectorInt4::VectorInt4(const int32 x, const int32 y, const int32 z, const int32 w)
     : i{ x, y, z, w }
 {}
 
-VectorInt4::VectorInt4(const Int32 i)
+VectorInt4::VectorInt4(const int32 i)
     : i{ i, i, i, i }
 {}
 
-VectorInt4::VectorInt4(const Uint32 u)
-    : x(static_cast<Int32>(u))
-    , y(static_cast<Int32>(u))
-    , z(static_cast<Int32>(u))
-    , w(static_cast<Int32>(u))
+VectorInt4::VectorInt4(const uint32 u)
+    : x(static_cast<int32>(u))
+    , y(static_cast<int32>(u))
+    , z(static_cast<int32>(u))
+    , w(static_cast<int32>(u))
 {}
 
 const VectorInt4 VectorInt4::Convert(const Vector4& v)
 {
     return
     {
-        static_cast<Int32>(v.x),
-        static_cast<Int32>(v.y),
-        static_cast<Int32>(v.z),
-        static_cast<Int32>(v.w)
+        static_cast<int32>(v.x),
+        static_cast<int32>(v.y),
+        static_cast<int32>(v.z),
+        static_cast<int32>(v.w)
     };
 }
 
@@ -62,10 +62,10 @@ const VectorInt4 VectorInt4::TruncateAndConvert(const Vector4& v)
     // TODO
     return
     {
-        static_cast<Int32>(v.x),
-        static_cast<Int32>(v.y),
-        static_cast<Int32>(v.z),
-        static_cast<Int32>(v.w)
+        static_cast<int32>(v.x),
+        static_cast<int32>(v.y),
+        static_cast<int32>(v.z),
+        static_cast<int32>(v.w)
     };
 }
 
@@ -93,7 +93,7 @@ const VectorInt4 VectorInt4::Select(const VectorInt4& a, const VectorInt4& b, co
     };
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const VectorInt4 VectorInt4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -202,22 +202,22 @@ VectorInt4& VectorInt4::operator *= (const VectorInt4& b)
     return *this;
 }
 
-const VectorInt4 VectorInt4::operator + (Int32 b) const
+const VectorInt4 VectorInt4::operator + (int32 b) const
 {
     return { x + b, y + b, z + b, w + b };
 }
 
-const VectorInt4 VectorInt4::operator - (Int32 b) const
+const VectorInt4 VectorInt4::operator - (int32 b) const
 {
     return { x - b, y - b, z - b, w - b };
 }
 
-const VectorInt4 VectorInt4::operator * (Int32 b) const
+const VectorInt4 VectorInt4::operator * (int32 b) const
 {
     return { x * b, y * b, z * b, w * b };
 }
 
-VectorInt4& VectorInt4::operator += (Int32 b)
+VectorInt4& VectorInt4::operator += (int32 b)
 {
     x += b;
     y += b;
@@ -226,7 +226,7 @@ VectorInt4& VectorInt4::operator += (Int32 b)
     return *this;
 }
 
-VectorInt4& VectorInt4::operator -= (Int32 b)
+VectorInt4& VectorInt4::operator -= (int32 b)
 {
     x -= b;
     y -= b;
@@ -235,7 +235,7 @@ VectorInt4& VectorInt4::operator -= (Int32 b)
     return *this;
 }
 
-VectorInt4& VectorInt4::operator *= (Int32 b)
+VectorInt4& VectorInt4::operator *= (int32 b)
 {
     x *= b;
     y *= b;
@@ -274,17 +274,17 @@ VectorInt4& VectorInt4::operator >>= (const VectorInt4& b)
     return *this;
 }
 
-const VectorInt4 VectorInt4::operator << (Int32 b) const
+const VectorInt4 VectorInt4::operator << (int32 b) const
 {
     return { x << b, y << b, z << b, w << b };
 }
 
-const VectorInt4 VectorInt4::operator >> (Int32 b) const
+const VectorInt4 VectorInt4::operator >> (int32 b) const
 {
     return { x >> b, y >> b, z >> b, w >> b };
 }
 
-VectorInt4& VectorInt4::operator <<= (Int32 b)
+VectorInt4& VectorInt4::operator <<= (int32 b)
 {
     x <<= b;
     y <<= b;
@@ -293,7 +293,7 @@ VectorInt4& VectorInt4::operator <<= (Int32 b)
     return *this;
 }
 
-VectorInt4& VectorInt4::operator >>= (Int32 b)
+VectorInt4& VectorInt4::operator >>= (int32 b)
 {
     x >>= b;
     y >>= b;

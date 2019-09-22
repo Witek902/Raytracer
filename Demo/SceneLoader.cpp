@@ -100,7 +100,7 @@ static bool TryParseBool(const rapidjson::Value& value, const char* name, bool o
     return true;
 }
 
-static bool TryParseInt(const rapidjson::Value& value, const char* name, bool optional, Int32& outValue)
+static bool TryParseInt(const rapidjson::Value& value, const char* name, bool optional, int32& outValue)
 {
     if (!value.HasMember(name))
     {
@@ -340,11 +340,11 @@ static TexturePtr ParseTexture(const rapidjson::Value& value, const TexturesMap&
         if (!TryParseVector3(value, "colorA", false, colorA)) return nullptr;
         if (!TryParseVector3(value, "colorB", false, colorB)) return nullptr;
 
-        Int32 numOctaves = 1;
+        int32 numOctaves = 1;
         if (!TryParseInt(value, "octaves", true, numOctaves)) return nullptr;
         numOctaves = Clamp(numOctaves, 1, 20);
 
-        return std::shared_ptr<ITexture>(new NoiseTexture(colorA, colorB, static_cast<Uint32>(numOctaves)));
+        return std::shared_ptr<ITexture>(new NoiseTexture(colorA, colorB, static_cast<uint32>(numOctaves)));
     }
     else if (type == "mix")
     {

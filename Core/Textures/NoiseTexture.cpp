@@ -7,7 +7,7 @@ using namespace math;
 
 namespace utils {
 
-static const Uint8 c_permutationTable[256] =
+static const uint8 c_permutationTable[256] =
 {
     151, 160, 137, 91, 90, 15,
     131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
@@ -24,14 +24,14 @@ static const Uint8 c_permutationTable[256] =
     138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 };
 
-RT_FORCE_INLINE static Uint8 Hash(const Int32 i)
+RT_FORCE_INLINE static uint8 Hash(const int32 i)
 {
-    return c_permutationTable[static_cast<Uint8>(i)];
+    return c_permutationTable[static_cast<uint8>(i)];
 }
 
-RT_FORCE_INLINE static float Gradient(const Int32 hash, const float x, const float y)
+RT_FORCE_INLINE static float Gradient(const int32 hash, const float x, const float y)
 {
-    const Int32 h = hash & 0x3F;    // Convert low 3 bits of hash code
+    const int32 h = hash & 0x3F;    // Convert low 3 bits of hash code
     const float u = h < 4 ? x : y;  // into 8 simple gradient directions,
     const float v = h < 4 ? y : x;
     return ((h & 1) ? -u : u) + ((h & 2) ? -2.0f * v : 2.0f * v); // and compute the dot product with (x,y).
@@ -39,7 +39,7 @@ RT_FORCE_INLINE static float Gradient(const Int32 hash, const float x, const flo
 
 } // namespace
 
-NoiseTexture::NoiseTexture(const math::Vector4& colorA, const math::Vector4& colorB, const Uint32 numOctaves)
+NoiseTexture::NoiseTexture(const math::Vector4& colorA, const math::Vector4& colorB, const uint32 numOctaves)
     : mColorA(colorA)
     , mColorB(colorB)
     , mNumOctaves(numOctaves)
@@ -69,8 +69,8 @@ float NoiseTexture::EvaluateInternal(const math::Vector4& coords) const
     const float s = (coords.x + coords.y) * F2;  // Hairy factor for 2D
     const float xs = coords.x + s;
     const float ys = coords.y + s;
-    const Int32 i = FloorInt(xs);
-    const Int32 j = FloorInt(ys);
+    const int32 i = FloorInt(xs);
+    const int32 j = FloorInt(ys);
 
     // Unskew the cell origin back to (x,y) space
     const float t = static_cast<float>(i + j) * G2;
@@ -81,7 +81,7 @@ float NoiseTexture::EvaluateInternal(const math::Vector4& coords) const
 
     // For the 2D case, the simplex shape is an equilateral triangle.
     // Determine which simplex we are in.
-    Int32 i1, j1;  // Offsets for second (middle) corner of simplex in (i,j) coords
+    int32 i1, j1;  // Offsets for second (middle) corner of simplex in (i,j) coords
     if (x0 > y0) // lower triangle, XY order: (0,0)->(1,0)->(1,1)
     {
         i1 = 1;
@@ -103,9 +103,9 @@ float NoiseTexture::EvaluateInternal(const math::Vector4& coords) const
     const float y2 = y0 - 1.0f + 2.0f * G2;
 
     // Work out the hashed gradient indices of the three simplex corners
-    const Int32 gi0 = utils::Hash(i + utils::Hash(j));
-    const Int32 gi1 = utils::Hash(i + i1 + utils::Hash(j + j1));
-    const Int32 gi2 = utils::Hash(i + 1 + utils::Hash(j + 1));
+    const int32 gi0 = utils::Hash(i + utils::Hash(j));
+    const int32 gi1 = utils::Hash(i + i1 + utils::Hash(j + j1));
+    const int32 gi2 = utils::Hash(i + 1 + utils::Hash(j + 1));
 
     // Calculate the contribution from the first corner
     float t0 = 0.5f - x0 * x0 - y0 * y0;
@@ -156,7 +156,7 @@ const Vector4 NoiseTexture::Evaluate(const Vector4& coords) const
 
     float octaveValueScale = 0.5f;
     float octaveCoordScale = 1.0f;
-    for (Uint32 i = 0; i < mNumOctaves; ++i)
+    for (uint32 i = 0; i < mNumOctaves; ++i)
     {
         value += octaveValueScale * EvaluateInternal(coords * octaveCoordScale);
         octaveValueScale *= 0.5f;

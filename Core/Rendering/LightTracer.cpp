@@ -26,7 +26,7 @@ const char* LightTracer::GetName() const
 
 const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, RenderingContext& ctx) const
 {
-    Uint32 depth = 0;
+    uint32 depth = 0;
 
     const auto& allLocalLights = mScene.GetLights();
     if (allLocalLights.Empty())
@@ -36,7 +36,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
     }
 
     const float lightPickingProbability = 1.0f / (float)allLocalLights.Size();
-    const Uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size();
+    const uint32 lightIndex = ctx.randomGenerator.GetInt() % allLocalLights.Size();
 
     const LightSceneObject* lightObject = allLocalLights[lightIndex];
     const ILight& light = lightObject->GetLight();
@@ -178,7 +178,7 @@ const RayColor LightTracer::RenderPixel(const Ray&, const RenderParam& param, Re
         depth++;
     }
 
-    ctx.counters.numRays += (Uint64)depth + 1;
+    ctx.counters.numRays += (uint64)depth + 1;
 
     return RayColor::Zero();
 }

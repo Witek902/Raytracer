@@ -29,8 +29,8 @@ struct Float2
     RT_INLINE bool IsValid() const;
 
     /// element access
-    RT_INLINE float Get(Uint32 index) const;
-    RT_INLINE float& Get(Uint32 index);
+    RT_INLINE float Get(uint32 index) const;
+    RT_INLINE float& Get(uint32 index);
 
     /// elements manipulations
     RT_INLINE constexpr const Float2 SplatX() const;
@@ -40,10 +40,10 @@ struct Float2
     template<bool x, bool y>
     RT_INLINE constexpr const Float2 ChangeSign() const;
 
-    template<Uint32 ix, Uint32 iy>
+    template<uint32 ix, uint32 iy>
     RT_INLINE const Float2 Swizzle() const;
 
-    template<Uint32 ix, Uint32 iy>
+    template<uint32 ix, uint32 iy>
     RT_INLINE static constexpr const Float2 Blend(const Float2& a, const Float2& b);
 
     RT_INLINE static const Float2 SelectBySign(const Float2& a, const Float2& b, const Float2& sel);

@@ -24,9 +24,9 @@ using RendererPtr = std::shared_ptr<IRenderer>;
 
 struct RenderingProgress
 {
-    Uint32 passesFinished = 0;
-    Uint32 activePixels = 0;
-    Uint32 activeBlocks = 0;
+    uint32 passesFinished = 0;
+    uint32 activePixels = 0;
+    uint32 activeBlocks = 0;
     float converged = 0.0f;
     float averageError = std::numeric_limits<float>::infinity();
 };
@@ -37,20 +37,20 @@ public:
     RAYLIB_API Viewport();
     RAYLIB_API ~Viewport();
 
-    RAYLIB_API bool Resize(Uint32 width, Uint32 height);
+    RAYLIB_API bool Resize(uint32 width, uint32 height);
     RAYLIB_API bool SetRenderingParams(const RenderingParams& params);
     RAYLIB_API bool SetRenderer(const RendererPtr& renderer);
     RAYLIB_API bool SetPostprocessParams(const PostprocessParams& params);
     RAYLIB_API bool Render(const Camera& camera);
     RAYLIB_API void Reset();
 
-    RAYLIB_API void SetPixelBreakpoint(Uint32 x, Uint32 y);
+    RAYLIB_API void SetPixelBreakpoint(uint32 x, uint32 y);
 
     RT_FORCE_INLINE const Bitmap& GetFrontBuffer() const { return mFrontBuffer; }
     RT_FORCE_INLINE const Bitmap& GetSumBuffer() const { return mSum; }
 
-    RT_FORCE_INLINE Uint32 GetWidth() const { return mSum.GetWidth(); }
-    RT_FORCE_INLINE Uint32 GetHeight() const { return mSum.GetHeight(); }
+    RT_FORCE_INLINE uint32 GetWidth() const { return mSum.GetWidth(); }
+    RT_FORCE_INLINE uint32 GetHeight() const { return mSum.GetHeight(); }
 
     RT_FORCE_INLINE const RenderingProgress& GetProgress() const { return mProgress; }
     RT_FORCE_INLINE const RayTracingCounters& GetCounters() const { return mCounters; }
@@ -61,7 +61,7 @@ private:
     void InitThreadData();
 
     // region of a image used for adaptive rendering
-    using Block = math::Rectangle<Uint32>;
+    using Block = math::Rectangle<uint32>;
 
     struct TileRenderingContext
     {
@@ -97,7 +97,7 @@ private:
     void PerformPostProcess();
 
     // generate "front buffer" image from "sum" image
-    void PostProcessTile(const Block& tile, Uint32 threadID);
+    void PostProcessTile(const Block& tile, uint32 threadID);
 
     ThreadPool mThreadPool;
 
@@ -113,7 +113,7 @@ private:
     Bitmap mSecondarySum;               // contains image with every second sample - required for adaptive rendering
     Bitmap mFrontBuffer;                // postprocesses image (low dynamic range)
     DynArray<Bitmap> mBlurredImages;    // blurred images for bloom
-    DynArray<Uint32> mPassesPerPixel;
+    DynArray<uint32> mPassesPerPixel;
     DynArray<math::Float2> mPixelSalt; // salt value for each pixel
 
     RenderingParams mParams;

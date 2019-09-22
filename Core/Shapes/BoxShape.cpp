@@ -22,15 +22,15 @@ const Matrix4 g_faceFrames[] =
     { {+1.0f, 0.0f,  0.0f, 0.0f}, { 0.0f, 1.0f,  0.0f, 0.0f}, { 0.0f,  0.0f, +1.0f, 0.0f}, {-1.0f,  0.0f,  0.0f, 0.0f} },
 };
 
-RT_FORCE_INLINE Int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
+RT_FORCE_INLINE int32 ConvertXYZtoCubeUV(const Vector4& p, Vector4& outUV)
 {
     const Vector4 abs = Vector4::Abs(p);
-    const Int32 isXPositive = p.x > 0 ? 1 : 0;
-    const Int32 isYPositive = p.y > 0 ? 1 : 0;
-    const Int32 isZPositive = p.z > 0 ? 1 : 0;
+    const int32 isXPositive = p.x > 0 ? 1 : 0;
+    const int32 isYPositive = p.y > 0 ? 1 : 0;
+    const int32 isZPositive = p.z > 0 ? 1 : 0;
 
     float maxAxis, uc, vc;
-    Int32 side;
+    int32 side;
 
     if (abs.x >= abs.y && abs.x >= abs.z)
     {
@@ -129,7 +129,7 @@ const Vector4 BoxShape::Sample(const Float3& u, math::Vector4* outNormal, float*
     float v = u.z;
 
     // select dimension for the normal vector (Z axis in local space)
-    Uint32 zAxis;
+    uint32 zAxis;
     {
         // TODO could be optimized by storing normalized CDF
 
@@ -152,8 +152,8 @@ const Vector4 BoxShape::Sample(const Float3& u, math::Vector4* outNormal, float*
     }
 
     // compute remaining axes
-    const Uint32 xAxis = (zAxis + 1) % 3u;
-    const Uint32 yAxis = (zAxis + 2) % 3u;
+    const uint32 xAxis = (zAxis + 1) % 3u;
+    const uint32 yAxis = (zAxis + 2) % 3u;
 
     // generate normal vector (2 possible directions for already chosen axis)
     Vector4 normal = Vector4::Zero();
@@ -184,7 +184,7 @@ void BoxShape::EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& 
 
     RT_UNUSED(hitPoint);
 
-    const Int32 side = ConvertXYZtoCubeUV(outData.frame.GetTranslation() * mInvSize, outData.texCoord);
+    const int32 side = ConvertXYZtoCubeUV(outData.frame.GetTranslation() * mInvSize, outData.texCoord);
     outData.frame[0] = g_faceFrames[side][0];
     outData.frame[1] = g_faceFrames[side][1];
     outData.frame[2] = g_faceFrames[side][2];

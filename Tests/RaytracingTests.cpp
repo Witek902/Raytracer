@@ -24,7 +24,7 @@ static std::array<const char*, 3> gRendererNames =
 class RenderingTest : public ::testing::Test
 {
 public:
-    static constexpr Uint32 ViewportSize = 32;
+    static constexpr uint32 ViewportSize = 32;
 
     RenderingTest() = default;
 
@@ -68,9 +68,9 @@ MaterialPtr CreatePlasticMaterial(const Vector4& baseColor)
 /*
 rt::MeshShapePtr CreateBoxMesh(const float size, const MaterialPtr& material, bool reverseNormal)
 {
-    const Uint32 materialIndices[6 * 2] = { 0 };
+    const uint32 materialIndices[6 * 2] = { 0 };
 
-    const Uint32 indices[] =
+    const uint32 indices[] =
     {
         0, 1, 2, 0, 2, 3,
         4, 5, 6, 4, 6, 7,
@@ -238,13 +238,13 @@ rt::MeshShapePtr CreateBoxMesh(const float size, const MaterialPtr& material, bo
 }
 */
 
-void ValidateBitmap(const Bitmap& bitmap, Uint32 numPasses, const Vector4& expectedValue, float maxError)
+void ValidateBitmap(const Bitmap& bitmap, uint32 numPasses, const Vector4& expectedValue, float maxError)
 {
-    for (Uint32 y = 0; y < bitmap.GetHeight(); ++y)
+    for (uint32 y = 0; y < bitmap.GetHeight(); ++y)
     {
         SCOPED_TRACE("y=" + std::to_string(y));
 
-        for (Uint32 x = 0; x < bitmap.GetWidth(); ++x)
+        for (uint32 x = 0; x < bitmap.GetWidth(); ++x)
         {
             SCOPED_TRACE("x=" + std::to_string(x));
 
@@ -332,7 +332,7 @@ TEST_F(RenderingTest, FurnaceTest_Diffuse)
     camera.SetPerspective(1.0f, DegToRad(10.0f));
     camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
 
-    Uint32 numPasses = 100;
+    uint32 numPasses = 100;
 
     for (const char* rendererName : gRendererNames)
     {
@@ -342,7 +342,7 @@ TEST_F(RenderingTest, FurnaceTest_Diffuse)
         mViewport->SetRenderer(renderer);
         mViewport->Reset();
 
-        for (Uint32 i = 0; i < numPasses; ++i)
+        for (uint32 i = 0; i < numPasses; ++i)
         {
             mViewport->Render(camera);
         }
@@ -379,7 +379,7 @@ TEST_F(RenderingTest, FurnaceTest_Emissive)
     camera.SetPerspective(1.0f, DegToRad(10.0f));
     camera.SetTransform(Transform(Vector4(0.0f, 0.0f, -3.0f)));
 
-    Uint32 numPasses = 1;
+    uint32 numPasses = 1;
 
     for (const char* rendererName : gRendererNames)
     {
@@ -389,7 +389,7 @@ TEST_F(RenderingTest, FurnaceTest_Emissive)
         mViewport->SetRenderer(renderer);
         mViewport->Reset();
 
-        for (Uint32 i = 0; i < numPasses; ++i)
+        for (uint32 i = 0; i < numPasses; ++i)
         {
             mViewport->Render(camera);
         }
@@ -435,9 +435,9 @@ TEST_F(RenderingTest, FurnaceTest_Metal)
         mViewport->SetRenderer(renderer);
         mViewport->Reset();
 
-        Uint32 numPasses = 20;
+        uint32 numPasses = 20;
 
-        for (Uint32 i = 0; i < numPasses; ++i)
+        for (uint32 i = 0; i < numPasses; ++i)
         {
             mViewport->Render(camera);
         }
@@ -479,9 +479,9 @@ TEST_F(RenderingTest, FurnaceTest_Dielectric)
         mViewport->SetRenderer(renderer);
         mViewport->Reset();
 
-        Uint32 numPasses = 1000;
+        uint32 numPasses = 1000;
 
-        for (Uint32 i = 0; i < numPasses; ++i)
+        for (uint32 i = 0; i < numPasses; ++i)
         {
             mViewport->Render(camera);
         }

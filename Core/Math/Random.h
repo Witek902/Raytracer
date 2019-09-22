@@ -20,8 +20,8 @@ public:
     // initialize seeds with new values, very slow
     void Reset();
 
-    Uint64 GetLong();
-    Uint32 GetInt();
+    uint64 GetLong();
+    uint32 GetInt();
 
     // Generate random float with uniform distribution from range [0.0f, 1.0f)
     float GetFloat();
@@ -57,7 +57,7 @@ private:
 
     VectorInt4 mSeedSimd4[2];
 
-    Uint64 mSeed[2];
+    uint64 mSeed[2];
 };
 
 

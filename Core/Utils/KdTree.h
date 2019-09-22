@@ -18,10 +18,10 @@ private:
 
     struct Node
     {
-        Uint32 axisIndex : 2;
-        Uint32 pointIndex : 30;
-        Uint32 left;
-        Uint32 right;
+        uint32 axisIndex : 2;
+        uint32 pointIndex : 30;
+        uint32 left;
+        uint32 right;
 
         // TODO can store only first child node index + 2-bit mask specifying which children are present
         // TODO cache point coordinate
@@ -37,7 +37,7 @@ public:
     {
         Timer timer;
 
-        DynArray<Uint32> indices;
+        DynArray<uint32> indices;
         indices.Resize(particles.Size());
         std::iota(std::begin(indices), std::end(indices), 0);
 
@@ -58,8 +58,8 @@ public:
         const float sqrRadius = math::Sqr(radius);
 
         // "nodes to visit" stack
-        Uint32 stackSize = 0;
-        Uint32 nodesStack[32];
+        uint32 stackSize = 0;
+        uint32 nodesStack[32];
 
         if (!mNodes.Empty())
         {
@@ -94,13 +94,13 @@ public:
 
 private:
     DynArray<Node> mNodes;
-    Uint32 mNumGeneratedNodes = 0;
+    uint32 mNumGeneratedNodes = 0;
 
     template<typename ParticleType>
-    void BuildRecursive(Node& targetNode, DynArray<ParticleType>& particles, Uint32* indices, Uint32 npoints, Uint32 depth)
+    void BuildRecursive(Node& targetNode, DynArray<ParticleType>& particles, uint32* indices, uint32 npoints, uint32 depth)
     {
-        const Uint32 axis = depth % 3u; // TODO select longer axis?
-        const Uint32 mid = (npoints - 1) / 2;
+        const uint32 axis = depth % 3u; // TODO select longer axis?
+        const uint32 mid = (npoints - 1) / 2;
 
         std::nth_element(indices, indices + mid, indices + npoints, [&](int lhs, int rhs)
         {

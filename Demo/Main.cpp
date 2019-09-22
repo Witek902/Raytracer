@@ -7,8 +7,8 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
 {
     cxxopts::Options options("Raytracer Demo", "CPU raytracer by Michal Witanowski");
     options.add_options()
-        ("w,width", "Window width", cxxopts::value<Uint32>())
-        ("h,height", "Window width", cxxopts::value<Uint32>())
+        ("w,width", "Window width", cxxopts::value<uint32>())
+        ("h,height", "Window width", cxxopts::value<uint32>())
         ("s,scene", "Initial scene", cxxopts::value<std::string>())
         ("renderer", "Renderer name", cxxopts::value<std::string>())
         ("p,packet-tracing", "Use ray packet tracing by default", cxxopts::value<bool>())
@@ -20,10 +20,10 @@ bool ParseOptions(int argc, char** argv, Options& outOptions)
         auto result = options.parse(argc, argv);
 
         if (result.count("w"))
-            outOptions.windowWidth = result["w"].as<Uint32>();
+            outOptions.windowWidth = result["w"].as<uint32>();
 
         if (result.count("h"))
-            outOptions.windowHeight = result["h"].as<Uint32>();
+            outOptions.windowHeight = result["h"].as<uint32>();
 
         if (result.count("data"))
             outOptions.dataPath = result["data"].as<std::string>();

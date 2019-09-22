@@ -2,7 +2,7 @@
 
 #ifdef WIN32
 
-enum class MouseButton : Uint32
+enum class MouseButton : uint8
 {
     Left = 0,
     Middle = 2,
@@ -13,7 +13,7 @@ enum class MouseButton : Uint32
  * KeyCode enum for Windows. Based on official MSDN reference:
  *   https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
  */
-enum class KeyCode : Uint32
+enum class KeyCode : uint32
 {
     Invalid = 0,
     Backspace = VK_BACK,

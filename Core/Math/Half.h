@@ -13,7 +13,7 @@ public:
     RT_FORCE_INLINE Half() = default;
 
     RT_FORCE_INLINE Half(const Half& other) : value(other.value) { }
-    RT_FORCE_INLINE explicit Half(const Uint16 other) : value(other) { }
+    RT_FORCE_INLINE explicit Half(const uint16 other) : value(other) { }
 
     RT_FORCE_INLINE Half& operator = (const Half& other)
     {
@@ -30,13 +30,13 @@ public:
 private:
     union
     {
-        Uint16 value;
+        uint16 value;
 
         struct
         {
-            Uint16 mantissa : 10;
-            Uint16 exponent : 5;
-            Uint16 sign : 1;
+            uint16 mantissa : 10;
+            uint16 exponent : 5;
+            uint16 sign : 1;
         } components;
     };
 };

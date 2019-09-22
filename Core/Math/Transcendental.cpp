@@ -7,14 +7,14 @@ namespace math {
 
 namespace {
 
-RT_FORCE_INLINE Int32 FloatAsInt(const float f)
+RT_FORCE_INLINE int32 FloatAsInt(const float f)
 {
     Bits32 bits;
     bits.f = f;
     return bits.si;
 }
 
-RT_FORCE_INLINE float IntAsFloat(const Int32 i)
+RT_FORCE_INLINE float IntAsFloat(const int32 i)
 {
     Bits32 bits;
     bits.si = i;
@@ -41,7 +41,7 @@ float Sin(float x)
     // https://www.gamedev.net/forums/topic/681723-faster-sin-and-cos/
 
     // range reduction
-    const Int32 i = static_cast<Int32>(x * (1.0f / RT_PI));
+    const int32 i = static_cast<int32>(x * (1.0f / RT_PI));
     x -= static_cast<float>(i) * RT_PI;
 
     const float x2 = x * x;
@@ -135,7 +135,7 @@ float FastExp(float x)
 
     const float t = x * 1.442695041f;
     const float fi = floorf(t);
-    const Int32 i = (Int32)fi;
+    const int32 i = (int32)fi;
     const float f = t - fi;
 
     Bits32 bits;
@@ -170,7 +170,7 @@ float Log(float x)
     // https://stackoverflow.com/questions/39821367/very-fast-logarithm-natural-log-function-in-c
 
     // range reduction
-    const Int32 e = (FloatAsInt(x) - 0x3f2aaaab) & 0xff800000;
+    const int32 e = (FloatAsInt(x) - 0x3f2aaaab) & 0xff800000;
     const float m = IntAsFloat(FloatAsInt(x) - e);
     const float i = 1.19209290e-7f * (float)e;
 
@@ -197,7 +197,7 @@ float FastLog(float x)
     // https://stackoverflow.com/questions/39821367/very-fast-logarithm-natural-log-function-in-c
 
     // range reduction
-    const Int32 e = (FloatAsInt(x) - 0x3f2aaaab) & 0xff800000;
+    const int32 e = (FloatAsInt(x) - 0x3f2aaaab) & 0xff800000;
     const float m = IntAsFloat(FloatAsInt(x) - e);
     const float i = 1.19209290e-7f * (float)e;
 

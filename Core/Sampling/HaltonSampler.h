@@ -11,22 +11,22 @@ namespace rt {
 class HaltonSequence
 {
 public:
-    static constexpr Uint32 MaxDimensions = 4096;
-    static constexpr Uint32 Width = 64;
+    static constexpr uint32 MaxDimensions = 4096;
+    static constexpr uint32 Width = 64;
 
     RAYLIB_API HaltonSequence();
     RAYLIB_API ~HaltonSequence();
-    RAYLIB_API void Initialize(Uint32 mDimensions);
+    RAYLIB_API void Initialize(uint32 mDimensions);
 
-    RT_FORCE_INLINE Uint32 GetNumDimensions() const { return mDimensions; }
+    RT_FORCE_INLINE uint32 GetNumDimensions() const { return mDimensions; }
 
     RAYLIB_API void NextSample();
 
-    RT_FORCE_INLINE double GetDouble(Uint32 dimension) { return rnd[dimension][0]; }
-    RT_FORCE_INLINE Uint32 GetInt(Uint32 dimension) { return Uint32(rnd[dimension][0] * (double)UINT32_MAX); }
+    RT_FORCE_INLINE double GetDouble(uint32 dimension) { return rnd[dimension][0]; }
+    RT_FORCE_INLINE uint32 GetInt(uint32 dimension) { return uint32(rnd[dimension][0] * (double)UINT32_MAX); }
 
 private:
-    Uint64 Permute(Uint32 i, Uint8 j);
+    uint64 Permute(uint32 i, uint8 j);
 
     void ClearPermutation();
     void InitPrimes();
@@ -35,13 +35,13 @@ private:
     void InitExpansion();
     void InitPermutation();
 
-    Uint32 mDimensions;
-    DynArray<Uint64> mStarts;
-    DynArray<Uint32> mBase;
+    uint32 mDimensions;
+    DynArray<uint64> mStarts;
+    DynArray<uint32> mBase;
     DynArray<DynArray<double>> rnd;
-    DynArray<DynArray<Uint64>> digit;
-    DynArray<DynArray<Uint64>> mPowerBuffer;
-    Uint64 **ppm;
+    DynArray<DynArray<uint64>> digit;
+    DynArray<DynArray<uint64>> mPowerBuffer;
+    uint64 **ppm;
     math::Random mRandom;
 };
 

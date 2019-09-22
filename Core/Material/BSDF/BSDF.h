@@ -22,7 +22,7 @@ namespace math
 class BSDF : public Aligned<16>
 {
 public:
-    enum EventType : Uint8
+    enum EventType : uint8
     {
         NullEvent                   = 0,
         DiffuseReflectionEvent      = 1 << 0,

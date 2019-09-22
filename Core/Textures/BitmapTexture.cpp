@@ -97,14 +97,14 @@ const Vector4 BitmapTexture::Sample(const Float2 u, Vector4& outCoords, float* o
     RT_ASSERT(mImportanceMap, "Bitmap texture is not samplable");
 
     float pdf = 0.0f;
-    const Uint32 pixelIndex = mImportanceMap->SampleDiscrete(u.x, pdf);
+    const uint32 pixelIndex = mImportanceMap->SampleDiscrete(u.x, pdf);
 
-    const Uint32 width = mBitmap->GetWidth();
-    const Uint32 height = mBitmap->GetHeight();
+    const uint32 width = mBitmap->GetWidth();
+    const uint32 height = mBitmap->GetHeight();
 
     // TODO get rid of division
-    const Uint32 x = pixelIndex % width;
-    const Uint32 y = pixelIndex / width;
+    const uint32 x = pixelIndex % width;
+    const uint32 y = pixelIndex / width;
     RT_ASSERT(x < width);
     RT_ASSERT(y < height);
 
@@ -134,15 +134,15 @@ bool BitmapTexture::MakeSamplable()
 
     RT_LOG_INFO("BitmapTexture: Generating importance map for bitmap '%s'...", mBitmap->GetDebugName());
 
-    const Uint32 width = mBitmap->GetWidth();
-    const Uint32 height = mBitmap->GetHeight();
+    const uint32 width = mBitmap->GetWidth();
+    const uint32 height = mBitmap->GetHeight();
 
     DynArray<float> importancePdf;
     importancePdf.Resize(width * height);
 
-    for (Uint32 j = 0; j < height; ++j)
+    for (uint32 j = 0; j < height; ++j)
     {
-        for (Uint32 i = 0; i < width; ++i)
+        for (uint32 i = 0; i < width; ++i)
         {
             const Vector4 value = mBitmap->GetPixel(i, j);
             importancePdf[width * j + i] = Vector4::Dot3(c_rgbIntensityWeights, value);

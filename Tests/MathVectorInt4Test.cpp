@@ -55,7 +55,7 @@ TEST(MathTest, VectorInt4_VectorArithmetics)
 
 TEST(MathTest, VectorInt4_ShiftLeftSharedCount)
 {
-    for (Uint32 i = 0; i < 32; ++i)
+    for (uint32 i = 0; i < 32; ++i)
     {
         SCOPED_TRACE("i=" + std::to_string(i));
 
@@ -70,7 +70,7 @@ TEST(MathTest, VectorInt4_ShiftLeftSharedCount)
 
 TEST(MathTest, VectorInt4_ShiftRightSharedCount)
 {
-    for (Uint32 i = 0; i < 32; ++i)
+    for (uint32 i = 0; i < 32; ++i)
     {
         SCOPED_TRACE("i=" + std::to_string(i));
 

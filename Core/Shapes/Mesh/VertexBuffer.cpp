@@ -99,7 +99,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
 
     // validate vertices
     {
-        for (Uint32 i = 0; i < desc.numVertices; ++i)
+        for (uint32 i = 0; i < desc.numVertices; ++i)
         {
             RT_ASSERT(desc.positions[i].IsValid(), "Corrupted vertex position");
         }
@@ -115,9 +115,9 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         }
 
         const Float3* positions = desc.positions;
-        const Uint32* indexBuffer = desc.vertexIndexBuffer;
+        const uint32* indexBuffer = desc.vertexIndexBuffer;
 
-        for (Uint32 i = 0; i < desc.numTriangles; ++i)
+        for (uint32 i = 0; i < desc.numTriangles; ++i)
         {
             const Vector4 v0(positions[indexBuffer[3 * i + 0]]);
             const Vector4 v1(positions[indexBuffer[3 * i + 1]]);
@@ -132,7 +132,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     // fill index buffer
     {
         VertexIndices* buffer = reinterpret_cast<VertexIndices*>(mBuffer + mVertexIndexBufferOffset);
-        for (Uint32 i = 0; i < desc.numTriangles; ++i)
+        for (uint32 i = 0; i < desc.numTriangles; ++i)
         {
             VertexIndices& indices = buffer[i];
 
@@ -153,7 +153,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     // fill vertex shading data buffer
     {
         VertexShadingData* buffer = reinterpret_cast<VertexShadingData*>(mBuffer + mShadingDataBufferOffset);
-        for (Uint32 i = 0; i < desc.numVertices; ++i)
+        for (uint32 i = 0; i < desc.numVertices; ++i)
         {
             buffer[i].normal = desc.normals ? desc.normals[i] : Float3();
             buffer[i].tangent = desc.tangents ? desc.tangents[i] : Float3();
@@ -173,7 +173,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
         Material** buffer = reinterpret_cast<Material**>(mBuffer + mMaterialBufferOffset);
 
         mMaterials.Resize(desc.numMaterials);
-        for (Uint32 i = 0; i < desc.numMaterials; ++i)
+        for (uint32 i = 0; i < desc.numMaterials; ++i)
         {
             buffer[i] = desc.materials[i].get();
             mMaterials[i] = desc.materials[i];
@@ -186,7 +186,7 @@ bool VertexBuffer::Initialize(const VertexBufferDesc& desc)
     return true;
 }
 
-void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const
+void VertexBuffer::GetVertexIndices(const uint32 triangleIndex, VertexIndices& indices) const
 {
     RT_ASSERT(triangleIndex < mNumTriangles);
 
@@ -194,7 +194,7 @@ void VertexBuffer::GetVertexIndices(const Uint32 triangleIndex, VertexIndices& i
     indices = buffer[triangleIndex];
 }
 
-const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
+const Material* VertexBuffer::GetMaterial(const uint32 materialIndex) const
 {
     RT_ASSERT(materialIndex < mMaterials.Size());
 
@@ -202,12 +202,12 @@ const Material* VertexBuffer::GetMaterial(const Uint32 materialIndex) const
     return materialBufferData[materialIndex];
 }
 
-const math::ProcessedTriangle& VertexBuffer::GetTriangle(const Uint32 triangleIndex) const
+const math::ProcessedTriangle& VertexBuffer::GetTriangle(const uint32 triangleIndex) const
 {
     return mPreprocessedTriangles[triangleIndex];
 }
 
-void VertexBuffer::GetTriangle(const Uint32 triangleIndex, Triangle_Simd8& outTriangle) const
+void VertexBuffer::GetTriangle(const uint32 triangleIndex, Triangle_Simd8& outTriangle) const
 {
     const ProcessedTriangle& tri = mPreprocessedTriangles[triangleIndex];
     outTriangle.v0 = Vector3x8(tri.v0);

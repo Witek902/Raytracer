@@ -81,7 +81,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
     RayColor resultColor = RayColor::Zero();
     RayColor throughput = RayColor::One();
 
-    Uint32 depth = 0;
+    uint32 depth = 0;
 
     for (;;)
     {
@@ -166,7 +166,7 @@ const RayColor PathTracer::RenderPixel(const math::Ray& primaryRay, const Render
         depth++;
     }
 
-    context.counters.numRays += (Uint64)depth + 1;
+    context.counters.numRays += (uint64)depth + 1;
 
     return resultColor;
 }

@@ -42,15 +42,15 @@ const Vector8 VectorInt8::CastToFloat() const
     return _mm256_castsi256_ps(v);
 }
 
-VectorInt8::VectorInt8(const Int32 e0, const Int32 e1, const Int32 e2, const Int32 e3, const Int32 e4, const Int32 e5, const Int32 e6, const Int32 e7)
+VectorInt8::VectorInt8(const int32 e0, const int32 e1, const int32 e2, const int32 e3, const int32 e4, const int32 e5, const int32 e6, const int32 e7)
     : v(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0))
 {}
 
-VectorInt8::VectorInt8(const Int32 i)
+VectorInt8::VectorInt8(const int32 i)
     : v(_mm256_set1_epi32(i))
 {}
 
-VectorInt8::VectorInt8(const Uint32 u)
+VectorInt8::VectorInt8(const uint32 u)
     : v(_mm256_set1_epi32(u))
 {}
 
@@ -140,40 +140,40 @@ VectorInt8& VectorInt8::operator *= (const VectorInt8& b)
     return *this;
 }
 
-const VectorInt8 VectorInt8::operator + (Int32 b) const
+const VectorInt8 VectorInt8::operator + (int32 b) const
 {
     return _mm256_add_epi32(v, _mm256_set1_epi32(b));
 }
 
-const VectorInt8 VectorInt8::operator - (Int32 b) const
+const VectorInt8 VectorInt8::operator - (int32 b) const
 {
     return _mm256_sub_epi32(v, _mm256_set1_epi32(b));
 }
 
-const VectorInt8 VectorInt8::operator * (Int32 b) const
+const VectorInt8 VectorInt8::operator * (int32 b) const
 {
     return _mm256_mullo_epi32(v, _mm256_set1_epi32(b));
 }
 
-const VectorInt8 VectorInt8::operator % (Int32 b) const
+const VectorInt8 VectorInt8::operator % (int32 b) const
 {
     // TODO
     return VectorInt8(i[0] % b, i[1] % b, i[2] % b, i[3] % b, i[4] % b, i[5] % b, i[6] % b, i[7] % b);
 }
 
-VectorInt8& VectorInt8::operator += (Int32 b)
+VectorInt8& VectorInt8::operator += (int32 b)
 {
     v = _mm256_add_epi32(v, _mm256_set1_epi32(b));
     return *this;
 }
 
-VectorInt8& VectorInt8::operator -= (Int32 b)
+VectorInt8& VectorInt8::operator -= (int32 b)
 {
     v = _mm256_sub_epi32(v, _mm256_set1_epi32(b));
     return *this;
 }
 
-VectorInt8& VectorInt8::operator *= (Int32 b)
+VectorInt8& VectorInt8::operator *= (int32 b)
 {
     v = _mm256_mullo_epi32(v, _mm256_set1_epi32(b));
     return *this;
@@ -201,12 +201,12 @@ const VectorInt8 VectorInt8::operator >> (const VectorInt8& b) const
     return _mm256_srlv_epi32(v, b);
 }
 
-const VectorInt8 VectorInt8::operator << (Int32 b) const
+const VectorInt8 VectorInt8::operator << (int32 b) const
 {
     return _mm256_slli_epi32(v, b);
 }
 
-const VectorInt8 VectorInt8::operator >> (Int32 b) const
+const VectorInt8 VectorInt8::operator >> (int32 b) const
 {
     return _mm256_srli_epi32(v, b);
 }

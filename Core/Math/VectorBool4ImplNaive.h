@@ -11,14 +11,14 @@ VectorBool4::VectorBool4(int x, int y, int z, int w)
     : b{ x > 0, y > 0, z > 0, w > 0 }
 {}
 
-template<Uint32 index>
+template<uint32 index>
 bool VectorBool4::Get() const
 {
     static_assert(index < 4, "Invalid index");
     return b[index];
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const VectorBool4 VectorBool4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -30,9 +30,9 @@ const VectorBool4 VectorBool4::Swizzle() const
 }
 
 // combine into 4-bit mask
-Int32 VectorBool4::GetMask() const
+int32 VectorBool4::GetMask() const
 {
-    Int32 ret = 0;
+    int32 ret = 0;
     ret |= b[0] ? (1 << 0) : 0;
     ret |= b[1] ? (1 << 1) : 0;
     ret |= b[2] ? (1 << 2) : 0;

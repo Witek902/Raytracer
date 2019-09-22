@@ -62,9 +62,9 @@ const Vector4 RectShape::Sample(const Float3& u, math::Vector4* outNormal, float
 }
 
 /*
-void PlaneSceneObject::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
+void PlaneSceneObject::Traverse_Packet(const PacketTraversalContext& context, const uint32 objectID, const uint32 numActiveGroups) const
 {
-    for (Uint32 i = 0; i < numActiveGroups; ++i)
+    for (uint32 i = 0; i < numActiveGroups; ++i)
     {
         RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[i]];
 

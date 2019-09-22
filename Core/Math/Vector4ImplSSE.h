@@ -30,11 +30,11 @@ Vector4::Vector4(const float s)
     : v(_mm_set1_ps(s))
 {}
 
-Vector4::Vector4(const Int32 i)
+Vector4::Vector4(const int32 i)
     : v(_mm_castsi128_ps(_mm_set1_epi32(i)))
 {}
 
-Vector4::Vector4(const Uint32 u)
+Vector4::Vector4(const uint32 u)
     : v(_mm_castsi128_ps(_mm_set1_epi32(u)))
 {}
 
@@ -42,11 +42,11 @@ Vector4::Vector4(const float x, const float y, const float z, const float w)
     : v(_mm_set_ps(w, z, y, x))
 {}
 
-Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
+Vector4::Vector4(const int32 x, const int32 y, const int32 z, const int32 w)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
-Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
+Vector4::Vector4(const uint32 x, const uint32 y, const uint32 z, const uint32 w)
     : v(_mm_castsi128_ps(_mm_set_epi32(w, z, y, x)))
 {}
 
@@ -76,17 +76,17 @@ Vector4& Vector4::operator = (const Vector4& other)
     return *this;
 }
 
-const Vector4 Vector4::FromInteger(Int32 x)
+const Vector4 Vector4::FromInteger(int32 x)
 {
     return _mm_cvtepi32_ps(_mm_set1_epi32(x));
 }
 
-const Vector4 Vector4::FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w)
+const Vector4 Vector4::FromIntegers(int32 x, int32 y, int32 z, int32 w)
 {
     return _mm_cvtepi32_ps(_mm_set_epi32(w, z, y, x));
 }
 
-Uint32 Vector4::ToBGR() const
+uint32 Vector4::ToBGR() const
 {
     const Vector4 scaled = (*this) * VECTOR_255;
 
@@ -109,7 +109,7 @@ Uint32 Vector4::ToBGR() const
     return _mm_extract_epi32(result, 0);
 }
 
-template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
+template<uint32 flipX, uint32 flipY, uint32 flipZ, uint32 flipW>
 const Vector4 Vector4::ChangeSign() const
 {
     if (!(flipX || flipY || flipZ || flipW))
@@ -130,7 +130,7 @@ const Vector4 Vector4::ChangeSign(const VectorBool4& flip) const
     return _mm_xor_ps(v, _mm_castsi128_ps(_mm_slli_epi32(flip, 31)));
 }
 
-template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
+template<uint32 maskX, uint32 maskY, uint32 maskZ, uint32 maskW>
 RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
 {
     static_assert(!(maskX == 0 && maskY == 0 && maskZ == 0 && maskW == 0), "Useless mask");
@@ -140,7 +140,7 @@ RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
     return Vector4{ maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const Vector4 Vector4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -186,7 +186,7 @@ const Vector4 Vector4::Swizzle() const
     return _mm_shuffle_ps(v, v, _MM_SHUFFLE(iw, iz, iy, ix));
 }
 
-const Vector4 Vector4::Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const
+const Vector4 Vector4::Swizzle(uint32 ix, uint32 iy, uint32 iz, uint32 iw) const
 {
 #ifdef RT_USE_AVX
     return _mm_permutevar_ps(v, _mm_set_epi32(iw, iz, iy, ix));
@@ -200,7 +200,7 @@ const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBo
     return _mm_blendv_ps(a, b, sel.v);
 }
 
-template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
 const Vector4 Vector4::Select(const Vector4& a, const Vector4& b)
 {
     static_assert(selX <= 1, "Invalid X index");

@@ -9,11 +9,11 @@ using namespace rt::math;
 
 TEST(MathTest, Geometry_BuildOrthonormalBasis)
 {
-    const Uint32 numIterations = 1000;
+    const uint32 numIterations = 1000;
 
     Random random;
 
-    for (Uint32 i = 0; i < numIterations; ++i)
+    for (uint32 i = 0; i < numIterations; ++i)
     {
         const Vector4 x = SamplingHelpers::GetSphere(random.GetFloat2());
 

@@ -33,19 +33,19 @@ Vector4::Vector4(const float x, const float y, const float z, const float w)
     : x(x), y(y), z(z), w(w)
 {}
 
-Vector4::Vector4(const Int32 x, const Int32 y, const Int32 z, const Int32 w)
+Vector4::Vector4(const int32 x, const int32 y, const int32 z, const int32 w)
     : i{ x, y, z, w }
 {}
 
-Vector4::Vector4(const Uint32 x, const Uint32 y, const Uint32 z, const Uint32 w)
+Vector4::Vector4(const uint32 x, const uint32 y, const uint32 z, const uint32 w)
     : u{ x, y, z, w }
 {}
 
-Vector4::Vector4(const Int32 scalar)
+Vector4::Vector4(const int32 scalar)
     : i{ scalar, scalar, scalar, scalar }
 {}
 
-Vector4::Vector4(const Uint32 scalar)
+Vector4::Vector4(const uint32 scalar)
     : u{ scalar, scalar, scalar, scalar }
 {}
 
@@ -79,28 +79,28 @@ Vector4& Vector4::operator = (const Vector4& other)
     return *this;
 }
 
-const Vector4 Vector4::FromInteger(Int32 x)
+const Vector4 Vector4::FromInteger(int32 x)
 {
     return Vector4{ static_cast<float>(x) };
 }
 
-const Vector4 Vector4::FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w)
+const Vector4 Vector4::FromIntegers(int32 x, int32 y, int32 z, int32 w)
 {
     return Vector4{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 }
 
-Uint32 Vector4::ToBGR() const
+uint32 Vector4::ToBGR() const
 {
     const Vector4 scaled = (*this) * VECTOR_255;
 
-    Uint32 ret;
-    ret  = math::Clamp(static_cast<Int32>(scaled.z), 0, 255);
-    ret |= math::Clamp(static_cast<Int32>(scaled.y), 0, 255) << 8;
-    ret |= math::Clamp(static_cast<Int32>(scaled.x), 0, 255) << 16;
+    uint32 ret;
+    ret  = math::Clamp(static_cast<int32>(scaled.z), 0, 255);
+    ret |= math::Clamp(static_cast<int32>(scaled.y), 0, 255) << 8;
+    ret |= math::Clamp(static_cast<int32>(scaled.x), 0, 255) << 16;
     return ret;
 }
 
-template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
+template<uint32 flipX, uint32 flipY, uint32 flipZ, uint32 flipW>
 const Vector4 Vector4::ChangeSign() const
 {
     if (!(flipX || flipY || flipZ || flipW))
@@ -129,7 +129,7 @@ const Vector4 Vector4::ChangeSign(const VectorBool4& flip) const
     };
 }
 
-template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
+template<uint32 maskX, uint32 maskY, uint32 maskZ, uint32 maskW>
 RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
 {
     static_assert(!(maskX == 0 && maskY == 0 && maskZ == 0 && maskW == 0), "Useless mask");
@@ -139,7 +139,7 @@ RT_FORCE_INLINE const Vector4 Vector4::MakeMask()
     return Vector4{ maskX ? 0xFFFFFFFF : 0, maskY ? 0xFFFFFFFF : 0, maskZ ? 0xFFFFFFFF : 0, maskW ? 0xFFFFFFFF : 0 };
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const Vector4 Vector4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -150,7 +150,7 @@ const Vector4 Vector4::Swizzle() const
     return { f[ix], f[iy], f[iz], f[iw] };
 }
 
-const Vector4 Vector4::Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const
+const Vector4 Vector4::Swizzle(uint32 ix, uint32 iy, uint32 iz, uint32 iw) const
 {
     return Vector4{ f[ix], f[iy], f[iz], f[iw] };
 }
@@ -166,7 +166,7 @@ const Vector4 Vector4::Select(const Vector4& a, const Vector4& b, const VectorBo
     };
 }
 
-template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
 const Vector4 Vector4::Select(const Vector4& a, const Vector4& b)
 {
     static_assert(selX <= 1, "Invalid X index");

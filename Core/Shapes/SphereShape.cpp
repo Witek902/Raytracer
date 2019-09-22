@@ -125,9 +125,9 @@ float SphereShape::Pdf(const math::Vector4& ref, const math::Vector4& point) con
 }
 
 /*
-void SphereShape::Traverse_Packet(const PacketTraversalContext& context, const Uint32 objectID, const Uint32 numActiveGroups) const
+void SphereShape::Traverse_Packet(const PacketTraversalContext& context, const uint32 objectID, const uint32 numActiveGroups) const
 {
-    for (Uint32 i = 0; i < numActiveGroups; ++i)
+    for (uint32 i = 0; i < numActiveGroups; ++i)
     {
         RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[i]];
         const Ray_Simd8& ray = rayGroup.rays[1];

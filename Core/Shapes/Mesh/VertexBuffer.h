@@ -17,10 +17,10 @@ class Material;
 
 struct RT_ALIGN(16) VertexIndices
 {
-    Uint32 i0;
-    Uint32 i1;
-    Uint32 i2;
-    Uint32 materialIndex;
+    uint32 i0;
+    uint32 i1;
+    uint32 i2;
+    uint32 materialIndex;
 };
 
 struct RT_ALIGN(32) VertexShadingData
@@ -45,19 +45,19 @@ public:
     bool Initialize(const VertexBufferDesc& desc);
 
     // get vertex indices for given triangle
-    void GetVertexIndices(const Uint32 triangleIndex, VertexIndices& indices) const;
+    void GetVertexIndices(const uint32 triangleIndex, VertexIndices& indices) const;
 
     // get material for given a triangle
-    const Material* GetMaterial(const Uint32 materialIndex) const;
+    const Material* GetMaterial(const uint32 materialIndex) const;
 
     // extract preprocessed triangle data (for one triangle)
-    const math::ProcessedTriangle& GetTriangle(const Uint32 triangleIndex) const;
-    void GetTriangle(const Uint32 triangleIndex, math::Triangle_Simd8& outTriangle) const;
+    const math::ProcessedTriangle& GetTriangle(const uint32 triangleIndex) const;
+    void GetTriangle(const uint32 triangleIndex, math::Triangle_Simd8& outTriangle) const;
 
     void GetShadingData(const VertexIndices& indices, VertexShadingData& a, VertexShadingData& b, VertexShadingData& c) const;
 
-    RT_FORCE_INLINE Uint32 GetNumVertices() const { return mNumVertices; }
-    RT_FORCE_INLINE Uint32 GetNumTriangles() const { return mNumTriangles; }
+    RT_FORCE_INLINE uint32 GetNumVertices() const { return mNumVertices; }
+    RT_FORCE_INLINE uint32 GetNumTriangles() const { return mNumTriangles; }
 
 private:
 
@@ -68,8 +68,8 @@ private:
     size_t mShadingDataBufferOffset;
     size_t mMaterialBufferOffset;
 
-    Uint32 mNumVertices;
-    Uint32 mNumTriangles;
+    uint32 mNumVertices;
+    uint32 mNumTriangles;
 
     DynArray<MaterialPtr> mMaterials;
 };

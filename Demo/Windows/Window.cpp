@@ -121,7 +121,7 @@ Window::~Window()
     UnregisterClass(mWndClass, mInstance);
 }
 
-void Window::SetSize(Uint32 width, Uint32 height)
+void Window::SetSize(uint32 width, uint32 height)
 {
     mWidth = width;
     mHeight = height;
@@ -244,7 +244,7 @@ bool Window::DrawPixels(const rt::Bitmap& bitmap)
     ZeroMemory(&bmi, sizeof(bmi));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = bitmap.GetWidth();
-    bmi.bmiHeader.biHeight = -static_cast<Int32>(bitmap.GetHeight()); // flip the image
+    bmi.bmiHeader.biHeight = -static_cast<int32>(bitmap.GetHeight()); // flip the image
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage = bitmap.GetStride() * bitmap.GetHeight();
@@ -451,7 +451,7 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
         case WM_DROPFILES:
         {
-            const Uint32 bufferSize = 1024;
+            const uint32 bufferSize = 1024;
             wchar_t buffer[bufferSize] = { 0 };
             HDROP hDropInfo = (HDROP)wParam;
             if (0 != ::DragQueryFile(hDropInfo, 0, buffer, bufferSize))
@@ -501,7 +501,7 @@ void* Window::GetHandle() const
     return static_cast<void*>(mHandle);
 }
 
-void Window::GetSize(Uint32& Width, Uint32& Height) const
+void Window::GetSize(uint32& Width, uint32& Height) const
 {
     Width = mWidth;
     Height = mHeight;
@@ -528,7 +528,7 @@ void Window::OnClose()
 {
 }
 
-void Window::OnResize(Uint32, Uint32)
+void Window::OnResize(uint32, uint32)
 {
 }
 

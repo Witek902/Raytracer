@@ -105,19 +105,19 @@ do { \
 
 
 #if defined(__LINUX__) | defined(__linux__)
-using Uint64 = uint64_t;
-using Int64 = int64_t;
+using uint64 = uint64_t;
+using int64 = int64_t;
 #elif defined(_WINDOWS)
-using Uint64 = unsigned __int64;
-using Int64 = __int64;
+using uint64 = unsigned __int64;
+using int64 = __int64;
 #endif // defined(__LINUX__) | defined(__linux__)
 
-using Uint32 = unsigned int;
-using Int32 = signed int;
-using Uint16 = unsigned short;
-using Int16 = signed short;
-using Uint8 = unsigned char;
-using Int8 = signed char;
+using uint32 = unsigned int;
+using int32 = signed int;
+using uint16 = unsigned short;
+using int16 = signed short;
+using uint8 = unsigned char;
+using int8 = signed char;
 
 class NoCopyable
 {

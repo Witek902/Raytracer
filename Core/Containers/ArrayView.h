@@ -20,7 +20,7 @@ class ArrayView
 public:
 
     // maximum size of array view (1 element is reserved for iterator to the end)
-    static constexpr Uint32 MaxSize = std::numeric_limits<Uint32>::max() - 1;
+    static constexpr uint32 MaxSize = std::numeric_limits<uint32>::max() - 1;
 
     using Iterator = ArrayIterator<ElementType>;
     using ConstIterator = ConstArrayIterator<ElementType>;
@@ -29,7 +29,7 @@ public:
     RT_FORCE_INLINE ArrayView();
 
     // create view of raw array
-    RT_FORCE_INLINE ArrayView(ElementType* elements, Uint32 numElements);
+    RT_FORCE_INLINE ArrayView(ElementType* elements, uint32 numElements);
 
     // copy/move constructor/assignment
     ArrayView(const ArrayView& other) = default;
@@ -49,7 +49,7 @@ public:
     /**
      * Get number of elements.
      */
-    RT_FORCE_INLINE Uint32 Size() const;
+    RT_FORCE_INLINE uint32 Size() const;
 
     /**
      * Get raw data pointed by the view.
@@ -92,15 +92,15 @@ public:
      * Element access operators.
      * @note The index must be valid. Otherwise it will cause an assertion.
      */
-    RT_FORCE_INLINE ElementType& operator[](Uint32 index);
-    RT_FORCE_INLINE const ElementType& operator[](Uint32 index) const;
+    RT_FORCE_INLINE ElementType& operator[](uint32 index);
+    RT_FORCE_INLINE const ElementType& operator[](uint32 index) const;
 
     /**
      * Create view of a sub-range.
      * @param index Starting index.
      * @param size  Number of elements in range.
      */
-    RT_FORCE_INLINE ArrayView Range(Uint32 index, Uint32 size) const;
+    RT_FORCE_INLINE ArrayView Range(uint32 index, uint32 size) const;
 
     /**
      * Find element by value.
@@ -120,7 +120,7 @@ public:
 
 protected:
     alignas(void*) ElementType* mElements;
-    Uint32 mSize;
+    uint32 mSize;
 };
 
 #pragma pack(pop)
@@ -148,7 +148,7 @@ bool operator >= (const ArrayView<ElementTypeA>& lhs, const ArrayView<ElementTyp
  * @note This function is meant to be fast (it's used in hash tables), not to be cryptographically secure.
  */
 template<typename ElementType>
-Uint32 GetHash(const ArrayView<ElementType>& arrayView);
+uint32 GetHash(const ArrayView<ElementType>& arrayView);
 
 
 } // namespace rt

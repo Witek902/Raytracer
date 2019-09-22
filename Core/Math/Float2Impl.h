@@ -26,13 +26,13 @@ constexpr Float2::Float2(float x, float y)
     : x(x), y(y)
 { }
 
-float Float2::Get(Uint32 index) const
+float Float2::Get(uint32 index) const
 {
     RT_ASSERT(index < 2);
     return (&x)[index];
 }
 
-float& Float2::Get(Uint32 index)
+float& Float2::Get(uint32 index)
 {
     RT_ASSERT(index < 2);
     return (&x)[index];
@@ -45,7 +45,7 @@ bool Float2::IsValid() const
 
 //////////////////////////////////////////////////////////////////////////
 
-template<Uint32 ix, Uint32 iy>
+template<uint32 ix, uint32 iy>
 const Float2 Float2::Swizzle() const
 {
     static_assert(ix < 2, "Invalid X element index");
@@ -54,7 +54,7 @@ const Float2 Float2::Swizzle() const
     return Float2((&x)[ix], (&x)[iy]);
 }
 
-template<Uint32 ix, Uint32 iy>
+template<uint32 ix, uint32 iy>
 constexpr const Float2 Float2::Blend(const Float2& a, const Float2& b)
 {
     return Float2(ix == 0 ? a.x : b.x, iy == 0 ? a.y : b.y);

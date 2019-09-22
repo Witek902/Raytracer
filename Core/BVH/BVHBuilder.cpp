@@ -8,12 +8,12 @@ namespace rt {
 
 using namespace math;
 
-BVHBuilder::Context::Context(Uint32 numLeaves)
+BVHBuilder::Context::Context(uint32 numLeaves)
 {
     mLeftBoxesCache.Resize_SkipConstructor(numLeaves);
     mRightBoxesCache.Resize_SkipConstructor(numLeaves);
 
-    for (Uint32 i = 0; i < NumAxes; ++i)
+    for (uint32 i = 0; i < NumAxes; ++i)
     {
         mSortedLeavesIndicesCache[i].Resize_SkipConstructor(numLeaves);
     }
@@ -34,9 +34,9 @@ BVHBuilder::~BVHBuilder()
 
 }
 
-bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
+bool BVHBuilder::Build(const Box* data, const uint32 numLeaves,
                        const BvhBuildingParams& params,
-                       DynArray<Uint32>& outLeavesOrder)
+                       DynArray<uint32>& outLeavesOrder)
 {
     mLeafBoxes = data;
     mNumLeaves = numLeaves;
@@ -56,7 +56,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
 
     // calculate overall bounding box
     Box overallBox = Box::Empty();
-    for (Uint32 i = 0; i < mNumLeaves; ++i)
+    for (uint32 i = 0; i < mNumLeaves; ++i)
     {
         overallBox = Box(overallBox, mLeafBoxes[i]);
     }
@@ -70,7 +70,7 @@ bool BVHBuilder::Build(const Box* data, const Uint32 numLeaves,
     rootWorkSet.box = overallBox;
     rootWorkSet.numLeaves = mNumLeaves;
     rootWorkSet.leafIndices.Reserve(mNumLeaves);
-    for (Uint32 i = 0; i < mNumLeaves; ++i)
+    for (uint32 i = 0; i < mNumLeaves; ++i)
     {
         rootWorkSet.leafIndices.PushBack(i);
     }
@@ -106,7 +106,7 @@ void BVHBuilder::GenerateLeaf(const WorkSet& workSet, BVH::Node& targetNode)
     targetNode.numLeaves = workSet.numLeaves;
     targetNode.childIndex = mNumGeneratedLeaves;
 
-    for (Uint32 i = 0; i < workSet.numLeaves; ++i)
+    for (uint32 i = 0; i < workSet.numLeaves; ++i)
     {
         mLeavesOrder.PushBack(workSet.leafIndices[i]);
     }
@@ -130,22 +130,22 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
         return;
     }
 
-    Uint32 bestAxis = 0;
-    Uint32 bestSplitPos = 0;
+    uint32 bestAxis = 0;
+    uint32 bestSplitPos = 0;
     float bestCost = FLT_MAX;
     Box bestLeftBox = Box::Empty();
     Box bestRightBox = Box::Empty();
 
     SortLeaves(workSet, context);
 
-    for (Uint32 axis = 0; axis < NumAxes; ++axis)
+    for (uint32 axis = 0; axis < NumAxes; ++axis)
     {
         const Indices& sortedIndices = context.mSortedLeavesIndicesCache[axis];
 
         // calculate left child node AABB for each possible split position
         {
             Box accumulatedBox = Box::Empty();
-            for (Uint32 i = 0; i < workSet.numLeaves; ++i)
+            for (uint32 i = 0; i < workSet.numLeaves; ++i)
             {
                 accumulatedBox = Box(accumulatedBox, mLeafBoxes[sortedIndices[i]]);
                 context.mLeftBoxesCache[i] = accumulatedBox;
@@ -155,7 +155,7 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
         // calculate right child node AABB for each possible split position
         {
             Box accumulatedBox = Box::Empty();
-            for (Uint32 i = workSet.numLeaves; i-- > 0; )
+            for (uint32 i = workSet.numLeaves; i-- > 0; )
             {
                 accumulatedBox = Box(accumulatedBox, mLeafBoxes[sortedIndices[i]]);
                 context.mRightBoxesCache[i] = accumulatedBox;
@@ -163,7 +163,7 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
         }
 
         // find optimal split position (surface area heuristics)
-        for (Uint32 splitPos = 0; splitPos < workSet.numLeaves - 1; ++splitPos)
+        for (uint32 splitPos = 0; splitPos < workSet.numLeaves - 1; ++splitPos)
         {
             const Box& leftBox = context.mLeftBoxesCache[splitPos];
             const Box& rightBox = context.mRightBoxesCache[splitPos + 1];
@@ -184,8 +184,8 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
                 RT_FATAL();
             }
 
-            const Uint32 leftCount = splitPos + 1;
-            const Uint32 rightCount = workSet.numLeaves - leftCount;
+            const uint32 leftCount = splitPos + 1;
+            const uint32 rightCount = workSet.numLeaves - leftCount;
             const float totalCost = leftCost * static_cast<float>(leftCount) + rightCost * static_cast<float>(rightCount);
 
             if (totalCost < bestCost)
@@ -199,10 +199,10 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
         }
     }
 
-    const Uint32 leftCount = bestSplitPos + 1;
-    const Uint32 rightCount = workSet.numLeaves - leftCount;
+    const uint32 leftCount = bestSplitPos + 1;
+    const uint32 rightCount = workSet.numLeaves - leftCount;
 
-    const Uint32 leftNodeIndex = mNumGeneratedNodes;
+    const uint32 leftNodeIndex = mNumGeneratedNodes;
     mNumGeneratedNodes += 2;
 
     targetNode.childIndex = leftNodeIndex;
@@ -218,8 +218,8 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
     Indices leftIndices, rightIndices;
     leftIndices.Resize_SkipConstructor(leftCount);
     rightIndices.Resize_SkipConstructor(rightCount);
-    memcpy(leftIndices.Data(), sortedIndices.Data(), sizeof(Uint32) * leftCount);
-    memcpy(rightIndices.Data(), sortedIndices.Data() + leftCount, sizeof(Uint32) * rightCount);
+    memcpy(leftIndices.Data(), sortedIndices.Data(), sizeof(uint32) * leftCount);
+    memcpy(rightIndices.Data(), sortedIndices.Data() + leftCount, sizeof(uint32) * rightCount);
 
     // generate left node
     {
@@ -244,7 +244,7 @@ void BVHBuilder::BuildNode(const WorkSet& workSet, Context& context, BVH::Node& 
 
 void BVHBuilder::SortLeaves(const WorkSet& workSet, Context& context) const
 {
-    for (Uint32 axis = 0; axis < NumAxes; ++axis)
+    for (uint32 axis = 0; axis < NumAxes; ++axis)
     {
         Indices& indicesToSort = context.mSortedLeavesIndicesCache[axis];
 
@@ -252,7 +252,7 @@ void BVHBuilder::SortLeaves(const WorkSet& workSet, Context& context) const
         {
             indicesToSort = workSet.leafIndices;
 
-            const auto comparator = [this, axis](const Uint32 a, const Uint32 b)
+            const auto comparator = [this, axis](const uint32 a, const uint32 b)
             {
                 RT_ASSERT(a < mNumLeaves);
                 RT_ASSERT(b < mNumLeaves);

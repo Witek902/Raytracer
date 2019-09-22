@@ -194,7 +194,7 @@ void DemoWindow::RenderUI_Debugging()
 
 void DemoWindow::RenderUI_Debugging_Path()
 {
-    for (Uint32 i = 0; i < mPathDebugData.data.Size(); ++i)
+    for (uint32 i = 0; i < mPathDebugData.data.Size(); ++i)
     {
         ImGui::Separator();
         ImGui::Text("Ray #%u", i);
@@ -284,17 +284,17 @@ void DemoWindow::RenderUI_Debugging_Path()
 
 void DemoWindow::RenderUI_Debugging_Color()
 {
-    Int32 x, y;
+    int32 x, y;
     GetMousePosition(x, y);
 
-    Uint32 width, height;
+    uint32 width, height;
     GetSize(width, height);
 
     Vector4 hdrColor, ldrColor;
-    if (x >= 0 && y >= 0 && (Uint32)x < width && (Uint32)y < height)
+    if (x >= 0 && y >= 0 && (uint32)x < width && (uint32)y < height)
     {
         // TODO this is incorrect, each pixel can have different number of samples
-        const Uint32 numSamples = mViewport->GetProgress().passesFinished;
+        const uint32 numSamples = mViewport->GetProgress().passesFinished;
         hdrColor = mViewport->GetSumBuffer().GetPixel(x, y, true) / static_cast<float>(numSamples);
         ldrColor = mViewport->GetFrontBuffer().GetPixel(x, y, true);
     }
@@ -315,9 +315,9 @@ void DemoWindow::RenderUI_Debugging_Color()
 #endif // RT_ENABLE_SPECTRAL_RENDERING
 
     ImGui::Text("LDR color:");
-    ImGui::Text("  R: %u", (Uint32)(255.0f * ldrColor.x + 0.5f));
-    ImGui::Text("  G: %u", (Uint32)(255.0f * ldrColor.y + 0.5f));
-    ImGui::Text("  B: %u", (Uint32)(255.0f * ldrColor.z + 0.5f));
+    ImGui::Text("  R: %u", (uint32)(255.0f * ldrColor.x + 0.5f));
+    ImGui::Text("  G: %u", (uint32)(255.0f * ldrColor.y + 0.5f));
+    ImGui::Text("  B: %u", (uint32)(255.0f * ldrColor.z + 0.5f));
 }
 
 bool DemoWindow::RenderUI_Settings()
@@ -406,7 +406,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
     bool resetFrame = false;
 
     {
-        Uint32 maxThreads = std::thread::hardware_concurrency();
+        uint32 maxThreads = std::thread::hardware_concurrency();
         ImGui::SliderInt("Threads", (int*)&mRenderingParams.numThreads, 1, 2 * maxThreads);
     }
 
@@ -474,7 +474,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
         resetFrame |= ImGui::Checkbox("Vertex connection", &renderer->mUseVertexConnection);
         ImGui::SameLine();
         resetFrame |= ImGui::Checkbox("Vertex merging", &renderer->mUseVertexMerging);
-        resetFrame |= ImGui::SliderInt("Max path length", (Int32*)&renderer->mMaxPathLength, 1, 20);
+        resetFrame |= ImGui::SliderInt("Max path length", (int32*)&renderer->mMaxPathLength, 1, 20);
         resetFrame |= ImGui::SliderFloat("Initial merging radius", &renderer->mInitialMergingRadius, renderer->mMinMergingRadius, 10.0f, "%.4f", 10.0f);
         resetFrame |= ImGui::SliderFloat("Min merging radius", &renderer->mMinMergingRadius, 0.0001f, renderer->mInitialMergingRadius, "%.4f", 10.0f);
         resetFrame |= ImGui::SliderFloat("Merging radius multiplier", &renderer->mMergingRadiusMultiplier, 0.5f, 0.9999f);
@@ -510,7 +510,7 @@ bool DemoWindow::RenderUI_Settings_Rendering()
 
     mRenderingParams.traversalMode = static_cast<TraversalMode>(traversalModeIndex);
     mRenderingParams.lightSamplingStrategy = static_cast<LightSamplingStrategy>(lightSamplingStrategyIndex);
-    mRenderingParams.tileSize = static_cast<Uint16>(tileSize);
+    mRenderingParams.tileSize = static_cast<uint16>(tileSize);
 
     return resetFrame;
 }
@@ -773,7 +773,7 @@ bool DemoWindow::RenderUI()
 {
     bool resetFrame = false;
 
-    Uint32 width, height;
+    uint32 width, height;
     GetSize(width, height);
 
     ImGuiIO& io = ImGui::GetIO();
@@ -783,7 +783,7 @@ bool DemoWindow::RenderUI()
     io.KeyShift = IsKeyPressed(KeyCode::Shift);
     io.KeyAlt = IsKeyPressed(KeyCode::Alt);
 
-    for (Uint32 i = 0; i < 256; ++i)
+    for (uint32 i = 0; i < 256; ++i)
     {
         io.KeysDown[i] = IsKeyPressed(static_cast<KeyCode>(i));
     }

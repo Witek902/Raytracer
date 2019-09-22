@@ -24,7 +24,7 @@ public:
     static constexpr const float BackgroundLightDistance = std::numeric_limits<float>::max();
     static constexpr const float CosEpsilon = 0.9999f;
 
-    enum class Type : Uint8
+    enum class Type : uint8
     {
         Area,
         Background,
@@ -33,7 +33,7 @@ public:
         Spot,
     };
 
-    enum Flags : Uint8
+    enum Flags : uint8
     {
         Flag_None       = 0,
         Flag_IsFinite   = 1 << 0,   // light has finite extent (e.g. point or area light)

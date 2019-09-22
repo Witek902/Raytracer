@@ -28,7 +28,7 @@ private:
 
     struct PathState
     {
-        Uint32 depth = 0u;
+        uint32 depth = 0u;
         float lastPdfW = 1.0f;
         bool lastSpecular = true;
     };

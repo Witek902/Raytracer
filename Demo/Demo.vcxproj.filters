@@ -80,5 +80,8 @@
     <ClInclude Include="SceneLoader.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="KeyCodes.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

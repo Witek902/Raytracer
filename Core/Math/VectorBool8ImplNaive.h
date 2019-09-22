@@ -12,7 +12,7 @@ VectorBool8::VectorBool8(const VectorBool4& low, const VectorBool4& high)
          high.Get<0>(), high.Get<1>(), high.Get<2>(), high.Get<3>() }
 {}
 
-template<Uint32 index>
+template<uint32 index>
 bool VectorBool8::Get() const
 {
     static_assert(index < 8, "Invalid index");
@@ -21,8 +21,8 @@ bool VectorBool8::Get() const
 
 int VectorBool8::GetMask() const
 {
-    Int32 ret = 0;
-    for (Uint32 i = 0; i < 8; ++i)
+    int32 ret = 0;
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret |= b[i] ? (1 << i) : 0;
     }
@@ -32,7 +32,7 @@ int VectorBool8::GetMask() const
 bool VectorBool8::All() const
 {
     bool ret = true;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret &= b[i];
     }
@@ -42,7 +42,7 @@ bool VectorBool8::All() const
 bool VectorBool8::None() const
 {
     bool ret = true;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret &= !(b[i]);
     }
@@ -52,7 +52,7 @@ bool VectorBool8::None() const
 bool VectorBool8::Any() const
 {
     bool ret = false;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret |= (b[i]);
     }
@@ -62,7 +62,7 @@ bool VectorBool8::Any() const
 const VectorBool8 VectorBool8::operator & (const VectorBool8 rhs) const
 {
     VectorBool8 ret;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret.b[i] = b[i] && rhs.b[i];
     }
@@ -72,7 +72,7 @@ const VectorBool8 VectorBool8::operator & (const VectorBool8 rhs) const
 const VectorBool8 VectorBool8::operator | (const VectorBool8 rhs) const
 {
     VectorBool8 ret;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret.b[i] = b[i] || rhs.b[i];
     }
@@ -82,7 +82,7 @@ const VectorBool8 VectorBool8::operator | (const VectorBool8 rhs) const
 const VectorBool8 VectorBool8::operator ^ (const VectorBool8 rhs) const
 {
     VectorBool8 ret;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret.b[i] = b[i] ^ rhs.b[i];
     }
@@ -92,7 +92,7 @@ const VectorBool8 VectorBool8::operator ^ (const VectorBool8 rhs) const
 bool VectorBool8::operator == (const VectorBool8 rhs) const
 {
     bool ret = true;
-    for (Uint32 i = 0; i < 8; ++i)
+    for (uint32 i = 0; i < 8; ++i)
     {
         ret &= b[i] == rhs.b[i];
     }

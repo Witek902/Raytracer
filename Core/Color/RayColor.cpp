@@ -17,7 +17,7 @@ static_assert(sizeof(RayColor) == sizeof(float) * Wavelength::NumComponents, "In
 
 #ifdef RT_ENABLE_SPECTRAL_RENDERING
 
-static constexpr Uint32 NumBins = 69;
+static constexpr uint32 NumBins = 69;
 
 static const float colorMatchingX[NumBins] =
 {
@@ -150,7 +150,7 @@ const float rgbToSpectrum_Blue[rgbToSpectrumNumSamples] =
 
 /////////////////////////////////////////////////////////////////////////////////
 
-RayColor SampleSpectrum(const float* data, const Uint32 numValues, const Wavelength& wavelength)
+RayColor SampleSpectrum(const float* data, const uint32 numValues, const Wavelength& wavelength)
 {
     const Vector8 scaledWavelengths = wavelength.value * static_cast<float>(numValues - 1);
     const VectorInt8 indices = VectorInt8::Convert(scaledWavelengths);
@@ -163,13 +163,13 @@ RayColor SampleSpectrum(const float* data, const Uint32 numValues, const Wavelen
     result.value = Vector8::Lerp(a, b, weights);
 
     /*
-    for (Uint32 i = 0; i < Wavelength::NumComponents; ++i)
+    for (uint32 i = 0; i < Wavelength::NumComponents; ++i)
     {
         assert(wavelength.value[i] >= 0.0f);
         assert(wavelength.value[i] < 1.0f);
 
         const float w = wavelength.value[i] * static_cast<float>(numValues - 1);
-        const Uint32 index = static_cast<Uint32>(w);
+        const uint32 index = static_cast<uint32>(w);
         assert(index >= 0);
         assert(index + 1 < numValues);
 
@@ -191,7 +191,7 @@ const RayColor RayColor::BlackBody(const Wavelength& wavelength, const float tem
     double c1 = 2.0f * constants::h * constants::c * constants::c;
     double c2 = h * c / k;
 
-    for (Uint32 i = 0; i < Wavelength::NumComponents; i++)
+    for (uint32 i = 0; i < Wavelength::NumComponents; i++)
     {
         // wavelenght in meters
         const double lambda = Wavelength::Lower + (Wavelength::Higher - Wavelength::Lower) * wavelength.value[i];

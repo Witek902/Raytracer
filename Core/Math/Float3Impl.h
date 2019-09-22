@@ -30,13 +30,13 @@ constexpr Float3::Float3(float x, float y, float z)
     : x(x), y(y), z(z)
 { }
 
-float Float3::Get(Uint32 index) const
+float Float3::Get(uint32 index) const
 {
     RT_ASSERT(index < 3);
     return (&x)[index];
 }
 
-float& Float3::Get(Uint32 index)
+float& Float3::Get(uint32 index)
 {
     RT_ASSERT(index < 3);
     return (&x)[index];
@@ -54,7 +54,7 @@ bool Float3::IsValid() const
 
 //////////////////////////////////////////////////////////////////////////
 
-template<Uint32 ix, Uint32 iy, Uint32 iz>
+template<uint32 ix, uint32 iy, uint32 iz>
 const Float3 Float3::Swizzle() const
 {
     static_assert(ix < 3, "Invalid X element index");
@@ -64,7 +64,7 @@ const Float3 Float3::Swizzle() const
     return Float3((&x)[ix], (&x)[iy], (&x)[iz]);
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz>
+template<uint32 ix, uint32 iy, uint32 iz>
 constexpr const Float3 Float3::Blend(const Float3& a, const Float3& b)
 {
     return Float3(ix == 0 ? a.x : b.x,

@@ -19,11 +19,11 @@ TEST(MathTest, Distribution_SingleValue)
 
     Random random;
 
-    const Uint32 numIterations = 1000;
-    for (Uint32 i = 0; i < numIterations; ++i)
+    const uint32 numIterations = 1000;
+    for (uint32 i = 0; i < numIterations; ++i)
     {
         float pdf = 0.0f;
-        Uint32 sample = distr.SampleDiscrete(random.GetFloat(), pdf);
+        uint32 sample = distr.SampleDiscrete(random.GetFloat(), pdf);
 
         EXPECT_EQ(1.0f, pdf);
         EXPECT_EQ(0u, sample);
@@ -32,8 +32,8 @@ TEST(MathTest, Distribution_SingleValue)
 
 TEST(MathTest, Distribution_MultipleValues)
 {
-    const Uint32 pdfSize = 6;
-    const Uint32 numIterations = 10000;
+    const uint32 pdfSize = 6;
+    const uint32 numIterations = 10000;
 
     const float p[] = { 0.1f, 0.0f, 0.3f, 0.1f, 0.5f, 0.0f };
     Distribution distr;
@@ -41,20 +41,20 @@ TEST(MathTest, Distribution_MultipleValues)
 
     Random random;
 
-    Int32 counters[pdfSize] = { 0,0,0,0 };
+    int32 counters[pdfSize] = { 0,0,0,0 };
 
-    for (Uint32 i = 0; i < numIterations; ++i)
+    for (uint32 i = 0; i < numIterations; ++i)
     {
         float pdf = 0.0f;
-        Uint32 sample = distr.SampleDiscrete(random.GetFloat(), pdf);
+        uint32 sample = distr.SampleDiscrete(random.GetFloat(), pdf);
         ASSERT_LT(sample, pdfSize);
 
         counters[sample]++;
     }
 
-    for (Uint32 i = 0; i < pdfSize; ++i)
+    for (uint32 i = 0; i < pdfSize; ++i)
     {
-        Int32 expected = (Int32)(numIterations * p[i]);
+        int32 expected = (int32)(numIterations * p[i]);
 
         EXPECT_LT(Abs(expected - counters[i]), 200);
     }

@@ -73,7 +73,7 @@ ConstArrayIterator<ElementType> ConstArrayIterator<ElementType>::operator++(int)
 template<typename ElementType>
 ConstArrayIterator<ElementType>& ConstArrayIterator<ElementType>::operator+=(ptrdiff_t offset)
 {
-    this->mIndex += static_cast<Int32>(offset);
+    this->mIndex += static_cast<int32>(offset);
     return *this;
 }
 
@@ -95,20 +95,20 @@ ConstArrayIterator<ElementType> ConstArrayIterator<ElementType>::operator--(int)
 template<typename ElementType>
 ConstArrayIterator<ElementType>& ConstArrayIterator<ElementType>::operator-=(ptrdiff_t offset)
 {
-    this->mIndex -= static_cast<Int32>(offset);
+    this->mIndex -= static_cast<int32>(offset);
     return *this;
 }
 
 template<typename ElementType>
 ConstArrayIterator<ElementType> ConstArrayIterator<ElementType>::operator+(ptrdiff_t offset) const
 {
-    return ConstArrayIterator(this->mElements, this->mIndex + static_cast<Int32>(offset));
+    return ConstArrayIterator(this->mElements, this->mIndex + static_cast<int32>(offset));
 }
 
 template<typename ElementType>
 ConstArrayIterator<ElementType> ConstArrayIterator<ElementType>::operator-(ptrdiff_t offset) const
 {
-    return ConstArrayIterator(this->mElements, this->mIndex - static_cast<Int32>(offset));
+    return ConstArrayIterator(this->mElements, this->mIndex - static_cast<int32>(offset));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ ArrayIterator<ElementType> ArrayIterator<ElementType>::operator++(int)
 template<typename ElementType>
 ArrayIterator<ElementType>& ArrayIterator<ElementType>::operator+=(ptrdiff_t offset)
 {
-    this->mIndex += static_cast<Int32>(offset);
+    this->mIndex += static_cast<int32>(offset);
     return *this;
 }
 
@@ -169,20 +169,20 @@ ArrayIterator<ElementType> ArrayIterator<ElementType>::operator--(int)
 template<typename ElementType>
 ArrayIterator<ElementType>& ArrayIterator<ElementType>::operator-=(ptrdiff_t offset)
 {
-    this->mIndex -= static_cast<Int32>(offset);
+    this->mIndex -= static_cast<int32>(offset);
     return *this;
 }
 
 template<typename ElementType>
 ArrayIterator<ElementType> ArrayIterator<ElementType>::operator+(ptrdiff_t offset) const
 {
-    return ArrayIterator(GetElements(), this->mIndex + static_cast<Int32>(offset));
+    return ArrayIterator(GetElements(), this->mIndex + static_cast<int32>(offset));
 }
 
 template<typename ElementType>
 ArrayIterator<ElementType> ArrayIterator<ElementType>::operator-(ptrdiff_t offset) const
 {
-    return ArrayIterator(GetElements(), this->mIndex - static_cast<Int32>(offset));
+    return ArrayIterator(GetElements(), this->mIndex - static_cast<int32>(offset));
 }
 
 

@@ -19,7 +19,7 @@ Entropy::Entropy()
     const LPCSTR userName = "MyKeyContainer";
     if (!::CryptAcquireContextA(&mCryptProv, userName, NULL, PROV_RSA_FULL, 0))
     {
-        Uint32 errorCode = GetLastError();
+        uint32 errorCode = GetLastError();
         if (::GetLastError() == NTE_BAD_KEYSET)
         {
             if (!::CryptAcquireContextA(&mCryptProv, userName, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
@@ -62,9 +62,9 @@ Entropy::~Entropy()
 #endif // WIN32
 }
 
-Uint32 Entropy::GetInt()
+uint32 Entropy::GetInt()
 {
-    Uint32 result = 0;
+    uint32 result = 0;
 
 #if defined(WIN32)
 

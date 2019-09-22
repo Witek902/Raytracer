@@ -35,8 +35,8 @@ public:
     virtual const char* GetName() const override;
     virtual RendererContextPtr CreateContext() const;
 
-    virtual void PreRender(Uint32 passNumber, const Film& film) override;
-    virtual void PreRender(Uint32 passNumber, RenderingContext& ctx) override;
+    virtual void PreRender(uint32 passNumber, const Film& film) override;
+    virtual void PreRender(uint32 passNumber, RenderingContext& ctx) override;
     virtual void PreRenderGlobal(RenderingContext& ctx) override;
     virtual void PreRenderGlobal() override;
     virtual const RayColor RenderPixel(const math::Ray& ray, const RenderParam& param, RenderingContext& ctx) const override;
@@ -48,7 +48,7 @@ public:
     math::Vector4 mVertexMergingWeight;
     math::Vector4 mCameraConnectingWeight;
 
-    Uint32 mMaxPathLength;
+    uint32 mMaxPathLength;
     float mInitialMergingRadius;
     float mMinMergingRadius;
     float mMergingRadiusMultiplier;
@@ -66,7 +66,7 @@ public:
         float dVM;
         float dVCM;
 
-        Uint8 pathLength;
+        uint8 pathLength;
     };
 
     struct RT_ALIGN(32) Photon
@@ -105,7 +105,7 @@ private:
         float dVM = 0.0f;
         float dVCM = 0.0f;
 
-        Uint32 length = 1u;
+        uint32 length = 1u;
         BSDF::EventType lastSampledBsdfEvent = BSDF::NullEvent;
         bool lastSpecular = true;
         bool isFiniteLight = false;
@@ -118,10 +118,10 @@ private:
     const RayColor SampleLight(const LightSceneObject* lightObject, const ShadingData& shadingData, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from a hit local lights
-    const RayColor EvaluateLight(Uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateLight(uint32 iteration, const LightSceneObject* lightObject, const IntersectionData* intersection, const PathState& pathState, RenderingContext& ctx) const;
 
     // compute radiance from global lights
-    const RayColor EvaluateGlobalLights(Uint32 iteration, const PathState& pathState, RenderingContext& ctx) const;
+    const RayColor EvaluateGlobalLights(uint32 iteration, const PathState& pathState, RenderingContext& ctx) const;
 
     // generate initial camera ray
     bool GenerateCameraPath(PathState& path, RenderingContext& ctx) const;
@@ -142,7 +142,7 @@ private:
     // connect a light path to camera directly and splat the contribution onto film
     void ConnectToCamera(const Camera& camera, Film& film, const LightVertex& lightVertex, RenderingContext& ctx) const;
 
-    Uint32 mLightPathsCount;
+    uint32 mLightPathsCount;
 
     float mMergingRadiusVC;
     float mMergingRadiusVM;

@@ -48,7 +48,7 @@ public:
     RAYLIB_API bool BuildBVH();
 
     RT_FORCE_INLINE const BVH& GetBVH() const { return mTraceableObjectsBVH; }
-    RT_FORCE_INLINE const ITraceableSceneObject* GetHitObject(Uint32 id) const { return mTraceableObjects[id]; }
+    RT_FORCE_INLINE const ITraceableSceneObject* GetHitObject(uint32 id) const { return mTraceableObjects[id]; }
     RT_FORCE_INLINE const DynArray<const LightSceneObject*>& GetLights() const { return mLights; }
     RT_FORCE_INLINE const DynArray<const LightSceneObject*>& GetGlobalLights() const { return mGlobalLights; }
 
@@ -63,8 +63,8 @@ public:
 
     void TraceRay_Simd8(const math::Ray_Simd8& ray, RenderingContext& context, RayColor* outColors) const;
 
-    void Traverse_Leaf(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const;
-    void Traverse_Leaf(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, Uint32 numActiveGroups) const;
+    void Traverse_Leaf(const SingleTraversalContext& context, const uint32 objectID, const BVH::Node& node) const;
+    void Traverse_Leaf(const PacketTraversalContext& context, const uint32 objectID, const BVH::Node& node, uint32 numActiveGroups) const;
 
     bool Traverse_Leaf_Shadow(const SingleTraversalContext& context, const BVH::Node& node) const;
 
@@ -74,8 +74,8 @@ private:
     Scene(const Scene&) = delete;
     Scene& operator = (const Scene&) = delete;
 
-    RT_FORCE_NOINLINE void Traverse_Object(const SingleTraversalContext& context, const Uint32 objectID) const;
-    RT_FORCE_NOINLINE bool Traverse_Object_Shadow(const SingleTraversalContext& context, const Uint32 objectID) const;
+    RT_FORCE_NOINLINE void Traverse_Object(const SingleTraversalContext& context, const uint32 objectID) const;
+    RT_FORCE_NOINLINE bool Traverse_Object_Shadow(const SingleTraversalContext& context, const uint32 objectID) const;
 
     void EvaluateDecals(ShadingData& shadingData, RenderingContext& context) const;
 

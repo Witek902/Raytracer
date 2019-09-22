@@ -32,11 +32,11 @@ Vector8::Vector8(float e0, float e1, float e2, float e3, float e4, float e5, flo
     : v(_mm256_set_ps(e7, e6, e5, e4, e3, e2, e1, e0))
 {}
 
-Vector8::Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7)
+Vector8::Vector8(int32 e0, int32 e1, int32 e2, int32 e3, int32 e4, int32 e5, int32 e6, int32 e7)
     : v(_mm256_castsi256_ps(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0)))
 {}
 
-Vector8::Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7)
+Vector8::Vector8(uint32 e0, uint32 e1, uint32 e2, uint32 e3, uint32 e4, uint32 e5, uint32 e6, uint32 e7)
     : v(_mm256_castsi256_ps(_mm256_set_epi32(e7, e6, e5, e4, e3, e2, e1, e0)))
 {}
 
@@ -48,15 +48,15 @@ Vector8::Vector8(const float scalar)
     : v(_mm256_set1_ps(scalar))
 {}
 
-Vector8::Vector8(const Int32 i)
+Vector8::Vector8(const int32 i)
     : v(_mm256_castsi256_ps(_mm256_set1_epi32(i)))
 {}
 
-Vector8::Vector8(const Uint32 u)
+Vector8::Vector8(const uint32 u)
     : v(_mm256_castsi256_ps(_mm256_set1_epi32(u)))
 {}
 
-const Vector8 Vector8::FromInteger(Int32 x)
+const Vector8 Vector8::FromInteger(int32 x)
 {
     return _mm256_cvtepi32_ps(_mm256_set1_epi32(x));
 }
@@ -72,7 +72,7 @@ const Vector8 Vector8::Select(const Vector8& a, const Vector8& b, const VectorBo
     return _mm256_blendv_ps(a, b, sel.v);
 }
 
-template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
 const Vector8 Vector8::Select(const Vector8& a, const Vector8& b)
 {
     static_assert(selX <= 1, "Invalid X index");
@@ -80,11 +80,11 @@ const Vector8 Vector8::Select(const Vector8& a, const Vector8& b)
     static_assert(selZ <= 1, "Invalid Z index");
     static_assert(selW <= 1, "Invalid W index");
 
-    constexpr Uint32 maskLow = selX | (selY << 1) | (selZ << 2) | (selW << 3);
+    constexpr uint32 maskLow = selX | (selY << 1) | (selZ << 2) | (selW << 3);
     return _mm256_blend_ps(a, b, maskLow | (maskLow << 4));
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const Vector8 Vector8::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");
@@ -298,7 +298,7 @@ const Vector8 Vector8::Abs(const Vector8& v)
     return _mm256_and_ps(v, VECTOR8_MASK_ABS);
 }
 
-Int32 Vector8::GetSignMask() const
+int32 Vector8::GetSignMask() const
 {
     return _mm256_movemask_ps(v);
 }

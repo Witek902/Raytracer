@@ -11,7 +11,7 @@ class RT_ALIGN(16) NoiseTexture
     , public Aligned<16>
 {
 public:
-    RAYLIB_API NoiseTexture(const math::Vector4& colorA, const math::Vector4& colorB, const Uint32 numOctaves = 1);
+    RAYLIB_API NoiseTexture(const math::Vector4& colorA, const math::Vector4& colorB, const uint32 numOctaves = 1);
 
     virtual const char* GetName() const override;
     virtual const math::Vector4 Evaluate(const math::Vector4& coords) const override;
@@ -22,7 +22,7 @@ public:
 private:
     math::Vector4 mColorA;
     math::Vector4 mColorB;
-    Uint32 mNumOctaves;
+    uint32 mNumOctaves;
 };
 
 } // namespace rt

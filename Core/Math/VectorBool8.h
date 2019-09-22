@@ -22,7 +22,7 @@ struct RT_ALIGN(32) VectorBool8
     RT_FORCE_INLINE operator __m256i() const { return _mm256_castps_si256(v); }
 #endif // RT_USE_SSE
 
-    template<Uint32 index>
+    template<uint32 index>
     RT_FORCE_INLINE bool Get() const;
 
     // combine into 8-bit mask

@@ -18,9 +18,9 @@ ThreadPool::~ThreadPool()
     StopWorkerThreads();
 }
 
-void ThreadPool::StartWorkerThreads(Uint32 num)
+void ThreadPool::StartWorkerThreads(uint32 num)
 {
-    const Uint32 maxThreads = 256;
+    const uint32 maxThreads = 256;
 
     if (num > maxThreads)
     {
@@ -30,7 +30,7 @@ void ThreadPool::StartWorkerThreads(Uint32 num)
     RT_ASSERT(mFinishThreads == true);
     mFinishThreads = false;
 
-    for (Uint32 i = 0; i < num; ++i)
+    for (uint32 i = 0; i < num; ++i)
     {
         mThreads.EmplaceBack(&ThreadPool::ThreadCallback, this, i);
     }
@@ -54,11 +54,11 @@ void ThreadPool::StopWorkerThreads()
     mThreads.Clear();
 }
 
-void ThreadPool::ThreadCallback(Uint32 threadID)
+void ThreadPool::ThreadCallback(uint32 threadID)
 {
     for (;;)
     {
-        Uint32 taskID;
+        uint32 taskID;
 
         {
             Lock lock(mMutex);
@@ -90,7 +90,7 @@ void ThreadPool::ThreadCallback(Uint32 threadID)
     }
 }
 
-void ThreadPool::SetNumThreads(const Uint32 numThreads)
+void ThreadPool::SetNumThreads(const uint32 numThreads)
 {
     if (numThreads != GetNumThreads())
     {
@@ -99,7 +99,7 @@ void ThreadPool::SetNumThreads(const Uint32 numThreads)
     }
 }
 
-void ThreadPool::RunParallelTask(const ParallelTask& task, Uint32 num)
+void ThreadPool::RunParallelTask(const ParallelTask& task, uint32 num)
 {
     if (num > 0u)
     {

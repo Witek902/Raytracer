@@ -12,7 +12,7 @@ class RT_ALIGN(16) Bitmap : public Aligned<16>
 {
 public:
 
-    enum class Format : Uint8
+    enum class Format : uint8
     {
         Unknown = 0,
         R8_UNorm,
@@ -42,13 +42,13 @@ public:
 
     struct InitData
     {
-        Uint32 width = 0;
-        Uint32 height = 0;
+        uint32 width = 0;
+        uint32 height = 0;
         Format format = Format::Unknown;
         const void* data = nullptr;
-        Uint32 stride = 0;
+        uint32 stride = 0;
         bool linearSpace = true;
-        Uint32 paletteSize = 0;
+        uint32 paletteSize = 0;
         bool useDefaultAllocator = false;
     };
 
@@ -60,7 +60,7 @@ public:
     RT_FORCE_INLINE const char* GetDebugName() const { return mDebugName; }
 
     template<typename T>
-    RT_FORCE_INLINE T& GetPixelRef(Uint32 x, Uint32 y)
+    RT_FORCE_INLINE T& GetPixelRef(uint32 x, uint32 y)
     {
         RT_ASSERT(x < mWidth && y < mHeight);
         RT_ASSERT(BitsPerPixel(mFormat) / 8 == sizeof(T));
@@ -70,7 +70,7 @@ public:
     }
 
     template<typename T>
-    RT_FORCE_INLINE const T& GetPixelRef(Uint32 x, Uint32 y) const
+    RT_FORCE_INLINE const T& GetPixelRef(uint32 x, uint32 y) const
     {
         RT_ASSERT(x < mWidth && y < mHeight);
         RT_ASSERT(BitsPerPixel(mFormat) / 8 == sizeof(T));
@@ -79,18 +79,18 @@ public:
         return *reinterpret_cast<const T*>(mData + rowOffset + sizeof(T) * x);
     }
 
-    RT_FORCE_INLINE Uint8* GetData() { return mData; }
-    RT_FORCE_INLINE const Uint8* GetData() const { return mData; }
-    RT_FORCE_INLINE Uint32 GetWidth() const { return mWidth; }
-    RT_FORCE_INLINE Uint32 GetStride() const { return mStride; }
-    RT_FORCE_INLINE Uint32 GetHeight() const { return mHeight; }
+    RT_FORCE_INLINE uint8* GetData() { return mData; }
+    RT_FORCE_INLINE const uint8* GetData() const { return mData; }
+    RT_FORCE_INLINE uint32 GetWidth() const { return mWidth; }
+    RT_FORCE_INLINE uint32 GetStride() const { return mStride; }
+    RT_FORCE_INLINE uint32 GetHeight() const { return mHeight; }
     RT_FORCE_INLINE Format GetFormat() const { return mFormat; }
 
     // get allocated size
     RT_FORCE_INLINE size_t GetDataSize() const { return (size_t)mStride * (size_t)mHeight; }
 
     static size_t ComputeDataSize(const InitData& initData);
-    static Uint32 ComputeDataStride(Uint32 width, Format format);
+    static uint32 ComputeDataStride(uint32 width, Format format);
 
     // initialize bitmap with data (or clean if passed nullptr)
     RAYLIB_API bool Init(const InitData& initData);
@@ -113,13 +113,13 @@ public:
     void Release();
 
     // calculate number of bits per pixel for given format
-    static Uint8 BitsPerPixel(Format format);
+    static uint8 BitsPerPixel(Format format);
 
     // get bitmap format description
     static const char* FormatToString(Format format);
 
     // get single pixel
-    RAYLIB_API const math::Vector4 GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace = false) const;
+    RAYLIB_API const math::Vector4 GetPixel(uint32 x, uint32 y, const bool forceLinearSpace = false) const;
 
     // get 2x2 pixel block
     RAYLIB_API void GetPixelBlock(const math::VectorInt4 coords, math::Vector4* outColors, const bool forceLinearSpace = false) const;
@@ -127,7 +127,7 @@ public:
     // fill with zeros
     RAYLIB_API void Clear();
     
-    bool GaussianBlur(const float sigma, const Uint32 n);
+    bool GaussianBlur(const float sigma, const uint32 n);
 
 private:
 
@@ -141,12 +141,12 @@ private:
     bool LoadEXR(FILE* file, const char* path);
 
     math::Vector4 mFloatSize = math::Vector4::Zero();
-    Uint8* mData;
-    Uint8* mPalette;
-    Uint32 mWidth;          // number of pixels in a row
-    Uint32 mHeight;         // number of rows
-    Uint32 mStride;         // number of bytes between rows
-    Uint32 mPaletteSize;    // number of colors in the palette
+    uint8* mData;
+    uint8* mPalette;
+    uint32 mWidth;          // number of pixels in a row
+    uint32 mHeight;         // number of rows
+    uint32 mStride;         // number of bytes between rows
+    uint32 mPaletteSize;    // number of colors in the palette
     Format mFormat;
     bool mLinearSpace : 1;
     bool mUsesDefaultAllocator : 1;

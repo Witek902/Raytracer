@@ -13,14 +13,14 @@ VectorBool4::VectorBool4(int x, int y, int z, int w)
     v = _mm_castsi128_ps(_mm_set_epi32((w > 0) ? 0xFFFFFFFF : 0, (z > 0) ? 0xFFFFFFFF : 0, (y > 0) ? 0xFFFFFFFF : 0, (x > 0) ? 0xFFFFFFFF : 0));
 }
 
-template<Uint32 index>
+template<uint32 index>
 bool VectorBool4::Get() const
 {
     static_assert(index < 4, "Invalid index");
     return _mm_extract_ps(v, index) != 0;
 }
 
-template<Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw>
+template<uint32 ix, uint32 iy, uint32 iz, uint32 iw>
 const VectorBool4 VectorBool4::Swizzle() const
 {
     static_assert(ix < 4, "Invalid X element index");

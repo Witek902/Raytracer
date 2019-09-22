@@ -17,8 +17,8 @@ struct RT_ALIGN(16) Vector4
     union
     {
         float f[4];
-        Int32 i[4];
-        Uint32 u[4];
+        int32 i[4];
+        uint32 u[4];
 
 #ifdef RT_USE_SSE
         __m128 v;
@@ -38,22 +38,22 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE Vector4(const Vector4& other);
     RT_FORCE_INLINE static const Vector4 Zero();
     RT_FORCE_INLINE explicit Vector4(const float scalar); // splat
-    RT_FORCE_INLINE explicit Vector4(const Int32 scalar); // splat
-    RT_FORCE_INLINE explicit Vector4(const Uint32 scalar); // splat
+    RT_FORCE_INLINE explicit Vector4(const int32 scalar); // splat
+    RT_FORCE_INLINE explicit Vector4(const uint32 scalar); // splat
     RT_FORCE_INLINE Vector4(const float x, const float y, const float z = 0.0f, const float w = 0.0f);
-    RT_FORCE_INLINE Vector4(const Int32 x, const Int32 y, const Int32 z = 0, const Int32 w = 0);
-    RT_FORCE_INLINE Vector4(const Uint32 x, const Uint32 y, const Uint32 z = 0u, const Uint32 w = 0u);
+    RT_FORCE_INLINE Vector4(const int32 x, const int32 y, const int32 z = 0, const int32 w = 0);
+    RT_FORCE_INLINE Vector4(const uint32 x, const uint32 y, const uint32 z = 0u, const uint32 w = 0u);
     RT_FORCE_INLINE explicit Vector4(const float* src);
     RT_FORCE_INLINE explicit Vector4(const Float2& src);
     RT_FORCE_INLINE explicit Vector4(const Float3& src);
     RT_FORCE_INLINE Vector4& operator = (const Vector4& other);
 
-    RT_FORCE_INLINE static const Vector4 FromInteger(Int32 x);
-    RT_FORCE_INLINE static const Vector4 FromIntegers(Int32 x, Int32 y, Int32 z, Int32 w);
+    RT_FORCE_INLINE static const Vector4 FromInteger(int32 x);
+    RT_FORCE_INLINE static const Vector4 FromIntegers(int32 x, int32 y, int32 z, int32 w);
 
     RT_FORCE_INLINE explicit operator float() const { return x; }
-    RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
-    RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
+    RT_FORCE_INLINE float operator[] (uint32 index) const { return f[index]; }
+    RT_FORCE_INLINE float& operator[] (uint32 index) { return f[index]; }
 
 #ifdef RT_USE_SSE
     RT_FORCE_INLINE Vector4(const __m128& src);
@@ -100,26 +100,26 @@ struct RT_ALIGN(16) Vector4
     RT_FORCE_INLINE const Vector4 SplatW() const;
 
     // Change sign of selected elements (immediate)
-    template<Uint32 flipX, Uint32 flipY, Uint32 flipZ, Uint32 flipW>
+    template<uint32 flipX, uint32 flipY, uint32 flipZ, uint32 flipW>
     RT_FORCE_INLINE const Vector4 ChangeSign() const;
 
     // Change sign of selected elements (variable)
     RT_FORCE_INLINE const Vector4 ChangeSign(const VectorBool4& flip) const;
 
     // Prepare mask vector
-    template<Uint32 maskX, Uint32 maskY, Uint32 maskZ, Uint32 maskW>
+    template<uint32 maskX, uint32 maskY, uint32 maskZ, uint32 maskW>
     RT_FORCE_INLINE static const Vector4 MakeMask();
 
     // Rearrange vector elements (immediate)
-    template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
+    template<uint32 ix = 0, uint32 iy = 1, uint32 iz = 2, uint32 iw = 3>
     RT_FORCE_INLINE const Vector4 Swizzle() const;
 
     // Rearrange vector elements (variable)
-    RT_FORCE_INLINE const Vector4 Swizzle(Uint32 ix, Uint32 iy, Uint32 iz, Uint32 iw) const;
+    RT_FORCE_INLINE const Vector4 Swizzle(uint32 ix, uint32 iy, uint32 iz, uint32 iw) const;
 
     // Convert to 3 uint8 values (with clamping)
     // xyz [0.0f...1.0f] -> zyx [0...255]
-    RT_FORCE_INLINE Uint32 ToBGR() const;
+    RT_FORCE_INLINE uint32 ToBGR() const;
 
     RT_FORCE_INLINE Float2 ToFloat2() const;
     RT_FORCE_INLINE Float3 ToFloat3() const;
@@ -142,7 +142,7 @@ struct RT_ALIGN(16) Vector4
     // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b, const VectorBool4& sel);
 
-    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+    template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
     RT_FORCE_INLINE static const Vector4 Select(const Vector4& a, const Vector4& b);
 
     // Calculate 2D dot product (scalar result)

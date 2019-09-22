@@ -74,7 +74,7 @@ RT_FORCE_INLINE math::Vector4 ConvertRGBtoXYZ(const math::Vector4& rgbColor)
     );
 }
 
-enum class Tonemapper : Uint8
+enum class Tonemapper : uint8
 {
     Clamped,
     Reinhard,

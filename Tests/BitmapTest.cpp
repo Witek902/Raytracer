@@ -27,13 +27,13 @@ void CompareVector(const Vector4& ref, const Vector4& val, float maxError = 0.0f
     EXPECT_LE(diff.w, maxError);
 }
 
-static void Validate_GetPixel(const Bitmap& bitmap, const Vector4* expectedValues, float maxError = 0.0f, Uint32 width = 2, Uint32 height = 2)
+static void Validate_GetPixel(const Bitmap& bitmap, const Vector4* expectedValues, float maxError = 0.0f, uint32 width = 2, uint32 height = 2)
 {
-    for (Uint32 y = 0; y < height; ++y)
+    for (uint32 y = 0; y < height; ++y)
     {
         SCOPED_TRACE("y=" + std::to_string(y));
 
-        for (Uint32 x = 0; x < width; ++x)
+        for (uint32 x = 0; x < width; ++x)
         {
             SCOPED_TRACE("x=" + std::to_string(x));
 
@@ -48,13 +48,13 @@ static void Validate_GetPixel(const Bitmap& bitmap, const Vector4* expectedValue
     }
 }
 
-static void Validate_GetPixelBlock(const Bitmap& bitmap, const Vector4* expectedValues, float maxError = 0.0f, Uint32 x = 0, Uint32 y = 0)
+static void Validate_GetPixelBlock(const Bitmap& bitmap, const Vector4* expectedValues, float maxError = 0.0f, uint32 x = 0, uint32 y = 0)
 {
     Vector4 actual[4];
 
     bitmap.GetPixelBlock(VectorInt4(x, y, x + 1, y + 1), actual);
 
-    for (Uint32 i = 0; i < 4; ++i)
+    for (uint32 i = 0; i < 4; ++i)
     {
         SCOPED_TRACE("i=" + std::to_string(i));
 
@@ -73,7 +73,7 @@ TEST(BitmapTest, Format_R8_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint8 data[] =
+        const uint8 data[] =
         {
             0,
             13,
@@ -99,7 +99,7 @@ TEST(BitmapTest, Format_R8G8_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint8 data[] =
+        const uint8 data[] =
         {
             0,      123,
             13,     0,
@@ -125,7 +125,7 @@ TEST(BitmapTest, Format_B8G8R8_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint8 data[] =
+        const uint8 data[] =
         {
             0,      123,    17,
             13,     0,      255,
@@ -151,7 +151,7 @@ TEST(BitmapTest, Format_B8G8R8A8_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint8 data[] =
+        const uint8 data[] =
         {
             0,      123,    17,     255,
             13,     0,      255,    30,
@@ -207,7 +207,7 @@ TEST(BitmapTest, Format_R16_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint16 data[] =
+        const uint16 data[] =
         {
             0,
             120,
@@ -233,7 +233,7 @@ TEST(BitmapTest, Format_R16G16_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint16 data[] =
+        const uint16 data[] =
         {
             0,      120,
             120,    0,
@@ -259,7 +259,7 @@ TEST(BitmapTest, Format_R16G16B16A16_UNorm)
 {
     Bitmap bitmap;
     {
-        const Uint16 data[] =
+        const uint16 data[] =
         {
             0,      120,    47813,  65535,
             120,    0,      65535,  47813,

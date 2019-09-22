@@ -13,26 +13,26 @@ namespace
 
     struct BitmapFileHeader
     {
-        Uint16 bfType;
-        Uint32 bfSize;
-        Uint16 bfReserved1;
-        Uint16 bfReserved2;
-        Uint32 bfOffBits;
+        uint16 bfType;
+        uint32 bfSize;
+        uint16 bfReserved1;
+        uint16 bfReserved2;
+        uint32 bfOffBits;
     };
 
     struct BitmapInfoHeader
     {
-        Uint32 biSize;
-        Uint32 biWidth;
-        Uint32 biHeight;
-        Uint16 biPlanes;
-        Uint16 biBitCount;
-        Uint32 biCompression;
-        Uint32 biSizeImage;
-        Uint32 biXPelsPerMeter;
-        Uint32 biYPelsPerMeter;
-        Uint32 biClrUsed;
-        Uint32 biClrImportant;
+        uint32 biSize;
+        uint32 biWidth;
+        uint32 biHeight;
+        uint16 biPlanes;
+        uint16 biBitCount;
+        uint32 biCompression;
+        uint32 biSizeImage;
+        uint32 biXPelsPerMeter;
+        uint32 biYPelsPerMeter;
+        uint32 biClrUsed;
+        uint32 biClrImportant;
     };
 
     struct BMPHeader
@@ -86,7 +86,7 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
     }
     else
     {
-        RT_LOG_ERROR("Unsupported BMP bit depth (%u): '%hs'", (Uint32)infoHeader.biBitCount, path);
+        RT_LOG_ERROR("Unsupported BMP bit depth (%u): '%hs'", (uint32)infoHeader.biBitCount, path);
         return false;
     }
 
@@ -135,22 +135,22 @@ bool Bitmap::LoadBMP(FILE* file, const char* path)
 
 bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
 {
-    Uint32 dataSize = 3 * mWidth * mHeight;
+    uint32 dataSize = 3 * mWidth * mHeight;
 
-    DynArray<Uint8> tmpData(dataSize);
-    const Uint8* dataPtr = nullptr;
+    DynArray<uint8> tmpData(dataSize);
+    const uint8* dataPtr = nullptr;
 
     if (mFormat == Format::B8G8R8A8_UNorm)
     {
-        const Uint8* rawData = reinterpret_cast<const Uint8*>(mData);
+        const uint8* rawData = reinterpret_cast<const uint8*>(mData);
 
-        Uint32 i = 0;
-        for (Uint32 y = 0; y < (Uint32)mHeight; ++y)
+        uint32 i = 0;
+        for (uint32 y = 0; y < (uint32)mHeight; ++y)
         {
-            const Uint32 realY = flipVertically ? mHeight - 1 - y : y;
-            for (Uint32 x = 0; x < (Uint32)mWidth; ++x)
+            const uint32 realY = flipVertically ? mHeight - 1 - y : y;
+            for (uint32 x = 0; x < (uint32)mWidth; ++x)
             {
-                const Uint32 p = mWidth * realY + x;
+                const uint32 p = mWidth * realY + x;
                 tmpData[i++] = rawData[4 * p];
                 tmpData[i++] = rawData[4 * p + 1];
                 tmpData[i++] = rawData[4 * p + 2];
@@ -161,7 +161,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
     }
     else if (mFormat == Format::B8G8R8_UNorm)
     {
-        dataPtr = reinterpret_cast<const Uint8*>(mData);
+        dataPtr = reinterpret_cast<const uint8*>(mData);
     }
     else
     {
@@ -174,7 +174,7 @@ bool Bitmap::SaveBMP(const char* path, bool flipVertically) const
         // BitmapFileHeader
         {
             /* bfType */        0x4D42,
-            /* bfSize */        static_cast<Uint32>(sizeof(BMPHeader) + dataSize),
+            /* bfSize */        static_cast<uint32>(sizeof(BMPHeader) + dataSize),
             /* bfReserved1 */   0,
             /* bfReserved2 */   0,
             /* bfOffBits */     sizeof(BMPHeader),

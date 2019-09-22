@@ -34,7 +34,7 @@ public:
     float alphaMin = 0.0f;
     float alphaMax = 1.0f;
 
-    Uint32 order = 0;
+    uint32 order = 0;
 };
 
 } // namespace rt

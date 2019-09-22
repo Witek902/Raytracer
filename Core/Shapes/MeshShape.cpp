@@ -36,11 +36,11 @@ bool MeshShape::Initialize(const MeshDesc& desc)
     mBoundingBox = Box::Empty();
 
     const Float3* positions = desc.vertexBufferDesc.positions;
-    const Uint32* indexBuffer = desc.vertexBufferDesc.vertexIndexBuffer;
+    const uint32* indexBuffer = desc.vertexBufferDesc.vertexIndexBuffer;
 
     DynArray<Box> boxes;
     boxes.Reserve(desc.vertexBufferDesc.numTriangles);
-    for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
+    for (uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
     {
         const Vector4 v0(positions[indexBuffer[3 * i + 0]]);
         const Vector4 v1(positions[indexBuffer[3 * i + 1]]);
@@ -70,7 +70,7 @@ bool MeshShape::Initialize(const MeshDesc& desc)
         RT_LOG_INFO("    - total volume: %f", stats.totalNodesVolume);
 
         std::stringstream str;
-        for (Uint32 i = 0; i < stats.leavesCountHistogram.Size(); ++i)
+        for (uint32 i = 0; i < stats.leavesCountHistogram.Size(); ++i)
         {
             if (i > 0)
                 str << ", ";
@@ -81,11 +81,11 @@ bool MeshShape::Initialize(const MeshDesc& desc)
 
     // reorder triangles
     {
-        DynArray<Uint32> newIndexBuffer(desc.vertexBufferDesc.numTriangles * 3);
-        DynArray<Uint32> newMaterialIndexBuffer(desc.vertexBufferDesc.numTriangles);
-        for (Uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
+        DynArray<uint32> newIndexBuffer(desc.vertexBufferDesc.numTriangles * 3);
+        DynArray<uint32> newMaterialIndexBuffer(desc.vertexBufferDesc.numTriangles);
+        for (uint32 i = 0; i < desc.vertexBufferDesc.numTriangles; ++i)
         {
-            const Uint32 newTriangleIndex = newTrianglesOrder[i];
+            const uint32 newTriangleIndex = newTrianglesOrder[i];
             RT_ASSERT(newTriangleIndex < desc.vertexBufferDesc.numTriangles);
 
             newIndexBuffer[3 * i] = indexBuffer[3 * newTriangleIndex];
@@ -126,12 +126,12 @@ const Vector4 MeshShape::Sample(const Float3& u, math::Vector4* outNormal, float
     return Vector4::Zero();
 }
 
-void MeshShape::Traverse(const SingleTraversalContext& context, const Uint32 objectID) const
+void MeshShape::Traverse(const SingleTraversalContext& context, const uint32 objectID) const
 {
     GenericTraverse<MeshShape>(context, objectID, this);
 }
 
-void MeshShape::Traverse_Leaf(const SingleTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void MeshShape::Traverse_Leaf(const SingleTraversalContext& context, const uint32 objectID, const BVH::Node& node) const
 {
     float distance, u, v;
 
@@ -139,12 +139,12 @@ void MeshShape::Traverse_Leaf(const SingleTraversalContext& context, const Uint3
     context.context.localCounters.numRayTriangleTests += node.numLeaves;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    const Uint32 numLeaves = node.numLeaves;
-    const Uint32 childIndex = node.childIndex;
+    const uint32 numLeaves = node.numLeaves;
+    const uint32 childIndex = node.childIndex;
 
-    for (Uint32 i = 0; i < numLeaves; ++i)
+    for (uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 triangleIndex = childIndex + i;
+        const uint32 triangleIndex = childIndex + i;
         const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
 
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
@@ -180,12 +180,12 @@ bool MeshShape::Traverse_Leaf_Shadow(const SingleTraversalContext& context, cons
     context.context.localCounters.numRayTriangleTests += node.numLeaves;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    const Uint32 numLeaves = node.numLeaves;
-    const Uint32 childIndex = node.childIndex;
+    const uint32 numLeaves = node.numLeaves;
+    const uint32 childIndex = node.childIndex;
 
-    for (Uint32 i = 0; i < numLeaves; ++i)
+    for (uint32 i = 0; i < numLeaves; ++i)
     {
-        const Uint32 triangleIndex = childIndex + i;
+        const uint32 triangleIndex = childIndex + i;
         const ProcessedTriangle& tri = mVertexBuffer.GetTriangle(triangleIndex);
         if (Intersect_TriangleRay(context.ray, Vector4(&tri.v0.x), Vector4(&tri.edge1.x), Vector4(&tri.edge2.x), u, v, distance))
         {
@@ -207,7 +207,7 @@ bool MeshShape::Traverse_Leaf_Shadow(const SingleTraversalContext& context, cons
 }
 
 /*
-void MeshShape::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const Uint32 objectID, const BVH::Node& node) const
+void MeshShape::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const uint32 objectID, const BVH::Node& node) const
 {
     const VectorInt8 objectIndexVec(objectID);
 
@@ -218,16 +218,16 @@ void MeshShape::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const U
     context.context.localCounters.numRayTriangleTests += 8 * node.numLeaves;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    for (uint32 i = 0; i < node.numLeaves; ++i)
     {
         HitPoint_Simd8& hitPoint = context.hitPoint;
-        const Uint32 triangleIndex = node.childIndex + i;
+        const uint32 triangleIndex = node.childIndex + i;
         const VectorInt8 triangleIndexVec(triangleIndex);
 
         mVertexBuffer.GetTriangle(triangleIndex, tri);
 
         const Vector8 mask = Intersect_TriangleRay_Simd8(context.ray.dir, context.ray.origin, tri, hitPoint.distance, u, v, distance);
-        const Uint32 intMask = mask.GetSignMask();
+        const uint32 intMask = mask.GetSignMask();
 
         // TODO triangle & object filtering
         if (intMask)
@@ -247,7 +247,7 @@ void MeshShape::Traverse_Leaf_Simd8(const SimdTraversalContext& context, const U
 }
 */
 
-void MeshShape::Traverse_Leaf(const PacketTraversalContext& context, const Uint32 objectID, const BVH::Node& node, const Uint32 numActiveGroups) const
+void MeshShape::Traverse_Leaf(const PacketTraversalContext& context, const uint32 objectID, const BVH::Node& node, const uint32 numActiveGroups) const
 {
     Vector8 distance, u, v;
     Triangle_Simd8 tri;
@@ -256,14 +256,14 @@ void MeshShape::Traverse_Leaf(const PacketTraversalContext& context, const Uint3
     context.context.localCounters.numRayTriangleTests += 8 * node.numLeaves * numActiveGroups;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
-    for (Uint32 i = 0; i < node.numLeaves; ++i)
+    for (uint32 i = 0; i < node.numLeaves; ++i)
     {
-        const Uint32 triangleIndex = node.childIndex + i;
+        const uint32 triangleIndex = node.childIndex + i;
         const Vector8 triangleIndexVec(triangleIndex);
 
         mVertexBuffer.GetTriangle(triangleIndex, tri);
 
-        for (Uint32 j = 0; j < numActiveGroups; ++j)
+        for (uint32 j = 0; j < numActiveGroups; ++j)
         {
             RayGroup& rayGroup = context.ray.groups[context.context.activeGroupsIndices[j]];
 

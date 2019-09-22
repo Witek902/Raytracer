@@ -10,10 +10,10 @@ namespace rt {
 struct LocalCounters
 {
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
-    Uint32 numRayBoxTests;
-    Uint32 numPassedRayBoxTests;
-    Uint32 numRayTriangleTests;
-    Uint32 numPassedRayTriangleTests;
+    uint32 numRayBoxTests;
+    uint32 numPassedRayBoxTests;
+    uint32 numRayTriangleTests;
+    uint32 numPassedRayTriangleTests;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
     RT_FORCE_INLINE LocalCounters()
@@ -35,16 +35,16 @@ struct LocalCounters
 
 struct RayTracingCounters
 {
-    Uint64 numRays;
-    Uint64 numShadowRays;
-    Uint64 numShadowRaysHit;
-    Uint64 numPrimaryRays;
+    uint64 numRays;
+    uint64 numShadowRays;
+    uint64 numShadowRaysHit;
+    uint64 numPrimaryRays;
 
 #ifdef RT_ENABLE_INTERSECTION_COUNTERS
-    Uint64 numRayBoxTests;
-    Uint64 numPassedRayBoxTests;
-    Uint64 numRayTriangleTests;
-    Uint64 numPassedRayTriangleTests;
+    uint64 numRayBoxTests;
+    uint64 numPassedRayBoxTests;
+    uint64 numRayTriangleTests;
+    uint64 numPassedRayTriangleTests;
 #endif // RT_ENABLE_INTERSECTION_COUNTERS
 
 

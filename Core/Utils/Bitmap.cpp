@@ -14,21 +14,21 @@ using namespace math;
 
 static_assert(sizeof(Bitmap) <= 64, "Bitmap class is too big");
 
-Uint8 Bitmap::BitsPerPixel(Format format)
+uint8 Bitmap::BitsPerPixel(Format format)
 {
     switch (format)
     {
     case Format::Unknown:                   return 0;
-    case Format::R8_UNorm:                  return 8 * sizeof(Uint8);
-    case Format::R8G8_UNorm:                return 8 * sizeof(Uint8) * 2;
-    case Format::B8G8R8_UNorm:              return 8 * sizeof(Uint8) * 3;
-    case Format::B8G8R8A8_UNorm:            return 8 * sizeof(Uint8) * 4;
-    case Format::R8G8B8A8_UNorm:            return 8 * sizeof(Uint8) * 4;
-    case Format::B8G8R8A8_UNorm_Palette:    return 8 * sizeof(Uint8);
+    case Format::R8_UNorm:                  return 8 * sizeof(uint8);
+    case Format::R8G8_UNorm:                return 8 * sizeof(uint8) * 2;
+    case Format::B8G8R8_UNorm:              return 8 * sizeof(uint8) * 3;
+    case Format::B8G8R8A8_UNorm:            return 8 * sizeof(uint8) * 4;
+    case Format::R8G8B8A8_UNorm:            return 8 * sizeof(uint8) * 4;
+    case Format::B8G8R8A8_UNorm_Palette:    return 8 * sizeof(uint8);
     case Format::B5G6R5_UNorm:              return 16;
-    case Format::R16_UNorm:                 return 8 * sizeof(Uint16);
-    case Format::R16G16_UNorm:              return 8 * sizeof(Uint16) * 2;
-    case Format::R16G16B16A16_UNorm:        return 8 * sizeof(Uint16) * 4;
+    case Format::R16_UNorm:                 return 8 * sizeof(uint16);
+    case Format::R16G16_UNorm:              return 8 * sizeof(uint16) * 2;
+    case Format::R16G16B16A16_UNorm:        return 8 * sizeof(uint16) * 4;
     case Format::R32_Float:                 return 8 * sizeof(float);
     case Format::R32G32_Float:              return 8 * sizeof(float) * 2;
     case Format::R32G32B32_Float:           return 8 * sizeof(float) * 3;
@@ -83,10 +83,10 @@ const char* Bitmap::FormatToString(Format format)
 
 size_t Bitmap::ComputeDataSize(const InitData& initData)
 {
-    const Uint32 stride = Max(initData.stride, ComputeDataStride(initData.width, initData.format));
-    const Uint64 dataSize = (Uint64)initData.height * (Uint64)stride;
+    const uint32 stride = Max(initData.stride, ComputeDataStride(initData.width, initData.format));
+    const uint64 dataSize = (uint64)initData.height * (uint64)stride;
 
-    if (dataSize >= (Uint64)std::numeric_limits<size_t>::max())
+    if (dataSize >= (uint64)std::numeric_limits<size_t>::max())
     {
         return std::numeric_limits<size_t>::max();
     }
@@ -94,9 +94,9 @@ size_t Bitmap::ComputeDataSize(const InitData& initData)
     return (size_t)dataSize;
 }
 
-Uint32 Bitmap::ComputeDataStride(Uint32 width, Format format)
+uint32 Bitmap::ComputeDataStride(uint32 width, Format format)
 {
-    return width * (Uint64)BitsPerPixel(format) / 8;
+    return width * (uint64)BitsPerPixel(format) / 8;
 }
 
 Bitmap::Bitmap(const char* debugName)
@@ -178,16 +178,16 @@ bool Bitmap::Init(const InitData& initData)
     Release();
 
     // align to cache line
-    const Uint32 marigin = RT_CACHE_LINE_SIZE;
+    const uint32 marigin = RT_CACHE_LINE_SIZE;
 
     mUsesDefaultAllocator = initData.useDefaultAllocator;
     if (mUsesDefaultAllocator)
     {
-        mData = (Uint8*)DefaultAllocator::Allocate(dataSize + marigin, RT_CACHE_LINE_SIZE);
+        mData = (uint8*)DefaultAllocator::Allocate(dataSize + marigin, RT_CACHE_LINE_SIZE);
     }
     else
     {
-        mData = (Uint8*)SystemAllocator::Allocate(dataSize + marigin);
+        mData = (uint8*)SystemAllocator::Allocate(dataSize + marigin);
     }
 
     if (!mData)
@@ -203,7 +203,7 @@ bool Bitmap::Init(const InitData& initData)
 
     if (initData.paletteSize > 0)
     {
-        mPalette = (Uint8*)DefaultAllocator::Allocate(sizeof(Uint32) * (size_t)initData.paletteSize, RT_CACHE_LINE_SIZE);
+        mPalette = (uint8*)DefaultAllocator::Allocate(sizeof(uint32) * (size_t)initData.paletteSize, RT_CACHE_LINE_SIZE);
     }
 
     // clear marigin
@@ -247,7 +247,7 @@ bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
     }
     else
     {
-        Uint32 rowSize = ComputeDataStride(source.mWidth, source.mFormat);
+        uint32 rowSize = ComputeDataStride(source.mWidth, source.mFormat);
         for (size_t i = 0; i < source.mHeight; ++i)
         {
             memcpy(target.GetData() + size_t(target.mStride) * i, source.GetData() + size_t(source.mStride) * i, rowSize);
@@ -256,7 +256,7 @@ bool Bitmap::Copy(Bitmap& target, const Bitmap& source)
 
     if (source.mPalette)
     {
-        memcpy(target.mPalette, source.mPalette, sizeof(Uint32) * source.mPaletteSize);
+        memcpy(target.mPalette, source.mPalette, sizeof(uint32) * source.mPaletteSize);
     }
 
     return true;
@@ -299,20 +299,20 @@ bool Bitmap::Load(const char* path)
     return true;
 }
 
-const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) const
+const Vector4 Bitmap::GetPixel(uint32 x, uint32 y, const bool forceLinearSpace) const
 {
     RT_ASSERT(x < mWidth);
     RT_ASSERT(y < mHeight);
 
     const size_t rowOffset = static_cast<size_t>(mStride) * static_cast<size_t>(y);
-    const Uint8* rowData = mData + rowOffset;
+    const uint8* rowData = mData + rowOffset;
 
     Vector4 color;
     switch (mFormat)
     {
     case Format::R8_UNorm:
     {
-        const Uint32 value = rowData[x];
+        const uint32 value = rowData[x];
         color = Vector4::FromInteger(value) * (1.0f / 255.0f);
         break;
     }
@@ -325,21 +325,21 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
 
     case Format::B8G8R8_UNorm:
     {
-        const Uint8* source = rowData + 3u * (size_t)x;
+        const uint8* source = rowData + 3u * (size_t)x;
         color = Vector4_LoadBGR_UNorm(source);
         break;
     }
 
     case Format::B8G8R8A8_UNorm:
     {
-        const Uint8* source = rowData + 4u * (size_t)x;
+        const uint8* source = rowData + 4u * (size_t)x;
         color = Vector4_Load_4xUint8(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
         break;
     }
 
     case Format::R8G8B8A8_UNorm:
     {
-        const Uint8* source = rowData + 4u * (size_t)x;
+        const uint8* source = rowData + 4u * (size_t)x;
         color = Vector4_Load_4xUint8(source) * (1.0f / 255.0f);
         break;
     }
@@ -347,35 +347,35 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
     case Format::B8G8R8A8_UNorm_Palette:
     {
         const size_t paletteIndex = rowData[x];
-        const Uint8* source = mPalette + 4u * paletteIndex;
+        const uint8* source = mPalette + 4u * paletteIndex;
         color = Vector4_Load_4xUint8(source).Swizzle<2, 1, 0, 3>() * (1.0f / 255.0f);
         break;
     }
 
     case Format::B5G6R5_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + (size_t)x;
+        const uint16* source = reinterpret_cast<const uint16*>(rowData) + (size_t)x;
         color = Vector4_Load_B5G6R5_Norm(source);
         break;
     }
 
     case Format::R16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + (size_t)x;
+        const uint16* source = reinterpret_cast<const uint16*>(rowData) + (size_t)x;
         color = Vector4::FromInteger(*source) * (1.0f / 65535.0f);
         break;
     }
 
     case Format::R16G16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + 2u * (size_t)x;
+        const uint16* source = reinterpret_cast<const uint16*>(rowData) + 2u * (size_t)x;
         color = Vector4_Load_2xUint16_Norm(source);
         break;
     }
 
     case Format::R16G16B16A16_UNorm:
     {
-        const Uint16* source = reinterpret_cast<const Uint16*>(rowData) + 4u * (size_t)x;
+        const uint16* source = reinterpret_cast<const uint16*>(rowData) + 4u * (size_t)x;
         color = Vector4_Load_4xUint16(source) * (1.0f / 65535.0f);
         break;
     }
@@ -452,19 +452,19 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
 
     case Format::BC1:
     {
-        color = DecodeBC1(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC1(reinterpret_cast<const uint8*>(mData), x, y, mWidth);
         break;
     }
 
     case Format::BC4:
     {
-        color = DecodeBC4(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC4(reinterpret_cast<const uint8*>(mData), x, y, mWidth);
         break;
     }
 
     case Format::BC5:
     {
-        color = DecodeBC5(reinterpret_cast<const Uint8*>(mData), x, y, mWidth);
+        color = DecodeBC5(reinterpret_cast<const uint8*>(mData), x, y, mWidth);
         break;
     }
 
@@ -486,13 +486,13 @@ const Vector4 Bitmap::GetPixel(Uint32 x, Uint32 y, const bool forceLinearSpace) 
 
 void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bool forceLinearSpace) const
 {
-    RT_ASSERT(coords.x >= 0 && coords.x < (Int32)mWidth);
-    RT_ASSERT(coords.y >= 0 && coords.y < (Int32)mHeight);
-    RT_ASSERT(coords.z >= 0 && coords.z < (Int32)mWidth);
-    RT_ASSERT(coords.w >= 0 && coords.w < (Int32)mHeight);
+    RT_ASSERT(coords.x >= 0 && coords.x < (int32)mWidth);
+    RT_ASSERT(coords.y >= 0 && coords.y < (int32)mHeight);
+    RT_ASSERT(coords.z >= 0 && coords.z < (int32)mWidth);
+    RT_ASSERT(coords.w >= 0 && coords.w < (int32)mHeight);
 
-    const Uint8* rowData0 = mData + mStride * static_cast<size_t>(coords.y);
-    const Uint8* rowData1 = mData + mStride * static_cast<size_t>(coords.w);
+    const uint8* rowData0 = mData + mStride * static_cast<size_t>(coords.y);
+    const uint8* rowData1 = mData + mStride * static_cast<size_t>(coords.w);
 
     Vector4 color[4];
 
@@ -501,10 +501,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R8_UNorm:
     {
         constexpr float scale = 1.0f / 255.0f;
-        const Uint32 value0 = rowData0[(Uint32)coords.x];
-        const Uint32 value1 = rowData0[(Uint32)coords.z];
-        const Uint32 value2 = rowData1[(Uint32)coords.x];
-        const Uint32 value3 = rowData1[(Uint32)coords.z];
+        const uint32 value0 = rowData0[(uint32)coords.x];
+        const uint32 value1 = rowData0[(uint32)coords.z];
+        const uint32 value2 = rowData1[(uint32)coords.x];
+        const uint32 value3 = rowData1[(uint32)coords.z];
         const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
         color[0] = values.SplatX();
         color[1] = values.SplatY();
@@ -516,20 +516,20 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R8G8_UNorm:
     {
         const VectorInt4 offsets = coords << 1; // offset = 2 * coords
-        color[0] = Vector4_Load_2xUint8_Norm(rowData0 + (Uint32)offsets.x);
-        color[1] = Vector4_Load_2xUint8_Norm(rowData0 + (Uint32)offsets.z);
-        color[2] = Vector4_Load_2xUint8_Norm(rowData1 + (Uint32)offsets.x);
-        color[3] = Vector4_Load_2xUint8_Norm(rowData1 + (Uint32)offsets.z);
+        color[0] = Vector4_Load_2xUint8_Norm(rowData0 + (uint32)offsets.x);
+        color[1] = Vector4_Load_2xUint8_Norm(rowData0 + (uint32)offsets.z);
+        color[2] = Vector4_Load_2xUint8_Norm(rowData1 + (uint32)offsets.x);
+        color[3] = Vector4_Load_2xUint8_Norm(rowData1 + (uint32)offsets.z);
         break;
     }
 
     case Format::B8G8R8_UNorm:
     {
         const VectorInt4 offsets = coords + (coords << 1); // offset = 3 * coords
-        color[0] = Vector4_LoadBGR_UNorm(rowData0 + (Uint32)offsets.x);
-        color[1] = Vector4_LoadBGR_UNorm(rowData0 + (Uint32)offsets.z);
-        color[2] = Vector4_LoadBGR_UNorm(rowData1 + (Uint32)offsets.x);
-        color[3] = Vector4_LoadBGR_UNorm(rowData1 + (Uint32)offsets.z);
+        color[0] = Vector4_LoadBGR_UNorm(rowData0 + (uint32)offsets.x);
+        color[1] = Vector4_LoadBGR_UNorm(rowData0 + (uint32)offsets.z);
+        color[2] = Vector4_LoadBGR_UNorm(rowData1 + (uint32)offsets.x);
+        color[3] = Vector4_LoadBGR_UNorm(rowData1 + (uint32)offsets.z);
         break;
     }
 
@@ -537,10 +537,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     {
         constexpr float scale = 1.0f / 255.0f;
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        color[0] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
-        color[1] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
-        color[2] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
-        color[3] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
+        color[0] = Vector4_Load_4xUint8(rowData0 + (uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
+        color[1] = Vector4_Load_4xUint8(rowData0 + (uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
+        color[2] = Vector4_Load_4xUint8(rowData1 + (uint32)offsets.x).Swizzle<2, 1, 0, 3>() * scale;
+        color[3] = Vector4_Load_4xUint8(rowData1 + (uint32)offsets.z).Swizzle<2, 1, 0, 3>() * scale;
         break;
     }
 
@@ -548,20 +548,20 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     {
         constexpr float scale = 1.0f / 255.0f;
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        color[0] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.x) * scale;
-        color[1] = Vector4_Load_4xUint8(rowData0 + (Uint32)offsets.z) * scale;
-        color[2] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.x) * scale;
-        color[3] = Vector4_Load_4xUint8(rowData1 + (Uint32)offsets.z) * scale;
+        color[0] = Vector4_Load_4xUint8(rowData0 + (uint32)offsets.x) * scale;
+        color[1] = Vector4_Load_4xUint8(rowData0 + (uint32)offsets.z) * scale;
+        color[2] = Vector4_Load_4xUint8(rowData1 + (uint32)offsets.x) * scale;
+        color[3] = Vector4_Load_4xUint8(rowData1 + (uint32)offsets.z) * scale;
         break;
     }
 
     case Format::B8G8R8A8_UNorm_Palette:
     {
         constexpr float scale = 1.0f / 255.0f;
-        const Uint8* source0 = mPalette + 4u * rowData0[coords.x];
-        const Uint8* source1 = mPalette + 4u * rowData0[coords.z];
-        const Uint8* source2 = mPalette + 4u * rowData1[coords.x];
-        const Uint8* source3 = mPalette + 4u * rowData1[coords.z];
+        const uint8* source0 = mPalette + 4u * rowData0[coords.x];
+        const uint8* source1 = mPalette + 4u * rowData0[coords.z];
+        const uint8* source2 = mPalette + 4u * rowData1[coords.x];
+        const uint8* source3 = mPalette + 4u * rowData1[coords.z];
         color[0] = Vector4_Load_4xUint8(source0).Swizzle<2, 1, 0, 3>() * scale;
         color[1] = Vector4_Load_4xUint8(source1).Swizzle<2, 1, 0, 3>() * scale;
         color[2] = Vector4_Load_4xUint8(source2).Swizzle<2, 1, 0, 3>() * scale;
@@ -572,10 +572,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::B5G6R5_UNorm:
     {
         const VectorInt4 offsets = coords << 1; // offset = 2 * coords
-        const Uint16* source0 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.x);
-        const Uint16* source1 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.z);
-        const Uint16* source2 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.x);
-        const Uint16* source3 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.z);
+        const uint16* source0 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.x);
+        const uint16* source1 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.z);
+        const uint16* source2 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.x);
+        const uint16* source3 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_B5G6R5_Norm(source0);
         color[1] = Vector4_Load_B5G6R5_Norm(source1);
         color[2] = Vector4_Load_B5G6R5_Norm(source2);
@@ -586,10 +586,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16_UNorm:
     {
         constexpr float scale = 1.0f / 65535.0f;
-        const Uint32 value0 = reinterpret_cast<const Uint16*>(rowData0)[(Uint32)coords.x];
-        const Uint32 value1 = reinterpret_cast<const Uint16*>(rowData0)[(Uint32)coords.z];
-        const Uint32 value2 = reinterpret_cast<const Uint16*>(rowData1)[(Uint32)coords.x];
-        const Uint32 value3 = reinterpret_cast<const Uint16*>(rowData1)[(Uint32)coords.z];
+        const uint32 value0 = reinterpret_cast<const uint16*>(rowData0)[(uint32)coords.x];
+        const uint32 value1 = reinterpret_cast<const uint16*>(rowData0)[(uint32)coords.z];
+        const uint32 value2 = reinterpret_cast<const uint16*>(rowData1)[(uint32)coords.x];
+        const uint32 value3 = reinterpret_cast<const uint16*>(rowData1)[(uint32)coords.z];
         const Vector4 values = Vector4::FromIntegers(value0, value1, value2, value3) * scale;
         color[0] = values.SplatX();
         color[1] = values.SplatY();
@@ -601,10 +601,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16G16_UNorm:
     {
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        const Uint16* source0 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.x);
-        const Uint16* source1 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.z);
-        const Uint16* source2 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.x);
-        const Uint16* source3 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.z);
+        const uint16* source0 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.x);
+        const uint16* source1 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.z);
+        const uint16* source2 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.x);
+        const uint16* source3 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_2xUint16_Norm(source0);
         color[1] = Vector4_Load_2xUint16_Norm(source1);
         color[2] = Vector4_Load_2xUint16_Norm(source2);
@@ -616,10 +616,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     {
         constexpr float scale = 1.0f / 65535.0f;
         const VectorInt4 offsets = coords << 3; // offset = 8 * coords
-        const Uint16* source0 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.x);
-        const Uint16* source1 = reinterpret_cast<const Uint16*>(rowData0 + (Uint32)offsets.z);
-        const Uint16* source2 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.x);
-        const Uint16* source3 = reinterpret_cast<const Uint16*>(rowData1 + (Uint32)offsets.z);
+        const uint16* source0 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.x);
+        const uint16* source1 = reinterpret_cast<const uint16*>(rowData0 + (uint32)offsets.z);
+        const uint16* source2 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.x);
+        const uint16* source3 = reinterpret_cast<const uint16*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_4xUint16(source0) * scale;
         color[1] = Vector4_Load_4xUint16(source1) * scale;
         color[2] = Vector4_Load_4xUint16(source2) * scale;
@@ -629,10 +629,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
 
     case Format::R32_Float:
     {
-        const float* source0 = reinterpret_cast<const float*>(rowData0) + (Uint32)coords.x;
-        const float* source1 = reinterpret_cast<const float*>(rowData0) + (Uint32)coords.z;
-        const float* source2 = reinterpret_cast<const float*>(rowData1) + (Uint32)coords.x;
-        const float* source3 = reinterpret_cast<const float*>(rowData1) + (Uint32)coords.z;
+        const float* source0 = reinterpret_cast<const float*>(rowData0) + (uint32)coords.x;
+        const float* source1 = reinterpret_cast<const float*>(rowData0) + (uint32)coords.z;
+        const float* source2 = reinterpret_cast<const float*>(rowData1) + (uint32)coords.x;
+        const float* source3 = reinterpret_cast<const float*>(rowData1) + (uint32)coords.z;
         color[0] = Vector4(*source0);
         color[1] = Vector4(*source1);
         color[2] = Vector4(*source2);
@@ -643,10 +643,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R32G32_Float:
     {
         const VectorInt4 offsets = coords << 3; // offset = 8 * coords
-        const float* source0 = reinterpret_cast<const float*>(rowData0 + (Uint32)offsets.x);
-        const float* source1 = reinterpret_cast<const float*>(rowData0 + (Uint32)offsets.z);
-        const float* source2 = reinterpret_cast<const float*>(rowData1 + (Uint32)offsets.x);
-        const float* source3 = reinterpret_cast<const float*>(rowData1 + (Uint32)offsets.z);
+        const float* source0 = reinterpret_cast<const float*>(rowData0 + (uint32)offsets.x);
+        const float* source1 = reinterpret_cast<const float*>(rowData0 + (uint32)offsets.z);
+        const float* source2 = reinterpret_cast<const float*>(rowData1 + (uint32)offsets.x);
+        const float* source3 = reinterpret_cast<const float*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4(source0) & Vector4::MakeMask<1, 1, 0, 0>();
         color[1] = Vector4(source1) & Vector4::MakeMask<1, 1, 0, 0>();
         color[2] = Vector4(source2) & Vector4::MakeMask<1, 1, 0, 0>();
@@ -657,10 +657,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R32G32B32_Float:
     {
         const VectorInt4 offsets = coords + (coords << 1); // offset = 3 * coords
-        const float* source0 = reinterpret_cast<const float*>(rowData0) + (Uint32)offsets.x;
-        const float* source1 = reinterpret_cast<const float*>(rowData0) + (Uint32)offsets.z;
-        const float* source2 = reinterpret_cast<const float*>(rowData1) + (Uint32)offsets.x;
-        const float* source3 = reinterpret_cast<const float*>(rowData1) + (Uint32)offsets.z;
+        const float* source0 = reinterpret_cast<const float*>(rowData0) + (uint32)offsets.x;
+        const float* source1 = reinterpret_cast<const float*>(rowData0) + (uint32)offsets.z;
+        const float* source2 = reinterpret_cast<const float*>(rowData1) + (uint32)offsets.x;
+        const float* source3 = reinterpret_cast<const float*>(rowData1) + (uint32)offsets.z;
         color[0] = Vector4(source0) & Vector4::MakeMask<1, 1, 1, 0>();
         color[1] = Vector4(source1) & Vector4::MakeMask<1, 1, 1, 0>();
         color[2] = Vector4(source2) & Vector4::MakeMask<1, 1, 1, 0>();
@@ -680,10 +680,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16_Half:
     {
         const VectorInt4 offsets = coords << 1; // offset = 2 * coords
-        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.x);
-        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.z);
-        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.x);
-        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.z);
+        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.x);
+        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.z);
+        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.x);
+        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4(source0->ToFloat());
         color[1] = Vector4(source1->ToFloat());
         color[2] = Vector4(source2->ToFloat());
@@ -694,10 +694,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16G16_Half:
     {
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.x);
-        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.z);
-        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.x);
-        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.z);
+        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.x);
+        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.z);
+        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.x);
+        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_Half2(source0);
         color[1] = Vector4_Load_Half2(source1);
         color[2] = Vector4_Load_Half2(source2);
@@ -708,10 +708,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16G16B16_Half:
     {
         const VectorInt4 offsets = (coords << 2) + (coords << 1); // offset = 6 * coords
-        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.x);
-        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.z);
-        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.x);
-        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.z);
+        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.x);
+        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.z);
+        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.x);
+        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_Half4(source0) & Vector4::MakeMask<1, 1, 1, 0>();
         color[1] = Vector4_Load_Half4(source1) & Vector4::MakeMask<1, 1, 1, 0>();
         color[2] = Vector4_Load_Half4(source2) & Vector4::MakeMask<1, 1, 1, 0>();
@@ -722,10 +722,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R16G16B16A16_Half:
     {
         const VectorInt4 offsets = coords << 3; // offset = 8 * coords
-        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.x);
-        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (Uint32)offsets.z);
-        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.x);
-        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (Uint32)offsets.z);
+        const Half* source0 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.x);
+        const Half* source1 = reinterpret_cast<const Half*>(rowData0 + (uint32)offsets.z);
+        const Half* source2 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.x);
+        const Half* source3 = reinterpret_cast<const Half*>(rowData1 + (uint32)offsets.z);
         color[0] = Vector4_Load_Half4(source0);
         color[1] = Vector4_Load_Half4(source1);
         color[2] = Vector4_Load_Half4(source2);
@@ -736,10 +736,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R9G9B9E5_SharedExp:
     {
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        const SharedExpFloat3* source0 = reinterpret_cast<const SharedExpFloat3*>(rowData0 + (Uint32)offsets.x);
-        const SharedExpFloat3* source1 = reinterpret_cast<const SharedExpFloat3*>(rowData0 + (Uint32)offsets.z);
-        const SharedExpFloat3* source2 = reinterpret_cast<const SharedExpFloat3*>(rowData1 + (Uint32)offsets.x);
-        const SharedExpFloat3* source3 = reinterpret_cast<const SharedExpFloat3*>(rowData1 + (Uint32)offsets.z);
+        const SharedExpFloat3* source0 = reinterpret_cast<const SharedExpFloat3*>(rowData0 + (uint32)offsets.x);
+        const SharedExpFloat3* source1 = reinterpret_cast<const SharedExpFloat3*>(rowData0 + (uint32)offsets.z);
+        const SharedExpFloat3* source2 = reinterpret_cast<const SharedExpFloat3*>(rowData1 + (uint32)offsets.x);
+        const SharedExpFloat3* source3 = reinterpret_cast<const SharedExpFloat3*>(rowData1 + (uint32)offsets.z);
         // TODO vectorize
         color[0] = source0->ToVector();
         color[1] = source1->ToVector();
@@ -751,10 +751,10 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     case Format::R11G11B10_Float:
     {
         const VectorInt4 offsets = coords << 2; // offset = 4 * coords
-        const PackedFloat3* source0 = reinterpret_cast<const PackedFloat3*>(rowData0 + (Uint32)offsets.x);
-        const PackedFloat3* source1 = reinterpret_cast<const PackedFloat3*>(rowData0 + (Uint32)offsets.z);
-        const PackedFloat3* source2 = reinterpret_cast<const PackedFloat3*>(rowData1 + (Uint32)offsets.x);
-        const PackedFloat3* source3 = reinterpret_cast<const PackedFloat3*>(rowData1 + (Uint32)offsets.z);
+        const PackedFloat3* source0 = reinterpret_cast<const PackedFloat3*>(rowData0 + (uint32)offsets.x);
+        const PackedFloat3* source1 = reinterpret_cast<const PackedFloat3*>(rowData0 + (uint32)offsets.z);
+        const PackedFloat3* source2 = reinterpret_cast<const PackedFloat3*>(rowData1 + (uint32)offsets.x);
+        const PackedFloat3* source3 = reinterpret_cast<const PackedFloat3*>(rowData1 + (uint32)offsets.z);
         // TODO vectorize
         color[0] = source0->ToVector();
         color[1] = source1->ToVector();
@@ -813,7 +813,7 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
 
 // performs 1D box blur in linear time
 RT_FORCE_NOINLINE
-static void BoxBlur_Internal(Vector4* __restrict targetLine, const Vector4* __restrict srcLine, const Uint32 radius, const Uint32 width)
+static void BoxBlur_Internal(Vector4* __restrict targetLine, const Vector4* __restrict srcLine, const uint32 radius, const uint32 width)
 {
     const float factor = 1.0f / (float)(2 * radius + 1);
 
@@ -824,31 +824,31 @@ static void BoxBlur_Internal(Vector4* __restrict targetLine, const Vector4* __re
     const Vector4 lastValue = srcLine[width - 1];
     Vector4 val = firstValue * static_cast<float>(radius + 1);
 
-    for (Uint32 j = 0; j < radius; j++)
+    for (uint32 j = 0; j < radius; j++)
     {
         val += *(srcLineBegin++);
     }
 
-    for (Uint32 j = 0; j <= radius; j++)
+    for (uint32 j = 0; j <= radius; j++)
     {
         val += *(srcLineBegin++) - firstValue;
         *(targetLine++) = val * factor;
     }
 
-    for (Uint32 j = radius + 1; j < width - radius; j++)
+    for (uint32 j = radius + 1; j < width - radius; j++)
     {
         val += *(srcLineBegin++) - *(srcLineEnd++);
         *(targetLine++) = val * factor;
     }
 
-    for (Uint32 j = width - radius; j < width; j++)
+    for (uint32 j = width - radius; j < width; j++)
     {
         val += lastValue - *(srcLineEnd++);
         *(targetLine++) = val * factor;
     }
 }
 
-bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
+bool Bitmap::GaussianBlur(const float sigma, const uint32 n)
 {
     if (mFormat != Format::R32G32B32_Float)
     {
@@ -857,7 +857,7 @@ bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
     }
 
     // TODO get rid of this
-    const Uint32 MaxLineSize = 4096;
+    const uint32 MaxLineSize = 4096;
     if (mWidth > MaxLineSize || mHeight > MaxLineSize)
     {
         RT_LOG_ERROR("GaussianBlur: Image too big");
@@ -867,17 +867,17 @@ bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
     // based on http://blog.ivank.net/fastest-gaussian-blur.html
 
     float wIdeal = sqrtf((12.0f * sigma * sigma / n) + 1.0f);
-    Uint32 wl = (Uint32)floorf(wIdeal);
+    uint32 wl = (uint32)floorf(wIdeal);
     if (wl % 2 == 0)
     {
         wl--;
     }
 
-    const Uint32 wu = wl + 2;
+    const uint32 wu = wl + 2;
     const float mIdeal = (12.0f * sigma * sigma - n * wl * wl - 4.0f * n * wl - 3.0f * n) / (-4.0f * wl - 4.0f);
     const float m = roundf(mIdeal);
 
-    const Uint32 numColumns = 4; // RT_CACHE_LINE_SIZE / sizeof(Float3);
+    const uint32 numColumns = 4; // RT_CACHE_LINE_SIZE / sizeof(Float3);
 
     Vector4 tempLineA[numColumns][MaxLineSize];
     Vector4 tempLineB[numColumns][MaxLineSize];
@@ -886,11 +886,11 @@ bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
     Vector4* targetLinePtr = nullptr;
 
     // horizontal blur
-    for (Uint32 y = 0; y < mHeight; ++y)
+    for (uint32 y = 0; y < mHeight; ++y)
     {
         Float3* rowPtr = &GetPixelRef<Float3>(0, y);
 
-        for (Uint32 x = 0; x < mWidth; ++x)
+        for (uint32 x = 0; x < mWidth; ++x)
         {
             tempLineB[0][x] = Vector4((float*)(rowPtr + x));
         }
@@ -898,47 +898,47 @@ bool Bitmap::GaussianBlur(const float sigma, const Uint32 n)
         sourceLinePtr = tempLineB[0];
         targetLinePtr = tempLineA[0];
 
-        for (Uint32 i = 0; i < n; ++i)
+        for (uint32 i = 0; i < n; ++i)
         {
-            const Uint32 radius = i < m ? wl : wu;
+            const uint32 radius = i < m ? wl : wu;
             BoxBlur_Internal(targetLinePtr, sourceLinePtr, radius, mWidth);
             std::swap(sourceLinePtr, targetLinePtr);
         }
 
-        for (Uint32 x = 0; x < mWidth; ++x)
+        for (uint32 x = 0; x < mWidth; ++x)
         {
             *(rowPtr + x) = targetLinePtr[x].ToFloat3();
         }
     }
 
     // vertical blur
-    for (Uint32 x = 0; x < mWidth; x += numColumns)
+    for (uint32 x = 0; x < mWidth; x += numColumns)
     {
-        for (Uint32 y = 0; y < mHeight; ++y)
+        for (uint32 y = 0; y < mHeight; ++y)
         {
-            for (Uint32 i = 0; i < numColumns; ++i)
+            for (uint32 i = 0; i < numColumns; ++i)
             {
                 tempLineA[i][y] = Vector4(GetPixelRef<Float3>(x + i, y));
             }
         }
 
-        for (Uint32 i = 0; i < numColumns; ++i)
+        for (uint32 i = 0; i < numColumns; ++i)
         {
             sourceLinePtr = tempLineA[i];
             targetLinePtr = tempLineB[i];
 
-            for (Uint32 j = 0; j < n; ++j)
+            for (uint32 j = 0; j < n; ++j)
             {
-                const Uint32 radius = j < m ? wl : wu;
+                const uint32 radius = j < m ? wl : wu;
                 BoxBlur_Internal(targetLinePtr, sourceLinePtr, radius, mHeight);
                 std::swap(sourceLinePtr, targetLinePtr);
             }
         }
 
 
-        for (Uint32 y = 0; y < mHeight; ++y)
+        for (uint32 y = 0; y < mHeight; ++y)
         {
-            for (Uint32 i = 0; i < numColumns; ++i)
+            for (uint32 i = 0; i < numColumns; ++i)
             {
                 GetPixelRef<Float3>(x + i, y) = tempLineA[i][y].ToFloat3();
             }

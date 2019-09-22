@@ -11,11 +11,11 @@
 
 struct Options
 {
-    Uint32 windowWidth = 1280;
-    Uint32 windowHeight = 720;
+    uint32 windowWidth = 1280;
+    uint32 windowHeight = 720;
     std::string dataPath;
 
-    Uint32 numThreads = 0;
+    uint32 numThreads = 0;
 
     bool enablePacketTracing = false;
     std::string rendererName = "Path Tracer";
@@ -63,8 +63,8 @@ private:
 
     std::unique_ptr<rt::Scene> mScene;
 
-    Uint32 mFrameNumber;
-    Uint32 mFrameCounterForAverage;
+    uint32 mFrameNumber;
+    uint32 mFrameCounterForAverage;
 
     double mDeltaTime;
     double mRefreshTime;
@@ -120,7 +120,7 @@ private:
     virtual void OnMouseMove(int x, int y, int deltaX, int deltaY) override;
     virtual void OnMouseUp(MouseButton button) override;
     virtual void OnScroll(int delta) override;
-    virtual void OnResize(Uint32 width, Uint32 height) override;
+    virtual void OnResize(uint32 width, uint32 height) override;
     virtual void OnKeyPress(KeyCode key) override;
     virtual void OnCharTyped(const char* charUTF8) override;
     virtual void OnFileDrop(const std::string& filePath) override;

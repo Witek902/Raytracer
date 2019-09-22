@@ -20,17 +20,17 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE explicit Vector8(const Vector4& lo);
     RT_FORCE_INLINE Vector8(const Vector4& lo, const Vector4& hi);
     RT_FORCE_INLINE explicit Vector8(const float scalar);
-    RT_FORCE_INLINE explicit Vector8(const Int32 scalar);
-    RT_FORCE_INLINE explicit Vector8(const Uint32 scalar);
+    RT_FORCE_INLINE explicit Vector8(const int32 scalar);
+    RT_FORCE_INLINE explicit Vector8(const uint32 scalar);
     RT_FORCE_INLINE Vector8(float e0, float e1, float e2, float e3, float e4, float e5, float e6, float e7);
-    RT_FORCE_INLINE Vector8(Int32 e0, Int32 e1, Int32 e2, Int32 e3, Int32 e4, Int32 e5, Int32 e6, Int32 e7);
-    RT_FORCE_INLINE Vector8(Uint32 e0, Uint32 e1, Uint32 e2, Uint32 e3, Uint32 e4, Uint32 e5, Uint32 e6, Uint32 e7);
+    RT_FORCE_INLINE Vector8(int32 e0, int32 e1, int32 e2, int32 e3, int32 e4, int32 e5, int32 e6, int32 e7);
+    RT_FORCE_INLINE Vector8(uint32 e0, uint32 e1, uint32 e2, uint32 e3, uint32 e4, uint32 e5, uint32 e6, uint32 e7);
     RT_FORCE_INLINE Vector8(const float* src);
     RT_FORCE_INLINE Vector8& operator = (const Vector8& other);
-    RT_FORCE_INLINE static const Vector8 FromInteger(Int32 x);
+    RT_FORCE_INLINE static const Vector8 FromInteger(int32 x);
 
     // Rearrange vector elements (in both lanes, parallel)
-    template<Uint32 ix = 0, Uint32 iy = 1, Uint32 iz = 2, Uint32 iw = 3>
+    template<uint32 ix = 0, uint32 iy = 1, uint32 iz = 2, uint32 iw = 3>
     RT_FORCE_INLINE const Vector8 Swizzle() const;
 
 #ifdef RT_USE_AVX
@@ -39,8 +39,8 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE operator __m256i() const { return reinterpret_cast<const __m256i*>(&v)[0]; }
 #endif // RT_USE_AVX
 
-    RT_FORCE_INLINE float operator[] (Uint32 index) const { return f[index]; }
-    RT_FORCE_INLINE float& operator[] (Uint32 index) { return f[index]; }
+    RT_FORCE_INLINE float operator[] (uint32 index) const { return f[index]; }
+    RT_FORCE_INLINE float& operator[] (uint32 index) { return f[index]; }
 
     // extract lower lanes
     RT_FORCE_INLINE const Vector4 Low() const;
@@ -91,12 +91,12 @@ struct RT_ALIGN(32) Vector8
     RT_FORCE_INLINE const Vector8 Clamped(const Vector8& min, const Vector8& max) const;
 
     // Build mask of sign bits.
-    RT_FORCE_INLINE Int32 GetSignMask() const;
+    RT_FORCE_INLINE int32 GetSignMask() const;
 
     // For each vector component, copy value from "a" if "sel" is "false", or from "b" otherwise.
     RT_FORCE_INLINE static const Vector8 Select(const Vector8& a, const Vector8& b, const VectorBool8& sel);
 
-    template<Uint32 selX, Uint32 selY, Uint32 selZ, Uint32 selW>
+    template<uint32 selX, uint32 selY, uint32 selZ, uint32 selW>
     RT_FORCE_INLINE static const Vector8 Select(const Vector8& a, const Vector8& b);
 
     // Check if the vector is equal to zero
@@ -147,8 +147,8 @@ private:
     union
     {
         float f[8];
-        Int32 i[8];
-        Uint32 u[8];
+        int32 i[8];
+        uint32 u[8];
 #ifdef RT_USE_AVX
         __m256 v;
 #else

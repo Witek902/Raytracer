@@ -18,7 +18,7 @@ public:
     Entropy();
     ~Entropy();
 
-    Uint32 GetInt();
+    uint32 GetInt();
 
 private:
 #if defined(WIN32)

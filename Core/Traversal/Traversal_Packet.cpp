@@ -5,10 +5,10 @@ namespace rt {
 
 using namespace math;
 
-Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups)
+uint32 RemoveMissedGroups(RenderingContext& context, uint32 numGroups)
 {
     /*
-    Uint32 i = 0;
+    uint32 i = 0;
     while (i < numGroups)
     {
         if (context.activeRaysMask[i])
@@ -26,7 +26,7 @@ Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups)
     return numGroups;
     */
 
-    for (Uint32 i = 0; ; )
+    for (uint32 i = 0; ; )
     {
         // skip in-place hits at beginning
         while (context.activeRaysMask[i])
@@ -39,7 +39,7 @@ Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups)
         }
 
         // skip in-place misses at end
-        Uint8 mask;
+        uint8 mask;
         do
         {
             numGroups--;
@@ -56,7 +56,7 @@ Uint32 RemoveMissedGroups(RenderingContext& context, Uint32 numGroups)
 }
 
 // TODO this is ugly AF, but actually works
-static void SwapRays(RenderingContext& context, Uint32 a, Uint32 b, Uint32 traversalDepth)
+static void SwapRays(RenderingContext& context, uint32 a, uint32 b, uint32 traversalDepth)
 {
     RayGroup& groupA = context.rayPacket.groups[context.activeGroupsIndices[a / RayPacket::RaysPerGroup]];
     RayGroup& groupB = context.rayPacket.groups[context.activeGroupsIndices[b / RayPacket::RaysPerGroup]];
@@ -78,22 +78,22 @@ static void SwapRays(RenderingContext& context, Uint32 a, Uint32 b, Uint32 trave
     std::swap(groupA.rayOffsets[a % 8], groupB.rayOffsets[b % 8]);
 }
 
-static void SwapBits(Uint8& a, Uint8& b, Uint32 indexA, Uint32 indexB)
+static void SwapBits(uint8& a, uint8& b, uint32 indexA, uint32 indexB)
 {
-    const Uint8 bitA = (a >> indexA) & 1;
-    const Uint8 bitB = (b >> indexB) & 1;
+    const uint8 bitA = (a >> indexA) & 1;
+    const uint8 bitB = (b >> indexB) & 1;
     a ^= (-bitB ^ a) & (1UL << indexA);
     b ^= (-bitA ^ b) & (1UL << indexB);
 }
 
-void ReorderRays(RenderingContext& context, Uint32 numGroups, Uint32 traversalDepth)
+void ReorderRays(RenderingContext& context, uint32 numGroups, uint32 traversalDepth)
 {
-    Uint32 numRays = numGroups * RayPacket::RaysPerGroup;
-    Uint32 i = 0;
+    uint32 numRays = numGroups * RayPacket::RaysPerGroup;
+    uint32 i = 0;
     while (i < numRays)
     {
-        const Uint32 groupIndex = i / RayPacket::RaysPerGroup;
-        const Uint32 rayIndex = i % RayPacket::RaysPerGroup;
+        const uint32 groupIndex = i / RayPacket::RaysPerGroup;
+        const uint32 rayIndex = i % RayPacket::RaysPerGroup;
 
         if (context.activeRaysMask[groupIndex] & (1 << rayIndex))
         {
@@ -108,12 +108,12 @@ void ReorderRays(RenderingContext& context, Uint32 numGroups, Uint32 traversalDe
     }
 }
 
-Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node, RenderingContext& context, Uint32 traversalDepth)
+uint32 TestRayPacket(RayPacket& packet, uint32 numGroups, const BVH::Node& node, RenderingContext& context, uint32 traversalDepth)
 {
     Vector8 distance;
 
-    Uint32 raysHit = 0;
-    Uint32 i = 0;
+    uint32 raysHit = 0;
+    uint32 i = 0;
 
     const math::Box_Simd8 box = node.GetBox_Simd8();
 
@@ -135,13 +135,13 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const VectorBool8 maskC = Intersect_BoxRay_Simd8(rayGroupC.rays[traversalDepth].invDir, rayOriginDivDirC, box, rayGroupC.maxDistances, distance);
         const VectorBool8 maskD = Intersect_BoxRay_Simd8(rayGroupD.rays[traversalDepth].invDir, rayOriginDivDirD, box, rayGroupD.maxDistances, distance);
 
-        const Uint32 intMaskA = maskA.GetMask();
-        const Uint32 intMaskB = maskB.GetMask();
-        const Uint32 intMaskC = maskC.GetMask();
-        const Uint32 intMaskD = maskD.GetMask();
+        const uint32 intMaskA = maskA.GetMask();
+        const uint32 intMaskB = maskB.GetMask();
+        const uint32 intMaskC = maskC.GetMask();
+        const uint32 intMaskD = maskD.GetMask();
 
-        const Uint32 intMaskCombined = (intMaskA | (intMaskB << 8u)) | ((intMaskC << 16u) | (intMaskD << 24u));
-        *reinterpret_cast<Uint32*>(context.activeRaysMask + i) = intMaskCombined;
+        const uint32 intMaskCombined = (intMaskA | (intMaskB << 8u)) | ((intMaskC << 16u) | (intMaskD << 24u));
+        *reinterpret_cast<uint32*>(context.activeRaysMask + i) = intMaskCombined;
         raysHit += PopCount(intMaskCombined);
 
         i += 4;
@@ -153,8 +153,8 @@ Uint32 TestRayPacket(RayPacket& packet, Uint32 numGroups, const BVH::Node& node,
         const Vector3x8 rayOriginDivDir = rayGroup.rays[traversalDepth].origin * rayGroup.rays[traversalDepth].invDir;
 
         const VectorBool8 mask = Intersect_BoxRay_Simd8(rayGroup.rays[traversalDepth].invDir, rayOriginDivDir, box, rayGroup.maxDistances, distance);
-        const Uint32 intMask = mask.GetMask();
-        context.activeRaysMask[i] = (Uint8)intMask;
+        const uint32 intMask = mask.GetMask();
+        context.activeRaysMask[i] = (uint8)intMask;
         raysHit += PopCount(intMask);
     }
 

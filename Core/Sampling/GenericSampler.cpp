@@ -11,11 +11,11 @@ namespace BlueNoise
 {
 
 static const char* FilePath = "../Data/BlueNoise128_RGBA16.dat";
-static constexpr Uint32 TextureLayers = 4;
-static constexpr Uint32 TextureBits = 16;
-static constexpr Uint32 TextureSize = 128;
+static constexpr uint32 TextureLayers = 4;
+static constexpr uint32 TextureBits = 16;
+static constexpr uint32 TextureSize = 128;
 
-static const Uint16* LoadTexture()
+static const uint16* LoadTexture()
 {
     FILE* file = fopen(FilePath, "rb");
     if (!file)
@@ -25,7 +25,7 @@ static const Uint16* LoadTexture()
     }
 
     const size_t dataSize = (TextureBits / 8) * TextureLayers * TextureSize * TextureSize;
-    Uint16* data = (Uint16*)DefaultAllocator::Allocate(dataSize, RT_CACHE_LINE_SIZE);
+    uint16* data = (uint16*)DefaultAllocator::Allocate(dataSize, RT_CACHE_LINE_SIZE);
     if (!data)
     {
         fclose(file);
@@ -45,15 +45,15 @@ static const Uint16* LoadTexture()
     return data;
 }
 
-static const Uint16* GetTexture()
+static const uint16* GetTexture()
 {
-    static const Uint16* texture = LoadTexture();
+    static const uint16* texture = LoadTexture();
     return texture;
 }
 
 } // BlueNoise
 
-RT_FORCE_INLINE static Uint32 XorShift(Uint32 x)
+RT_FORCE_INLINE static uint32 XorShift(uint32 x)
 {
     x ^= x << 13u;
     x ^= x >> 17u;
@@ -66,23 +66,23 @@ GenericSampler::GenericSampler()
 {
 }
 
-void GenericSampler::ResetFrame(const DynArray<Uint32>& seed, bool useBlueNoise)
+void GenericSampler::ResetFrame(const DynArray<uint32>& seed, bool useBlueNoise)
 {
     mCurrentSample = seed;
     mBlueNoiseTextureLayers = mBlueNoiseTexture && useBlueNoise ? BlueNoise::TextureLayers : 0;
 }
 
-void GenericSampler::ResetPixel(const Uint32 x, const Uint32 y)
+void GenericSampler::ResetPixel(const uint32 x, const uint32 y)
 {
     mBlueNoisePixelX = x & (BlueNoise::TextureSize - 1u);
     mBlueNoisePixelY = y & (BlueNoise::TextureSize - 1u);
-    mSalt = (Uint32)Hash((Uint64)(x | (y << 16)));
+    mSalt = (uint32)Hash((uint64)(x | (y << 16)));
     mSamplesGenerated = 0;
 }
 
-Uint32 GenericSampler::GetInt()
+uint32 GenericSampler::GetInt()
 {
-    Uint32 sample;
+    uint32 sample;
 
     if (mSamplesGenerated < mCurrentSample.Size())
     {
@@ -90,13 +90,13 @@ Uint32 GenericSampler::GetInt()
 
         if (mSamplesGenerated < mBlueNoiseTextureLayers) // blue noise dithering
         {
-            const Uint32 pixelIndex = BlueNoise::TextureSize * mBlueNoisePixelY + mBlueNoisePixelX;
-            const Uint16* blueNoiseData = mBlueNoiseTexture + BlueNoise::TextureLayers * pixelIndex;
-            sample += static_cast<Uint32>(blueNoiseData[mSamplesGenerated]) << 16;
+            const uint32 pixelIndex = BlueNoise::TextureSize * mBlueNoisePixelY + mBlueNoisePixelX;
+            const uint16* blueNoiseData = mBlueNoiseTexture + BlueNoise::TextureLayers * pixelIndex;
+            sample += static_cast<uint32>(blueNoiseData[mSamplesGenerated]) << 16;
         }
         else
         {
-            Uint32 salt = mSalt;
+            uint32 salt = mSalt;
             mSalt = XorShift(salt);
             sample += salt;
         }

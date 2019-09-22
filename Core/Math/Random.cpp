@@ -6,7 +6,7 @@
 namespace rt {
 namespace math {
 
-static RT_FORCE_INLINE Uint64 Rotl64(const Uint64 x, const int k)
+static RT_FORCE_INLINE uint64 Rotl64(const uint64 x, const int k)
 {
     return (x << k) | (x >> (64 - k));
 }
@@ -20,9 +20,9 @@ void Random::Reset()
 {
     Entropy entropy;
     
-    for (Uint32 i = 0; i < 2; ++i)
+    for (uint32 i = 0; i < 2; ++i)
     {
-        mSeed[i] = ((Uint64)entropy.GetInt() << 32) | (Uint64)entropy.GetInt();
+        mSeed[i] = ((uint64)entropy.GetInt() << 32) | (uint64)entropy.GetInt();
         mSeedSimd4[i] = VectorInt4(entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt());
 #ifdef RT_USE_AVX2
         mSeedSimd8[i] = VectorInt8(entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt(), entropy.GetInt());
@@ -30,14 +30,14 @@ void Random::Reset()
     }
 }
 
-Uint64 Random::GetLong()
+uint64 Random::GetLong()
 {
     // xoroshiro128+ algorithm
     // http://xoshiro.di.unimi.it/xoroshiro128plus.c
 
-    const Uint64 s0 = mSeed[0];
-    Uint64 s1 = mSeed[1];
-    const Uint64 result = s0 + s1;
+    const uint64 s0 = mSeed[0];
+    uint64 s1 = mSeed[1];
+    const uint64 result = s0 + s1;
 
     s1 ^= s0;
     mSeed[0] = Rotl64(s0, 24) ^ s1 ^ (s1 << 16);
@@ -46,9 +46,9 @@ Uint64 Random::GetLong()
     return result;
 }
 
-Uint32 Random::GetInt()
+uint32 Random::GetInt()
 {
-    return static_cast<Uint32>(GetLong());
+    return static_cast<uint32>(GetLong());
 }
 
 float Random::GetFloat()
@@ -60,7 +60,7 @@ float Random::GetFloat()
 
 double Random::GetDouble()
 {
-    return static_cast<double>(GetLong()) / static_cast<double>(std::numeric_limits<Uint64>::max());
+    return static_cast<double>(GetLong()) / static_cast<double>(std::numeric_limits<uint64>::max());
 }
 
 const Float2 Random::GetFloat2()

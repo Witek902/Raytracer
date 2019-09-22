@@ -46,15 +46,15 @@ public:
 
     // return rays octant if all the rays are in the same on
     // otherwise, returns 0xFFFFFFFF
-    RT_FORCE_INLINE Uint32 GetOctant() const
+    RT_FORCE_INLINE uint32 GetOctant() const
     {
-        const Int32 countX = PopCount(dir.x.GetSignMask());
-        const Int32 countY = PopCount(dir.y.GetSignMask());
-        const Int32 countZ = PopCount(dir.z.GetSignMask());
+        const int32 countX = PopCount(dir.x.GetSignMask());
+        const int32 countY = PopCount(dir.y.GetSignMask());
+        const int32 countZ = PopCount(dir.z.GetSignMask());
 
-        const Uint32 xPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 0u };
-        const Uint32 yPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 1u };
-        const Uint32 zPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 2u };
+        const uint32 xPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 0u };
+        const uint32 yPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 1u };
+        const uint32 zPart[9] = { 0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, 1u << 2u };
 
         return xPart[countX] | yPart[countY] | zPart[countZ];
     }

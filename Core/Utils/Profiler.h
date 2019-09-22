@@ -19,7 +19,7 @@ struct ProfilerResult
     const char* scopeName = nullptr;
     double avgTime = 0.0;
     double minTime = 0.0;
-    Uint64 count = 0;
+    uint64 count = 0;
 };
 
 class RAYLIB_API Profiler
@@ -39,9 +39,9 @@ private:
 
 struct ScopedEntryData
 {
-    Uint64 minTick = UINT64_MAX;
-    Uint64 accumulatedTicks = 0;
-    Uint64 count = 0;
+    uint64 minTick = UINT64_MAX;
+    uint64 accumulatedTicks = 0;
+    uint64 count = 0;
 
     ScopedEntryData& operator += (const ScopedEntryData& other)
     {
@@ -76,7 +76,7 @@ public:
     {
         LARGE_INTEGER stop;
         QueryPerformanceCounter(&stop);
-        const Uint64 ticks = stop.QuadPart - mStart.QuadPart;
+        const uint64 ticks = stop.QuadPart - mStart.QuadPart;
 
         if (ticks > 0)
         {

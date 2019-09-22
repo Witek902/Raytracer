@@ -28,7 +28,7 @@ RT_FORCE_INLINE static void AccumulateToFloat3(Float3& target, const Vector4& va
     target = (original + value).ToFloat3();
 }
 
-void Film::AccumulateColor(const Uint32 x, const Uint32 y, const Vector4& sampleColor)
+void Film::AccumulateColor(const uint32 x, const uint32 y, const Vector4& sampleColor)
 {
     AccumulateToFloat3(mSum.GetPixelRef<Float3>(x, y), sampleColor);
 
@@ -62,10 +62,10 @@ void Film::AccumulateColor(const Vector4& pos, const Vector4& sampleColor, Rando
         //}
     }
 
-    const Int32 x = intFilmCoords.x;
-    const Int32 y = Int32(mHeight - 1) - Int32(filmCoords.y);
+    const int32 x = intFilmCoords.x;
+    const int32 y = int32(mHeight - 1) - int32(filmCoords.y);
 
-    if (Uint32(x) < mWidth && Uint32(y) < mHeight)
+    if (uint32(x) < mWidth && uint32(y) < mHeight)
     {
         AccumulateToFloat3(mSum.GetPixelRef<Float3>(x, y), sampleColor);
 

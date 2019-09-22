@@ -6,8 +6,8 @@
 
 namespace rt {
 
-const math::Vector4 DecodeBC1(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width);
-const math::Vector4 DecodeBC4(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width);
-const math::Vector4 DecodeBC5(const Uint8* data, Uint32 x, Uint32 y, const Uint32 width);
+const math::Vector4 DecodeBC1(const uint8* data, uint32 x, uint32 y, const uint32 width);
+const math::Vector4 DecodeBC4(const uint8* data, uint32 x, uint32 y, const uint32 width);
+const math::Vector4 DecodeBC5(const uint8* data, uint32 x, uint32 y, const uint32 width);
 
 } // namespace rt
