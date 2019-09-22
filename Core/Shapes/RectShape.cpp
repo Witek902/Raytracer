@@ -4,6 +4,7 @@
 #include "Traversal/TraversalContext.h"
 #include "Math/Geometry.h"
 #include "Math/SamplingHelpers.h"
+#include "Math/SphericalQuad.h"
 
 namespace rt {
 
@@ -12,6 +13,7 @@ using namespace math;
 RectShape::RectShape(const Float2 size, const Float2 texScale)
     : mSize(size)
     , mTextureScale(texScale)
+    , mEnableSolidAngleSampling(false)
 {
     RT_ASSERT(mSize.x > 0.0f);
     RT_ASSERT(mSize.y > 0.0f);
@@ -59,6 +61,37 @@ const Vector4 RectShape::Sample(const Float3& u, math::Vector4* outNormal, float
     }
 
     return Vector4(mSize) * (2.0f * Vector4(Float2(u)) - VECTOR_ONE);
+}
+
+bool RectShape::Sample(const math::Vector4& ref, const math::Float3& u, ShapeSampleResult& result) const
+{
+    if (mEnableSolidAngleSampling)
+    {
+        SphericalQuad squad;
+        squad.Init(Vector4(-mSize.x, -mSize.y), Vector4(2.0f * mSize.x, 0.0f), Vector4(0.0f, 2.0f * mSize.y), ref);
+        const Vector4 lightPoint = squad.Sample(u.x, u.y, result.pdf);
+
+        result.direction = lightPoint - ref;
+        result.normal = VECTOR_Z;
+        const float sqrDistance = result.direction.SqrLength3();
+
+        if (sqrDistance > Sqr(FLT_EPSILON))
+        {
+            const float distance = sqrtf(sqrDistance);
+            result.direction /= distance;
+
+            const float cosNormalDir = -result.direction.z;
+            if (cosNormalDir > FLT_EPSILON)
+            {
+                result.distance = distance;
+                result.cosAtSurface = cosNormalDir;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    return IShape::Sample(ref, u, result);
 }
 
 /*

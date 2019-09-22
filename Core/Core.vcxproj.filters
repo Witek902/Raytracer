@@ -149,6 +149,7 @@
     <ClInclude Include="Material\MaterialParameter.h" />
     <ClInclude Include="Math\Vector4Impl.h" />
     <ClInclude Include="Utils\Profiler.h" />
+    <ClInclude Include="Math\SphericalQuad.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\tinyexr\tinyexr.cc" />

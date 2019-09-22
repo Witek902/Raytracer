@@ -14,10 +14,13 @@ private:
     virtual float GetSurfaceArea() const override;
     virtual bool Intersect(const math::Ray& ray, ShapeIntersection& outResult) const override;
     virtual const math::Vector4 Sample(const math::Float3& u, math::Vector4* outNormal, float* outPdf = nullptr) const override;
+    virtual bool Sample(const math::Vector4& ref, const math::Float3& u, ShapeSampleResult& result) const override;
     virtual void EvaluateIntersection(const HitPoint& hitPoint, IntersectionData& outIntersectionData) const override;
 
     math::Float2 mSize;
     math::Float2 mTextureScale;
+
+    bool mEnableSolidAngleSampling;
 };
 
 } // namespace rt
