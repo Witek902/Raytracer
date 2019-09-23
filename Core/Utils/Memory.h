@@ -7,7 +7,12 @@
 
 namespace rt {
 
-RAYLIB_API void InitMemory();
+struct MemoryInitOptions
+{
+    bool useLargePages = false;
+};
+
+RAYLIB_API void InitMemory(const MemoryInitOptions& options = MemoryInitOptions());
 
 class DefaultAllocator
 {

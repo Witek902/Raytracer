@@ -81,9 +81,12 @@ static void EnableLargePagesSupport()
 
 #endif // WIN32
 
-void InitMemory()
+void InitMemory(const MemoryInitOptions& options)
 {
-    EnableLargePagesSupport();
+    if (options.useLargePages)
+    {
+        EnableLargePagesSupport();
+    }
 }
 
 void* DefaultAllocator::Allocate(size_t size, size_t alignment)
