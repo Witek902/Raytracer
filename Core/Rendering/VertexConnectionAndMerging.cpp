@@ -59,12 +59,12 @@ VertexConnectionAndMerging::VertexConnectionAndMerging(const Scene& scene)
     mCameraConnectingWeight = Vector4(1.0f);
     mVertexMergingWeight = Vector4(1.0f);
 
-    mUseVertexConnection = false;
+    mUseVertexConnection = true;
     mUseVertexMerging = true;
     mMaxPathLength = 10;
-    mInitialMergingRadius = 0.04f;
+    mInitialMergingRadius = 0.02f;
     mMergingRadiusVC = mMergingRadiusVM = mInitialMergingRadius;
-    mMinMergingRadius = 0.04f;
+    mMinMergingRadius = 0.02f;
     mMergingRadiusMultiplier = 1.0f; // 0.98f; // VCM_TODO
 }
 
@@ -443,8 +443,8 @@ bool VertexConnectionAndMerging::GenerateLightSample(PathState& outPath, Renderi
     {
         lightObject->GetTransform(ctx.time),
         ctx.wavelength,
-        ctx.sampler.GetFloat3(),
-        ctx.sampler.GetFloat2(),
+        ctx.randomGenerator.GetFloat3(),
+        ctx.randomGenerator.GetFloat2(),
     };
 
     ILight::EmitResult emitResult;

@@ -56,6 +56,8 @@ public:
     RAYLIB_API ~Bitmap();
     RAYLIB_API Bitmap(Bitmap&&);
     RAYLIB_API Bitmap& operator = (Bitmap&&);
+    RAYLIB_API Bitmap(const Bitmap&);
+    RAYLIB_API Bitmap& operator = (const Bitmap&);
 
     RT_FORCE_INLINE const char* GetDebugName() const { return mDebugName; }
 
@@ -95,6 +97,9 @@ public:
     // initialize bitmap with data (or clean if passed nullptr)
     RAYLIB_API bool Init(const InitData& initData);
 
+    // release memory
+    void Release();
+
     // copy texture data
     // NOTE: both textures must have the same format and size
     RAYLIB_API static bool Copy(Bitmap& target, const Bitmap& source);
@@ -107,10 +112,7 @@ public:
 
     // save to OpenEXR file
     // NOTE: must be float or Half format
-    RAYLIB_API bool SaveEXR(const char* path, const float exposure) const;
-
-    // release memory
-    void Release();
+    RAYLIB_API bool SaveEXR(const char* path, const float exposure = 1.0f) const;
 
     // calculate number of bits per pixel for given format
     static uint8 BitsPerPixel(Format format);
@@ -126,15 +128,15 @@ public:
 
     // fill with zeros
     RAYLIB_API void Clear();
+
+    // scale pixels by a given value
+    RAYLIB_API bool Scale(const math::Vector4& factor);
     
     bool GaussianBlur(const float sigma, const uint32 n);
 
 private:
 
     friend class BitmapTexture;
-
-    Bitmap(const Bitmap&) = delete;
-    Bitmap& operator = (const Bitmap&) = delete;
 
     bool LoadBMP(FILE* file, const char* path);
     bool LoadDDS(FILE* file, const char* path);

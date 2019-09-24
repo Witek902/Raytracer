@@ -78,9 +78,10 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
     else
     {
         // generate random point on the light surface
-        Vector4 normal;
-        const Vector4 samplePositionLocalSpace = mShape->Sample(param.sample, &normal);
+        Vector4 normalLocalSpace;
+        const Vector4 samplePositionLocalSpace = mShape->Sample(param.sample, &normalLocalSpace);
         const Vector4 lightPointWorldSpace = param.lightToWorld.TransformPoint(samplePositionLocalSpace);
+        const Vector4 normalWorldSpace = param.lightToWorld.TransformPoint(normalLocalSpace);
 
         outResult.directionToLight = lightPointWorldSpace - param.intersection.frame.GetTranslation();
         const float sqrDistance = outResult.directionToLight.SqrLength3();
@@ -88,7 +89,7 @@ const RayColor AreaLight::Illuminate(const IlluminateParam& param, IlluminateRes
         outResult.distance = sqrtf(sqrDistance);
         outResult.directionToLight /= outResult.distance;
 
-        const float cosNormalDir = Vector4::Dot3(-normal, outResult.directionToLight);
+        const float cosNormalDir = Vector4::Dot3(-normalWorldSpace, outResult.directionToLight);
         if (cosNormalDir < RT_EPSILON)
         {
             return RayColor::Zero();
@@ -150,16 +151,16 @@ const RayColor AreaLight::Emit(const EmitParam& param, EmitResult& outResult) co
     // TODO sample texture, like in Illuminate()
 
     // generate random point on the light surface
-    Vector4 normal;
-    const Vector4 samplePositionLocalSpace = mShape->Sample(param.positionSample, &normal);
+    Vector4 normalLocalSpace;
+    const Vector4 samplePositionLocalSpace = mShape->Sample(param.positionSample, &normalLocalSpace);
     outResult.position = param.lightToWorld.TransformPoint(samplePositionLocalSpace);
 
-    Vector4 tangent, bitangent;
-    BuildOrthonormalBasis(normal, tangent, bitangent);
+    Vector4 tangentLocalSpace, bitangentLocalSpace;
+    BuildOrthonormalBasis(normalLocalSpace, tangentLocalSpace, bitangentLocalSpace);
 
     // generate random direction
     const Vector4 randomDir = SamplingHelpers::GetHemishpereCos(param.directionSample);
-    const Vector4 dirLocalSpace = randomDir.x * tangent + randomDir.y * bitangent + randomDir.z * normal;
+    const Vector4 dirLocalSpace = randomDir.x * tangentLocalSpace + randomDir.y * bitangentLocalSpace + randomDir.z * normalLocalSpace;
     outResult.direction = param.lightToWorld.TransformVector(dirLocalSpace);
 
     const float cosAtLight = randomDir.z;

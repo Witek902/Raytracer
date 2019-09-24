@@ -328,9 +328,6 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
 
                 // generate primary ray
                 const Ray ray = tileContext.camera.GenerateRay(coords, ctx);
-
-                const float vignettingFactor = Sqr(Sqr(Vector4::Dot3(ray.dir, tileContext.camera.GetLocalToWorld()[2])));
-
                 const IRenderer::RenderParam renderParam = { mProgress.passesFinished, pixelIndex, tileContext.camera, film };
 
                 if (ctx.params->visualizeTimePerPixel)
@@ -338,7 +335,7 @@ void Viewport::RenderTile(const TileRenderingContext& tileContext, RenderingCont
                     timer.Start();
                 }
 
-                RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx) * vignettingFactor;
+                RayColor color = tileContext.renderer.RenderPixel(ray, renderParam, ctx);
                 RT_ASSERT(color.IsValid());
 
                 if (ctx.params->visualizeTimePerPixel)

@@ -238,7 +238,7 @@ rt::MeshShapePtr CreateBoxMesh(const float size, const MaterialPtr& material, bo
 }
 */
 
-void ValidateBitmap(const Bitmap& bitmap, uint32 numPasses, const Vector4& expectedValue, float maxError)
+void ValidateBitmap(const Bitmap& bitmap, const Vector4& expectedValue, float maxError)
 {
     for (uint32 y = 0; y < bitmap.GetHeight(); ++y)
     {
@@ -249,14 +249,16 @@ void ValidateBitmap(const Bitmap& bitmap, uint32 numPasses, const Vector4& expec
             SCOPED_TRACE("x=" + std::to_string(x));
 
             const Vector4 color = bitmap.GetPixel(x, y);
-            EXPECT_NEAR(expectedValue.x, color.x / numPasses, maxError);
-            EXPECT_NEAR(expectedValue.y, color.y / numPasses, maxError);
-            EXPECT_NEAR(expectedValue.z, color.z / numPasses, maxError);
+            EXPECT_NEAR(expectedValue.x, color.x, maxError);
+            EXPECT_NEAR(expectedValue.y, color.y, maxError);
+            EXPECT_NEAR(expectedValue.z, color.z, maxError);
         }
     }
 
     // TODO compute average image color
 }
+
+static const std::string g_ouputFilePrefix = "RenderingTests/";
 
 TEST_F(RenderingTest, EmptyScene)
 {
@@ -275,7 +277,10 @@ TEST_F(RenderingTest, EmptyScene)
 
         mViewport->Render(camera);
 
-        ValidateBitmap(mViewport->GetSumBuffer(), 1, Vector4::Zero(), 0.0f);
+        ValidateBitmap(mViewport->GetSumBuffer(), Vector4::Zero(), 0.0f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "EmptyScene_" + rendererName + ".exr";
+        mViewport->GetSumBuffer().SaveEXR(outputFilePath.c_str());
     }
 }
 
@@ -302,7 +307,10 @@ TEST_F(RenderingTest, BackgroundLightOnly)
 
         mViewport->Render(camera);
 
-        ValidateBitmap(mViewport->GetSumBuffer(), 1, lightColor, 0.01f);
+        ValidateBitmap(mViewport->GetSumBuffer(), lightColor, 0.01f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "BackgroundLightOnly_" + rendererName + ".exr";
+        mViewport->GetSumBuffer().SaveEXR(outputFilePath.c_str());
     }
 }
 
@@ -347,7 +355,13 @@ TEST_F(RenderingTest, FurnaceTest_Diffuse)
             mViewport->Render(camera);
         }
 
-        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor * materialColor, 0.05f);
+        Bitmap bitmap = mViewport->GetSumBuffer();
+        bitmap.Scale(Vector4(1.0f / numPasses));
+
+        ValidateBitmap(bitmap, lightColor * materialColor, 0.05f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "FurnaceTest_Diffuse_" + rendererName + ".exr";
+        bitmap.SaveEXR(outputFilePath.c_str());
     }
 }
 
@@ -394,7 +408,13 @@ TEST_F(RenderingTest, FurnaceTest_Emissive)
             mViewport->Render(camera);
         }
 
-        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, emissionColor, 0.0f);
+        Bitmap bitmap = mViewport->GetSumBuffer();
+        bitmap.Scale(Vector4(1.0f / numPasses));
+
+        ValidateBitmap(bitmap, emissionColor, 0.0f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "FurnaceTest_Diffuse_" + rendererName + ".exr";
+        bitmap.SaveEXR(outputFilePath.c_str());
     }
 }
 
@@ -442,7 +462,13 @@ TEST_F(RenderingTest, FurnaceTest_Metal)
             mViewport->Render(camera);
         }
 
-        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor * materialColor, 0.05f);
+        Bitmap bitmap = mViewport->GetSumBuffer();
+        bitmap.Scale(Vector4(1.0f / numPasses));
+
+        ValidateBitmap(bitmap, lightColor * materialColor, 0.05f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "FurnaceTest_Metal_" + rendererName + ".exr";
+        bitmap.SaveEXR(outputFilePath.c_str());
     }
 }
 
@@ -486,7 +512,13 @@ TEST_F(RenderingTest, FurnaceTest_Dielectric)
             mViewport->Render(camera);
         }
 
-        ValidateBitmap(mViewport->GetSumBuffer(), numPasses, lightColor, 0.075f);
+        Bitmap bitmap = mViewport->GetSumBuffer();
+        bitmap.Scale(Vector4(1.0f / numPasses));
+
+        ValidateBitmap(bitmap, lightColor, 0.075f);
+
+        std::string outputFilePath = g_ouputFilePrefix + "FurnaceTest_Dielectric_" + rendererName + ".exr";
+        bitmap.SaveEXR(outputFilePath.c_str());
     }
 }
 

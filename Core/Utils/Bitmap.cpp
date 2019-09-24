@@ -121,6 +121,39 @@ Bitmap::~Bitmap()
     Release();
 }
 
+Bitmap::Bitmap(const Bitmap& other)
+    : Bitmap(other.mDebugName)
+{
+    InitData data;
+    data.data = other.mData;
+    data.width = other.mWidth;
+    data.height = other.mHeight;
+    data.stride = other.mStride;
+    data.format = other.mFormat;
+    data.paletteSize = other.mPaletteSize;
+    data.useDefaultAllocator = other.mUsesDefaultAllocator;
+
+    Init(data);
+}
+
+Bitmap& Bitmap::operator = (const Bitmap& other)
+{
+    Release();
+
+    InitData data;
+    data.data = other.mData;
+    data.width = other.mWidth;
+    data.height = other.mHeight;
+    data.stride = other.mStride;
+    data.format = other.mFormat;
+    data.paletteSize = other.mPaletteSize;
+    data.useDefaultAllocator = other.mUsesDefaultAllocator;
+
+    Init(data);
+
+    return *this;
+}
+
 Bitmap::Bitmap(Bitmap&&) = default;
 
 Bitmap& Bitmap::operator = (Bitmap&&) = default;
@@ -809,6 +842,39 @@ void Bitmap::GetPixelBlock(const VectorInt4 coords, Vector4* outColors, const bo
     outColors[1] = color[1];
     outColors[2] = color[2];
     outColors[3] = color[3];
+}
+
+bool Bitmap::Scale(const math::Vector4& factor)
+{
+    if (mFormat == Format::R32G32B32_Float)
+    {
+        for (uint32 y = 0; y < mHeight; ++y)
+        {
+            for (uint32 x = 0; x < mWidth; ++x)
+            {
+                Float3& pixelPtr = GetPixelRef<Float3>(x, y);
+                pixelPtr.x *= factor.x;
+                pixelPtr.y *= factor.y;
+                pixelPtr.z *= factor.z;
+            }
+        }
+        return true;
+    }
+    else if (mFormat == Format::R32G32B32A32_Float)
+    {
+        for (uint32 y = 0; y < mHeight; ++y)
+        {
+            for (uint32 x = 0; x < mWidth; ++x)
+            {
+                Vector4& pixelPtr = GetPixelRef<Vector4>(x, y);
+                pixelPtr *= factor;
+            }
+        }
+        return true;
+    }
+
+    RT_LOG_ERROR("Bitmap::Scale: Unsupported texture format");
+    return false;
 }
 
 // performs 1D box blur in linear time

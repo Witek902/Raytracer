@@ -29,7 +29,7 @@ void LightSceneObject::Traverse(const SingleTraversalContext& context, const uin
     float lightDistance;
     if (mLight->TestRayHit(context.ray, lightDistance))
     {
-        if (lightDistance < context.hitPoint.distance)
+        if (lightDistance > 0.0f && lightDistance < context.hitPoint.distance)
         {
             // mark as light
             context.hitPoint.Set(lightDistance, objectID, RT_LIGHT_OBJECT);
