@@ -1,3 +1,11 @@
+
+**!!! NOTE !!!**
+
+**The project is not developend in this repository anymore.
+The source code was moved into NFEngine project:
+https://github.com/nfprojects/nfengine/tree/devel/Src/Engine/Raytracer**
+
+
 # Raytracer
 A side project which aims to build an efficient photorealistic software renderer.
 
