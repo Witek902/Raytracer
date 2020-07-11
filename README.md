@@ -1,7 +1,7 @@
 
 **!!! NOTE !!!**
 
-**The project is not developend in this repository anymore.
+**The project is not developed in this repository anymore.
 The source code was moved into NFEngine project:
 https://github.com/nfprojects/nfengine/tree/devel/Src/Engine/Raytracer**
 
